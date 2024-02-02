@@ -42,11 +42,13 @@ export type FrameButtonsType =
   | [FrameButton, FrameButton]
   | [FrameButton, FrameButton, FrameButton]
   | [FrameButton, FrameButton, FrameButton, FrameButton];
+
 export type AddressReturnType<
   Options extends { fallbackToCustodyAddress?: boolean } | undefined,
 > = Options extends { fallbackToCustodyAddress: true }
   ? `0x${string}`
   : `0x${string}` | null;
-export type ValidateFrameMessageOptions = {
-  ignoreSignature?: boolean;
+
+export type FrameActionPayload = {
+  trustedData: { messageBytes: string };
 };
