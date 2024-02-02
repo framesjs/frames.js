@@ -1,5 +1,4 @@
 import { FrameActionMessage } from "@farcaster/core";
-import { ValidateFrameMessageOptions } from "./types";
 import { validateFrameMessageWithClient } from "./validateFrameMessageWithClient";
 import { getHubClient } from "./getHubClient";
 

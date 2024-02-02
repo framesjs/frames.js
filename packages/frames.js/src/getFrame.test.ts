@@ -50,14 +50,14 @@ describe("getFrame", () => {
 
     expect(
       getFrame({
-        text: sampleHtml,
+        htmlString: sampleHtml,
         url: "https://example.com",
       })
     ).toEqual(sampleFrame);
 
     expect(
       getFrame({
-        text: htmlName,
+        htmlString: htmlName,
         url: "https://example.com",
       })
     ).toEqual(sampleFrame);
@@ -74,7 +74,7 @@ describe("getFrame", () => {
     <meta name="fc:frame:post_url" content="https://example.com" />
   `;
     const frame = getFrame({
-      text: htmlName,
+      htmlString: htmlName,
       url: "https://example.com",
     });
     expect(frame).toEqual({
@@ -112,7 +112,7 @@ describe("getFrame", () => {
     <meta name="fc:frame:button:2:action" content="post_redirect"/>
     `;
     const frame = getFrame({
-      text: html,
+      htmlString: html,
       url: "https://example.com",
     });
 
@@ -136,7 +136,7 @@ describe("getFrame", () => {
   it("should convert a farcaster frame HTML into a Frame object", () => {
     const html = getFrameHtml(sampleFrame);
     const parsedFrame = getFrame({
-      text: html,
+      htmlString: html,
       url: "https://example.com",
     });
 
