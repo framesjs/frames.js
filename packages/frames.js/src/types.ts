@@ -3,14 +3,14 @@ type FrameVersion = "vNext" | `${number}-${number}-${number}`;
 export type Frame = {
   /** A valid frame version string. The string must be a release date (e.g. 2020-01-01 ) or vNext. Apps must ignore versions they do not understand. Currently, the only valid version is vNext.  */
   version: FrameVersion;
+  /** A 256-byte string which contains a valid URL to send the Signature Packet to. If this prop is not present, apps must POST to the frame URL. */
+  postUrl: string;
   /** A page may contain 0 to 4 buttons. If more than 1 button is present, the idx values must be in sequence starting from 1 (e.g. 1, 2 3). If a broken sequence is present (e.g 1, 2, 4), apps must not render the frame and instead render an OG embed. */
   buttons?: FrameButtonsType;
   /** An image which must be smaller than 10MB and should have an aspect ratio of 1.91:1 */
   image: string;
   /** An image which must be smaller than 10MB and should have an aspect ratio of 1.91:1. Fallback for clients that do not support frames. */
   ogImage?: string;
-  /** A 256-byte string which contains a valid URL to send the Signature Packet to. If this prop is not present, apps must POST to the frame URL. */
-  postUrl?: string;
 };
 
 export type FrameFlattened = {
