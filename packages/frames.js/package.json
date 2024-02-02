@@ -6,7 +6,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "lint": "eslint \"**/*.ts*\"",
-    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "build": "tsup `find ./src \\( -name '*.ts' -o -name '*.tsx' \\)` --format cjs,esm --dts",
     "dev": "npm run build -- --watch"
   },
   "devDependencies": {
