@@ -1,6 +1,6 @@
 import { CastId } from "@farcaster/core";
 
-export function bytesToHexString(bytes: Uint8Array) {
+export function bytesToHexString(bytes: Uint8Array): `0x${string}` {
   return ("0x" + Buffer.from(bytes).toString("hex")) as `0x${string}`;
 }
 
@@ -13,7 +13,8 @@ export function normalizeCastId(castId: CastId): {
     hash: bytesToHexString(castId.hash),
   };
 }
-export function isValidVersion(input: string) {
+
+export function isValidVersion(input: string): boolean {
   // Check if the input is exactly 'vNext'
   if (input === "vNext") {
     return true;
