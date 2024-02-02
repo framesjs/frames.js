@@ -523,12 +523,34 @@
     ref-napi "^3.0.3"
     viem "^1.12.2"
 
+"@farcaster/core@0.13.6":
+  version "0.13.6"
+  resolved "https://registry.yarnpkg.com/@farcaster/core/-/core-0.13.6.tgz#ddb59db757092b183373e7f0233b0da06f713f81"
+  integrity sha512-GCKCW+6TMPX7gTf/CbNInRknrJ8I6HHyT143e+icoy7sdHIpR3a/fkN4C5kAwldS4sW2G98W5ldT1EXqB4/C4g==
+  dependencies:
+    "@noble/curves" "^1.0.0"
+    "@noble/hashes" "^1.3.0"
+    ffi-napi "^4.0.3"
+    neverthrow "^6.0.0"
+    ref-napi "^3.0.3"
+    viem "^1.12.2"
+
 "@farcaster/hub-nodejs@^0.10.21":
   version "0.10.21"
   resolved "https://registry.yarnpkg.com/@farcaster/hub-nodejs/-/hub-nodejs-0.10.21.tgz#64901573b1a0d9ee8a5285d651c2b378a49ff550"
   integrity sha512-tOv1iKbCl4jsiKUiQr5Duu1vCFV54wRN4+Xt/PKYk7ihy1+MJ9U6lCqkXNH52xtye7hGshKsHrH9CaQU8FO/sA==
   dependencies:
     "@farcaster/core" "0.13.5"
+    "@grpc/grpc-js" "~1.8.21"
+    "@noble/hashes" "^1.3.0"
+    neverthrow "^6.0.0"
+
+"@farcaster/hub-nodejs@^0.10.22":
+  version "0.10.22"
+  resolved "https://registry.yarnpkg.com/@farcaster/hub-nodejs/-/hub-nodejs-0.10.22.tgz#b00dd11e8478d05d51b08766e735a59dc219f6cf"
+  integrity sha512-pIGlBd0/ZtnadbD1103TS9ONLD+vlzthlhsNno/CUkSGRW66nhYkRQS0v16/605IFZgOe8X96pgmie4DOwDeWQ==
+  dependencies:
+    "@farcaster/core" "0.13.6"
     "@grpc/grpc-js" "~1.8.21"
     "@noble/hashes" "^1.3.0"
     neverthrow "^6.0.0"

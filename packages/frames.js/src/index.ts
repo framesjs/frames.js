@@ -8,6 +8,7 @@ import {
   VerificationAddEthAddressMessage,
   HubResult,
 } from "@farcaster/core";
+import { HubRpcClient, getSSLHubRpcClient } from "@farcaster/hub-nodejs";
 import * as cheerio from "cheerio";
 
 import { createPublicClient, http, parseAbi } from "viem";
@@ -114,7 +115,7 @@ export function htmlToFrame({
     .filter((i, elem) => elem !== null)
     .toArray();
 
-  let refreshPeriod = undefined;
+  let refreshPeriod: number | undefined = undefined;
 
   try {
     const refreshPeriodContent = $(
@@ -183,6 +184,25 @@ export function getFrameMessageFromRequestBody(body: any) {
   return Message.decode(
     Buffer.from(body?.trustedData?.messageBytes ?? "", "hex")
   );
+}
+
+export function getHubClient(): HubRpcClient {
+  return getSSLHubRpcClient(
+    process.env.FRAME_HUB_URL ||
+      process.env.HUB_URL ||
+      "nemes.farcaster.xyz:2283"
+  );
+}
+
+export async function validateFrameMessage(
+  body: any,
+  options?: ValidateFrameMessageOptions
+): Promise<{
+  isValid: boolean;
+  message: FrameActionMessage | undefined;
+}> {
+  const client = getHubClient() as HubService;
+  return validateFrameMessageWithClient(body, client, options);
 }
 
 export async function validateFrameMessageWithClient(

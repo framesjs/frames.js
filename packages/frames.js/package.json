@@ -1,5 +1,5 @@
 {
-  "name": "@framesjs/nodejs",
+  "name": "frames.js",
   "version": "0.0.0",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -13,9 +13,10 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "@framesjs/core": "*",
-    "@farcaster/hub-nodejs": "^0.10.21",
+    "@farcaster/core": "^0.13.5",
+    "@farcaster/hub-nodejs": "^0.10.22",
     "cheerio": "^1.0.0-rc.12",
-    "tsup": "^8.0.1"
+    "tsup": "^8.0.1",
+    "viem": "^2.7.1"
   }
 }
