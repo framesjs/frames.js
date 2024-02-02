@@ -2,8 +2,6 @@ export * from "./getAddressForFid";
 export * from "./getFrame";
 export * from "./getFrameHtml";
 export * from "./getFrameFlattened";
-export * from "./getHubClient";
 export * from "./types";
 export * from "./utils";
 export * from "./validateFrameMessage";
-export * from "./validateFrameMessageWithClient";

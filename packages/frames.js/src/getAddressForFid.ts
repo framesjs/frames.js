@@ -1,4 +1,4 @@
-import { VerificationAddAddressMessage } from "@farcaster/core";
+import { VerificationAddEthAddressMessage } from "@farcaster/core";
 import { createPublicClient, http, parseAbi } from "viem";
 import { optimism } from "viem/chains";
 import { AddressReturnType } from "./types";
@@ -22,9 +22,9 @@ export async function getAddressForFid<
   if (verifications?.messages[0]) {
     const {
       data: {
-        verificationAddAddressBody: { address: addressBytes },
+        verificationAddEthAddressBody: { address: addressBytes },
       },
-    } = verifications.messages[0] as VerificationAddAddressMessage;
+    } = verifications.messages[0] as VerificationAddEthAddressMessage;
     return bytesToHexString(addressBytes);
   } else if (options?.fallbackToCustodyAddress) {
     const publicClient = createPublicClient({
