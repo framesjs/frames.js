@@ -1,5 +1,5 @@
 import * as cheerio from "cheerio";
-import { Button, ButtonsType, Frame } from "./types";
+import { FrameButton, FrameButtonsType, Frame } from "./types";
 import { isValidVersion } from "./utils";
 
 export function getFrame({
@@ -38,7 +38,7 @@ export function getFrame({
     .toArray();
 
   const buttonsWithActions = buttonLabels
-    .map((button): Button & { index: number } => {
+    .map((button): FrameButton & { index: number } => {
       const action = buttonActions.find(
         (action) => action?.buttonNumber === button?.buttonNumber
       );
@@ -50,7 +50,7 @@ export function getFrame({
     })
     .sort((a, b) => a.index - b.index)
     .map(
-      (button): Button => ({
+      (button): FrameButton => ({
         label: button.label,
         action: button.action,
       })
@@ -69,7 +69,7 @@ export function getFrame({
   return {
     version: version as "vNext" | `${number}-${number}-${number}`,
     image: image,
-    buttons: buttonsWithActions as ButtonsType,
+    buttons: buttonsWithActions as FrameButtonsType,
     postUrl,
   };
 }
