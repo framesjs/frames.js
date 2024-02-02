@@ -1,4 +1,4 @@
-import { FrameMetadata, frameMetadataToHtmlResponse, parseFrame } from ".";
+import { FrameMetadata, frameMetadataToHtmlText, htmlToFrame } from ".";
 
 describe("core", () => {
   const sampleHtml = `
@@ -50,14 +50,14 @@ describe("core", () => {
   `;
 
     expect(
-      parseFrame({
+      htmlToFrame({
         text: sampleHtml,
         url: "https://example.com",
       })
     ).toEqual(sampleFrameMetadata);
 
     expect(
-      parseFrame({
+      htmlToFrame({
         text: htmlName,
         url: "https://example.com",
       })
@@ -74,7 +74,7 @@ describe("core", () => {
     <meta name="fc:frame:button:4" content="Blue" />
     <meta name="fc:frame:post_url" content="https://example.com" />
   `;
-    const frame = parseFrame({
+    const frame = htmlToFrame({
       text: htmlName,
       url: "https://example.com",
     });
@@ -112,7 +112,7 @@ describe("core", () => {
     <meta name="fc:frame:button:2" content="2"/>
     <meta name="fc:frame:button:2:action" content="post_redirect"/>
     `;
-    const frame = parseFrame({
+    const frame = htmlToFrame({
       text: html,
       url: "https://example.com",
     });
@@ -135,8 +135,8 @@ describe("core", () => {
   });
 
   it("should convert a farcaster frame HTML into a FrameMetadata object", () => {
-    const html = frameMetadataToHtmlResponse(sampleFrameMetadata);
-    const parsedFrame = parseFrame({
+    const html = frameMetadataToHtmlText(sampleFrameMetadata);
+    const parsedFrame = htmlToFrame({
       text: html,
       url: "https://example.com",
     });

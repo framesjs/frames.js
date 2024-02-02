@@ -2,12 +2,48 @@ import {
   CastId,
   FrameActionData,
   FrameActionMessage,
-  HubRpcClient,
   Message,
   MessageType,
-  getSSLHubRpcClient,
-} from "@farcaster/hub-nodejs";
+  ValidationResponse,
+  VerificationAddEthAddressMessage,
+  HubResult,
+} from "@farcaster/core";
 import * as cheerio from "cheerio";
+
+import { createPublicClient, http, parseAbi } from "viem";
+import * as chains from "viem/chains";
+import { optimism } from "viem/chains";
+
+type Builtin =
+  | Date
+  | Function
+  | Uint8Array
+  | string
+  | number
+  | boolean
+  | undefined;
+type DeepPartial<T> = T extends Builtin
+  ? T
+  : T extends Array<infer U>
+    ? Array<DeepPartial<U>>
+    : T extends ReadonlyArray<infer U>
+      ? ReadonlyArray<DeepPartial<U>>
+      : T extends {}
+        ? {
+            [K in keyof T]?: DeepPartial<T[K]>;
+          }
+        : Partial<T>;
+
+interface HubService {
+  validateMessage(
+    request: DeepPartial<Message>,
+    metadata?: any
+  ): Promise<HubResult<ValidationResponse>>;
+}
+
+export type ValidateFrameMessageOptions = {
+  ignoreSignature?: boolean;
+};
 
 type Button = {
   label: string;
@@ -45,7 +81,7 @@ function parseButtonElement(elem: cheerio.Element) {
   }
 }
 
-export function parseFrame({
+export function htmlToFrame({
   text,
   url,
 }: {
@@ -129,17 +165,30 @@ export function parseFrame({
   };
 }
 
-export function getHubClient(): HubRpcClient {
-  return getSSLHubRpcClient(
-    process.env.FRAME_HUB_URL ||
-      process.env.HUB_URL ||
-      "nemes.farcaster.xyz:2283"
+export function bytesToHexString(bytes: Uint8Array) {
+  return ("0x" + Buffer.from(bytes).toString("hex")) as `0x${string}`;
+}
+
+export function normalizeCastId(castId: CastId): {
+  fid: number;
+  hash: `0x${string}`;
+} {
+  return {
+    fid: castId.fid,
+    hash: bytesToHexString(castId.hash),
+  };
+}
+
+export function getFrameMessageFromRequestBody(body: any) {
+  return Message.decode(
+    Buffer.from(body?.trustedData?.messageBytes ?? "", "hex")
   );
 }
 
-export async function getFrameMessage(
+export async function validateFrameMessageWithClient(
   body: any,
-  options?: { ignoreSignature?: boolean }
+  client: HubService,
+  options?: ValidateFrameMessageOptions
 ): Promise<{
   isValid: boolean;
   message: FrameActionMessage | undefined;
@@ -150,7 +199,6 @@ export async function getFrameMessage(
     Buffer.from(body?.trustedData?.messageBytes ?? "", "hex")
   );
 
-  const client = getHubClient();
   const result = await client.validateMessage(frameMessage);
   if (
     result.isOk() &&
@@ -169,20 +217,52 @@ export async function getFrameMessage(
   };
 }
 
-export function getFrameActionData(
-  message: FrameActionMessage
-): FrameActionData | undefined {
-  return message?.data as FrameActionData;
-}
+type AddressReturnType<
+  Options extends { fallbackToCustodyAddress?: boolean } | undefined,
+> = Options extends { fallbackToCustodyAddress: true }
+  ? `0x${string}`
+  : `0x${string}` | null;
 
-export function normalizeCastId(castId: CastId): {
+// Function implementation with conditional return type
+export async function getAddressForFid<
+  Options extends { fallbackToCustodyAddress?: boolean } | undefined,
+>({
+  fid,
+  hubClient,
+  options,
+}: {
   fid: number;
-  hash: `0x${string}`;
-} {
-  return {
-    fid: castId.fid,
-    hash: ("0x" + Buffer.from(castId.hash).toString("hex")) as `0x${string}`,
-  };
+  hubClient: any;
+  options?: Options;
+}): Promise<AddressReturnType<Options>> {
+  const verificationsResult = await hubClient.getVerificationsByFid({
+    fid,
+  });
+  const verifications = verificationsResult.unwrapOr(null);
+  if (verifications?.messages[0]) {
+    const {
+      data: {
+        verificationAddEthAddressBody: { address: addressBytes },
+      },
+    } = verifications.messages[0] as VerificationAddEthAddressMessage;
+    return bytesToHexString(addressBytes);
+  } else if (options?.fallbackToCustodyAddress) {
+    const publicClient = createPublicClient({
+      transport: http(),
+      chain: optimism,
+    });
+    // TODO: Do this async
+    const address = await publicClient.readContract({
+      abi: parseAbi(["function custodyOf(uint256 fid) view returns (address)"]),
+      // TODO Extract into constants file
+      address: "0x00000000fc6c5f01fc30151999387bb99a9f489b",
+      functionName: "custodyOf",
+      args: [BigInt(fid)],
+    });
+    return address;
+  } else {
+    return null as AddressReturnType<Options>;
+  }
 }
 
 export function frameMetadataToHtml(frame: FrameMetadata) {
@@ -203,7 +283,23 @@ export function frameMetadataToHtml(frame: FrameMetadata) {
   `;
 }
 
-export function frameMetadataToHtmlResponse(
+export function frameMetadataToNextMetadata(frame: FrameMetadata) {
+  const metadata: any = {
+    "fc:frame": frame.version,
+    "fc:frame:image": frame.image,
+    "fc:frame:post_url": frame.postUrl,
+    "fc:frame:refresh_period": frame.refreshPeriod,
+  };
+
+  frame.buttons?.forEach((button, index) => {
+    metadata[`fc:frame:button:${index + 1}`] = button.label;
+    metadata[`fc:frame:button:${index + 1}:action`] = button.action;
+  });
+
+  return metadata;
+}
+
+export function frameMetadataToHtmlText(
   frame: FrameMetadata,
   options: {
     og?: { title: string };
