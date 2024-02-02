@@ -37,7 +37,7 @@ Check out the following places for more Frames-related content:
 ```tsx filename="page.tsx"
 // ./app/page.tsx
 
-import { Frame, frameMetadataToNextMetadata } from "frames.js";
+import { Frame, getFrameNextMetadata } from "frames.js";
 import type { Metadata } from "next";
 
 // Declare the frame
@@ -63,17 +63,14 @@ export const metadata: Metadata = {
       },
     ],
   },
-  other: frameMetadataToNextMetadata(initialFrame),
+  other: getFrameNextMetadata(initialFrame),
 };
 ```
 
 ```ts filename="app/frames/route.ts"
 // ./app/frames/route.ts
 
-import {
-  getFrameHtml,
-  validateFrameMessage,
-} from "frames.js";
+import { getFrameHtml, validateFrameMessage } from "frames.js";
 import { NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {

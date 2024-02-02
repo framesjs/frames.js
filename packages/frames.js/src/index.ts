@@ -1,75 +1,20 @@
 import {
-  CastId,
   FrameActionMessage,
-  HubResult,
   Message,
   MessageType,
-  ValidationResponse,
   VerificationAddAddressMessage,
 } from "@farcaster/core";
 import { HubRpcClient, getSSLHubRpcClient } from "@farcaster/hub-nodejs";
 import * as cheerio from "cheerio";
-
 import { createPublicClient, http, parseAbi } from "viem";
 import { optimism } from "viem/chains";
-
-type Builtin =
-  | Date
-  | Function
-  | Uint8Array
-  | string
-  | number
-  | boolean
-  | undefined;
-type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-    ? Array<DeepPartial<U>>
-    : T extends ReadonlyArray<infer U>
-      ? ReadonlyArray<DeepPartial<U>>
-      : T extends {}
-        ? {
-            [K in keyof T]?: DeepPartial<T[K]>;
-          }
-        : Partial<T>;
-
-interface HubService {
-  validateMessage(
-    request: DeepPartial<Message>,
-    metadata?: any
-  ): Promise<HubResult<ValidationResponse>>;
-}
+import { Button, ButtonsType } from "./types";
+import { Frame } from "./types";
+import { isValidVersion } from "./utils";
+import { bytesToHexString } from "./utils";
 
 export type ValidateFrameMessageOptions = {
   ignoreSignature?: boolean;
-};
-
-type Button = {
-  /** A 256-byte string which is label of the button */
-  label: string;
-  /** Must be post or  post_redirect. Defaults to post if no value was specified.
-   * If set to post, app must make the POST request and frame server must respond with a 200 OK, which may contain another frame.
-   * If set to post_redirect, app must make the POST request, and the frame server must respond with a 302 OK with a location property set on the header. */
-  action?: "post" | "post_redirect";
-};
-
-export type Frame = {
-  /** A valid frame version string. The string must be a release date (e.g. 2020-01-01 ) or vNext. Apps must ignore versions they do not understand. Currently, the only valid version is vNext.  */
-  version: "vNext" | `${number}-${number}-${number}`;
-  /** A page may contain 0 to 4 buttons. If more than 1 button is present, the idx values must be in sequence starting from 1 (e.g. 1, 2 3). If a broken sequence is present (e.g 1, 2, 4), apps must not render the frame and instead render an OG embed. */
-  buttons?:
-    | [Button]
-    | [Button, Button]
-    | [Button, Button, Button]
-    | [Button, Button, Button, Button];
-  /** An image which must be smaller than 10MB and should have an aspect ratio of 1.91:1 */
-  image: string;
-  /** An image which must be smaller than 10MB and should have an aspect ratio of 1.91:1. Fallback for clients that do not support frames. */
-  ogImage?: string;
-  /** A 256-byte string which contains a valid URL to send the Signature Packet to. If this prop is not present, apps must POST to the frame URL. */
-  postUrl?: string;
-  /** A period in seconds at which the app should expect the image to update. Must be at least 30. Apps should default to 86,400 (1 day) if not set or invalid. */
-  refreshPeriod?: number;
 };
 
 function parseButtonElement(elem: cheerio.Element) {
@@ -85,7 +30,7 @@ function parseButtonElement(elem: cheerio.Element) {
   }
 }
 
-export function htmlToFrame({
+export function getFrame({
   text,
   url,
 }: {
@@ -100,11 +45,6 @@ export function htmlToFrame({
   const image = $(
     "meta[property='fc:frame:image'], meta[name='fc:frame:image']"
   ).attr("content");
-
-  // TODO: Useful error messages
-  if (!version || !image) {
-    return null;
-  }
 
   const postUrl =
     $(
@@ -153,30 +93,24 @@ export function htmlToFrame({
         label: button.label,
         action: button.action,
       })
-    )
-    // First 4
-    .slice(0, 4);
+    );
+
+  // TODO: Useful error messages
+  if (
+    !version ||
+    !isValidVersion(version) ||
+    !image ||
+    buttonsWithActions.length > 4
+  ) {
+    return null;
+  }
 
   return {
-    version: version,
+    version: version as "vNext" | `${number}-${number}-${number}`,
     image: image,
-    buttons: buttonsWithActions,
+    buttons: buttonsWithActions as ButtonsType,
     postUrl,
     refreshPeriod,
-  };
-}
-
-export function bytesToHexString(bytes: Uint8Array) {
-  return ("0x" + Buffer.from(bytes).toString("hex")) as `0x${string}`;
-}
-
-export function normalizeCastId(castId: CastId): {
-  fid: number;
-  hash: `0x${string}`;
-} {
-  return {
-    fid: castId.fid,
-    hash: bytesToHexString(castId.hash),
   };
 }
 
@@ -285,7 +219,7 @@ export async function getAddressForFid<
   }
 }
 
-export function frameMetadataToHtml(frame: Frame) {
+export function getFrameHtmlHead(frame: Frame) {
   return `<meta property="og:image" content="${frame.ogImage || frame.image}">
   <meta name="fc:frame" content="vNext">
   <meta name="fc:frame:image" content="${frame.image}">
@@ -303,7 +237,7 @@ export function frameMetadataToHtml(frame: Frame) {
   `;
 }
 
-export function frameMetadataToNextMetadata(frame: Frame) {
+export function getFrameNextMetadata(frame: Frame) {
   const metadata: any = {
     "fc:frame": frame.version,
     "fc:frame:image": frame.image,
@@ -335,7 +269,7 @@ export function getFrameHtml(
     <head>
       ${options.title ? `<title>${options.title}</title>` : ""}
       ${options.og?.title ? `<meta property="og:title" content="${options.og.title}">` : ""}
-      ${frameMetadataToHtml(frame)}
+      ${getFrameHtmlHead(frame)}
       ${options.htmlHead || ""}
     </head>
     <body>${options.htmlBody}</body>

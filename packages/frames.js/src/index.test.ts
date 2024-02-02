@@ -1,4 +1,5 @@
-import { Frame, getFrameHtml, htmlToFrame } from ".";
+import { getFrameHtml, getFrame } from ".";
+import { Frame } from "./types";
 
 describe("core", () => {
   const sampleHtml = `
@@ -50,14 +51,14 @@ describe("core", () => {
   `;
 
     expect(
-      htmlToFrame({
+      getFrame({
         text: sampleHtml,
         url: "https://example.com",
       })
     ).toEqual(sampleFrame);
 
     expect(
-      htmlToFrame({
+      getFrame({
         text: htmlName,
         url: "https://example.com",
       })
@@ -74,7 +75,7 @@ describe("core", () => {
     <meta name="fc:frame:button:4" content="Blue" />
     <meta name="fc:frame:post_url" content="https://example.com" />
   `;
-    const frame = htmlToFrame({
+    const frame = getFrame({
       text: htmlName,
       url: "https://example.com",
     });
@@ -112,7 +113,7 @@ describe("core", () => {
     <meta name="fc:frame:button:2" content="2"/>
     <meta name="fc:frame:button:2:action" content="post_redirect"/>
     `;
-    const frame = htmlToFrame({
+    const frame = getFrame({
       text: html,
       url: "https://example.com",
     });
@@ -136,7 +137,7 @@ describe("core", () => {
 
   it("should convert a farcaster frame HTML into a Frame object", () => {
     const html = getFrameHtml(sampleFrame);
-    const parsedFrame = htmlToFrame({
+    const parsedFrame = getFrame({
       text: html,
       url: "https://example.com",
     });
