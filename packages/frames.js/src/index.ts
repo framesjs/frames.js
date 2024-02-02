@@ -45,6 +45,7 @@ export type ValidateFrameMessageOptions = {
 };
 
 type Button = {
+  /** A 256-byte string which is label of the button */
   label: string;
   /** Must be post or  post_redirect. Defaults to post if no value was specified.
    * If set to post, app must make the POST request and frame server must respond with a 200 OK, which may contain another frame.
@@ -52,16 +53,20 @@ type Button = {
   action?: "post" | "post_redirect";
 };
 
-export type FrameMetadata = {
+export type Frame = {
   /** A valid frame version string. The string must be a release date (e.g. 2020-01-01 ) or vNext. Apps must ignore versions they do not understand. Currently, the only valid version is vNext.  */
-  version: string;
+  version: "vNext" | `${number}-${number}-${number}`;
   /** A page may contain 0 to 4 buttons. If more than 1 button is present, the idx values must be in sequence starting from 1 (e.g. 1, 2 3). If a broken sequence is present (e.g 1, 2, 4), apps must not render the frame and instead render an OG embed. */
-  buttons?: Button[];
+  buttons?:
+    | [Button]
+    | [Button, Button]
+    | [Button, Button, Button]
+    | [Button, Button, Button, Button];
   /** An image which must be smaller than 10MB and should have an aspect ratio of 1.91:1 */
   image: string;
   /** An image which must be smaller than 10MB and should have an aspect ratio of 1.91:1. Fallback for clients that do not support frames. */
   ogImage?: string;
-  /** A 256-byte string which contains a valid URL to send the Signature Packet to. If this prop is not present, apps must POST to the frame URL.  */
+  /** A 256-byte string which contains a valid URL to send the Signature Packet to. If this prop is not present, apps must POST to the frame URL. */
   postUrl?: string;
   /** A period in seconds at which the app should expect the image to update. Must be at least 30. Apps should default to 86,400 (1 day) if not set or invalid. */
   refreshPeriod?: number;
@@ -86,7 +91,7 @@ export function htmlToFrame({
 }: {
   text: string;
   url?: string;
-}): FrameMetadata | null {
+}): Frame | null {
   const $ = cheerio.load(text);
 
   const version = $("meta[property='fc:frame'], meta[name='fc:frame']").attr(
@@ -280,7 +285,7 @@ export async function getAddressForFid<
   }
 }
 
-export function frameMetadataToHtml(frame: FrameMetadata) {
+export function frameMetadataToHtml(frame: Frame) {
   return `<meta property="og:image" content="${frame.ogImage || frame.image}">
   <meta name="fc:frame" content="vNext">
   <meta name="fc:frame:image" content="${frame.image}">
@@ -298,7 +303,7 @@ export function frameMetadataToHtml(frame: FrameMetadata) {
   `;
 }
 
-export function frameMetadataToNextMetadata(frame: FrameMetadata) {
+export function frameMetadataToNextMetadata(frame: Frame) {
   const metadata: any = {
     "fc:frame": frame.version,
     "fc:frame:image": frame.image,
@@ -314,8 +319,8 @@ export function frameMetadataToNextMetadata(frame: FrameMetadata) {
   return metadata;
 }
 
-export function frameMetadataToHtmlText(
-  frame: FrameMetadata,
+export function getFrameHtml(
+  frame: Frame,
   options: {
     og?: { title: string };
     title?: string;

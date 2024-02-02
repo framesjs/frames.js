@@ -37,11 +37,11 @@ Check out the following places for more Frames-related content:
 ```tsx filename="page.tsx"
 // ./app/page.tsx
 
-import { FrameMetadata, frameMetadataToNextMetadata } from "frames.js";
+import { Frame, frameMetadataToNextMetadata } from "frames.js";
 import type { Metadata } from "next";
 
 // Declare the frame
-const initialFrame: FrameMetadata = {
+const initialFrame: Frame = {
   image: "https://picsum.photos/seed/frames.js/1146/600",
   version: "vNext",
   buttons: [
@@ -49,7 +49,7 @@ const initialFrame: FrameMetadata = {
       label: "Next random image",
     },
   ],
-  postUrl: `${process.env.NEXT_PUBLIC_HOST}/api/frame`,
+  postUrl: `${process.env.NEXT_PUBLIC_HOST}/frames`,
 };
 
 // Export Next.js metadata
@@ -67,13 +67,11 @@ export const metadata: Metadata = {
 };
 ```
 
-```ts filename="api/frame.ts"
-// ./app/api/frame.ts
+```ts filename="app/frames/route.ts"
+// ./app/frames/route.ts
 
 import {
-  FrameMetadata,
-  frameMetadataToHtmlText,
-  getFrameMessageFromRequestBody,
+  getFrameHtml,
   validateFrameMessage,
 } from "frames.js";
 import { NextRequest } from "next/server";
@@ -82,17 +80,16 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
 
   // Parse and validate the frame message
-  const result = await validateFrameMessage(body);
-  const { isValid, message } = result;
+  const { isValid, message } = await validateFrameMessage(body);
   if (!isValid || !message) {
     return new Response("Invalid message", { status: 400 });
   }
 
   const randomInt = Math.floor(Math.random() * 100);
-  const imageUrlBase = `https://picsum.photos/seed/${randomInt}/1146/600`;
+  const imageUrlBase = `https://picsum.photos/seed/${randomInt}`;
 
   // Use the frame message to build the frame
-  const frame: FrameMetadata = {
+  const frame = {
     version: "vNext",
     image: `${imageUrlBase}/1146/600`,
     buttons: [
@@ -101,11 +98,11 @@ export async function POST(request: NextRequest) {
       },
     ],
     ogImage: `${imageUrlBase}/600`,
-    postUrl: `${process.env.NEXT_PUBLIC_HOST}/api/frame`,
+    postUrl: `${process.env.NEXT_PUBLIC_HOST}/frames`,
   };
 
   // Return the frame as HTML
-  const html = frameMetadataToHtmlText(frame);
+  const html = getFrameHtml(frame);
 
   return new Response(html, {
     headers: {

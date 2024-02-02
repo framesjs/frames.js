@@ -1,6 +1,6 @@
 import {
-  FrameMetadata,
-  frameMetadataToHtmlText,
+  Frame,
+  getFrameHtml,
   getFrameMessageFromRequestBody,
   validateFrameMessage,
 } from "frames.js";
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
   const randomInt = Math.floor(Math.random() * 100);
   const imageUrlBase = `https://picsum.photos/seed/${randomInt}/1146/600`;
 
-  const frame: FrameMetadata = {
+  const frame: Frame = {
     version: "vNext",
     image: `${imageUrlBase}/1146/600`,
     buttons: [
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     postUrl: framePostUrl,
   };
 
-  const html = frameMetadataToHtmlText(frame);
+  const html = getFrameHtml(frame);
 
   return new Response(html, {
     headers: {

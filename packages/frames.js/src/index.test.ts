@@ -1,4 +1,4 @@
-import { FrameMetadata, frameMetadataToHtmlText, htmlToFrame } from ".";
+import { Frame, getFrameHtml, htmlToFrame } from ".";
 
 describe("core", () => {
   const sampleHtml = `
@@ -12,7 +12,7 @@ describe("core", () => {
   <meta property="fc:frame:refresh_period" content="1000" />
 `;
 
-  const sampleFrameMetadata = {
+  const sampleFrame = {
     version: "vNext",
     image: "http:/example.com/image.png",
     buttons: [
@@ -35,7 +35,7 @@ describe("core", () => {
     ],
     postUrl: "https://example.com",
     refreshPeriod: 1000,
-  } as FrameMetadata;
+  } as Frame;
 
   it("should parse html meta tags", () => {
     const htmlName = `
@@ -54,14 +54,14 @@ describe("core", () => {
         text: sampleHtml,
         url: "https://example.com",
       })
-    ).toEqual(sampleFrameMetadata);
+    ).toEqual(sampleFrame);
 
     expect(
       htmlToFrame({
         text: htmlName,
         url: "https://example.com",
       })
-    ).toEqual(sampleFrameMetadata);
+    ).toEqual(sampleFrame);
   });
 
   it("should parse html meta tags with name attributes", () => {
@@ -134,13 +134,13 @@ describe("core", () => {
     });
   });
 
-  it("should convert a farcaster frame HTML into a FrameMetadata object", () => {
-    const html = frameMetadataToHtmlText(sampleFrameMetadata);
+  it("should convert a farcaster frame HTML into a Frame object", () => {
+    const html = getFrameHtml(sampleFrame);
     const parsedFrame = htmlToFrame({
       text: html,
       url: "https://example.com",
     });
 
-    expect(parsedFrame).toEqual(sampleFrameMetadata);
+    expect(parsedFrame).toEqual(sampleFrame);
   });
 });
