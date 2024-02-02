@@ -51,4 +51,13 @@ export type AddressReturnType<
 
 export type FrameActionPayload = {
   trustedData: { messageBytes: string };
+  untrustedData: {
+    fid: number;
+    url: string;
+    messageHash: string;
+    timestamp: number;
+    network: number;
+    buttonIndex: number;
+    castId: { fid: number; hash: string };
+  };
 };
