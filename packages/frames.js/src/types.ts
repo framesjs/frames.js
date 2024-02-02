@@ -28,3 +28,11 @@ export type ButtonsType =
   | [Button, Button]
   | [Button, Button, Button]
   | [Button, Button, Button, Button];
+export type AddressReturnType<
+  Options extends { fallbackToCustodyAddress?: boolean } | undefined,
+> = Options extends { fallbackToCustodyAddress: true }
+  ? `0x${string}`
+  : `0x${string}` | null;
+export type ValidateFrameMessageOptions = {
+  ignoreSignature?: boolean;
+};

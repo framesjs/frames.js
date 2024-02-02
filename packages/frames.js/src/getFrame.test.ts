@@ -1,7 +1,8 @@
-import { getFrameHtml, getFrame } from ".";
+import { getFrame } from "./getFrame";
+import { getFrameHtml } from "./getFrameHtml";
 import { Frame } from "./types";
 
-describe("core", () => {
+describe("getFrame", () => {
   const sampleHtml = `
   <meta property="fc:frame" content="vNext" />
   <meta property="fc:frame:image" content="http:/example.com/image.png" />

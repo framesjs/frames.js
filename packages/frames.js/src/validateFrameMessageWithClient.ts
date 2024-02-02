@@ -1,0 +1,35 @@
+import { FrameActionMessage, Message, MessageType } from "@farcaster/core";
+import { HubRpcClient } from "@farcaster/hub-nodejs";
+import { ValidateFrameMessageOptions } from "./types";
+
+export async function validateFrameMessageWithClient(
+  body: any,
+  client: HubRpcClient,
+  options?: ValidateFrameMessageOptions
+): Promise<{
+  isValid: boolean;
+  message: FrameActionMessage | undefined;
+}> {
+  options = options || {};
+
+  const frameMessage: Message = Message.decode(
+    Buffer.from(body?.trustedData?.messageBytes ?? "", "hex")
+  );
+
+  const result = await client.validateMessage(frameMessage);
+  if (
+    result.isOk() &&
+    result.value.valid &&
+    result.value.message &&
+    result.value.message.data?.type === MessageType.FRAME_ACTION
+  ) {
+    return {
+      isValid: result.value.valid,
+      message: result.value.message as FrameActionMessage,
+    };
+  }
+  return {
+    isValid: false,
+    message: undefined,
+  };
+}

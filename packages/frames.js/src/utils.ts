@@ -1,4 +1,4 @@
-import { CastId } from "@farcaster/core";
+import { CastId, Message } from "@farcaster/core";
 
 export function bytesToHexString(bytes: Uint8Array): `0x${string}` {
   return ("0x" + Buffer.from(bytes).toString("hex")) as `0x${string}`;
@@ -12,6 +12,12 @@ export function normalizeCastId(castId: CastId): {
     fid: castId.fid,
     hash: bytesToHexString(castId.hash),
   };
+}
+
+export function getFrameMessageFromRequestBody(body: any) {
+  return Message.decode(
+    Buffer.from(body?.trustedData?.messageBytes ?? "", "hex")
+  );
 }
 
 export function isValidVersion(input: string): boolean {
