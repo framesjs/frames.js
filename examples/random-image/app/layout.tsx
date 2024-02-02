@@ -5,18 +5,20 @@ import { framePostUrl } from "./constants";
 
 const inter = Inter({ subsets: ["latin"] });
 
+const imageUrl = "https://picsum.photos/seed/frames.js/1146/600";
+
 export const metadata: Metadata = {
   title: "Random Image Frame",
   description: "This is an example of a simple frame using frames.js",
   openGraph: {
     images: [
       {
-        url: "https://picsum.photos/seed/frames.js/1146/600",
+        url: imageUrl,
       },
     ],
   },
   other: getFrameFlattened({
-    image: "https://picsum.photos/seed/frames.js/1146/600",
+    image: imageUrl,
     version: "vNext",
     buttons: [
       {

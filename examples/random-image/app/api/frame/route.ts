@@ -23,11 +23,11 @@ export async function POST(request: NextRequest) {
   }
 
   const randomInt = Math.floor(Math.random() * 100);
-  const imageUrlBase = `https://picsum.photos/seed/${randomInt}`;
+  const imageUrl = `https://picsum.photos/seed/${randomInt}/1146/600`;
 
   const frame: Frame = {
     version: "vNext",
-    image: `${imageUrlBase}/1146/600`,
+    image: imageUrl,
     buttons: [
       {
         label: `Next (pressed by ${message?.data.fid})`,
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
         action: "post_redirect",
       },
     ],
-    ogImage: `${imageUrlBase}/600`,
+    ogImage: imageUrl,
     postUrl: framePostUrl,
   };
 
