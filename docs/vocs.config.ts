@@ -1,8 +1,7 @@
 import { defineConfig } from "vocs";
 
 export default defineConfig({
-  ogImageUrl:
-    "https://vocs.dev/api/og?logo=%logo&title=%title&description=%description",
+  ogImageUrl: "https://framesjs.org/og.png",
   title: "frames.js",
   topNav: [
     { text: "Github", link: "https://github.com/framesjs/frames.js" },

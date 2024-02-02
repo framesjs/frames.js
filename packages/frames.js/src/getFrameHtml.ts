@@ -9,8 +9,6 @@ export function getFrameHtml(
     htmlHead?: string;
   } = {}
 ): string {
-  options = options || {};
-
   const html = `<!DOCTYPE html>
   <html>
     <head>
