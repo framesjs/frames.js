@@ -37,7 +37,7 @@ Check out the following places for more Frames-related content:
 ```tsx filename="page.tsx"
 // ./app/page.tsx
 
-import { Frame, getFrameNextMetadata } from "frames.js";
+import { Frame, getFrameFlattened } from "frames.js";
 import type { Metadata } from "next";
 
 // Declare the frame
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
       },
     ],
   },
-  other: getFrameNextMetadata(initialFrame),
+  other: getFrameFlattened(initialFrame),
 };
 ```
 

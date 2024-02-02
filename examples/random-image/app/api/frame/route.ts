@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
   }
 
   const randomInt = Math.floor(Math.random() * 100);
-  const imageUrlBase = `https://picsum.photos/seed/${randomInt}/1146/600`;
+  const imageUrlBase = `https://picsum.photos/seed/${randomInt}`;
 
   const frame: Frame = {
     version: "vNext",

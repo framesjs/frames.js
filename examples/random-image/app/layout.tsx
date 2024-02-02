@@ -1,4 +1,4 @@
-import { getFrameNextMetadata } from "frames.js";
+import { getFrameFlattened } from "frames.js";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { framePostUrl } from "./constants";
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
       },
     ],
   },
-  other: getFrameNextMetadata({
+  other: getFrameFlattened({
     image: "https://picsum.photos/seed/frames.js/1146/600",
     version: "vNext",
     buttons: [

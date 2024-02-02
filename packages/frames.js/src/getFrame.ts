@@ -3,13 +3,13 @@ import { FrameButton, FrameButtonsType, Frame } from "./types";
 import { isValidVersion } from "./utils";
 
 export function getFrame({
-  text,
+  htmlString,
   url,
 }: {
-  text: string;
-  url?: string;
+  htmlString: string;
+  url: string;
 }): Frame | null {
-  const $ = cheerio.load(text);
+  const $ = cheerio.load(htmlString);
 
   const version = $("meta[property='fc:frame'], meta[name='fc:frame']").attr(
     "content"

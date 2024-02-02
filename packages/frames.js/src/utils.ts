@@ -14,7 +14,7 @@ export function normalizeCastId(castId: CastId): {
   };
 }
 
-export function getFrameMessageFromRequestBody(body: any) {
+export function getFrameMessageFromRequestBody(body: any): Message {
   return Message.decode(
     Buffer.from(body?.trustedData?.messageBytes ?? "", "hex")
   );
