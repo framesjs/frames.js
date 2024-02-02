@@ -5,7 +5,7 @@ import {
   validateFrameMessage,
 } from "frames.js";
 import { NextRequest } from "next/server";
-import { HOST, framePostUrl, ogImage } from "../../constants";
+import { HOST, framePostUrl } from "../../constants";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -18,15 +18,16 @@ export async function POST(request: NextRequest) {
 
   const result = await validateFrameMessage(body);
   const { isValid, message } = result;
-  if (!isValid) {
+  if (!isValid || !message) {
     return new Response("Invalid message", { status: 400 });
   }
 
   const randomInt = Math.floor(Math.random() * 100);
+  const imageUrlBase = `https://picsum.photos/seed/${randomInt}/1146/600`;
 
   const frame: FrameMetadata = {
     version: "vNext",
-    image: `https://picsum.photos/seed/${randomInt}/1146/600`,
+    image: `${imageUrlBase}/1146/600`,
     buttons: [
       {
         label: `Next (pressed by ${message?.data.fid})`,
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
         action: "post_redirect",
       },
     ],
-    ogImage: ogImage,
+    ogImage: `${imageUrlBase}/600`,
     postUrl: framePostUrl,
   };
 

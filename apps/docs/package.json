@@ -9,6 +9,8 @@
     "preview": "vocs preview"
   },
   "dependencies": {
+    "frames.js": "*",
+    "next": "^14.1.0",
     "react": "latest",
     "react-dom": "latest",
     "vocs": "latest"
