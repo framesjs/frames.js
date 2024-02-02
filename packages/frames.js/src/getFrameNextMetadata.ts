@@ -5,7 +5,6 @@ export function getFrameNextMetadata(frame: Frame) {
     "fc:frame": frame.version,
     "fc:frame:image": frame.image,
     "fc:frame:post_url": frame.postUrl,
-    "fc:frame:refresh_period": frame.refreshPeriod,
   };
 
   frame.buttons?.forEach((button, index) => {

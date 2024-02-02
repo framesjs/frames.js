@@ -11,7 +11,6 @@ describe("getFrame", () => {
   <meta property="fc:frame:button:3" content="Red" />
   <meta property="fc:frame:button:4" content="Blue" />
   <meta property="fc:frame:post_url" content="https://example.com" />
-  <meta property="fc:frame:refresh_period" content="1000" />
 `;
 
   const sampleFrame = {
@@ -36,7 +35,6 @@ describe("getFrame", () => {
       },
     ],
     postUrl: "https://example.com",
-    refreshPeriod: 1000,
   } as Frame;
 
   it("should parse html meta tags", () => {
@@ -48,7 +46,6 @@ describe("getFrame", () => {
     <meta name="fc:frame:button:3" content="Red" />
     <meta name="fc:frame:button:4" content="Blue" />
     <meta name="fc:frame:post_url" content="https://example.com" />
-    <meta property="fc:frame:refresh_period" content="1000" />
   `;
 
     expect(

@@ -39,6 +39,5 @@ export function getFrameHtmlHead(frame: Frame) {
       )
       .join("\n") || ""
   }
-  ${frame.refreshPeriod ? `<meta name="fc:frame:refresh_period" content="${frame.refreshPeriod}">` : ""}
   `;
 }

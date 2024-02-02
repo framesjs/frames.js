@@ -30,17 +30,6 @@ export function getFrame({
     .filter((i, elem) => elem !== null)
     .toArray();
 
-  let refreshPeriod: number | undefined = undefined;
-
-  try {
-    const refreshPeriodContent = $(
-      `meta[property='fc:frame:refresh_period'], meta[name='fc:frame:refresh_period']`
-    ).attr("content");
-    refreshPeriod = refreshPeriodContent
-      ? parseInt(refreshPeriodContent)
-      : undefined;
-  } catch (error) {}
-
   const buttonActions = $(
     'meta[name^="fc:frame:button:"][name$=":action"], meta[property^="fc:frame:button:"][property$=":action"]'
   )
@@ -82,7 +71,6 @@ export function getFrame({
     image: image,
     buttons: buttonsWithActions as ButtonsType,
     postUrl,
-    refreshPeriod,
   };
 }
 export function parseButtonElement(elem: cheerio.Element) {

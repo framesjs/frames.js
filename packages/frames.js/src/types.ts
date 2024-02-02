@@ -9,8 +9,6 @@ export type Frame = {
   ogImage?: string;
   /** A 256-byte string which contains a valid URL to send the Signature Packet to. If this prop is not present, apps must POST to the frame URL. */
   postUrl?: string;
-  /** A period in seconds at which the app should expect the image to update. Must be at least 30. Apps should default to 86,400 (1 day) if not set or invalid. */
-  refreshPeriod?: number;
 };
 
 export type Button = {
