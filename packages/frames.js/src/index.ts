@@ -1,18 +1,16 @@
 import {
   CastId,
-  FrameActionData,
   FrameActionMessage,
+  HubResult,
   Message,
   MessageType,
   ValidationResponse,
-  VerificationAddEthAddressMessage,
-  HubResult,
+  VerificationAddAddressMessage,
 } from "@farcaster/core";
 import { HubRpcClient, getSSLHubRpcClient } from "@farcaster/hub-nodejs";
 import * as cheerio from "cheerio";
 
 import { createPublicClient, http, parseAbi } from "viem";
-import * as chains from "viem/chains";
 import { optimism } from "viem/chains";
 
 type Builtin =
@@ -124,10 +122,7 @@ export function htmlToFrame({
     refreshPeriod = refreshPeriodContent
       ? parseInt(refreshPeriodContent)
       : undefined;
-    console.log("refreshPeriod", refreshPeriod);
-  } catch (error) {
-    console.error(error);
-  }
+  } catch (error) {}
 
   const buttonActions = $(
     'meta[name^="fc:frame:button:"][name$=":action"], meta[property^="fc:frame:button:"][property$=":action"]'
@@ -201,13 +196,13 @@ export async function validateFrameMessage(
   isValid: boolean;
   message: FrameActionMessage | undefined;
 }> {
-  const client = getHubClient() as HubService;
+  const client = getHubClient();
   return validateFrameMessageWithClient(body, client, options);
 }
 
 export async function validateFrameMessageWithClient(
   body: any,
-  client: HubService,
+  client: HubRpcClient,
   options?: ValidateFrameMessageOptions
 ): Promise<{
   isValid: boolean;
@@ -262,9 +257,9 @@ export async function getAddressForFid<
   if (verifications?.messages[0]) {
     const {
       data: {
-        verificationAddEthAddressBody: { address: addressBytes },
+        verificationAddAddressBody: { address: addressBytes },
       },
-    } = verifications.messages[0] as VerificationAddEthAddressMessage;
+    } = verifications.messages[0] as VerificationAddAddressMessage;
     return bytesToHexString(addressBytes);
   } else if (options?.fallbackToCustodyAddress) {
     const publicClient = createPublicClient({

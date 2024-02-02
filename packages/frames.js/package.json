@@ -13,7 +13,6 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "@farcaster/core": "^0.13.5",
     "@farcaster/hub-nodejs": "^0.10.22",
     "cheerio": "^1.0.0-rc.12",
     "tsup": "^8.0.1",
