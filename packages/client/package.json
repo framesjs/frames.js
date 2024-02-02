@@ -1,5 +1,5 @@
 {
-  "name": "@framejs/client",
+  "name": "@framesjs/client",
   "version": "0.0.0",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@farcaster/hub-web": "^0.7.3",
-    "@framejs/core": "*",
+    "@framesjs/core": "*",
     "cheerio": "^1.0.0-rc.12",
     "tsup": "^8.0.1"
   }

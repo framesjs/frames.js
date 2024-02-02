@@ -6,7 +6,7 @@ import {
 import {
   ValidateFrameMessageOptions,
   validateFrameMessageWithClient,
-} from "@framejs/core";
+} from "@framesjs/core";
 
 export function getHubClient(): HubRpcClient {
   return getSSLHubRpcClient(

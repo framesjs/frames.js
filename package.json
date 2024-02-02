@@ -8,8 +8,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
-    "@framejs/eslint-config": "*",
-    "@framejs/typescript-config": "*",
+    "@framesjs/eslint-config": "*",
+    "@framesjs/typescript-config": "*",
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.11",
     "prettier": "^3.1.1",

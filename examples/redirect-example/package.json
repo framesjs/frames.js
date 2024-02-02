@@ -9,16 +9,16 @@
     "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
-    "@framejs/core": "*",
-    "@framejs/nodejs": "*",
+    "@framesjs/core": "*",
+    "@framesjs/nodejs": "*",
     "next": "^14.0.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^14.0.4",
-    "@framejs/eslint-config": "*",
-    "@framejs/typescript-config": "*",
+    "@framesjs/eslint-config": "*",
+    "@framesjs/typescript-config": "*",
     "@types/eslint": "^8.56.1",
     "@types/node": "^20.10.6",
     "@types/react": "^18.2.46",

@@ -2,8 +2,8 @@ import {
   FrameMetadata,
   frameMetadataToHtmlText,
   getFrameMessageFromRequestBody,
-} from "@framejs/core";
-import { validateFrameMessage } from "@framejs/nodejs";
+} from "@framesjs/core";
+import { validateFrameMessage } from "@framesjs/nodejs";
 import { NextRequest } from "next/server";
 import {
   HOST,

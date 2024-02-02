@@ -1,5 +1,5 @@
 {
-  "extends": "@framejs/typescript-config/nextjs.json",
+  "extends": "@framesjs/typescript-config/nextjs.json",
   "compilerOptions": {
     "plugins": [
       {

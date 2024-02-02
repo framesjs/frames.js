@@ -1,5 +1,5 @@
 {
-  "extends": "@framejs/typescript-config/base.json",
+  "extends": "@framesjs/typescript-config/base.json",
   "include": ["."],
   "exclude": ["dist", "build", "node_modules"],
 }

@@ -18,9 +18,9 @@ This Turborepo includes the following packages/apps:
 
 - `docs`: a [Next.js](https://nextjs.org/) app
 - `web`: another [Next.js](https://nextjs.org/) app
-- `@framejs/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@framejs/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@framejs/typescript-config`: `tsconfig.json`s used throughout the monorepo
+- `@framesjs/ui`: a stub React component library shared by both `web` and `docs` applications
+- `@framesjs/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
+- `@framesjs/typescript-config`: `tsconfig.json`s used throughout the monorepo
 
 Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
 
