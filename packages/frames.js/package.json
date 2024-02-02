@@ -13,6 +13,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
+    "@farcaster/core": "^0.13.7",
     "cheerio": "^1.0.0-rc.12",
     "tsup": "^8.0.1",
     "viem": "^2.7.1"
