@@ -2,19 +2,12 @@ import {
   FrameMetadata,
   frameMetadataToHtmlText,
   getFrameMessageFromRequestBody,
-} from "@framesjs/core";
-import { validateFrameMessage } from "@framesjs/nodejs";
+  validateFrameMessage,
+} from "frames.js";
 import { NextRequest } from "next/server";
-import {
-  HOST,
-  frameImage,
-  frameImageFlipped,
-  framePostUrl,
-  ogImage,
-} from "../../constants";
+import { HOST, framePostUrl, ogImage } from "../../constants";
 
 export async function POST(request: NextRequest) {
-  const shouldFlip = request.nextUrl.searchParams.get("flip") !== "false";
   const body = await request.json();
 
   const untrustedMessage = getFrameMessageFromRequestBody(body);
@@ -29,12 +22,14 @@ export async function POST(request: NextRequest) {
     return new Response("Invalid message", { status: 400 });
   }
 
+  const randomInt = Math.floor(Math.random() * 100);
+
   const frame: FrameMetadata = {
     version: "vNext",
-    image: shouldFlip ? frameImageFlipped : frameImage,
+    image: `https://picsum.photos/seed/${randomInt}/1146/600`,
     buttons: [
       {
-        label: `Flip back (pressed by ${message?.data.fid})`,
+        label: `Next (pressed by ${message?.data.fid})`,
       },
       {
         label: "Visit frames.js",
@@ -42,7 +37,7 @@ export async function POST(request: NextRequest) {
       },
     ],
     ogImage: ogImage,
-    postUrl: `${framePostUrl}?flip=false`,
+    postUrl: framePostUrl,
   };
 
   const html = frameMetadataToHtmlText(frame);

@@ -1,27 +1,26 @@
-import { frameMetadataToNextMetadata } from "@framesjs/core";
-import "./globals.css";
+import { frameMetadataToNextMetadata } from "frames.js";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { frameImage, framePostUrl, ogImage } from "./constants";
+import { framePostUrl } from "./constants";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Sample Frame",
+  title: "Random Image Frame",
   description: "This is an example of a simple frame using frames.js",
   openGraph: {
     images: [
       {
-        url: ogImage,
+        url: "https://picsum.photos/seed/frames.js/1146/600",
       },
     ],
   },
   other: frameMetadataToNextMetadata({
-    image: frameImage,
+    image: "https://picsum.photos/seed/frames.js/1146/600",
     version: "vNext",
     buttons: [
       {
-        label: "Flip",
+        label: "Next",
       },
       {
         label: "Visit frames.js",

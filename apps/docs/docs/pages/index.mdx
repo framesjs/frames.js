@@ -1,0 +1,67 @@
+---
+layout: landing
+
+title: "frames.js - the easiest way to build on Farcaster frames"
+---
+
+import { HomePage } from "vocs/components";
+
+<HomePage.Root>
+  <h1 className='vocs_HomePage_title'>frames.js</h1>
+  <HomePage.InstallPackage name="frames.js" type="install" />
+  <HomePage.Description>**frames.js** is the easiest way to build on Farcaster frames.</HomePage.Description>
+  <HomePage.Buttons>
+    <HomePage.Button href="/getting-started" variant="accent">Get started</HomePage.Button>
+    <HomePage.Button href="https://github.com/framesjs/frames.js">GitHub</HomePage.Button>
+  </HomePage.Buttons>
+
+</HomePage.Root>
+
+## Community
+
+Check out the following places for more Frames-related content:
+
+- Join the [/frames](https://warpcast.com/frames) channel on Warpcast
+- Follow [@frames](https://warpcast.com/frames) and the frames.js team ([@df](https://warpcast.com/df) and [@stephancill](https://warpcast.com/stephancill)) on Farcaster for project updates
+- Star [frames.js](https://github.com/framesjs/frames.js) on GitHub to show your support and keep track of updates
+- Browse the [awesome-frames](https://github.com/davidfurlong/awesome-frames) list of awesome Frames projects and resources
+
+<article className="vocs_Content max-w-4xl mt-[-80px] mx-auto">
+
+#
+
+# Overview
+
+```ts twoslash
+const initialFrame: FrameMetadata = {
+  image: "https://picsum.photos/seed/frames.js/1146/600",
+  version: "vNext",
+  buttons: [
+    {
+      label: "Next random image",
+    },
+  ],
+  postUrl: "...",
+};
+```
+
+Next.js App with frames.js
+
+./app/page.tsx
+
+```tsx twoslash
+export const metadata: Metadata = {
+  title: "Random Image Frame",
+  description: "This is an example of a simple frame using frames.js",
+  openGraph: {
+    images: [
+      {
+        url: "https://picsum.photos/seed/frames.js/600",
+      },
+    ],
+  },
+  other: frameMetadataToNextMetadata(initialFrame),
+};
+```
+
+</article>
