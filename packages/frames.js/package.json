@@ -1,0 +1,21 @@
+{
+  "name": "frames.js",
+  "version": "0.0.0",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "lint": "eslint \"**/*.ts*\"",
+    "build": "tsup `find ./src \\( -name '*.ts' -o -name '*.tsx' \\)` --format cjs,esm --dts",
+    "dev": "npm run build -- --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "@farcaster/hub-nodejs": "^0.10.22",
+    "cheerio": "^1.0.0-rc.12",
+    "tsup": "^8.0.1",
+    "viem": "^2.7.1"
+  }
+}
