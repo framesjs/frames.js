@@ -7,7 +7,7 @@ export default function RedirectPage() {
 
   useEffect(() => {
     // Perform the redirect
-    window.location.href = "https://frames.js"; // For a full page reload redirect
+    window.location.href = "https://framesjs.org"; // For a full page reload redirect
     // Or use Next.js router for client-side redirect (comment out the line above if using this)
     // router.push(youtubeUrl);
   }, [router]);
