@@ -8,7 +8,7 @@ export function getFrameHtml(
     htmlBody?: string;
     htmlHead?: string;
   } = {}
-) {
+): string {
   options = options || {};
 
   const html = `<!DOCTYPE html>
@@ -23,7 +23,7 @@ export function getFrameHtml(
   </html>`;
   return html;
 }
-export function getFrameHtmlHead(frame: Frame) {
+export function getFrameHtmlHead(frame: Frame): string {
   return `<meta property="og:image" content="${frame.ogImage || frame.image}">
   <meta name="fc:frame" content="vNext">
   <meta name="fc:frame:image" content="${frame.image}">

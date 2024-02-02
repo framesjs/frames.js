@@ -1,6 +1,6 @@
-import { Frame } from "./types";
+import { Frame, FrameFlattened } from "./types";
 
-export function getFrameFlattened(frame: Frame) {
+export function getFrameFlattened(frame: Frame): FrameFlattened {
   const metadata = {
     "fc:frame": frame.version,
     "fc:frame:image": frame.image,

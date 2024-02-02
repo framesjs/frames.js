@@ -11,7 +11,7 @@ import { HomePage } from "vocs/components";
   <HomePage.InstallPackage name="frames.js" type="install" />
   <HomePage.Description>**frames.js** is the easiest way to build on Farcaster frames.</HomePage.Description>
   <HomePage.Buttons>
-    <HomePage.Button href="#overview" variant="accent">Get started</HomePage.Button>
+    <HomePage.Button href="#quickstart" variant="accent">Get started</HomePage.Button>
     <HomePage.Button href="https://github.com/framesjs/frames.js">GitHub</HomePage.Button>
   </HomePage.Buttons>
 
@@ -28,13 +28,12 @@ Check out the following places for more Frames-related content:
 
 #
 
-# Overview
+# Quickstart
 
 ## Next.js App with frames.js
 
-### Create your Frame
-
-```tsx filename="page.tsx"
+```tsx filename="./app/page.tsx"
+// page that renders a frame
 // ./app/page.tsx
 
 import { Frame, getFrameFlattened } from "frames.js";
@@ -68,6 +67,7 @@ export const metadata: Metadata = {
 ```
 
 ```ts filename="app/frames/route.ts"
+// handle frame actions
 // ./app/frames/route.ts
 
 import { getFrameHtml, validateFrameMessage } from "frames.js";

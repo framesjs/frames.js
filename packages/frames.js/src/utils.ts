@@ -1,4 +1,5 @@
 import { CastId, Message } from "@farcaster/core";
+import { FrameActionPayload } from "./types";
 
 export function bytesToHexString(bytes: Uint8Array): `0x${string}` {
   return ("0x" + Buffer.from(bytes).toString("hex")) as `0x${string}`;
@@ -14,7 +15,9 @@ export function normalizeCastId(castId: CastId): {
   };
 }
 
-export function getFrameMessageFromRequestBody(body: any): Message {
+export function getFrameMessageFromRequestBody(
+  body: FrameActionPayload
+): Message {
   return Message.decode(
     Buffer.from(body?.trustedData?.messageBytes ?? "", "hex")
   );
