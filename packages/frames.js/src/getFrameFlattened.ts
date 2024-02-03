@@ -5,6 +5,7 @@ export function getFrameFlattened(frame: Frame): FrameFlattened {
     "fc:frame": frame.version,
     "fc:frame:image": frame.image,
     "fc:frame:post_url": frame.postUrl,
+    "fc:frame:input:text": frame.inputLabel,
     ...frame.buttons?.reduce(
       (acc, button, index) => ({
         ...acc,
