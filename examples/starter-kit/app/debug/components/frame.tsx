@@ -21,9 +21,9 @@ export function FrameRender({
   const [inputText, setInputText] = useState("");
 
   return (
-    <div style={{ width: "382px" }}>
-      <h1>{url}</h1>
-      <div>
+    <div>
+      <h1>Debugging Frame on url: {url}</h1>
+      <div style={{ width: "382px" }}>
         <img
           src={frame.image}
           alt="Description of the image"
@@ -49,7 +49,7 @@ export function FrameRender({
         >
           {frame.buttons?.map(({ label, action }, index: number) => (
             <button
-              style={{ flex: "1 1 0px", padding: "6px" }}
+              style={{ flex: "1 1 0px", padding: "6px", cursor: "pointer" }}
               onClick={() => {
                 if (!isLoggedIn) {
                   alert("Log in to use the frame buttons");
