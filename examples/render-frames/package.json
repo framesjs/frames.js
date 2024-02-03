@@ -1,0 +1,31 @@
+{
+  "name": "render-frames",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --max-warnings 0"
+  },
+  "dependencies": {
+    "@noble/ed25519": "^2.0.0",
+    "frames.js": "*",
+    "next": "^14.0.4",
+    "qrcode.react": "^3.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "swr": "^2.2.4"
+  },
+  "devDependencies": {
+    "@framesjs/eslint-config": "*",
+    "@framesjs/typescript-config": "*",
+    "@next/eslint-plugin-next": "^14.0.4",
+    "@types/eslint": "^8.56.1",
+    "@types/node": "^20.10.6",
+    "@types/react": "^18.2.46",
+    "@types/react-dom": "^18.2.18",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3"
+  }
+}
