@@ -1,5 +1,6 @@
 import { Frame } from "frames.js";
 import Image from "next/image";
+import { useState } from "react";
 
 export function FrameRender({
   frame,
@@ -10,8 +11,16 @@ export function FrameRender({
   frame: Frame;
   url: string | null;
   viewOnly?: boolean;
-  submitOption: (buttonIndex: number) => void;
+  submitOption: ({
+    buttonIndex,
+    inputText,
+  }: {
+    buttonIndex: number;
+    inputText: string;
+  }) => void;
 }) {
+  const [inputText, setInputText] = useState("");
+
   return (
     <div className="mx-auto">
       <h1>{url}</h1>
@@ -26,7 +35,12 @@ export function FrameRender({
       {!viewOnly && (
         <div className="flex">
           {frame.buttons?.map(({ label, action }, index: number) => (
-            <button className="flex-grow" onClick={() => submitOption(index)}>
+            <button
+              className="flex-grow"
+              onClick={() =>
+                submitOption({ buttonIndex: index, inputText: "" })
+              }
+            >
               {index}. {label} {action ? `(${action})` : ""}
             </button>
           ))}

@@ -17,6 +17,7 @@ export async function POST(request: NextRequest) {
   }
 
   const result = await validateFrameMessage(body);
+
   const { isValid, message } = result;
   if (!isValid || !message) {
     return new Response("Invalid message", { status: 400 });
