@@ -1,3 +1,8 @@
+# Frames.js Starter Kit
+
+This is a boilerplate repo to get started quickly with `frames.js`.
+Visit the /debug page to debug your frame.
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
