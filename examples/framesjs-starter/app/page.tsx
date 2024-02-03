@@ -126,10 +126,10 @@ export default async function Home({
         state={state}
         previousFrame={previousFrame}
       >
-        {/* <FrameImage src="https://picsum.photos/seed/frames.js/1146/600" /> */}
-        <FrameImage
+        <FrameImage src="https://picsum.photos/seed/frames.js/1146/600" />
+        {/* <FrameImage
           src={`data:image/svg+xml,${encodeURIComponent(imageSvg)}`}
-        />
+        /> */}
         <FrameInput text="put some text here" />
         <FrameButton onClick={dispatch}>
           {state?.active === "1" ? "Active" : "Inactive"}

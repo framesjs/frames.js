@@ -4,7 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getByteLength, validateFrameMessage } from "..";
 import { headers } from "next/headers";
 import { redirect, RedirectType } from "next/navigation";
-import { FrameButtonRedirectUI, FrameButtonUI } from "frames.js/next/client";
+// fixme:
+import { FrameButtonRedirectUI, FrameButtonUI } from "./client";
 import {
   FrameButtonAutomatedProps,
   FrameButtonPostProvidedProps,
@@ -109,18 +110,6 @@ export function useFramesReducer<T extends FrameState = FrameState>(
     if (initial.prevState === null || initial.postBody === null)
       return initialState;
 
-    if (
-      initial.prevRedirects?.hasOwnProperty(
-        `${initial.postBody.untrustedData.buttonIndex}`
-      ) &&
-      initial.prevRedirects[`${initial.postBody.untrustedData.buttonIndex}`]
-    ) {
-      // FIXME: this is a 307 not a 302
-      redirect(
-        initial.prevRedirects[`${initial.postBody.untrustedData.buttonIndex}`]!,
-        RedirectType.replace
-      );
-    }
     return reducer(initial.prevState, initial);
   }
 
@@ -146,6 +135,35 @@ export async function POST(req: NextRequest) {
   url.searchParams.delete("p");
   url.searchParams.delete("s");
   url.searchParams.delete("r");
+
+  const parsedParams = parseFrameParams(
+    Object.fromEntries(url.searchParams.entries())
+  );
+
+  if (
+    parsedParams.postBody?.untrustedData.buttonIndex &&
+    parsedParams.prevRedirects?.hasOwnProperty(
+      parsedParams.postBody?.untrustedData.buttonIndex
+    ) &&
+    parsedParams.prevRedirects[parsedParams.postBody?.untrustedData.buttonIndex]
+  ) {
+    console.info(
+      "redirecting: (post_redirect button href prop to): ",
+      parsedParams.prevRedirects[
+        `${parsedParams.postBody?.untrustedData.buttonIndex}`
+      ]!
+    );
+
+    return NextResponse.redirect(
+      parsedParams.prevRedirects[
+        `${parsedParams.postBody?.untrustedData.buttonIndex}`
+      ]!,
+      { status: 302 }
+    );
+  }
+
+  console.info("redirecting: (to render next frame to): ", url.toString());
+
   return NextResponse.redirect(url.toString());
 }
 

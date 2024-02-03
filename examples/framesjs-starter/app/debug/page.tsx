@@ -23,7 +23,7 @@ export default function Page(): JSX.Element {
 
   // Load initial frame
   const { data, error, isLoading } = useSWR<Frame>(
-    url ? `/debug/api/og?url=${url}` : null,
+    url ? `/debug/og?url=${url}` : null,
     fetcher
   );
 
@@ -65,7 +65,7 @@ export default function Page(): JSX.Element {
     }
 
     const response = await fetch(
-      `/debug/api/frame-action?postType=${button?.action}`,
+      `/debug/frame-action?postType=${button?.action}`,
       {
         method: "POST",
         headers: {

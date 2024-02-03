@@ -60,20 +60,37 @@ export function getFrame({
       })
     );
 
+  const errors = [];
   // TODO: Useful error messages
-  if (
-    !version ||
-    !isValidVersion(version) ||
-    !image ||
-    buttonsWithActions.length > 4 ||
-    (inputText && getByteLength(inputText) > 32)
-  ) {
+  if (!version) {
+    errors.push({ message: "No version found in frame", key: "fc:frame" });
+  } else if (!isValidVersion(version))
+    errors.push({
+      message: "Invalid version",
+      key: "fc:frame",
+    });
+  if (!image) {
+    errors.push({ message: "No image found in frame", key: "fc:frame:image" });
+  }
+  if (buttonsWithActions.length > 4)
+    errors.push({ message: "Too many buttons", key: "fc:frame:button" });
+  if (inputText && getByteLength(inputText) > 32) {
+    errors.push({
+      message: "Input text should be max 32 bytes",
+      key: "fc:frame:input:text",
+    });
+  }
+
+  if (errors.length > 0) {
+    errors.forEach((error) => {
+      console.error(`Error: ${error.message}`);
+    });
     return null;
   }
 
   return {
     version: version as "vNext" | `${number}-${number}-${number}`,
-    image: image,
+    image: image!,
     buttons: buttonsWithActions as FrameButtonsType,
     postUrl,
     inputText,
