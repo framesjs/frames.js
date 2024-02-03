@@ -1,1 +1,1 @@
-packages/frames.js/README.md
+./packages/frames.js/README.md
