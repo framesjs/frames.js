@@ -28,8 +28,8 @@ export function FrameRender({
         <Image
           src={frame.image}
           alt="Description of the image"
-          width={500}
-          height={500}
+          width={382}
+          height={200}
         />
       </div>
       {!viewOnly && (
@@ -40,6 +40,7 @@ export function FrameRender({
               onClick={() =>
                 submitOption({ buttonIndex: index, inputText: "" })
               }
+              key={index}
             >
               {index}. {label} {action ? `(${action})` : ""}
             </button>
