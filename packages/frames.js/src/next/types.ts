@@ -6,13 +6,14 @@ export type HeadersList = {
   pathname: string | null;
   url: string | null;
   host: string | null;
+  urlWithoutPathname: string | null;
 };
 
 export type FrameState = Record<string, string>;
 
 export type RedirectMap = Record<number, string>;
 
-export type FrameContext<T extends FrameState = FrameState> = {
+export type PreviousFrame<T extends FrameState = FrameState> = {
   postBody: FrameActionPayload | null;
   prevState: T | null;
   prevRedirects: RedirectMap | null;
@@ -20,15 +21,9 @@ export type FrameContext<T extends FrameState = FrameState> = {
   headers: HeadersList;
 };
 
-type StringifiedValues<T> = {
-  [K in keyof T]?: string;
-};
-
-export type FFrameUrlSearchParamsFlattened = StringifiedValues<FrameContext>;
-
 export type FrameReducer<T extends FrameState = FrameState> = (
   state: T,
-  action: FrameContext
+  action: PreviousFrame
 ) => T;
 
 export type FrameButtonAutomatedProps = {

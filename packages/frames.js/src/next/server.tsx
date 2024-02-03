@@ -1,4 +1,4 @@
-import React, { useReducer } from "react";
+import React from "react";
 import { ActionIndex, FrameActionPayload } from "../types";
 import { NextRequest, NextResponse } from "next/server";
 import { validateFrameMessage } from "..";
@@ -10,7 +10,7 @@ import {
   FrameButtonPostProvidedProps,
   FrameButtonPostRedirectProvidedProps,
   FrameButtonProvidedProps,
-  FrameContext,
+  PreviousFrame,
   FrameReducer,
   FrameState,
   Dispatch,
@@ -37,9 +37,9 @@ export async function validateActionSignature(
   }
 }
 
-export function createFrameContextNextjs<T extends FrameState = FrameState>(
+export function getPreviousFrame<T extends FrameState = FrameState>(
   searchParams: Record<string, string>
-): FrameContext<T> {
+): PreviousFrame<T> {
   const headersObj = headers();
   // not sure about the security of doing this for server only headers.
   // const headersList = Object.fromEntries(headers().entries());
@@ -48,23 +48,24 @@ export function createFrameContextNextjs<T extends FrameState = FrameState>(
     acceptLanguage: headersObj.get("accept-language"),
     host: headersObj.get("host"),
     pathname: headersObj.get("next-url") ?? "",
+    urlWithoutPathname: `${headersObj.get("x-forwarded-proto")}://${headersObj.get("x-forwarded-host")}`,
     url:
       headersObj.get("referer") ||
       `${headersObj.get("x-forwarded-proto")}://${headersObj.get("x-forwarded-host")}${headersObj.get("next-url") ?? ""}`,
   };
 
-  return createFrameContext(parseFrameParams<T>(searchParams), headersList);
+  return createPreviousFrame(parseFrameParams<T>(searchParams), headersList);
 }
 
-export function createFrameContext<T extends FrameState = FrameState>(
-  frameContextFromParams: Pick<
-    FrameContext<T>,
+export function createPreviousFrame<T extends FrameState = FrameState>(
+  previousFrameFromParams: Pick<
+    PreviousFrame<T>,
     "postBody" | "prevState" | "pathname" | "prevRedirects"
   >,
   headers: HeadersList
-): FrameContext<T> {
+): PreviousFrame<T> {
   return {
-    ...frameContextFromParams,
+    ...previousFrameFromParams,
     headers: headers,
   };
 }
@@ -72,7 +73,7 @@ export function createFrameContext<T extends FrameState = FrameState>(
 export function parseFrameParams<T extends FrameState = FrameState>(
   searchParams: Record<string, string>
 ): Pick<
-  FrameContext<T>,
+  PreviousFrame<T>,
   "postBody" | "prevState" | "pathname" | "prevRedirects"
 > {
   const frameActionReceived = searchParams.postBody
@@ -98,9 +99,9 @@ export function parseFrameParams<T extends FrameState = FrameState>(
 export function useFramesReducer<T extends FrameState = FrameState>(
   reducer: FrameReducer<T>,
   initialState: T,
-  initializerArg: FrameContext<T>
+  initializerArg: PreviousFrame<T>
 ): [T, Dispatch] {
-  function frameReducerInit(initial: FrameContext<T>): T {
+  function frameReducerInit(initial: PreviousFrame<T>): T {
     if (initial.prevState === null || initial.postBody === null)
       return initialState;
 
@@ -141,20 +142,20 @@ export async function POST(req: NextRequest) {
   );
 
   console.info("redirecting to", url.toString());
-  // FIXME: does this need to return 200?
   return NextResponse.redirect(url.toString());
 }
 
 export function FrameContainer<T extends FrameState = FrameState>({
+  postUrl,
   children,
-  postRoute,
   state,
-  frameContext,
+  previousFrame,
 }: {
-  postRoute: string;
+  /** Either a relative e.g. "/frames" or an absolute path, e.g. "https://google.com/frames" */
+  postUrl: string;
   children: Array<React.ReactElement<FrameElementType>>;
   state: T;
-  frameContext: FrameContext<T>;
+  previousFrame: PreviousFrame<T>;
 }) {
   const nextIndexByComponentType: Record<
     "button" | "image" | "input",
@@ -228,16 +229,20 @@ export function FrameContainer<T extends FrameState = FrameState>({
 
   const searchParams = new URLSearchParams();
 
-  searchParams.set("pathname", frameContext.headers.pathname ?? "/");
+  searchParams.set("pathname", previousFrame.headers.pathname ?? "/");
   searchParams.set("prevState", JSON.stringify(state));
   searchParams.set("prevRedirects", JSON.stringify(redirectMap));
 
-  const postUrl = `${postRoute}?${searchParams.toString()}`;
+  const postUrlRoute = postUrl.startsWith("/")
+    ? `${previousFrame.headers.urlWithoutPathname}${postUrl}`
+    : postUrl;
+
+  const postUrlFull = `${postUrlRoute}?${searchParams.toString()}`;
 
   return (
     <>
       <meta name="fc:frame" content="vNext" />
-      <meta name="fc:frame:post_url" content={postUrl} />
+      <meta name="fc:frame:post_url" content={postUrlFull} />
       {newTree}
     </>
   );

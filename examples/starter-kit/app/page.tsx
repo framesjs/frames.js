@@ -4,7 +4,7 @@ import {
   FrameButton,
   FrameReducer,
   useFramesReducer,
-  createFrameContextNextjs,
+  getPreviousFrame,
   validateActionSignature,
   FrameInput,
 } from "frames.js/next/server";
@@ -29,12 +29,12 @@ export default async function Home({
 }: {
   searchParams: Record<string, string>;
 }) {
-  const frameContext = createFrameContextNextjs<State>(searchParams);
-  await validateActionSignature(frameContext.postBody);
+  const previousFrame = getPreviousFrame<State>(searchParams);
+  await validateActionSignature(previousFrame.postBody);
   const [state, dispatch] = useFramesReducer<State>(
     reducer,
     initialState,
-    frameContext
+    previousFrame
   );
 
   // Here: do a server side side effect either sync or async (using await), such as minting an NFT if you want.
@@ -45,9 +45,9 @@ export default async function Home({
     <div>
       Frames-jsx example
       <FrameContainer
-        postRoute="http://localhost:3000/api/frames"
+        postUrl="http://localhost:3000/api/frames"
         state={state}
-        frameContext={frameContext}
+        previousFrame={previousFrame}
       >
         <FrameImage src="https://picsum.photos/seed/frames.js/1146/600" />
         <FrameInput text="put some text here" />
