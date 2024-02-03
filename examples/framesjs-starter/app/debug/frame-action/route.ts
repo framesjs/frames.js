@@ -1,7 +1,7 @@
 import { getFrame } from "frames.js";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
-export async function POST(req: NextRequest, res: NextResponse) {
+export async function POST(req: NextRequest) {
   const body = await req.json();
   const isPostRedirect =
     req.nextUrl.searchParams.get("postType") === "post_redirect";

@@ -50,7 +50,7 @@ export function useFarcasterIdentity() {
 
   useEffect(() => {
     if (farcasterUser && farcasterUser.status === "pending_approval") {
-      let intervalId: NodeJS.Timeout;
+      let intervalId: any;
 
       const startPolling = () => {
         intervalId = setInterval(async () => {
