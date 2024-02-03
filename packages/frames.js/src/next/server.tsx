@@ -1,40 +1,28 @@
 import React, { useReducer } from "react";
-import { ActionIndex, FrameActionPayload } from "./types";
+import { ActionIndex, FrameActionPayload } from "../types";
 import { NextRequest, NextResponse } from "next/server";
-import { validateFrameMessage } from ".";
-import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
+import { validateFrameMessage } from "..";
 import { headers } from "next/headers";
 import { redirect, RedirectType } from "next/navigation";
-import { FrameButtonRedirectUI, FrameButtonUI } from "./nextjs/button";
-
-export type FrameState = Record<string, string>;
+import { FrameButtonRedirectUI, FrameButtonUI } from "./client";
+import {
+  FrameButtonAutomatedProps,
+  FrameButtonPostProvidedProps,
+  FrameButtonPostRedirectProvidedProps,
+  FrameButtonProvidedProps,
+  FrameContext,
+  FrameReducer,
+  FrameState,
+  Dispatch,
+  RedirectMap,
+} from "./types";
+export * from "./types";
+import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 
 export type FrameElementType =
   | typeof FFrameButton
   | typeof FFrameImage
   | typeof FFFrameInput;
-
-export type RedirectMap = Record<number, string>;
-
-export type FrameContext<T extends FrameState = FrameState> = {
-  frame_action_received: FrameActionPayload | null;
-  frame_prev_state: T | null;
-  frame_prev_redirects: RedirectMap | null;
-  pathname?: string;
-  url: string;
-  headers: ReadonlyHeaders;
-};
-
-type StringifiedValues<T> = {
-  [K in keyof T]?: string;
-};
-
-export type FFrameUrlSearchParamsFlattened = StringifiedValues<FrameContext>;
-
-export type FrameReducer<T extends FrameState = FrameState> = (
-  state: T,
-  action: FrameContext
-) => T;
 
 export async function validateFrameMessageOrThrow(
   frameActionPayload: FrameActionPayload | null
@@ -102,8 +90,6 @@ export function parseFrameParams<T extends FrameState = FrameState>(
   };
 }
 
-type Dispatch = (actionIndex: ActionIndex) => any;
-
 export function useFramesReducer<T extends FrameState = FrameState>(
   reducer: FrameReducer<T>,
   initialState: T,
@@ -144,26 +130,23 @@ export function useFramesReducer<T extends FrameState = FrameState>(
 export async function POST(req: NextRequest) {
   const body = await req.json();
 
-  const { searchParams } = new URL(req.url);
-  const generatedUrlWithNextFrameState = new URL(
-    searchParams.get("pathname") || "/"
-  );
+  const url = new URL(req.url);
+  url.pathname = url.searchParams.get("pathname") || "/";
 
-  generatedUrlWithNextFrameState.searchParams.set(
-    "frame_action_received",
-    JSON.stringify(body)
-  );
-  generatedUrlWithNextFrameState.searchParams.set(
+  const bodyAsString = JSON.stringify(body);
+
+  url.searchParams.set("frame_action_received", bodyAsString);
+  url.searchParams.set(
     "frame_prev_state",
-    searchParams.get("frame_prev_state") ?? ""
+    url.searchParams.get("frame_prev_state") ?? ""
   );
-  generatedUrlWithNextFrameState.searchParams.set(
+  url.searchParams.set(
     "frame_prev_redirects",
-    searchParams.get("frame_prev_redirects") ?? ""
+    url.searchParams.get("frame_prev_redirects") ?? ""
   );
 
   // FIXME: does this need to return 200?
-  return NextResponse.redirect(generatedUrlWithNextFrameState.toString());
+  return NextResponse.redirect(url.toString());
 }
 
 export function FFrame<T extends FrameState = FrameState>({
@@ -261,23 +244,6 @@ export function FFrame<T extends FrameState = FrameState>({
     </>
   );
 }
-
-export type FrameButtonAutomatedProps = {
-  actionIndex: ActionIndex;
-};
-
-export type FrameButtonProvidedProps =
-  | FrameButtonPostRedirectProvidedProps
-  | FrameButtonPostProvidedProps;
-
-export type FrameButtonPostProvidedProps = {
-  children: string | number;
-  onClick: Dispatch;
-};
-export type FrameButtonPostRedirectProvidedProps = {
-  href: string;
-  children: string | number;
-};
 
 export function FFrameRedirect({
   href,

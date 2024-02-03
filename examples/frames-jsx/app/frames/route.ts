@@ -1,1 +1,1 @@
-export { POST } from "frames.js";
+export { POST } from "frames.js/next/server";

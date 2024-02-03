@@ -5,4 +5,3 @@ export * from "./getFrameFlattened";
 export * from "./types";
 export * from "./utils";
 export * from "./validateFrameMessage";
-export * from "./nextjs";

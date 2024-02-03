@@ -6,7 +6,7 @@ import {
   useFramesReducer,
   createFrameContextNextjs,
   validateFrameMessageOrThrow,
-} from "frames.js";
+} from "frames.js/next/server";
 
 type State = {
   active: string;
