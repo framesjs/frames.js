@@ -64,5 +64,6 @@ export type FrameActionPayload = {
     network: number;
     buttonIndex: ActionIndex;
     castId: { fid: number; hash: string };
+    inputText: string;
   };
 };

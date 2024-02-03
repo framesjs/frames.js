@@ -10,6 +10,13 @@ import {
 } from "frames.js/next/server";
 import Link from "next/link";
 
+import * as fs from "fs";
+import { join } from "path";
+import satori from "satori";
+
+const interRegPath = join(process.cwd(), "public/Inter-Regular.ttf");
+let interReg = fs.readFileSync(interRegPath);
+
 type State = {
   active: string;
 };
@@ -41,6 +48,57 @@ export default async function Home({
   // Here: do a server side side effect either sync or async (using await), such as minting an NFT if you want.
   // example: load the users credentials & check they have an NFT
 
+  const imageSvg = await satori(
+    <div
+      style={{
+        display: "flex", // Use flex layout
+        flexDirection: "row", // Align items horizontally
+        alignItems: "stretch", // Stretch items to fill the container height
+        width: "100%",
+        height: "100vh", // Full viewport height
+        backgroundColor: "white",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          paddingLeft: 24,
+          paddingRight: 24,
+          lineHeight: 1.2,
+          fontSize: 36,
+          color: "black",
+          flex: 1,
+          overflow: "hidden",
+          marginTop: 24,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            overflow: "hidden",
+          }}
+        >
+          Button index: {previousFrame.postBody?.untrustedData.buttonIndex}
+        </div>
+      </div>
+    </div>,
+    {
+      width: 1146,
+      height: 600,
+      fonts: [
+        {
+          name: "Inter",
+          data: interReg,
+          weight: 400,
+          style: "normal",
+        },
+      ],
+    }
+  );
+
   // then, when done, return next frame
   return (
     <div>
@@ -50,7 +108,10 @@ export default async function Home({
         state={state}
         previousFrame={previousFrame}
       >
-        <FrameImage src="https://picsum.photos/seed/frames.js/1146/600" />
+        {/* <FrameImage src="https://picsum.photos/seed/frames.js/1146/600" /> */}
+        <FrameImage
+          src={`data:image/svg+xml,${encodeURIComponent(imageSvg)}`}
+        />
         <FrameInput text="put some text here" />
         <FrameButton onClick={dispatch}>
           {state?.active === "1" ? "Active" : "Inactive"}

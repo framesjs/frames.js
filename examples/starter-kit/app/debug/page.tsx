@@ -1,6 +1,6 @@
 "use client";
 
-import { Frame } from "frames.js";
+import { Frame, FrameActionPayload } from "frames.js";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
@@ -83,11 +83,12 @@ export default function Page(): JSX.Element {
               fid: castId.fid,
               hash: `0x${Buffer.from(castId.hash).toString("hex")}`,
             },
+            inputText,
           },
           trustedData: {
             messageBytes: trustedBytes,
           },
-        }),
+        } as FrameActionPayload),
       }
     );
 
