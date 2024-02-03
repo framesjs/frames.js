@@ -1,24 +1,23 @@
-import React from "react";
-import { ActionIndex, FrameActionPayload } from "../types";
-import { NextRequest, NextResponse } from "next/server";
-import { getByteLength, validateFrameMessage } from "..";
 import { headers } from "next/headers";
-import { redirect, RedirectType } from "next/navigation";
+import { NextRequest, NextResponse } from "next/server";
+import React from "react";
+import { getByteLength, validateFrameMessage } from "..";
+import { ActionIndex, FrameActionPayload } from "../types";
+import { FrameActionMessage } from "@farcaster/core";
 // fixme:
 import { FrameButtonRedirectUI, FrameButtonUI } from "./client";
 import {
+  Dispatch,
   FrameButtonAutomatedProps,
   FrameButtonPostProvidedProps,
   FrameButtonPostRedirectProvidedProps,
   FrameButtonProvidedProps,
-  PreviousFrame,
   FrameReducer,
   FrameState,
-  Dispatch,
-  RedirectMap,
   HeadersList,
+  PreviousFrame,
+  RedirectMap,
 } from "./types";
-import { FrameActionMessage } from "@farcaster/core";
 export * from "./types";
 
 export type FrameElementType =
@@ -147,13 +146,6 @@ export async function POST(req: NextRequest) {
     ) &&
     parsedParams.prevRedirects[parsedParams.postBody?.untrustedData.buttonIndex]
   ) {
-    console.info(
-      "redirecting: (post_redirect button href prop to): ",
-      parsedParams.prevRedirects[
-        `${parsedParams.postBody?.untrustedData.buttonIndex}`
-      ]!
-    );
-
     return NextResponse.redirect(
       parsedParams.prevRedirects[
         `${parsedParams.postBody?.untrustedData.buttonIndex}`
@@ -161,8 +153,6 @@ export async function POST(req: NextRequest) {
       { status: 302 }
     );
   }
-
-  console.info("redirecting: (to render next frame to): ", url.toString());
 
   return NextResponse.redirect(url.toString());
 }

@@ -51,7 +51,11 @@ export default async function Home({
   // example: load the users credentials & check they have an NFT
 
   const fid = validMessage?.data.fid;
-  const { buttonIndex, inputText } = validMessage?.data.frameActionBody || {};
+  const { buttonIndex, inputText: inputTextBytes } =
+    validMessage?.data.frameActionBody || {};
+  const inputText = inputTextBytes
+    ? Buffer.from(inputTextBytes).toString("utf-8")
+    : undefined;
 
   const imageSvg = await satori(
     <div
@@ -80,7 +84,7 @@ export default async function Home({
           marginTop: 24,
         }}
       >
-        {buttonIndex ? (
+        {buttonIndex && fid && inputText ? (
           <div
             style={{
               display: "flex",

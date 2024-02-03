@@ -1,5 +1,5 @@
 import { FrameActionPayload, hexStringToUint8Array } from ".";
-import { FrameActionMessage } from "@farcaster/core";
+import { FrameActionMessage, Message } from "@farcaster/core";
 
 export async function validateFrameMessage(body: FrameActionPayload): Promise<{
   isValid: boolean;
@@ -22,8 +22,18 @@ export async function validateFrameMessage(body: FrameActionPayload): Promise<{
   );
 
   const validateMessageJson = await validateMessageResponse.json();
-  return {
-    isValid: validateMessageJson.valid as boolean,
-    message: validateMessageJson.message as FrameActionMessage,
-  };
+
+  if (!validateMessageJson.valid) {
+    return {
+      isValid: false,
+      message: undefined,
+    };
+  } else {
+    return {
+      isValid: true,
+      message: Message.fromJSON(
+        validateMessageJson.message
+      ) as FrameActionMessage,
+    };
+  }
 }
