@@ -17,6 +17,7 @@ import {
   RedirectMap,
   HeadersList,
 } from "./types";
+import { FrameActionMessage } from "@farcaster/core";
 export * from "./types";
 
 export type FrameElementType =
@@ -26,15 +27,18 @@ export type FrameElementType =
 
 export async function validateActionSignature(
   frameActionPayload: FrameActionPayload | null
-) {
+): Promise<FrameActionMessage | null> {
   if (!frameActionPayload) {
     // no payload means no action
-    return;
+    return null;
   }
-  const { isValid } = await validateFrameMessage(frameActionPayload);
-  if (!isValid) {
+  const { isValid, message } = await validateFrameMessage(frameActionPayload);
+
+  if (!isValid || !message) {
     throw new Error("frames.js: signature failed verification");
   }
+
+  return message;
 }
 
 export function getPreviousFrame<T extends FrameState = FrameState>(
