@@ -30,7 +30,7 @@ export default async function Home({
 }) {
   const frameContext = createFrameContextNextjs<State>(searchParams);
   await validateFrameMessageOrThrow(frameContext.frame_action_received);
-  const [state] = useFramesReducer<State>(reducer, initialState, frameContext);
+  const state = useFramesReducer<State>(reducer, initialState, frameContext);
 
   // Here: do a server side side effect either sync or async (using await), such as minting an NFT if you want.
   // example: load the users credentials & check they have an NFT
@@ -39,7 +39,7 @@ export default async function Home({
   return (
     <div>
       Frames-jsx example
-      <FFrame postUrl="">
+      <FFrame postRoute="http://localhost:3000/frames" state={state}>
         <FFrameImage src="https://picsum.photos/seed/frames.js/1146/600" />
         <FFrameButton>
           {state?.active === "1" ? "Active" : "Inactive"}

@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { validateFrameMessage } from ".";
 import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 export type FrameState = Record<string, string>;
 
@@ -90,7 +91,7 @@ export function useFramesReducer<T extends FrameState = FrameState>(
   reducer: FrameReducer<T>,
   initialState: T,
   initializerArg: FrameContext<T>
-): [T, React.Dispatch<FrameContext<T>>] {
+): T {
   function frameReducerInit(initial: FrameContext<T>): T {
     if (
       initial.frame_prev_state === null ||
@@ -98,13 +99,14 @@ export function useFramesReducer<T extends FrameState = FrameState>(
     )
       return initialState;
 
+    // FIXME: if previous action was a redirect, needs to redirect here
+    if (false) {
+      redirect("");
+    }
     return reducer(initial.frame_prev_state, initial);
   }
 
-  // FIXME
-  function dispatch() {}
-
-  return [frameReducerInit(initializerArg), dispatch];
+  return frameReducerInit(initializerArg);
 }
 
 export async function POST(req: NextRequest) {
@@ -124,21 +126,30 @@ export async function POST(req: NextRequest) {
     searchParams.get("frame_prev_state") ?? ""
   );
 
+  // FIXME: does this need to return 200?
   return NextResponse.redirect(generatedUrlWithNextFrameState.toString());
 }
 
-export function FFrame({
+export function FFrame<T extends FrameState = FrameState>({
   children,
-  postUrl,
+  postRoute,
+  state,
 }: {
-  postUrl: string;
+  postRoute: string;
   children: Array<React.ReactElement<FrameElementType>>;
+  state: T;
 }) {
   const nextIndexByComponentType = {
     button: 1,
     image: 1,
     input: 1,
   };
+
+  const url = new URL(postRoute);
+  const searchParams = new URLSearchParams();
+  searchParams.set("pathname", url.pathname);
+  searchParams.set("frame_prev_state", JSON.stringify(state));
+  const postUrl = `${postRoute}?${searchParams.toString()}`;
   const newTree = (
     <>
       <meta name="fc:frame" content="vNext" />
@@ -196,18 +207,18 @@ export function FFrame({
   return newTree;
 }
 
-type FrameButtonAutomatedProps = {
+export type FrameButtonAutomatedProps = {
   actionIndex: ActionIndex;
 };
 
-type FrameButtonProvidedProps =
+export type FrameButtonProvidedProps =
   | FrameButtonPostRedirectProvidedProps
   | FrameButtonPostProvidedProps;
 
-type FrameButtonPostProvidedProps = {
+export type FrameButtonPostProvidedProps = {
   children: string | number;
 };
-type FrameButtonPostRedirectProvidedProps = {
+export type FrameButtonPostRedirectProvidedProps = {
   href: string;
   children: string | number;
 };
@@ -218,6 +229,7 @@ export function FFrameRedirect({
 }: FrameButtonPostRedirectProvidedProps & FrameButtonAutomatedProps) {
   return (
     <>
+      {process.env.SHOW_UI ? <button type="button">{children}</button> : null}
       <meta
         name={`fc:frame:button:${actionIndex}`}
         content={String(children)}
@@ -240,6 +252,7 @@ export function FFrameButtonShim({
 }: FrameButtonPostProvidedProps & FrameButtonAutomatedProps) {
   return (
     <>
+      {process.env.SHOW_UI ? <button type="button">{children}</button> : null}
       <meta
         name={`fc:frame:button:${actionIndex}`}
         content={String(children)}
@@ -252,6 +265,7 @@ export function FFrameButtonShim({
 export function FFFrameInput({ text }: { text: string }) {
   return (
     <>
+      {process.env.SHOW_UI ? <input type="text" placeholder={text} /> : null}
       <meta name="fc:frame:input:text" content={text} />
     </>
   );
@@ -260,6 +274,7 @@ export function FFFrameInput({ text }: { text: string }) {
 export function FFrameImage({ src }: { src: string }) {
   return (
     <>
+      {process.env.SHOW_UI ? <img src={src} /> : null}
       <meta name="fc:frame:image" content={src} />
       <meta property="og:image" content={src} />
     </>
