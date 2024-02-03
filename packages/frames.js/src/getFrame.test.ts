@@ -11,6 +11,7 @@ describe("getFrame", () => {
   <meta property="fc:frame:button:3" content="Red" />
   <meta property="fc:frame:button:4" content="Blue" />
   <meta property="fc:frame:post_url" content="https://example.com" />
+  <meta property="fc:frame:input:text" content="Enter a message" />
 `;
 
   const sampleFrame = {
@@ -35,6 +36,7 @@ describe("getFrame", () => {
       },
     ],
     postUrl: "https://example.com",
+    inputText: "Enter a message",
   } as Frame;
 
   it("should parse html meta tags", () => {
@@ -46,6 +48,7 @@ describe("getFrame", () => {
     <meta name="fc:frame:button:3" content="Red" />
     <meta name="fc:frame:button:4" content="Blue" />
     <meta name="fc:frame:post_url" content="https://example.com" />
+    <meta name="fc:frame:input:text" content="Enter a message" />
   `;
 
     expect(
@@ -63,46 +66,7 @@ describe("getFrame", () => {
     ).toEqual(sampleFrame);
   });
 
-  it("should parse html meta tags with name attributes", () => {
-    const htmlName = `
-    <meta name="fc:frame" content="vNext" />
-    <meta name="fc:frame:image" content="http:/example.com/image.png" />
-    <meta name="fc:frame:button:1" content="Green" />
-    <meta name="fc:frame:button:2" content="Purple" />
-    <meta name="fc:frame:button:3" content="Red" />
-    <meta name="fc:frame:button:4" content="Blue" />
-    <meta name="fc:frame:post_url" content="https://example.com" />
-  `;
-    const frame = getFrame({
-      htmlString: htmlName,
-      url: "https://example.com",
-    });
-    expect(frame).toEqual({
-      version: "vNext",
-      image: "http:/example.com/image.png",
-      buttons: [
-        {
-          label: "Green",
-          action: "post",
-        },
-        {
-          label: "Purple",
-          action: "post",
-        },
-        {
-          label: "Red",
-          action: "post",
-        },
-        {
-          label: "Blue",
-          action: "post",
-        },
-      ],
-      postUrl: "https://example.com",
-    });
-  });
-
-  it("Parses button actions", () => {
+  it("should parse button actions", () => {
     const html = `
     <meta name="fc:frame" content="vNext"/>
     <meta name="fc:frame:post_url" content="https://example.com"/>
@@ -133,7 +97,7 @@ describe("getFrame", () => {
     });
   });
 
-  it("should convert a farcaster frame HTML into a Frame object", () => {
+  it("should convert a Farcaster Frame HTML into a Frame object", () => {
     const html = getFrameHtml(sampleFrame);
     const parsedFrame = getFrame({
       htmlString: html,

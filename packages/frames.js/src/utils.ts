@@ -5,6 +5,10 @@ export function bytesToHexString(bytes: Uint8Array): `0x${string}` {
   return ("0x" + Buffer.from(bytes).toString("hex")) as `0x${string}`;
 }
 
+export function getByteLength(str: string): number {
+  return Buffer.from(str).byteLength;
+}
+
 export function hexStringToUint8Array(hexstring: string): Uint8Array {
   return new Uint8Array(
     hexstring.match(/.{1,2}/g)!.map((byte: string) => parseInt(byte, 16))

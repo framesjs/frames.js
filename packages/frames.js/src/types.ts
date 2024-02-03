@@ -11,6 +11,8 @@ export type Frame = {
   image: string;
   /** An image which must be smaller than 10MB and should have an aspect ratio of 1.91:1. Fallback for clients that do not support frames. */
   ogImage?: string;
+  /** Adding this property enables the text field. The content is a 32-byte label that is shown to the user (e.g. Enter a message). */
+  inputText?: string;
 };
 
 export type FrameFlattened = {
@@ -25,6 +27,7 @@ export type FrameFlattened = {
   "fc:frame:button:3:action"?: "post" | "post_redirect";
   "fc:frame:button:4"?: string;
   "fc:frame:button:4:action"?: "post" | "post_redirect";
+  "fc:frame:input:text"?: string;
 };
 
 export type FrameButton = {

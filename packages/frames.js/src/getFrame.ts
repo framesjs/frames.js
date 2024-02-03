@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio";
 import { FrameButton, FrameButtonsType, Frame } from "./types";
-import { isValidVersion } from "./utils";
+import { getByteLength, isValidVersion } from "./utils";
 
 export function getFrame({
   htmlString,
@@ -22,6 +22,10 @@ export function getFrame({
     $(
       "meta[property='fc:frame:post_url'], meta[name='fc:frame:post_url']"
     ).attr("content") || url;
+
+  const inputText = $(
+    "meta[property='fc:frame:input:text'], meta[name='fc:frame:input:text']"
+  ).attr("content");
 
   const buttonLabels = $(
     "meta[property^='fc:frame:button']:not([property$=':action']), meta[name^='fc:frame:button']:not([name$=':action'])"
@@ -61,7 +65,8 @@ export function getFrame({
     !version ||
     !isValidVersion(version) ||
     !image ||
-    buttonsWithActions.length > 4
+    buttonsWithActions.length > 4 ||
+    (inputText && getByteLength(inputText) > 32)
   ) {
     return null;
   }
@@ -71,6 +76,7 @@ export function getFrame({
     image: image,
     buttons: buttonsWithActions as FrameButtonsType,
     postUrl,
+    inputText,
   };
 }
 export function parseButtonElement(elem: cheerio.Element) {
