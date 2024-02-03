@@ -85,7 +85,17 @@ export default function Page(): JSX.Element {
         },
       }),
     });
+
     const data = await response.json();
+
+    if (response.status === 302) {
+      const location = data.location;
+      if (window.confirm("You are about to be redirected to " + location!)) {
+        window.location.href = location!;
+      }
+      return;
+    }
+
     setFrame(data);
   };
 

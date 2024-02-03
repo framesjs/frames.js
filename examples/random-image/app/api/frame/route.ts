@@ -4,7 +4,7 @@ import {
   getFrameMessageFromRequestBody,
   validateFrameMessage,
 } from "frames.js";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { HOST, framePostUrl } from "../../constants";
 
 export async function POST(request: NextRequest) {
@@ -13,7 +13,8 @@ export async function POST(request: NextRequest) {
   const untrustedMessage = getFrameMessageFromRequestBody(body);
 
   if (untrustedMessage.data?.frameActionBody?.buttonIndex === 2) {
-    return Response.redirect(`${HOST}/redirect`, 302);
+    const resp = NextResponse.redirect(`${HOST}/redirect`, 302);
+    return resp;
   }
 
   const result = await validateFrameMessage(body);

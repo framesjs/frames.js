@@ -12,8 +12,19 @@ export async function POST(req: NextRequest, res: NextResponse) {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
+      redirect: "manual", // Only if post_redirect
       body: JSON.stringify(body),
     });
+
+    // Only if post_redirect
+    if (r.status === 302) {
+      return Response.json(
+        {
+          location: r.headers.get("location"),
+        },
+        { status: 302 }
+      );
+    }
 
     const htmlString = await r.text();
 
