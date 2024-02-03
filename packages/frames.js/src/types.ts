@@ -36,6 +36,8 @@ export type FrameButton = {
   action?: "post" | "post_redirect";
 };
 
+export type ActionIndex = 1 | 2 | 3 | 4;
+
 export type FrameButtonsType =
   | []
   | [FrameButton]
