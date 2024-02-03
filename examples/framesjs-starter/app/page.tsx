@@ -48,6 +48,9 @@ export default async function Home({
   // Here: do a server side side effect either sync or async (using await), such as minting an NFT if you want.
   // example: load the users credentials & check they have an NFT
 
+  const { buttonIndex, fid, inputText } =
+    previousFrame.postBody?.untrustedData || {};
+
   const imageSvg = await satori(
     <div
       style={{
@@ -78,10 +81,12 @@ export default async function Home({
         <div
           style={{
             display: "flex",
-            overflow: "hidden",
+            flexDirection: "column",
           }}
         >
-          Button index: {previousFrame.postBody?.untrustedData.buttonIndex}
+          <div style={{ display: "flex" }}>Button index: {buttonIndex}</div>
+          <div style={{ display: "flex" }}>Fid: {fid}</div>
+          <div style={{ display: "flex" }}>{inputText}</div>
         </div>
       </div>
     </div>,
