@@ -29,8 +29,6 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
     const htmlString = await r.text();
 
-    console.log(htmlString);
-
     const frame = getFrame({ htmlString, url });
 
     if (!frame) {

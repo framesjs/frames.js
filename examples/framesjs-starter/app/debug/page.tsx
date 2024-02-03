@@ -17,7 +17,7 @@ export default function Page(): JSX.Element {
   const params = useSearchParams();
   const url = params.get("url");
   const [urlInput, setUrlInput] = useState(
-    process.env.NEXT_PUBLIC_URL || "http://localhost:3000"
+    process.env.NEXT_PUBLIC_HOST || "http://localhost:3000"
   );
   const [frame, setFrame] = useState<Frame | null>(null);
 

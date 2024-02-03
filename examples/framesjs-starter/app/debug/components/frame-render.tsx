@@ -10,13 +10,7 @@ export function FrameRender({
   isLoggedIn: boolean;
   frame: Frame;
   url: string | null;
-  submitOption: ({
-    buttonIndex,
-    inputText,
-  }: {
-    buttonIndex: number;
-    inputText: string;
-  }) => void;
+  submitOption: (args: { buttonIndex: number; inputText: string }) => void;
 }) {
   const [inputText, setInputText] = useState("");
 

@@ -12,8 +12,6 @@ export async function POST(request: NextRequest) {
 
   const untrustedMessage = getFrameMessageFromRequestBody(body);
 
-  console.log("aaaaa", untrustedMessage.data?.frameActionBody);
-
   if (untrustedMessage.data?.frameActionBody?.buttonIndex === 2) {
     const resp = NextResponse.redirect(`${HOST}/redirect`, 302);
     return resp;
@@ -46,8 +44,6 @@ export async function POST(request: NextRequest) {
   };
 
   const html = getFrameHtml(frame);
-
-  console.log(html);
 
   return new Response(html, {
     headers: {

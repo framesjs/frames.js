@@ -142,7 +142,6 @@ export async function POST(req: NextRequest) {
   url.searchParams.delete("p");
   url.searchParams.delete("s");
   url.searchParams.delete("r");
-  console.info("redirecting to", url.toString());
   return NextResponse.redirect(url.toString());
 }
 
