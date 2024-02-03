@@ -46,7 +46,8 @@ export function FrameRender({
               }
               key={index}
             >
-              {index}. {label} {action ? `(${action})` : ""}
+              {label}
+              {action === "post_redirect" ? ` ↗` : ""}
             </button>
           ))}
         </div>

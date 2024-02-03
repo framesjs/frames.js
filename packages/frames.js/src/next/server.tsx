@@ -15,9 +15,9 @@ import {
   FrameState,
   Dispatch,
   RedirectMap,
+  HeadersList,
 } from "./types";
 export * from "./types";
-import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 
 export type FrameElementType =
   | typeof FrameButton
@@ -40,7 +40,20 @@ export async function validateFrameMessageOrThrow(
 export function createFrameContextNextjs<T extends FrameState = FrameState>(
   searchParams: Record<string, string>
 ): FrameContext<T> {
-  return createFrameContext(parseFrameParams<T>(searchParams), headers());
+  const headersObj = headers();
+  // not sure about the security of doing this for server only headers.
+  // const headersList = Object.fromEntries(headers().entries());
+  const headersList = {
+    userAgent: headersObj.get("user-agent"),
+    acceptLanguage: headersObj.get("accept-language"),
+    host: headersObj.get("host"),
+    pathname: headersObj.get("next-url") ?? "",
+    url:
+      headersObj.get("referer") ||
+      `${headersObj.get("x-forwarded-proto")}://${headersObj.get("x-forwarded-host")}${headersObj.get("next-url") ?? ""}`,
+  };
+
+  return createFrameContext(parseFrameParams<T>(searchParams), headersList);
 }
 
 export function createFrameContext<T extends FrameState = FrameState>(
@@ -48,13 +61,11 @@ export function createFrameContext<T extends FrameState = FrameState>(
     FrameContext<T>,
     "postBody" | "prevState" | "pathname" | "prevRedirects"
   >,
-  headers: ReadonlyHeaders
+  headers: HeadersList
 ): FrameContext<T> {
   return {
     ...frameContextFromParams,
     headers: headers,
-    // fixme:
-    url: "",
   };
 }
 
@@ -129,7 +140,7 @@ export async function POST(req: NextRequest) {
     url.searchParams.get("prevRedirects") ?? ""
   );
 
-  console.log("redirecting to", url.toString());
+  console.info("redirecting to", url.toString());
   // FIXME: does this need to return 200?
   return NextResponse.redirect(url.toString());
 }
@@ -138,10 +149,12 @@ export function FrameContainer<T extends FrameState = FrameState>({
   children,
   postRoute,
   state,
+  frameContext,
 }: {
   postRoute: string;
   children: Array<React.ReactElement<FrameElementType>>;
   state: T;
+  frameContext: FrameContext<T>;
 }) {
   const nextIndexByComponentType: Record<
     "button" | "image" | "input",
@@ -215,7 +228,8 @@ export function FrameContainer<T extends FrameState = FrameState>({
 
   const url = new URL(postRoute);
   const searchParams = new URLSearchParams();
-  searchParams.set("pathname", url.pathname);
+
+  searchParams.set("pathname", frameContext.headers.pathname ?? "/");
   searchParams.set("prevState", JSON.stringify(state));
   searchParams.set("prevRedirects", JSON.stringify(redirectMap));
 

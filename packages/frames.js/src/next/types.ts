@@ -1,6 +1,12 @@
-import React from "react";
-import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import { ActionIndex, FrameActionPayload } from "../types";
+
+export type HeadersList = {
+  userAgent: string | null;
+  acceptLanguage: string | null;
+  pathname: string | null;
+  url: string | null;
+  host: string | null;
+};
 
 export type FrameState = Record<string, string>;
 
@@ -11,8 +17,7 @@ export type FrameContext<T extends FrameState = FrameState> = {
   prevState: T | null;
   prevRedirects: RedirectMap | null;
   pathname?: string;
-  url: string;
-  headers: ReadonlyHeaders;
+  headers: HeadersList;
 };
 
 type StringifiedValues<T> = {
