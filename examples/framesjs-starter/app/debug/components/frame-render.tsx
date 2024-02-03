@@ -55,7 +55,7 @@ export function FrameRender({
                   alert("Log in to use the frame buttons");
                   return;
                 }
-                return submitOption({ buttonIndex: index + 1, inputText: "" });
+                return submitOption({ buttonIndex: index + 1, inputText });
               }}
               key={index}
             >
