@@ -30,7 +30,11 @@ export default async function Home({
 }) {
   const frameContext = createFrameContextNextjs<State>(searchParams);
   await validateFrameMessageOrThrow(frameContext.frame_action_received);
-  const state = useFramesReducer<State>(reducer, initialState, frameContext);
+  const [state, dispatch] = useFramesReducer<State>(
+    reducer,
+    initialState,
+    frameContext
+  );
 
   // Here: do a server side side effect either sync or async (using await), such as minting an NFT if you want.
   // example: load the users credentials & check they have an NFT
@@ -41,17 +45,15 @@ export default async function Home({
       Frames-jsx example
       <FFrame postRoute="http://localhost:3000/frames" state={state}>
         <FFrameImage src="https://picsum.photos/seed/frames.js/1146/600" />
-        <FFrameButton>
+        <FFrameButton onClick={dispatch}>
           {state?.active === "1" ? "Active" : "Inactive"}
         </FFrameButton>
-        <FFrameButton>
+        <FFrameButton onClick={dispatch}>
           {state?.active === "2" ? "Active" : "Inactive"}
         </FFrameButton>
-        <FFrameButton>
-          {state?.active === "3" ? "Active" : "Inactive"}
-        </FFrameButton>
-        <FFrameButton>
-          {state?.active === "4" ? "Active" : "Inactive"}
+        <FFrameButton href={`http://localhost:3000/`}>Page link</FFrameButton>
+        <FFrameButton href={`https://www.google.com`}>
+          External link
         </FFrameButton>
       </FFrame>
     </div>

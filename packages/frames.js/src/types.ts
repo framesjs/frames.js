@@ -59,7 +59,7 @@ export type FrameActionPayload = {
     messageHash: string;
     timestamp: number;
     network: number;
-    buttonIndex: number;
+    buttonIndex: ActionIndex;
     castId: { fid: number; hash: string };
   };
 };

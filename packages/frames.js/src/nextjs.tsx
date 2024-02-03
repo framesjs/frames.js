@@ -4,7 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { validateFrameMessage } from ".";
 import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { redirect, RedirectType } from "next/navigation";
+import { FrameButtonRedirectUI, FrameButtonUI } from "./nextjs/button";
 
 export type FrameState = Record<string, string>;
 
@@ -13,9 +14,12 @@ export type FrameElementType =
   | typeof FFrameImage
   | typeof FFFrameInput;
 
+export type RedirectMap = Record<number, string>;
+
 export type FrameContext<T extends FrameState = FrameState> = {
   frame_action_received: FrameActionPayload | null;
   frame_prev_state: T | null;
+  frame_prev_redirects: RedirectMap | null;
   pathname?: string;
   url: string;
   headers: ReadonlyHeaders;
@@ -54,7 +58,10 @@ export function createFrameContextNextjs<T extends FrameState = FrameState>(
 export function createFrameContext<T extends FrameState = FrameState>(
   frameContextFromParams: Pick<
     FrameContext<T>,
-    "frame_action_received" | "frame_prev_state" | "pathname"
+    | "frame_action_received"
+    | "frame_prev_state"
+    | "pathname"
+    | "frame_prev_redirects"
   >,
   headers: ReadonlyHeaders
 ): FrameContext<T> {
@@ -70,7 +77,10 @@ export function parseFrameParams<T extends FrameState = FrameState>(
   searchParams: Record<string, string>
 ): Pick<
   FrameContext<T>,
-  "frame_action_received" | "frame_prev_state" | "pathname"
+  | "frame_action_received"
+  | "frame_prev_state"
+  | "pathname"
+  | "frame_prev_redirects"
 > {
   const frameActionReceived = searchParams.frame_action_received
     ? (JSON.parse(searchParams.frame_action_received) as FrameActionPayload)
@@ -80,18 +90,25 @@ export function parseFrameParams<T extends FrameState = FrameState>(
     ? (JSON.parse(searchParams.frame_prev_state) as T)
     : null;
 
+  const framePrevRedirects = searchParams.frame_prev_redirects
+    ? (JSON.parse(searchParams.frame_prev_redirects) as RedirectMap)
+    : null;
+
   return {
     frame_action_received: frameActionReceived,
     frame_prev_state: framePrevState,
     pathname: searchParams.pathname,
+    frame_prev_redirects: framePrevRedirects,
   };
 }
+
+type Dispatch = (actionIndex: ActionIndex) => any;
 
 export function useFramesReducer<T extends FrameState = FrameState>(
   reducer: FrameReducer<T>,
   initialState: T,
   initializerArg: FrameContext<T>
-): T {
+): [T, Dispatch] {
   function frameReducerInit(initial: FrameContext<T>): T {
     if (
       initial.frame_prev_state === null ||
@@ -99,14 +116,29 @@ export function useFramesReducer<T extends FrameState = FrameState>(
     )
       return initialState;
 
-    // FIXME: if previous action was a redirect, needs to redirect here
-    if (false) {
-      redirect("");
+    if (
+      initial.frame_prev_redirects?.hasOwnProperty(
+        `${initial.frame_action_received.untrustedData.buttonIndex}`
+      ) &&
+      initial.frame_prev_redirects[
+        `${initial.frame_action_received.untrustedData.buttonIndex}`
+      ]
+    ) {
+      // FIXME: this is a 307 not a 302
+      redirect(
+        initial.frame_prev_redirects[
+          `${initial.frame_action_received.untrustedData.buttonIndex}`
+        ]!,
+        RedirectType.replace
+      );
     }
     return reducer(initial.frame_prev_state, initial);
   }
 
-  return frameReducerInit(initializerArg);
+  // doesn't do anything right now, but exists to make Button onClicks feel more natural and not magic.
+  function dispatch(actionIndex: ActionIndex) {}
+
+  return [frameReducerInit(initializerArg), dispatch];
 }
 
 export async function POST(req: NextRequest) {
@@ -125,6 +157,10 @@ export async function POST(req: NextRequest) {
     "frame_prev_state",
     searchParams.get("frame_prev_state") ?? ""
   );
+  generatedUrlWithNextFrameState.searchParams.set(
+    "frame_prev_redirects",
+    searchParams.get("frame_prev_redirects") ?? ""
+  );
 
   // FIXME: does this need to return 200?
   return NextResponse.redirect(generatedUrlWithNextFrameState.toString());
@@ -139,21 +175,17 @@ export function FFrame<T extends FrameState = FrameState>({
   children: Array<React.ReactElement<FrameElementType>>;
   state: T;
 }) {
-  const nextIndexByComponentType = {
+  const nextIndexByComponentType: Record<
+    "button" | "image" | "input",
+    ActionIndex
+  > = {
     button: 1,
     image: 1,
     input: 1,
   };
-
-  const url = new URL(postRoute);
-  const searchParams = new URLSearchParams();
-  searchParams.set("pathname", url.pathname);
-  searchParams.set("frame_prev_state", JSON.stringify(state));
-  const postUrl = `${postRoute}?${searchParams.toString()}`;
+  let redirectMap: RedirectMap = {};
   const newTree = (
     <>
-      <meta name="fc:frame" content="vNext" />
-      <meta name="fc:frame:post_url" content={postUrl} />
       {React.Children.map(children, (child) => {
         switch (child.type) {
           case FFrameButton:
@@ -166,6 +198,15 @@ export function FFrame<T extends FrameState = FrameState>({
             }
 
             if (child.props.hasOwnProperty("href")) {
+              if (child.props.hasOwnProperty("onClick")) {
+                throw new Error(
+                  "buttons must either have href or onClick, not both"
+                );
+              }
+              redirectMap[nextIndexByComponentType.button] = // TODO?
+                (
+                  child.props as any as FrameButtonPostRedirectProvidedProps
+                ).href;
               return (
                 <FFrameRedirect
                   {...(child.props as any)}
@@ -204,7 +245,21 @@ export function FFrame<T extends FrameState = FrameState>({
   if (nextIndexByComponentType.image === 1)
     throw new Error("an <FrameImage> element inside a <Frame> is required");
 
-  return newTree;
+  const url = new URL(postRoute);
+  const searchParams = new URLSearchParams();
+  searchParams.set("pathname", url.pathname);
+  searchParams.set("frame_prev_state", JSON.stringify(state));
+  searchParams.set("frame_prev_redirects", JSON.stringify(redirectMap));
+
+  const postUrl = `${postRoute}?${searchParams.toString()}`;
+
+  return (
+    <>
+      <meta name="fc:frame" content="vNext" />
+      <meta name="fc:frame:post_url" content={postUrl} />
+      {newTree}
+    </>
+  );
 }
 
 export type FrameButtonAutomatedProps = {
@@ -217,6 +272,7 @@ export type FrameButtonProvidedProps =
 
 export type FrameButtonPostProvidedProps = {
   children: string | number;
+  onClick: Dispatch;
 };
 export type FrameButtonPostRedirectProvidedProps = {
   href: string;
@@ -224,12 +280,17 @@ export type FrameButtonPostRedirectProvidedProps = {
 };
 
 export function FFrameRedirect({
+  href,
   actionIndex,
   children,
 }: FrameButtonPostRedirectProvidedProps & FrameButtonAutomatedProps) {
   return (
     <>
-      {process.env.SHOW_UI ? <button type="button">{children}</button> : null}
+      {process.env.SHOW_UI ? (
+        <FrameButtonRedirectUI actionIndex={actionIndex} href={href}>
+          {children}
+        </FrameButtonRedirectUI>
+      ) : null}
       <meta
         name={`fc:frame:button:${actionIndex}`}
         content={String(children)}
@@ -249,10 +310,13 @@ export function FFrameButton(props: FrameButtonProvidedProps) {
 export function FFrameButtonShim({
   actionIndex,
   children,
+  onClick,
 }: FrameButtonPostProvidedProps & FrameButtonAutomatedProps) {
   return (
     <>
-      {process.env.SHOW_UI ? <button type="button">{children}</button> : null}
+      {process.env.SHOW_UI ? (
+        <FrameButtonUI actionIndex={actionIndex}>{children}</FrameButtonUI>
+      ) : null}
       <meta
         name={`fc:frame:button:${actionIndex}`}
         content={String(children)}
