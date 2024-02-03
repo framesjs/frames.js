@@ -5,7 +5,7 @@ if (
   !process.env.FARCASTER_DEVELOPER_MNEMONIC ||
   !process.env.FARCASTER_DEVELOPER_FID
 ) {
-  throw new Error(
+  console.warn(
     "define the FARCASTER_DEVELOPER_MNEMONIC and FARCASTER_DEVELOPER_FID environment variables"
   );
 }
