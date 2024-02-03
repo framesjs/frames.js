@@ -42,7 +42,7 @@ export function FrameRender({
           {frame.buttons?.map(({ label, action }, index: number) => (
             <button
               onClick={() =>
-                submitOption({ buttonIndex: index, inputText: "" })
+                submitOption({ buttonIndex: index + 1, inputText: "" })
               }
               key={index}
             >

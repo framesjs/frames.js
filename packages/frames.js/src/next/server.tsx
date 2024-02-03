@@ -226,7 +226,6 @@ export function FrameContainer<T extends FrameState = FrameState>({
   if (nextIndexByComponentType.image === 1)
     throw new Error("an <FrameImage> element inside a <Frame> is required");
 
-  const url = new URL(postRoute);
   const searchParams = new URLSearchParams();
 
   searchParams.set("pathname", frameContext.headers.pathname ?? "/");
