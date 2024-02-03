@@ -12,6 +12,11 @@
   "devDependencies": {
     "typescript": "^5.2.2"
   },
+  "peerDependencies": {
+    "react": "^18",
+    "react-dom": "^18",
+    "next": "14.0.1"
+  },
   "dependencies": {
     "@farcaster/core": "^0.13.7",
     "cheerio": "^1.0.0-rc.12",
