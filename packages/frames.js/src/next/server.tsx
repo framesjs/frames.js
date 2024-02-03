@@ -24,7 +24,7 @@ export type FrameElementType =
   | typeof FrameImage
   | typeof FrameInput;
 
-export async function validateFrameMessageOrThrow(
+export async function validateActionSignature(
   frameActionPayload: FrameActionPayload | null
 ) {
   if (!frameActionPayload) {

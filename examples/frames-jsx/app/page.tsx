@@ -5,7 +5,7 @@ import {
   FrameReducer,
   useFramesReducer,
   createFrameContextNextjs,
-  validateFrameMessageOrThrow,
+  validateActionSignature,
   FrameInput,
 } from "frames.js/next/server";
 
@@ -30,7 +30,7 @@ export default async function Home({
   searchParams: Record<string, string>;
 }) {
   const frameContext = createFrameContextNextjs<State>(searchParams);
-  await validateFrameMessageOrThrow(frameContext.postBody);
+  await validateActionSignature(frameContext.postBody);
   const [state, dispatch] = useFramesReducer<State>(
     reducer,
     initialState,
