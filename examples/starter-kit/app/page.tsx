@@ -8,6 +8,7 @@ import {
   validateActionSignature,
   FrameInput,
 } from "frames.js/next/server";
+import Link from "next/link";
 
 type State = {
   active: string;
@@ -43,7 +44,7 @@ export default async function Home({
   // then, when done, return next frame
   return (
     <div>
-      Frames-jsx example
+      Starter kit. <Link href="/debug">Debug</Link>
       <FrameContainer
         postUrl="http://localhost:3000/api/frames"
         state={state}
@@ -58,7 +59,7 @@ export default async function Home({
           {state?.active === "2" ? "Active" : "Inactive"}
         </FrameButton>
         <FrameButton href={`http://localhost:3000/`}>Page link</FrameButton>
-        <FrameButton href={`https://www.google.com`}>External link</FrameButton>
+        <FrameButton href={`https://www.google.com`}>External</FrameButton>
       </FrameContainer>
     </div>
   );

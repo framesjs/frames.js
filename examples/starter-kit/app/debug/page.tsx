@@ -134,7 +134,12 @@ export default function Page(): JSX.Element {
           </form>
         ) : (
           <>
-            <FrameRender frame={frame!} url={url} submitOption={submitOption} />
+            <FrameRender
+              frame={frame!}
+              url={url}
+              submitOption={submitOption}
+              isLoggedIn={!!farcasterUser?.fid}
+            />
             <LoginWindow
               farcasterUser={farcasterUser}
               loading={loading}

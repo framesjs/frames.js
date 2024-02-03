@@ -1,12 +1,13 @@
 import { Frame } from "frames.js";
-import Image from "next/image";
 import { useState } from "react";
 
 export function FrameRender({
   frame,
   url,
   submitOption,
+  isLoggedIn,
 }: {
+  isLoggedIn: boolean;
   frame: Frame;
   url: string | null;
   submitOption: ({
@@ -23,28 +24,39 @@ export function FrameRender({
     <div style={{ width: "382px" }}>
       <h1>{url}</h1>
       <div>
-        <Image
+        <img
           src={frame.image}
           alt="Description of the image"
           width={382}
+          style={{ borderRadius: "4px" }}
           height={200}
         />
-      </div>
-      <div>
         {frame.inputText && (
           <input
-            style={{ width: "382px" }}
+            style={{ width: "382px", boxSizing: "border-box", padding: "8px" }}
             type="text"
             placeholder={frame.inputText}
             onChange={(e) => setInputText(e.target.value)}
           />
         )}
-        <div>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            marginTop: "4px",
+            gap: "4px",
+          }}
+        >
           {frame.buttons?.map(({ label, action }, index: number) => (
             <button
-              onClick={() =>
-                submitOption({ buttonIndex: index + 1, inputText: "" })
-              }
+              style={{ flex: "1 1 0px", padding: "6px" }}
+              onClick={() => {
+                if (!isLoggedIn) {
+                  alert("Log in to use the frame buttons");
+                  return;
+                }
+                return submitOption({ buttonIndex: index + 1, inputText: "" });
+              }}
               key={index}
             >
               {label}
@@ -53,6 +65,7 @@ export function FrameRender({
           ))}
         </div>
       </div>
+      <hr />
       <pre id="json">{JSON.stringify(frame, null, 2)}</pre>
     </div>
   );
