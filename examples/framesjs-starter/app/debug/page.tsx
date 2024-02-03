@@ -11,11 +11,14 @@ import { createFrameActionMessageWithSignerKey } from "./lib/farcaster";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-export default function Page(): JSX.Element {
+export default function Page({
+  searchParams,
+}: {
+  searchParams: Record<string, string>;
+}): JSX.Element {
   const { farcasterUser, loading, startFarcasterSignerProcess, logout } =
     useFarcasterIdentity();
-  const params = useSearchParams();
-  const url = params.get("url");
+  const url = searchParams.url;
   const [urlInput, setUrlInput] = useState(
     process.env.NEXT_PUBLIC_HOST || "http://localhost:3000"
   );
