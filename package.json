@@ -5,6 +5,7 @@
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
+    "publish-packages": "turbo run build lint && changeset version && changeset publish && git push --follow-tags origin main",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
