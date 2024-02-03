@@ -29,6 +29,7 @@ export const metadata: Metadata = {
         action: "post_redirect",
       },
     ],
+    inputText: "Type something",
     postUrl: framePostUrl,
   }),
 };

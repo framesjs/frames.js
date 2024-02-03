@@ -1,8 +1,9 @@
 "use client";
 
-import * as ed from "@noble/ed25519";
 import { useEffect, useState } from "react";
-import { LOCAL_STORAGE_KEYS } from "../app/constants";
+import { LOCAL_STORAGE_KEYS } from "../constants";
+import { FarcasterUser } from "../types/farcaster-user";
+import { convertKeypairToHex, createKeypair } from "../lib/crypto";
 
 interface SignedKeyRequest {
   deeplinkUrl: string;
@@ -14,48 +15,6 @@ interface SignedKeyRequest {
   userFid: number;
   signerUser?: object;
   signerUserMetadata?: object;
-}
-
-export interface FarcasterUser {
-  signature: string;
-  public_key: string;
-  private_key: string;
-  signedKeyRequest?: SignedKeyRequest;
-  deadline: string;
-  status: "approved" | "pending_approval";
-  signer_approval_url?: string;
-  token?: any;
-  fid?: number;
-}
-
-function convertSignerToHexSigner({
-  privateKeyBytes,
-  publicKeyBytes,
-}: {
-  privateKeyBytes: Uint8Array;
-  publicKeyBytes: Uint8Array;
-}): {
-  publicKey: string;
-  privateKey: string;
-} {
-  return {
-    publicKey: "0x" + Buffer.from(publicKeyBytes).toString("hex"),
-    privateKey: "0x" + Buffer.from(privateKeyBytes).toString("hex"),
-  };
-}
-
-async function createKeypair(): Promise<{
-  publicKeyBytes: Uint8Array;
-  privateKeyBytes: Uint8Array;
-}> {
-  // store this securely!
-  const privateKeyBytes = ed.utils.randomPrivateKey();
-  const publicKeyBytes = await ed.getPublicKeyAsync(privateKeyBytes);
-
-  return {
-    privateKeyBytes,
-    publicKeyBytes,
-  };
 }
 
 export function useFarcasterIdentity() {
@@ -169,16 +128,20 @@ export function useFarcasterIdentity() {
   async function createAndStoreSigner() {
     try {
       const keypair = await createKeypair();
-      const keypairString = convertSignerToHexSigner(keypair);
+      const keypairString = convertKeypairToHex(keypair);
       const authorizationResponse = await fetch(`/api/signer`, {
         method: "POST",
         body: JSON.stringify({
           publicKey: keypairString.publicKey,
         }),
       });
-      const authorizationBody = await authorizationResponse.json();
-      const { signature, requestFid, deadline, requestSigner } =
-        authorizationBody;
+      const authorizationBody: {
+        signature: string;
+        requestFid: string;
+        deadline: number;
+        requestSigner: string;
+      } = await authorizationResponse.json();
+      const { signature, requestFid, deadline } = authorizationBody;
       if (authorizationResponse.status === 200) {
         const {
           result: { signedKeyRequest },
@@ -199,11 +162,13 @@ export function useFarcasterIdentity() {
           result: { signedKeyRequest: { token: string; deeplinkUrl: string } };
         };
 
-        const user = {
+        const user: FarcasterUser = {
           ...authorizationBody,
+          publicKey: keypairString.publicKey,
+          deadline: deadline,
           token: signedKeyRequest.token,
-          signer_approval_url: signedKeyRequest.deeplinkUrl,
-          private_key: keypairString.privateKey,
+          signerApprovalUrl: signedKeyRequest.deeplinkUrl,
+          privateKey: keypairString.privateKey,
           status: "pending_approval",
         };
         localStorage.setItem(

@@ -5,12 +5,10 @@ import { useState } from "react";
 export function FrameRender({
   frame,
   url,
-  viewOnly = true,
   submitOption,
 }: {
   frame: Frame;
   url: string | null;
-  viewOnly?: boolean;
   submitOption: ({
     buttonIndex,
     inputText,
@@ -22,9 +20,9 @@ export function FrameRender({
   const [inputText, setInputText] = useState("");
 
   return (
-    <div className="mx-auto">
+    <div>
       <h1>{url}</h1>
-      <div className="mx-auto">
+      <div>
         <Image
           src={frame.image}
           alt="Description of the image"
@@ -32,11 +30,17 @@ export function FrameRender({
           height={200}
         />
       </div>
-      {!viewOnly && (
-        <div className="flex">
+      <div>
+        {frame.inputText && (
+          <input
+            type="text"
+            placeholder={frame.inputText}
+            onChange={(e) => setInputText(e.target.value)}
+          />
+        )}
+        <div>
           {frame.buttons?.map(({ label, action }, index: number) => (
             <button
-              className="flex-grow"
               onClick={() =>
                 submitOption({ buttonIndex: index, inputText: "" })
               }
@@ -46,7 +50,7 @@ export function FrameRender({
             </button>
           ))}
         </div>
-      )}
+      </div>
     </div>
   );
 }

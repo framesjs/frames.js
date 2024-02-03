@@ -1,72 +1,15 @@
 "use client";
 
+import { Frame } from "frames.js";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
+import { LoginWindow } from "./components/create-signer";
 import { FrameRender } from "./components/frame";
-import { Frame } from "frames.js";
-import { createFrameActionMessageWithSignerKey } from "../lib/farcaster";
-import {
-  FarcasterUser,
-  useFarcasterIdentity,
-} from "../hooks/use-farcaster-connect";
-import QRCode from "qrcode.react";
+import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
+import { createFrameActionMessageWithSignerKey } from "./lib/farcaster";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
-
-const LoginWindow = ({
-  farcasterUser,
-  loading,
-  startFarcasterSignerProcess,
-}: {
-  farcasterUser: FarcasterUser | null;
-  loading: boolean;
-  startFarcasterSignerProcess: () => void;
-}) => {
-  return (
-    <div>
-      <div style={{ minWidth: "150px" }}>
-        <div>
-          {farcasterUser?.status === "approved"
-            ? farcasterUser.fid
-              ? `Signed in as ${farcasterUser?.fid}`
-              : "Something is wrong..."
-            : farcasterUser?.status === "pending_approval"
-              ? "Approve in Warpcast"
-              : "Sign in"}
-        </div>
-        <div>
-          {!farcasterUser?.status && (
-            <button
-              style={{
-                cursor: loading ? "not-allowed" : "pointer",
-              }}
-              onClick={startFarcasterSignerProcess}
-              disabled={loading}
-            >
-              {loading ? "Loading..." : "Sign in with farcaster"}
-            </button>
-          )}
-          {farcasterUser?.status === "pending_approval" &&
-            farcasterUser?.signer_approval_url && (
-              <div className="signer-approval-container mr-4">
-                Scan with your camera app
-                <QRCode value={farcasterUser.signer_approval_url} size={64} />
-                <div className="or-divider">OR</div>
-                <a
-                  href={farcasterUser.signer_approval_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <button>open url</button>
-                </a>
-              </div>
-            )}
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export default function Page(): JSX.Element {
   const { farcasterUser, loading, startFarcasterSignerProcess, logout } =
@@ -75,18 +18,15 @@ export default function Page(): JSX.Element {
   const url = params.get("url");
   const [frame, setFrame] = useState<Frame | null>(null);
 
+  // Load initial frame
   const { data, error, isLoading } = useSWR<Frame>(
-    `/api/og?url=${url}`,
+    url ? `/api/og?url=${url}` : null,
     fetcher
   );
 
   useEffect(() => {
     if (data) setFrame(data);
   }, [data]);
-
-  if (error) return <div>failed to load</div>;
-  if (isLoading) return <div>loading...</div>;
-  if (!frame) return <div>something is wrong...</div>;
 
   const submitOption = async ({
     buttonIndex,
@@ -95,7 +35,7 @@ export default function Page(): JSX.Element {
     buttonIndex: number;
     inputText: string;
   }) => {
-    if (!farcasterUser || !farcasterUser.fid) {
+    if (!farcasterUser || !farcasterUser.fid || !frame) {
       return;
     }
 
@@ -107,7 +47,7 @@ export default function Page(): JSX.Element {
     };
 
     const { message, trustedBytes } =
-      await createFrameActionMessageWithSignerKey(farcasterUser.private_key, {
+      await createFrameActionMessageWithSignerKey(farcasterUser.privateKey, {
         fid: farcasterUser.fid,
         buttonIndex,
         castId,
@@ -146,20 +86,36 @@ export default function Page(): JSX.Element {
     setFrame(data);
   };
 
+  if (error) return <div>Failed to load</div>;
+  if (isLoading) return <div>Loading...</div>;
+  if (url && !frame) return <div>Something is wrong...</div>;
+
   return (
     <div className="p-5 flex justify-center flex-col">
       <div className="mx-auto text-center flex flex-col w-full md:w-1/2">
-        <FrameRender
-          frame={frame}
-          url={url}
-          submitOption={submitOption}
-          viewOnly={!farcasterUser?.fid}
-        />
-        <LoginWindow
-          farcasterUser={farcasterUser}
-          loading={loading}
-          startFarcasterSignerProcess={startFarcasterSignerProcess}
-        ></LoginWindow>
+        {!url ? (
+          <form action="">
+            <input
+              type="text"
+              name="url"
+              value={"http://localhost:3000"}
+              placeholder="Enter URL"
+              className="w-full p-2"
+            />
+            <button className="bg-blue-500 text-white p-2 rounded-md">
+              Submit
+            </button>
+          </form>
+        ) : (
+          <>
+            <FrameRender frame={frame!} url={url} submitOption={submitOption} />
+            <LoginWindow
+              farcasterUser={farcasterUser}
+              loading={loading}
+              startFarcasterSignerProcess={startFarcasterSignerProcess}
+            ></LoginWindow>
+          </>
+        )}
       </div>
     </div>
   );
