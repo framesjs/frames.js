@@ -1,7 +1,7 @@
 import React from "react";
 import { ActionIndex, FrameActionPayload } from "../types";
 import { NextRequest, NextResponse } from "next/server";
-import { validateFrameMessage } from "..";
+import { getByteLength, validateFrameMessage } from "..";
 import { headers } from "next/headers";
 import { redirect, RedirectType } from "next/navigation";
 import { FrameButtonRedirectUI, FrameButtonUI } from "frames.js/next/client";
@@ -238,7 +238,10 @@ export function FrameContainer<T extends FrameState = FrameState>({
     : postUrl;
 
   const postUrlFull = `${postUrlRoute}?${searchParams.toString()}`;
-
+  if (getByteLength(postUrlFull) > 256) {
+    console.error(`post_url is too long: `, postUrlFull);
+    throw new Error("post_url is more than 256 bytes");
+  }
   return (
     <>
       <meta name="fc:frame" content="vNext" />

@@ -20,7 +20,7 @@ export function FrameRender({
   const [inputText, setInputText] = useState("");
 
   return (
-    <div>
+    <div style={{ width: "382px" }}>
       <h1>{url}</h1>
       <div>
         <Image
@@ -33,6 +33,7 @@ export function FrameRender({
       <div>
         {frame.inputText && (
           <input
+            style={{ width: "382px" }}
             type="text"
             placeholder={frame.inputText}
             onChange={(e) => setInputText(e.target.value)}
