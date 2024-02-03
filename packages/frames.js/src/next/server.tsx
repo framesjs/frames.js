@@ -46,10 +46,7 @@ export function createFrameContextNextjs<T extends FrameState = FrameState>(
 export function createFrameContext<T extends FrameState = FrameState>(
   frameContextFromParams: Pick<
     FrameContext<T>,
-    | "frame_action_received"
-    | "frame_prev_state"
-    | "pathname"
-    | "frame_prev_redirects"
+    "postBody" | "prevState" | "pathname" | "prevRedirects"
   >,
   headers: ReadonlyHeaders
 ): FrameContext<T> {
@@ -65,28 +62,25 @@ export function parseFrameParams<T extends FrameState = FrameState>(
   searchParams: Record<string, string>
 ): Pick<
   FrameContext<T>,
-  | "frame_action_received"
-  | "frame_prev_state"
-  | "pathname"
-  | "frame_prev_redirects"
+  "postBody" | "prevState" | "pathname" | "prevRedirects"
 > {
-  const frameActionReceived = searchParams.frame_action_received
-    ? (JSON.parse(searchParams.frame_action_received) as FrameActionPayload)
+  const frameActionReceived = searchParams.postBody
+    ? (JSON.parse(searchParams.postBody) as FrameActionPayload)
     : null;
 
-  const framePrevState = searchParams.frame_prev_state
-    ? (JSON.parse(searchParams.frame_prev_state) as T)
+  const framePrevState = searchParams.prevState
+    ? (JSON.parse(searchParams.prevState) as T)
     : null;
 
-  const framePrevRedirects = searchParams.frame_prev_redirects
-    ? (JSON.parse(searchParams.frame_prev_redirects) as RedirectMap)
+  const framePrevRedirects = searchParams.prevRedirects
+    ? (JSON.parse(searchParams.prevRedirects) as RedirectMap)
     : null;
 
   return {
-    frame_action_received: frameActionReceived,
-    frame_prev_state: framePrevState,
+    postBody: frameActionReceived,
+    prevState: framePrevState,
     pathname: searchParams.pathname,
-    frame_prev_redirects: framePrevRedirects,
+    prevRedirects: framePrevRedirects,
   };
 }
 
@@ -96,29 +90,22 @@ export function useFramesReducer<T extends FrameState = FrameState>(
   initializerArg: FrameContext<T>
 ): [T, Dispatch] {
   function frameReducerInit(initial: FrameContext<T>): T {
-    if (
-      initial.frame_prev_state === null ||
-      initial.frame_action_received === null
-    )
+    if (initial.prevState === null || initial.postBody === null)
       return initialState;
 
     if (
-      initial.frame_prev_redirects?.hasOwnProperty(
-        `${initial.frame_action_received.untrustedData.buttonIndex}`
+      initial.prevRedirects?.hasOwnProperty(
+        `${initial.postBody.untrustedData.buttonIndex}`
       ) &&
-      initial.frame_prev_redirects[
-        `${initial.frame_action_received.untrustedData.buttonIndex}`
-      ]
+      initial.prevRedirects[`${initial.postBody.untrustedData.buttonIndex}`]
     ) {
       // FIXME: this is a 307 not a 302
       redirect(
-        initial.frame_prev_redirects[
-          `${initial.frame_action_received.untrustedData.buttonIndex}`
-        ]!,
+        initial.prevRedirects[`${initial.postBody.untrustedData.buttonIndex}`]!,
         RedirectType.replace
       );
     }
-    return reducer(initial.frame_prev_state, initial);
+    return reducer(initial.prevState, initial);
   }
 
   // doesn't do anything right now, but exists to make Button onClicks feel more natural and not magic.
@@ -135,14 +122,11 @@ export async function POST(req: NextRequest) {
 
   const bodyAsString = JSON.stringify(body);
 
-  url.searchParams.set("frame_action_received", bodyAsString);
+  url.searchParams.set("postBody", bodyAsString);
+  url.searchParams.set("prevState", url.searchParams.get("prevState") ?? "");
   url.searchParams.set(
-    "frame_prev_state",
-    url.searchParams.get("frame_prev_state") ?? ""
-  );
-  url.searchParams.set(
-    "frame_prev_redirects",
-    url.searchParams.get("frame_prev_redirects") ?? ""
+    "prevRedirects",
+    url.searchParams.get("prevRedirects") ?? ""
   );
 
   console.log("redirecting to", url.toString());
@@ -232,8 +216,8 @@ export function FrameContainer<T extends FrameState = FrameState>({
   const url = new URL(postRoute);
   const searchParams = new URLSearchParams();
   searchParams.set("pathname", url.pathname);
-  searchParams.set("frame_prev_state", JSON.stringify(state));
-  searchParams.set("frame_prev_redirects", JSON.stringify(redirectMap));
+  searchParams.set("prevState", JSON.stringify(state));
+  searchParams.set("prevRedirects", JSON.stringify(redirectMap));
 
   const postUrl = `${postRoute}?${searchParams.toString()}`;
 

@@ -7,9 +7,9 @@ export type FrameState = Record<string, string>;
 export type RedirectMap = Record<number, string>;
 
 export type FrameContext<T extends FrameState = FrameState> = {
-  frame_action_received: FrameActionPayload | null;
-  frame_prev_state: T | null;
-  frame_prev_redirects: RedirectMap | null;
+  postBody: FrameActionPayload | null;
+  prevState: T | null;
+  prevRedirects: RedirectMap | null;
   pathname?: string;
   url: string;
   headers: ReadonlyHeaders;

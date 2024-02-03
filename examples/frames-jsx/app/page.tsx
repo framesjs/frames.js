@@ -17,8 +17,8 @@ const initialState = { active: "1" };
 
 const reducer: FrameReducer<State> = (state, action) => {
   return {
-    active: action.frame_action_received?.untrustedData.buttonIndex
-      ? String(action.frame_action_received?.untrustedData.buttonIndex)
+    active: action.postBody?.untrustedData.buttonIndex
+      ? String(action.postBody?.untrustedData.buttonIndex)
       : "1",
   };
 };
@@ -30,7 +30,7 @@ export default async function Home({
   searchParams: Record<string, string>;
 }) {
   const frameContext = createFrameContextNextjs<State>(searchParams);
-  await validateFrameMessageOrThrow(frameContext.frame_action_received);
+  await validateFrameMessageOrThrow(frameContext.postBody);
   const [state, dispatch] = useFramesReducer<State>(
     reducer,
     initialState,
