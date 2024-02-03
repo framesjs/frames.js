@@ -39,6 +39,8 @@ export type FrameButton = {
   action?: "post" | "post_redirect";
 };
 
+export type ActionIndex = 1 | 2 | 3 | 4;
+
 export type FrameButtonsType =
   | []
   | [FrameButton]
@@ -60,7 +62,8 @@ export type FrameActionPayload = {
     messageHash: string;
     timestamp: number;
     network: number;
-    buttonIndex: number;
+    buttonIndex: ActionIndex;
     castId: { fid: number; hash: string };
+    inputText: string;
   };
 };

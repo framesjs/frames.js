@@ -16,11 +16,14 @@ export default function Page(): JSX.Element {
     useFarcasterIdentity();
   const params = useSearchParams();
   const url = params.get("url");
+  const [urlInput, setUrlInput] = useState(
+    process.env.NEXT_PUBLIC_URL || "http://localhost:3000"
+  );
   const [frame, setFrame] = useState<Frame | null>(null);
 
   // Load initial frame
   const { data, error, isLoading } = useSWR<Frame>(
-    url ? `/api/og?url=${url}` : null,
+    url ? `/debug/api/og?url=${url}` : null,
     fetcher
   );
 
@@ -38,6 +41,8 @@ export default function Page(): JSX.Element {
     if (!farcasterUser || !farcasterUser.fid || !frame) {
       return;
     }
+
+    const button = frame.buttons![buttonIndex - 1];
 
     const castId = {
       fid: 1,
@@ -59,31 +64,44 @@ export default function Page(): JSX.Element {
       throw new Error("hub error");
     }
 
-    const response = await fetch(`/api/frame-action`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        untrustedData: {
-          fid: farcasterUser.fid,
-          url: frame.postUrl,
-          messageHash: `0x${Buffer.from(message.hash).toString("hex")}`,
-          timestamp: message.data.timestamp,
-          network: 1,
-          buttonIndex: Number(message.data.frameActionBody.buttonIndex),
-          castId: {
-            fid: castId.fid,
-            hash: `0x${Buffer.from(castId.hash).toString("hex")}`,
+    const response = await fetch(
+      `/debug/api/frame-action?postType=${button?.action}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          untrustedData: {
+            fid: farcasterUser.fid,
+            url: frame.postUrl,
+            messageHash: `0x${Buffer.from(message.hash).toString("hex")}`,
+            timestamp: message.data.timestamp,
+            network: 1,
+            buttonIndex: Number(message.data.frameActionBody.buttonIndex),
+            castId: {
+              fid: castId.fid,
+              hash: `0x${Buffer.from(castId.hash).toString("hex")}`,
+            },
+            inputText,
           },
-          inputText,
-        },
-        trustedData: {
-          messageBytes: trustedBytes,
-        },
-      } as FrameActionPayload),
-    });
+          trustedData: {
+            messageBytes: trustedBytes,
+          },
+        } as FrameActionPayload),
+      }
+    );
+
     const data = await response.json();
+
+    if (response.status === 302) {
+      const location = data.location;
+      if (window.confirm("You are about to be redirected to " + location!)) {
+        window.location.href = location!;
+      }
+      return;
+    }
+
     setFrame(data);
   };
 
@@ -95,11 +113,19 @@ export default function Page(): JSX.Element {
     <div className="p-5 flex justify-center flex-col">
       <div className="mx-auto text-center flex flex-col w-full md:w-1/2">
         {!url ? (
-          <form action="">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              window.location.href = `?url=${urlInput}`;
+            }}
+          >
             <input
               type="text"
               name="url"
-              value={"http://localhost:3000"}
+              value={urlInput}
+              onChange={(e) => {
+                setUrlInput(e.target.value);
+              }}
               placeholder="Enter URL"
               className="w-full p-2"
             />
@@ -109,7 +135,12 @@ export default function Page(): JSX.Element {
           </form>
         ) : (
           <>
-            <FrameRender frame={frame!} url={url} submitOption={submitOption} />
+            <FrameRender
+              frame={frame!}
+              url={url}
+              submitOption={submitOption}
+              isLoggedIn={!!farcasterUser?.fid}
+            />
             <LoginWindow
               farcasterUser={farcasterUser}
               loading={loading}
