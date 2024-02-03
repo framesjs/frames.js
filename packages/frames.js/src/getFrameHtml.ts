@@ -26,7 +26,7 @@ export function getFrameHtmlHead(frame: Frame): string {
   <meta name="fc:frame" content="vNext">
   <meta name="fc:frame:image" content="${frame.image}">
   <meta name="fc:frame:post_url" content="${frame.postUrl}">
-  ${frame.inputLabel ? `<meta name="fc:frame:input:text" content="${frame.inputLabel}">` : ""}
+  ${frame.inputText ? `<meta name="fc:frame:input:text" content="${frame.inputText}">` : ""}
   ${
     frame.buttons
       ?.map(

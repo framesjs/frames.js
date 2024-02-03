@@ -23,7 +23,7 @@ export function getFrame({
       "meta[property='fc:frame:post_url'], meta[name='fc:frame:post_url']"
     ).attr("content") || url;
 
-  const inputLabel = $(
+  const inputText = $(
     "meta[property='fc:frame:input:text'], meta[name='fc:frame:input:text']"
   ).attr("content");
 
@@ -66,7 +66,7 @@ export function getFrame({
     !isValidVersion(version) ||
     !image ||
     buttonsWithActions.length > 4 ||
-    (inputLabel && getByteLength(inputLabel) > 32)
+    (inputText && getByteLength(inputText) > 32)
   ) {
     return null;
   }
@@ -76,7 +76,7 @@ export function getFrame({
     image: image,
     buttons: buttonsWithActions as FrameButtonsType,
     postUrl,
-    inputLabel,
+    inputText,
   };
 }
 export function parseButtonElement(elem: cheerio.Element) {

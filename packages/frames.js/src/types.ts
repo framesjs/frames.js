@@ -12,7 +12,7 @@ export type Frame = {
   /** An image which must be smaller than 10MB and should have an aspect ratio of 1.91:1. Fallback for clients that do not support frames. */
   ogImage?: string;
   /** Adding this property enables the text field. The content is a 32-byte label that is shown to the user (e.g. Enter a message). */
-  inputLabel?: string;
+  inputText?: string;
 };
 
 export type FrameFlattened = {

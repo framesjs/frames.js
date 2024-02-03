@@ -36,7 +36,7 @@ describe("getFrame", () => {
       },
     ],
     postUrl: "https://example.com",
-    inputLabel: "Enter a message",
+    inputText: "Enter a message",
   } as Frame;
 
   it("should parse html meta tags", () => {
