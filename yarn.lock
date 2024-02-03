@@ -1134,7 +1134,7 @@
   dependencies:
     glob "7.1.7"
 
-"@next/eslint-plugin-next@^14.0.4":
+"@next/eslint-plugin-next@14.1.0", "@next/eslint-plugin-next@^14.0.4":
   version "14.1.0"
   resolved "https://registry.yarnpkg.com/@next/eslint-plugin-next/-/eslint-plugin-next-14.1.0.tgz#29b041233fac7417e22eefa4146432d5cd910820"
   integrity sha512-x4FavbNEeXx/baD/zC/SdrvkjSby8nBn8KcCREqk6UuwvwoAPZmaV8TFCAuo/cpovBRTIY67mHhe86MQQm/68Q==
@@ -2467,7 +2467,7 @@ asynciterator.prototype@^1.0.0:
   dependencies:
     has-symbols "^1.0.3"
 
-autoprefixer@^10.4.16:
+autoprefixer@^10.0.1, autoprefixer@^10.4.16:
   version "10.4.17"
   resolved "https://registry.yarnpkg.com/autoprefixer/-/autoprefixer-10.4.17.tgz#35cd5695cbbe82f536a50fa025d561b01fdec8be"
   integrity sha512-/cpVNRLSfhOtcGflT13P2794gVSgmPgTR+erw5ifnMLZb0UnSlkK4tquLmkd3BhA+nLo5tX8Cu0upUsGKvKbmg==
@@ -3525,6 +3525,21 @@ eslint-config-next@14.0.1:
   integrity sha512-QfIFK2WD39H4WOespjgf6PLv9Bpsd7KGGelCtmq4l67nGvnlsGpuvj0hIT+aIy6p5gKH+lAChYILsyDlxP52yg==
   dependencies:
     "@next/eslint-plugin-next" "14.0.1"
+    "@rushstack/eslint-patch" "^1.3.3"
+    "@typescript-eslint/parser" "^5.4.2 || ^6.0.0"
+    eslint-import-resolver-node "^0.3.6"
+    eslint-import-resolver-typescript "^3.5.2"
+    eslint-plugin-import "^2.28.1"
+    eslint-plugin-jsx-a11y "^6.7.1"
+    eslint-plugin-react "^7.33.2"
+    eslint-plugin-react-hooks "^4.5.0 || 5.0.0-canary-7118f5dd7-20230705"
+
+eslint-config-next@14.1.0:
+  version "14.1.0"
+  resolved "https://registry.yarnpkg.com/eslint-config-next/-/eslint-config-next-14.1.0.tgz#7e309d426b8afacaba3b32fdbb02ba220b6d0a97"
+  integrity sha512-SBX2ed7DoRFXC6CQSLc/SbLY9Ut6HxNB2wPTcoIWjUMd7aF7O/SIE7111L8FdZ9TXsNV4pulUDnfthpyPtbFUg==
+  dependencies:
+    "@next/eslint-plugin-next" "14.1.0"
     "@rushstack/eslint-patch" "^1.3.3"
     "@typescript-eslint/parser" "^5.4.2 || ^6.0.0"
     eslint-import-resolver-node "^0.3.6"
@@ -6515,7 +6530,7 @@ next@14.0.1:
     "@next/swc-win32-ia32-msvc" "14.0.1"
     "@next/swc-win32-x64-msvc" "14.0.1"
 
-next@^14.0.4, next@^14.1.0:
+next@14.1.0, next@^14.0.4, next@^14.1.0:
   version "14.1.0"
   resolved "https://registry.yarnpkg.com/next/-/next-14.1.0.tgz#b31c0261ff9caa6b4a17c5af019ed77387174b69"
   integrity sha512-wlzrsbfeSU48YQBjZhDzOwhWhGsy+uQycR8bHAOt1LY1bn3zZEcDyHQOEoN3aWzQ8LHCAJ1nqrWCc9XF2+O45Q==
@@ -6987,7 +7002,7 @@ postcss@8.4.31:
     picocolors "^1.0.0"
     source-map-js "^1.0.2"
 
-postcss@^8.3.6, postcss@^8.4.23, postcss@^8.4.31, postcss@^8.4.32:
+postcss@^8, postcss@^8.3.6, postcss@^8.4.23, postcss@^8.4.31, postcss@^8.4.32:
   version "8.4.33"
   resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.4.33.tgz#1378e859c9f69bf6f638b990a0212f43e2aaa742"
   integrity sha512-Kkpbhhdjw2qQs2O2DGX+8m5OVqEcbB9HRBvuYM9pgrjEFUg30A9LmXNlTAUj4S9kgtGyrMbTzVjH7E+s5Re2yg==
@@ -8112,7 +8127,7 @@ tabbable@^6.0.1:
   resolved "https://registry.yarnpkg.com/tabbable/-/tabbable-6.2.0.tgz#732fb62bc0175cfcec257330be187dcfba1f3b97"
   integrity sha512-Cat63mxsVJlzYvN51JmVXIgNoUokrIaT2zLclCXjRd8boZ0004U4KCs/sToJ75C6sdlByWxpYnb5Boif1VSFew==
 
-tailwindcss@^3.3.3:
+tailwindcss@^3.3.0, tailwindcss@^3.3.3:
   version "3.4.1"
   resolved "https://registry.yarnpkg.com/tailwindcss/-/tailwindcss-3.4.1.tgz#f512ca5d1dd4c9503c7d3d28a968f1ad8f5c839d"
   integrity sha512-qAYmXRfk3ENzuPBakNK0SRrUDipP8NQnEY6772uDhflcQz5EhRdD7JNZxyrFHVQNCwULPBn6FNPp9brpO7ctcA==
