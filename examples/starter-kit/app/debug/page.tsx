@@ -42,6 +42,8 @@ export default function Page(): JSX.Element {
       return;
     }
 
+    const button = frame.buttons![buttonIndex - 1];
+
     const castId = {
       fid: 1,
       hash: new Uint8Array(
@@ -62,29 +64,32 @@ export default function Page(): JSX.Element {
       throw new Error("hub error");
     }
 
-    const response = await fetch(`/debug/api/frame-action`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        untrustedData: {
-          fid: farcasterUser.fid,
-          url: frame.postUrl,
-          messageHash: `0x${Buffer.from(message.hash).toString("hex")}`,
-          timestamp: message.data.timestamp,
-          network: 1,
-          buttonIndex: Number(message.data.frameActionBody.buttonIndex),
-          castId: {
-            fid: castId.fid,
-            hash: `0x${Buffer.from(castId.hash).toString("hex")}`,
+    const response = await fetch(
+      `/debug/api/frame-action?postType=${button?.action}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          untrustedData: {
+            fid: farcasterUser.fid,
+            url: frame.postUrl,
+            messageHash: `0x${Buffer.from(message.hash).toString("hex")}`,
+            timestamp: message.data.timestamp,
+            network: 1,
+            buttonIndex: Number(message.data.frameActionBody.buttonIndex),
+            castId: {
+              fid: castId.fid,
+              hash: `0x${Buffer.from(castId.hash).toString("hex")}`,
+            },
           },
-        },
-        trustedData: {
-          messageBytes: trustedBytes,
-        },
-      }),
-    });
+          trustedData: {
+            messageBytes: trustedBytes,
+          },
+        }),
+      }
+    );
 
     const data = await response.json();
 

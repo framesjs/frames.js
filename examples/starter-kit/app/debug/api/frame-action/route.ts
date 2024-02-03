@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest, res: NextResponse) {
   const body = await req.json();
+  const isPostRedirect =
+    req.nextUrl.searchParams.get("postType") === "post_redirect";
 
   try {
     const url = body.untrustedData.url;
@@ -12,11 +14,10 @@ export async function POST(req: NextRequest, res: NextResponse) {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
-      redirect: "manual", // Only if post_redirect
+      redirect: isPostRedirect ? "manual" : undefined,
       body: JSON.stringify(body),
     });
 
-    // Only if post_redirect
     if (r.status === 302) {
       return Response.json(
         {
@@ -27,7 +28,6 @@ export async function POST(req: NextRequest, res: NextResponse) {
     }
 
     const htmlString = await r.text();
-
     const frame = getFrame({ htmlString, url });
 
     if (!frame) {
