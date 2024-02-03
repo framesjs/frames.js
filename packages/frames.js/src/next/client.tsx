@@ -1,6 +1,7 @@
 "use client";
+
 export * from "./types";
-import React, { useEffect } from "react";
+import React from "react";
 import {
   FrameButtonAutomatedProps,
   FrameButtonPostProvidedProps,

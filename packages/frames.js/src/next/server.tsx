@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { validateFrameMessage } from "..";
 import { headers } from "next/headers";
 import { redirect, RedirectType } from "next/navigation";
-import { FrameButtonRedirectUI, FrameButtonUI } from "./client";
+import { FrameButtonRedirectUI, FrameButtonUI } from "frames.js/next/client";
 import {
   FrameButtonAutomatedProps,
   FrameButtonPostProvidedProps,
@@ -20,9 +20,9 @@ export * from "./types";
 import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 
 export type FrameElementType =
-  | typeof FFrameButton
-  | typeof FFrameImage
-  | typeof FFFrameInput;
+  | typeof FrameButton
+  | typeof FrameImage
+  | typeof FrameInput;
 
 export async function validateFrameMessageOrThrow(
   frameActionPayload: FrameActionPayload | null
@@ -145,11 +145,12 @@ export async function POST(req: NextRequest) {
     url.searchParams.get("frame_prev_redirects") ?? ""
   );
 
+  console.log("redirecting to", url.toString());
   // FIXME: does this need to return 200?
   return NextResponse.redirect(url.toString());
 }
 
-export function FFrame<T extends FrameState = FrameState>({
+export function FrameContainer<T extends FrameState = FrameState>({
   children,
   postRoute,
   state,
@@ -171,8 +172,8 @@ export function FFrame<T extends FrameState = FrameState>({
     <>
       {React.Children.map(children, (child) => {
         switch (child.type) {
-          case FFrameButton:
-            if (!React.isValidElement<typeof FFrameButton>(child)) {
+          case FrameButton:
+            if (!React.isValidElement<typeof FrameButton>(child)) {
               return child;
             }
 
@@ -191,7 +192,7 @@ export function FFrame<T extends FrameState = FrameState>({
                   child.props as any as FrameButtonPostRedirectProvidedProps
                 ).href;
               return (
-                <FFrameRedirect
+                <FrameRedirect
                   {...(child.props as any)}
                   actionIndex={nextIndexByComponentType.button++}
                 />
@@ -204,13 +205,13 @@ export function FFrame<T extends FrameState = FrameState>({
                 />
               );
             }
-          case FFFrameInput:
+          case FrameInput:
             if (nextIndexByComponentType.input > 1) {
               throw new Error("max one input allowed");
             }
             nextIndexByComponentType.input++;
             return child;
-          case FFrameImage:
+          case FrameImage:
             if (nextIndexByComponentType.image > 1) {
               throw new Error("max one image allowed");
             }
@@ -245,7 +246,7 @@ export function FFrame<T extends FrameState = FrameState>({
   );
 }
 
-export function FFrameRedirect({
+export function FrameRedirect({
   href,
   actionIndex,
   children,
@@ -269,7 +270,7 @@ export function FFrameRedirect({
   );
 }
 
-export function FFrameButton(props: FrameButtonProvidedProps) {
+export function FrameButton(props: FrameButtonProvidedProps) {
   return null;
 }
 
@@ -292,7 +293,7 @@ export function FFrameButtonShim({
   );
 }
 
-export function FFFrameInput({ text }: { text: string }) {
+export function FrameInput({ text }: { text: string }) {
   return (
     <>
       {process.env.SHOW_UI ? <input type="text" placeholder={text} /> : null}
@@ -301,7 +302,7 @@ export function FFFrameInput({ text }: { text: string }) {
   );
 }
 
-export function FFrameImage({ src }: { src: string }) {
+export function FrameImage({ src }: { src: string }) {
   return (
     <>
       {process.env.SHOW_UI ? <img src={src} /> : null}

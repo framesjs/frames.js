@@ -1,11 +1,12 @@
 import {
-  FFrame,
-  FFrameImage,
-  FFrameButton,
+  FrameContainer,
+  FrameImage,
+  FrameButton,
   FrameReducer,
   useFramesReducer,
   createFrameContextNextjs,
   validateFrameMessageOrThrow,
+  FrameInput,
 } from "frames.js/next/server";
 
 type State = {
@@ -43,19 +44,18 @@ export default async function Home({
   return (
     <div>
       Frames-jsx example
-      <FFrame postRoute="http://localhost:3000/frames" state={state}>
-        <FFrameImage src="https://picsum.photos/seed/frames.js/1146/600" />
-        <FFrameButton onClick={dispatch}>
+      <FrameContainer postRoute="http://localhost:3000/frames" state={state}>
+        <FrameImage src="https://picsum.photos/seed/frames.js/1146/600" />
+        <FrameInput text="put some text here" />
+        <FrameButton onClick={dispatch}>
           {state?.active === "1" ? "Active" : "Inactive"}
-        </FFrameButton>
-        <FFrameButton onClick={dispatch}>
+        </FrameButton>
+        <FrameButton onClick={dispatch}>
           {state?.active === "2" ? "Active" : "Inactive"}
-        </FFrameButton>
-        <FFrameButton href={`http://localhost:3000/`}>Page link</FFrameButton>
-        <FFrameButton href={`https://www.google.com`}>
-          External link
-        </FFrameButton>
-      </FFrame>
+        </FrameButton>
+        <FrameButton href={`http://localhost:3000/`}>Page link</FrameButton>
+        <FrameButton href={`https://www.google.com`}>External link</FrameButton>
+      </FrameContainer>
     </div>
   );
 }

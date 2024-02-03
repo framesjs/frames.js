@@ -51,6 +51,7 @@ export function FrameRender({
           ))}
         </div>
       </div>
+      <pre id="json">{JSON.stringify(frame, null, 2)}</pre>
     </div>
   );
 }
