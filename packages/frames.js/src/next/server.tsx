@@ -130,17 +130,18 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
 
   const url = new URL(req.url);
-  url.pathname = url.searchParams.get("pathname") || "/";
+  url.pathname = url.searchParams.get("p") || "/";
 
   const bodyAsString = JSON.stringify(body);
 
+  // decompress from 256 bytes limitation of post_url
   url.searchParams.set("postBody", bodyAsString);
-  url.searchParams.set("prevState", url.searchParams.get("prevState") ?? "");
-  url.searchParams.set(
-    "prevRedirects",
-    url.searchParams.get("prevRedirects") ?? ""
-  );
-
+  url.searchParams.set("prevState", url.searchParams.get("s") ?? "");
+  url.searchParams.set("prevRedirects", url.searchParams.get("r") ?? "");
+  // was used to redirect to the correct page, and is no longer needed.
+  url.searchParams.delete("p");
+  url.searchParams.delete("s");
+  url.searchParams.delete("r");
   console.info("redirecting to", url.toString());
   return NextResponse.redirect(url.toString());
 }
@@ -229,9 +230,12 @@ export function FrameContainer<T extends FrameState = FrameState>({
 
   const searchParams = new URLSearchParams();
 
-  searchParams.set("pathname", previousFrame.headers.pathname ?? "/");
-  searchParams.set("prevState", JSON.stringify(state));
-  searchParams.set("prevRedirects", JSON.stringify(redirectMap));
+  // short for pathname
+  searchParams.set("p", previousFrame.headers.pathname ?? "/");
+  // short for state
+  searchParams.set("s", JSON.stringify(state));
+  // short for redirects
+  searchParams.set("r", JSON.stringify(redirectMap));
 
   const postUrlRoute = postUrl.startsWith("/")
     ? `${previousFrame.headers.urlWithoutPathname}${postUrl}`

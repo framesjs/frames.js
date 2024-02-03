@@ -86,7 +86,7 @@ export function useFarcasterIdentity() {
             setFarcasterUser(user);
             clearInterval(intervalId);
           } catch (error) {
-            console.error(error);
+            console.info(error);
           }
         }, 2000);
       };
