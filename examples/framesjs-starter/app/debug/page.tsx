@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { LoginWindow } from "./components/create-signer";
-import { FrameRender } from "./components/frame";
+import { FrameRender } from "./components/frame-render";
 import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
 import { createFrameActionMessageWithSignerKey } from "./lib/farcaster";
 
