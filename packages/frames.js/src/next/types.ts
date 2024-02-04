@@ -9,7 +9,19 @@ export type HeadersList = {
   urlWithoutPathname: string | null;
 };
 
-export type FrameState = Record<string, string>;
+type AnyJson = boolean | number | string | null | JsonArray | JsonMap;
+interface JsonMap {
+  [key: string]: AnyJson;
+}
+interface JsonArray extends Array<AnyJson> {}
+
+/**
+ * FrameState constraints
+ * - must be short - combined with the post_url has a max length of 256 bytes
+ * - it must be serializable (no circular references)
+ * - it should be considered untrusted - anyone could share or modify the url
+ */
+export type FrameState = AnyJson;
 
 export type RedirectMap = Record<number, string>;
 

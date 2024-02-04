@@ -13,12 +13,14 @@ import { generateImage } from "./generate-image";
 
 type State = {
   active: string;
+  total_button_presses: number;
 };
 
-const initialState = { active: "1" };
+const initialState = { active: "1", total_button_presses: 0 };
 
 const reducer: FrameReducer<State> = (state, action) => {
   return {
+    total_button_presses: state.total_button_presses + 1,
     active: action.postBody?.untrustedData.buttonIndex
       ? String(action.postBody?.untrustedData.buttonIndex)
       : "1",
@@ -43,8 +45,9 @@ export default async function Home({
 
   // Here: do a server side side effect either sync or async (using await), such as minting an NFT if you want.
   // example: load the users credentials & check they have an NFT
-
   const image = await generateImage(validMessage!);
+
+  console.log(state);
 
   // then, when done, return next frame
   return (

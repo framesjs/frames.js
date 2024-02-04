@@ -3,6 +3,12 @@ import { defineConfig } from "vocs";
 export default defineConfig({
   ogImageUrl: "https://framesjs.org/og.png",
   title: "frames.js",
+  head: (
+    <>
+      <script defer src="/_vercel/insights/script.js" />
+      <meta property="og:type" content="website" />
+    </>
+  ),
   topNav: [
     { text: "Github", link: "https://github.com/framesjs/frames.js" },
     // {
