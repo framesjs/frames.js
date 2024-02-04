@@ -51,7 +51,7 @@ export default async function Home({
     <div>
       Starter kit. <Link href="/debug">Debug</Link>
       <FrameContainer
-        postUrl="http://localhost:3000/frames"
+        postUrl="/frames"
         state={state}
         previousFrame={previousFrame}
       >
