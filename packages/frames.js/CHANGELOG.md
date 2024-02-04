@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.0.2
+
+### Patch Changes
+
+- 24dc8c5: Extends FrameState type
+
 ## 0.0.1
 
 ### Patch Changes
