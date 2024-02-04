@@ -15,7 +15,6 @@ import { HomePage } from "vocs/components";
     <HomePage.Button href="#quickstart" variant="accent">Quickstart</HomePage.Button>
     <HomePage.Button href="https://github.com/framesjs/frames.js">GitHub</HomePage.Button>
   </HomePage.Buttons>
-
 </HomePage.Root>
 
 ## What's in frames.js?
@@ -28,7 +27,17 @@ import { HomePage } from "vocs/components";
 
 # Quickstart
 
-## Start with frames.js in Next.js in two copy-pastes
+## 1. Clone the frames.js starter template (with local debugger)
+
+Run to clone the starter into a new folder called `framesjs-starter`
+```bash
+npx degit github:framesjs/frames.js/examples/framesjs-starter#main framesjs-starter
+```
+or [clone from github](https://github.com/framesjs/frames.js/tree/main/examples/framesjs-starter)
+
+## Alternatively, add frames.js to your existing project manually
+
+### Start with frames.js in Next.js in two copy-pastes
 
 ```tsx filename="// ./app/page.tsx"
 // ./app/page.tsx
@@ -59,8 +68,6 @@ export default async function Home(props) {
 
 export { POST } from "frames.js/next/server";
 ```
-
-## Alternatively, [Fork our boilerplate](https://github.com/framesjs/frames.js/tree/main/examples/framesjs-starter) that includes local debugging
 
 ## Community
 
