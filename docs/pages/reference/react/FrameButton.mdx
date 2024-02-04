@@ -1,0 +1,34 @@
+# FrameButton
+
+Renders a 'fc:frame:button'.
+
+## Props
+
+- `children: string`: The label to show on the button
+- `onClick?: Dispatch` specify a button that triggers another Frame. Define the behaviour of the button by changing the reducer based on the `buttonIndex` (the first button will have `buttonIndex` 1, the second 2, ...)
+- `href?: string` render a redirect button specifying an absolute url
+
+## Usage
+
+
+```tsx [./app/page.tsx]
+import { FrameButton, FrameContainer, FrameImage } from "frames.js/next/server";
+
+return function Home(){
+    return <FrameContainer
+        postUrl="/frames"
+        state={state}
+        previousFrame={previousFrame}
+      >
+        <FrameImage src="https://picsum.photos/seed/frames.js/1146/600" />
+        <FrameButton onClick={dispatch}>
+          {state?.active === "1" ? "Active" : "Inactive"}
+        </FrameButton>
+        <FrameButton onClick={dispatch}>
+          {state?.active === "2" ? "Active" : "Inactive"}
+        </FrameButton>
+        <FrameButton href={`http://localhost:3000/`}>Page link</FrameButton>
+        <FrameButton href={`https://www.google.com`}>External</FrameButton>
+      </FrameContainer>
+}
+```

@@ -1,6 +1,9 @@
 import { FrameActionPayload, hexStringToUint8Array } from ".";
 import { FrameActionMessage, Message } from "@farcaster/core";
 
+/**
+ * @returns a Promise that resolves with whether the message signature is valid, by querying a Farcaster hub, as well as the message itself
+ */
 export async function validateFrameMessage(body: FrameActionPayload): Promise<{
   isValid: boolean;
   message: FrameActionMessage | undefined;

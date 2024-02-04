@@ -1,0 +1,25 @@
+# FrameImage
+
+Renders a 'fc:frame:image'.
+
+## Props
+
+- `src: string`: The source of the image. It can be a data url, but beware that the data url shouldn't be longer than the max length of a URL (around 2000 characters)
+
+## Usage
+
+
+```tsx [./app/page.tsx]
+import { FrameButton, FrameContainer, FrameImage } from "frames.js/next/server";
+
+return function Home(){
+    return <FrameContainer
+        postUrl="/frames"
+        state={state}
+        previousFrame={previousFrame}
+      >
+        <FrameImage src="https://picsum.photos/seed/frames.js/1146/600" />
+        <FrameButton href={`https://www.google.com`}>External</FrameButton>
+      </FrameContainer>
+}
+```

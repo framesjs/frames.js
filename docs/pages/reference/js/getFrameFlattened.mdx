@@ -1,0 +1,23 @@
+# getFrameFlattened
+
+Takes a `Frame` and formats it as an intermediate step before rendering as html
+@param frame The `Frame` to flatten
+@returns a plain object with frame metadata keys and values according to the frame spec, using their lengthened syntax, e.g. `"fc:frame:image"`
+
+## Usage
+
+```ts [example.ts]
+import { getFrameFlattened, Frame, FrameFlattened } from "frames.js"
+
+const frameFlattened: FrameFlattened = getFrameFlattened(frame);
+console.log(frameFlattened)
+/*
+	{
+        "fc:frame": "vNext",
+        "fc:frame:image": "...",
+        "fc:frame:post_url": "...",
+        "fc:frame:input:text": "...",
+        ...
+    }
+*/
+```

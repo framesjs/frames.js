@@ -1,10 +1,115 @@
 import { defineConfig } from "vocs";
+// import viteConfig from "./vite.config.js";
+
+const sidebar = [
+  {
+    text: "Introduction",
+    link: "/",
+  },
+  {
+    text: "Reference",
+    // link: "/reference",
+    collapsed: false,
+    items: [
+      {
+        text: "frames.js",
+        collapsed: false,
+        items: [
+          {
+            text: "types",
+            link: "/reference/js/types",
+          },
+          {
+            text: "getAddressForFid",
+            link: "/reference/js/getAddressForFid",
+          },
+          {
+            text: "getFrame",
+            link: "/reference/js/getFrame",
+          },
+          {
+            text: "getFrameFlattened",
+            link: "/reference/js/getFrameFlattened",
+          },
+          {
+            text: "getFrameHtml",
+            link: "/reference/js/getFrameHtml",
+          },
+          {
+            text: "validateFrameMessage",
+            link: "/reference/js/validateFrameMessage",
+          },
+        ],
+      },
+      {
+        text: "frames.js/next/server",
+        collapsed: false,
+        items: [
+          {
+            text: "getPreviousFrame",
+            link: "/reference/nextjs/getPreviousFrame",
+          },
+          {
+            text: "POST",
+            link: "/reference/nextjs/POST",
+          },
+        ],
+      },
+      {
+        text: "frames.js/next/server - [react]",
+        collapsed: false,
+        items: [
+          {
+            text: "types",
+            link: "/reference/react/types",
+          },
+          {
+            text: "FrameContainer",
+            link: "/reference/react/FrameContainer",
+          },
+          {
+            text: "FrameButton",
+            link: "/reference/react/FrameButton",
+          },
+          {
+            text: "FrameImage",
+            link: "/reference/react/FrameImage",
+          },
+          {
+            text: "FrameInput",
+            link: "/reference/react/FrameInput",
+          },
+          {
+            text: "parseFrameParams",
+            link: "/reference/react/parseFrameParams",
+          },
+          {
+            text: "useFramesReducer",
+            link: "/reference/react/useFramesReducer",
+          },
+          {
+            text: "validateActionSignature",
+            link: "/reference/react/validateActionSignature",
+          },
+          {
+            text: "createPreviousFrame",
+            link: "/reference/react/createPreviousFrame",
+          },
+        ],
+      },
+    ],
+  },
+];
 
 export default defineConfig({
   ogImageUrl: "https://framesjs.org/og.png",
   title: "frames.js",
+  logoUrl: { light: "/logo.png", dark: "/logo.png" },
+  iconUrl: "/favicons/favicon.svg",
+  rootDir: ".",
   head: (
     <>
+      {/** on production is rewritten by vercel */}
       <script defer src="/_vercel/insights/script.js" />
       <meta property="og:type" content="website" />
       <meta name="fc:frame" content="vNext" />
@@ -18,6 +123,8 @@ export default defineConfig({
       <meta name="fc:frame:button:1:action" content="post" />
     </>
   ),
+  // vite: viteConfig,
+  sidebar: sidebar,
   topNav: [
     { text: "Github", link: "https://github.com/framesjs/frames.js" },
     // {

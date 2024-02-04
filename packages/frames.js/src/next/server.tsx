@@ -4,7 +4,7 @@ import React from "react";
 import { getByteLength, validateFrameMessage } from "..";
 import { ActionIndex, FrameActionPayload } from "../types";
 import { FrameActionMessage } from "@farcaster/core";
-// fixme:
+// Todo: this isn't respecting the use client directive
 import { FrameButtonRedirectUI, FrameButtonUI } from "./client";
 import {
   Dispatch,
@@ -20,11 +20,13 @@ import {
 } from "./types";
 export * from "./types";
 
+/** The valid children of a <FrameContainer> */
 export type FrameElementType =
   | typeof FrameButton
   | typeof FrameImage
   | typeof FrameInput;
 
+/** validates a frame action message payload signature, @returns message, throws an Error on failure */
 export async function validateActionSignature(
   frameActionPayload: FrameActionPayload | null
 ): Promise<FrameActionMessage | null> {
@@ -41,6 +43,7 @@ export async function validateActionSignature(
   return message;
 }
 
+/** deserializes a `PreviousFrame` from url searchParams, fetching headers automatically from nextjs, @returns PreviousFrame */
 export function getPreviousFrame<T extends FrameState = FrameState>(
   searchParams: Record<string, string>
 ): PreviousFrame<T> {
@@ -61,6 +64,7 @@ export function getPreviousFrame<T extends FrameState = FrameState>(
   return createPreviousFrame(parseFrameParams<T>(searchParams), headersList);
 }
 
+/** @returns PreviousFrame by combining headers and previousFrames from params */
 export function createPreviousFrame<T extends FrameState = FrameState>(
   previousFrameFromParams: Pick<
     PreviousFrame<T>,
@@ -74,6 +78,7 @@ export function createPreviousFrame<T extends FrameState = FrameState>(
   };
 }
 
+/** deserializes data stored in the url search params and @returns a Partial PreviousFrame object  */
 export function parseFrameParams<T extends FrameState = FrameState>(
   searchParams: Record<string, string>
 ): Pick<
@@ -100,6 +105,13 @@ export function parseFrameParams<T extends FrameState = FrameState>(
   };
 }
 
+/**
+ *
+ * @param reducer a function taking a state and action and returning another action. This reducer is always called in the Frame to compute the state by calling it with the previous Frame + action
+ * @param initialState the initial state to use if there was no previous action
+ * @param initializerArg the previousFrame object to use to initialize the state
+ * @returns An array of [State, Dispatch] where State is your reducer state, and dispatch is a function that doesn't do anything atm
+ */
 export function useFramesReducer<T extends FrameState = FrameState>(
   reducer: FrameReducer<T>,
   initialState: T,
@@ -118,6 +130,12 @@ export function useFramesReducer<T extends FrameState = FrameState>(
   return [frameReducerInit(initializerArg), dispatch];
 }
 
+/**
+ * A function ready made for next.js in order to directly export it, which handles all incoming `POST` requests that apps will trigger when users press buttons in your Frame.
+ * It handles all the redirecting for you, correctly, based on the <FrameContainer> props defined by the Frame that triggered the user action.
+ * @param req a `NextRequest` object from `next/server` (Next.js app router server components)
+ * @returns NextResponse
+ */
 export async function POST(req: NextRequest) {
   const body = await req.json();
 
@@ -157,6 +175,12 @@ export async function POST(req: NextRequest) {
   return NextResponse.redirect(url.toString());
 }
 
+/**
+ * A React functional component that Wraps a Frame and processes it, validating certain properties of the Frames spec, as well as adding other props. It also generates the postUrl.
+ * It throws an error if the Frame is invalid, which can be caught by using an error boundary.
+ * @param param0
+ * @returns React.JSXElement
+ */
 export function FrameContainer<T extends FrameState = FrameState>({
   postUrl,
   children,
@@ -165,7 +189,9 @@ export function FrameContainer<T extends FrameState = FrameState>({
 }: {
   /** Either a relative e.g. "/frames" or an absolute path, e.g. "https://google.com/frames" */
   postUrl: string;
+  /** The elements to include in the Frame */
   children: Array<React.ReactElement<FrameElementType> | null>;
+  /** The current reducer state object, returned from useFramesReducer */
   state: T;
   previousFrame: PreviousFrame<T>;
 }) {
@@ -267,7 +293,8 @@ export function FrameContainer<T extends FrameState = FrameState>({
   );
 }
 
-export function FrameRedirect({
+/** An internal component that handles redirects */
+function FrameRedirect({
   href,
   actionIndex,
   children,
@@ -291,11 +318,13 @@ export function FrameRedirect({
   );
 }
 
+/** Renders a 'fc:frame:button', must be used inside a <FrameContainer> */
 export function FrameButton(props: FrameButtonProvidedProps) {
   return null;
 }
 
-export function FFrameButtonShim({
+/** An internal component that handles FrameButtons that have type: 'post' */
+function FFrameButtonShim({
   actionIndex,
   children,
   onClick,
@@ -314,6 +343,7 @@ export function FFrameButtonShim({
   );
 }
 
+/** Render a 'fc:frame:input:text', must be used inside a <FrameContainer> */
 export function FrameInput({ text }: { text: string }) {
   return (
     <>
@@ -323,6 +353,7 @@ export function FrameInput({ text }: { text: string }) {
   );
 }
 
+/** Render a 'fc:frame:image', must be used inside a <FrameContainer> */
 export function FrameImage({ src }: { src: string }) {
   return (
     <>

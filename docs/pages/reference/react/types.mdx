@@ -1,5 +1,13 @@
-import { ActionIndex, FrameActionPayload } from "../types";
+# types exported from `frames.js/next/server`
 
+## Example usage
+```tsx
+import { HeadersList } from 'frames.js/next/server'
+```
+
+## Reference
+
+```ts [frames.js/next/server/types.ts]
 /**
  * A subset of HTTP request headers provided to the server request
  */
@@ -91,3 +99,4 @@ export type FrameButtonPostRedirectProvidedProps = {
   /** a label to display on the button */
   children: string | number;
 };
+```
