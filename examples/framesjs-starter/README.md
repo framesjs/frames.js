@@ -1,41 +1,35 @@
 # Frames.js Starter Kit
 
-This is a boilerplate repo to get started quickly with `frames.js`.
-Visit the /debug page to debug your frame.
+This is a boilerplate repo to get started quickly with `frames.js`
 
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Quickstart
 
-## Getting Started
+1. To setup the local debugger, copy `.env.sample` to `.env` and fill in the env variables following the comments provided
 
-First, run the development server:
+2. Install dependencies `yarn install`
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+3. Run the dev server `yarn dev`
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+5. Edit `app/page.tsx`
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+6. Visit [http://localhost:3000/debug](http://localhost:3000/debug) to debug your frame.
 
-## Learn More
+## Docs, Questions and Help
 
-To learn more about Next.js, take a look at the following resources:
+- [Frames.js Documentation](https://framesjs.org)
+- [Awesome frames](https://github.com/davidfurlong/awesome-frames?tab=readme-ov-file)
+- Join the [/frames-dev](https://warpcast.com/frames-dev) channel on Farcaster to ask questions
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## If you get stuck or have feedback, [Message @df please!](https://warpcast.com/df)
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Deploy
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+vercel
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+more deployment links coming soon, PRs welcome!
