@@ -1,5 +1,4 @@
 import { defineConfig } from "vocs";
-// import viteConfig from "./vite.config.js";
 
 const sidebar = [
   {
@@ -123,7 +122,6 @@ export default defineConfig({
       <meta name="fc:frame:button:1:action" content="post" />
     </>
   ),
-  // vite: viteConfig,
   sidebar: sidebar,
   topNav: [
     { text: "Github", link: "https://github.com/framesjs/frames.js" },
