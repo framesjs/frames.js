@@ -1,0 +1,12 @@
+# validateFrameMessage
+
+Returns a Promise that resolves with whether the message signature is valid, by querying a Farcaster hub, as well as the message itself
+
+## Usage
+
+```ts [example.ts]
+import { validateFrameMessage, FrameActionPayload } from "frames.js"
+
+const payload: FrameActionPayload = // ...;
+const { isValid, message } = await validateFrameMessage(payload);
+```

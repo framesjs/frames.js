@@ -1,3 +1,13 @@
+# Types exported from `frames.js`
+
+## Example usage
+```tsx
+import { Frame } from 'frames.js'
+```
+
+## Reference
+
+```ts [frames.js/types.ts]
 type FrameVersion = "vNext" | `${number}-${number}-${number}`;
 
 /** A developer friendly representation of a Frame */
@@ -86,3 +96,4 @@ export type FrameActionPayload = {
     inputText?: string;
   };
 };
+```

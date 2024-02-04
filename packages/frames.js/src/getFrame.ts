@@ -2,6 +2,9 @@ import * as cheerio from "cheerio";
 import { FrameButton, FrameButtonsType, Frame } from "./types";
 import { getByteLength, isValidVersion } from "./utils";
 
+/**
+ * Returns a `Frame` object, extracting the frame metadata from the given htmlString, or returning null if the frame is invalid
+ */
 export function getFrame({
   htmlString,
   url,

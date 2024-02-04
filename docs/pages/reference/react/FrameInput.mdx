@@ -1,0 +1,26 @@
+# FrameInput
+
+Renders a 'fc:frame:input'.
+
+## Props
+
+- `text: string`: The placeholder of the text input
+
+## Usage
+
+
+```tsx [./app/page.tsx]
+import { FrameButton, FrameContainer, FrameImage } from "frames.js/next/server";
+
+return function Home(){
+    return <FrameContainer
+        postUrl="/frames"
+        state={state}
+        previousFrame={previousFrame}
+      >
+        <FrameImage src="https://picsum.photos/seed/frames.js/1146/600" />
+        <FrameInput text="put some text here" />
+        <FrameButton href={`https://www.google.com`}>External</FrameButton>
+      </FrameContainer>
+}
+```

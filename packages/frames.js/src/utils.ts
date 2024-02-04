@@ -25,6 +25,9 @@ export function normalizeCastId(castId: CastId): {
   };
 }
 
+/**
+ * Extracts a Farcaster Message from the trustedData bytes in the `POST` body payload
+ */
 export function getFrameMessageFromRequestBody(
   body: FrameActionPayload
 ): Message {
@@ -33,9 +36,14 @@ export function getFrameMessageFromRequestBody(
   );
 }
 
-export function isValidVersion(input: string): boolean {
+/**
+ * Validates whether the version param is valid
+ * @param version the version string to validate
+ * @returns true if the provided version conforms to the Frames spec
+ */
+export function isValidVersion(version: string): boolean {
   // Check if the input is exactly 'vNext'
-  if (input === "vNext") {
+  if (version === "vNext") {
     return true;
   }
 
@@ -50,7 +58,7 @@ export function isValidVersion(input: string): boolean {
   const pattern = /^\d{4}-\d{2}-\d{2}$/;
 
   // Test the input against the pattern
-  if (!pattern.test(input)) {
+  if (!pattern.test(version)) {
     return false;
   }
 

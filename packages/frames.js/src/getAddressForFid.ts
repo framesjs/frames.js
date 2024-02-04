@@ -4,14 +4,19 @@ import { optimism } from "viem/chains";
 import { AddressReturnType } from "./types";
 import { bytesToHexString } from "./utils";
 
+/**
+ * Returns the first verified address for a given `Farcaster` users `fid` if available, falling back to their account custodyAddress
+ */
 export async function getAddressForFid<
   Options extends { fallbackToCustodyAddress?: boolean } | undefined,
 >({
   fid,
   hubClient,
-  options,
+  options = { fallbackToCustodyAddress: true },
 }: {
+  /** the user's Farcaster fid, found in the FrameActionPayload message `fid` */
   fid: number;
+  /** A client for interacting with Farcaster hubs, of type HubRPCClient */
   hubClient: any;
   options?: Options;
 }): Promise<AddressReturnType<Options>> {

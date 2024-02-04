@@ -1,0 +1,13 @@
+# getPreviousFrame
+
+Returns a Promise that resolves with whether the message signature is valid, by querying a Farcaster hub, as well as the message itself
+
+## Usage
+
+```ts [./app/page.tsx]
+import { getPreviousFrame } from "frames.js/next/server"
+
+export default async function Home(props) {
+  const previousFrame = getPreviousFrame(props.searchParams);
+  // ...
+```

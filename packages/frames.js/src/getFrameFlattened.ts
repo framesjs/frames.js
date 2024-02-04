@@ -1,5 +1,10 @@
 import { Frame, FrameFlattened } from "./types";
 
+/**
+ * Takes a `Frame` and formats it as an intermediate step before rendering as html
+ * @param frame The `Frame` to flatten
+ * @returns a plain object with frame metadata keys and values according to the frame spec, using their lengthened syntax, e.g. "fc:frame:image"
+ */
 export function getFrameFlattened(frame: Frame): FrameFlattened {
   const metadata = {
     "fc:frame": frame.version,

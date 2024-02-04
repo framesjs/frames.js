@@ -1,0 +1,26 @@
+# validateActionSignature
+
+validates a frame action message payload signature, @returns message, throws an Error on failure
+
+``````tsx [page.tsx]
+import {
+  getPreviousFrame,
+  validateActionSignature,
+} from "frames.js/next/server";
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Record<string, string>;
+}) {
+  const previousFrame = getPreviousFrame<State>(searchParams);
+
+  const validMessage = await validateActionSignature(previousFrame.postBody);
+
+  if(!validMessage) throw new Error('invalid message');
+
+  console.log(validMessage?.data?.frameActionBody?.castId?.fid); // 1214
+
+  // ...
+})
+```

@@ -1,0 +1,33 @@
+# FrameContainer
+
+Renders a 'fc:frame:container'.
+
+## Props
+
+- `postUrl: string` An absolute or relative url of the route that will handle the `POST` request
+- `state: State` the state returned from `useFramesReducer`
+- `previousFrame?: PreviousFrame` the previous frame from the return of `getPreviousFrame`
+
+A FrameContainer must:
+- have a `<FrameImage/>` child
+- have at least one `<FrameButton/>` child
+- can't have other react elements as children (except null)
+- have at most four `<FrameButton/>` children.
+
+## Usage
+
+
+```tsx [./app/page.tsx]
+import { FrameButton, FrameContainer, FrameImage } from "frames.js/next/server";
+
+return function Home(){
+    return <FrameContainer
+        postUrl="/frames"
+        state={state}
+        previousFrame={previousFrame}
+      >
+        <FrameImage src="https://picsum.photos/seed/frames.js/1146/600" />
+        <FrameInput text="put some text here" />
+      </FrameContainer>
+}
+```

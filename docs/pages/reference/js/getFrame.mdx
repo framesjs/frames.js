@@ -1,0 +1,25 @@
+# getFrame
+
+Returns a `Frame` object, extracting the frame metadata from the given htmlString, or returning null if the frame is invalid
+
+## Usage
+
+```ts [example.ts]
+import { getFrame, Frame } from "frames.js"
+
+const frame: Frame = await getFrame({
+	htmlString: '<html><head>...</head><body></body></html>',
+	url: 'https://framesjs-homeframe.vercel.app/'
+});
+console.log(frame)
+/*
+	{
+		version: FrameVersion;
+		postUrl: string;
+		buttons?: FrameButtonsType | undefined;
+		image: string;
+		ogImage?: string | undefined;
+		inputText?: string | undefined;
+	}
+*/
+```

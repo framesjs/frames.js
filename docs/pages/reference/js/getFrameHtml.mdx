@@ -1,0 +1,29 @@
+# getFrameHtml
+
+
+Turns a `Frame` into html
+@param frame The Frame to turn into html
+@param options additional options passs into the html string
+@returns an html string
+
+## Usage
+
+```ts [example.ts]
+import { getFrameHtml, Frame, FrameFlattened, GetFrameHtmlOptions } from "frames.js"
+
+const options: GetFrameHtmlOptions = {
+  /** value for the OG "og:title" html tag*/
+  og: { title: "frames.lol" };
+  /** the <title> of the page */
+  title: "frames.lol";
+  /** Additional string to include in the <body> of the html string */
+  htmlBody: "";
+  /** Additional string to include in the <head> of the html string */
+  htmlHead: "";
+};
+const html = getFrameHtml(frame, options);
+console.log(html)
+/*
+	<html><head>...</body></html>
+*/
+```
