@@ -1,5 +1,16 @@
 # frames.js
 
+## 0.0.4
+
+### Patch Changes
+
+Possibly breaking changes.
+
+- add5abd: Fix inaccurate payload optional type
+- fix an incorrect type on payload inputText being optional
+- fallbackToCustodyAddress is now a default true option on getAddressForFid
+- removes some unneeded internals from being exported
+
 ## 0.0.3
 
 ### Patch Changes
