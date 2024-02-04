@@ -75,6 +75,12 @@ export { POST } from "frames.js/next/server";
 
 ## Alternatively, [Fork our boilerplate](https://github.com/framesjs/frames.js/tree/main/examples/framesjs-starter) that includes local debugging
 
+## Local fully interactive Debugger & Frame validation
+
+![](/debugging.png)
+
+Or use the [hosted Frames debugger](https://debugger.framesjs.org/debug). Running locally has the benefits of it working with localhost.
+
 ## Prefer to not use JSX?
 
 ### Use frames.js in Next.js using helper functions
