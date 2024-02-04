@@ -165,7 +165,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
 }: {
   /** Either a relative e.g. "/frames" or an absolute path, e.g. "https://google.com/frames" */
   postUrl: string;
-  children: Array<React.ReactElement<FrameElementType>>;
+  children: Array<React.ReactElement<FrameElementType> | null>;
   state: T;
   previousFrame: PreviousFrame<T>;
 }) {
@@ -181,6 +181,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
   const newTree = (
     <>
       {React.Children.map(children, (child) => {
+        if (child === null) return;
         switch (child.type) {
           case FrameButton:
             if (!React.isValidElement<typeof FrameButton>(child)) {
