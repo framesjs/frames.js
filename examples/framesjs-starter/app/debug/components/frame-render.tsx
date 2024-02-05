@@ -51,7 +51,8 @@ export function FrameRender({
               }
               return submitOption({
                 buttonIndex: index + 1,
-                inputText: frame.inputText ? inputText : undefined,
+                inputText:
+                  frame.inputText !== undefined ? inputText : undefined,
               });
             }}
             key={index}

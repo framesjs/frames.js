@@ -4,11 +4,13 @@ import {
   FrameImage,
   FrameInput,
   FrameReducer,
+  NextServerPageProps,
   getPreviousFrame,
   useFramesReducer,
   validateActionSignature,
 } from "frames.js/next/server";
 import Link from "next/link";
+import { DEBUG_HUB_OPTIONS } from "./debug/constants";
 import { generateImage } from "./generate-image";
 
 type State = {
@@ -29,13 +31,15 @@ const reducer: FrameReducer<State> = (state, action) => {
 
 // This is a react server component only
 export default async function Home({
+  params,
   searchParams,
-}: {
-  searchParams: Record<string, string>;
-}) {
+}: NextServerPageProps) {
   const previousFrame = getPreviousFrame<State>(searchParams);
 
-  const validMessage = await validateActionSignature(previousFrame.postBody);
+  const validMessage = await validateActionSignature(
+    previousFrame.postBody,
+    DEBUG_HUB_OPTIONS
+  );
 
   const [state, dispatch] = useFramesReducer<State>(
     reducer,

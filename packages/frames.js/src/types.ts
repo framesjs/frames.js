@@ -102,3 +102,9 @@ export type FrameActionPayload = {
     inputText?: string;
   };
 };
+
+/** Options available in functions that make use of Hub queries */
+export type HubHttpUrlOptions = {
+  /** Hub HTTP REST API endpoint to use (default: https://nemes.farcaster.xyz:2281) */
+  hubHttpUrl?: string;
+};

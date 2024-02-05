@@ -1,9 +1,9 @@
+import { FrameActionMessage } from "@farcaster/core";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import React from "react";
 import { getByteLength, validateFrameMessage } from "..";
-import { ActionIndex, FrameActionPayload } from "../types";
-import { FrameActionMessage } from "@farcaster/core";
+import { ActionIndex, FrameActionPayload, HubHttpUrlOptions } from "../types";
 // Todo: this isn't respecting the use client directive
 import { FrameButtonRedirectUI, FrameButtonUI } from "./client";
 import {
@@ -15,6 +15,7 @@ import {
   FrameReducer,
   FrameState,
   HeadersList,
+  NextServerPageProps,
   PreviousFrame,
   RedirectMap,
 } from "./types";
@@ -28,13 +29,17 @@ export type FrameElementType =
 
 /** validates a frame action message payload signature, @returns message, throws an Error on failure */
 export async function validateActionSignature(
-  frameActionPayload: FrameActionPayload | null
+  frameActionPayload: FrameActionPayload | null,
+  options?: HubHttpUrlOptions
 ): Promise<FrameActionMessage | null> {
   if (!frameActionPayload) {
     // no payload means no action
     return null;
   }
-  const { isValid, message } = await validateFrameMessage(frameActionPayload);
+  const { isValid, message } = await validateFrameMessage(
+    frameActionPayload,
+    options
+  );
 
   if (!isValid || !message) {
     throw new Error("frames.js: signature failed verification");
@@ -45,7 +50,7 @@ export async function validateActionSignature(
 
 /** deserializes a `PreviousFrame` from url searchParams, fetching headers automatically from nextjs, @returns PreviousFrame */
 export function getPreviousFrame<T extends FrameState = FrameState>(
-  searchParams: Record<string, string>
+  searchParams: NextServerPageProps["searchParams"]
 ): PreviousFrame<T> {
   const headersObj = headers();
   // not sure about the security of doing this for server only headers.
@@ -80,27 +85,36 @@ export function createPreviousFrame<T extends FrameState = FrameState>(
 
 /** deserializes data stored in the url search params and @returns a Partial PreviousFrame object  */
 export function parseFrameParams<T extends FrameState = FrameState>(
-  searchParams: Record<string, string>
+  searchParams: NextServerPageProps["searchParams"]
 ): Pick<
   PreviousFrame<T>,
   "postBody" | "prevState" | "pathname" | "prevRedirects"
 > {
-  const frameActionReceived = searchParams.postBody
-    ? (JSON.parse(searchParams.postBody) as FrameActionPayload)
-    : null;
+  const frameActionReceived =
+    searchParams?.postBody && typeof searchParams?.postBody === "string"
+      ? (JSON.parse(searchParams?.postBody) as FrameActionPayload)
+      : null;
 
-  const framePrevState = searchParams.prevState
-    ? (JSON.parse(searchParams.prevState) as T)
-    : null;
+  const framePrevState =
+    searchParams?.prevState && typeof searchParams?.prevState === "string"
+      ? (JSON.parse(searchParams?.prevState) as T)
+      : null;
 
-  const framePrevRedirects = searchParams.prevRedirects
-    ? (JSON.parse(searchParams.prevRedirects) as RedirectMap)
-    : null;
+  const framePrevRedirects =
+    searchParams?.prevRedirects &&
+    typeof searchParams?.prevRedirects === "string"
+      ? (JSON.parse(searchParams?.prevRedirects) as RedirectMap)
+      : null;
+
+  const pathname =
+    searchParams?.pathname && typeof searchParams?.pathname === "string"
+      ? searchParams?.pathname
+      : undefined;
 
   return {
     postBody: frameActionReceived,
     prevState: framePrevState,
-    pathname: searchParams.pathname,
+    pathname: pathname,
     prevRedirects: framePrevRedirects,
   };
 }

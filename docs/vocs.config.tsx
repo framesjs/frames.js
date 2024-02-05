@@ -103,7 +103,7 @@ const sidebar = [
 export default defineConfig({
   ogImageUrl: "https://framesjs.org/og.png",
   title: "frames.js",
-  logoUrl: { light: "/logo.png", dark: "/logo.png" },
+  logoUrl: { light: "/full-logo.png", dark: "/full-logo.png" },
   iconUrl: "/favicons/favicon.svg",
   rootDir: ".",
   head: (

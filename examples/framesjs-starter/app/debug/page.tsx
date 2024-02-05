@@ -16,8 +16,13 @@ export default function Page({
 }: {
   searchParams: Record<string, string>;
 }): JSX.Element {
-  const { farcasterUser, loading, startFarcasterSignerProcess, logout } =
-    useFarcasterIdentity();
+  const {
+    farcasterUser,
+    loading,
+    startFarcasterSignerProcess,
+    logout,
+    impersonateUser,
+  } = useFarcasterIdentity();
   const url = searchParams.url;
   const [urlInput, setUrlInput] = useState(
     process.env.NEXT_PUBLIC_HOST || "http://localhost:3000"
@@ -71,7 +76,7 @@ export default function Page({
         castId,
         url: Buffer.from(url),
         // seems the message in hubs actually requires a value here.
-        inputText: Buffer.from(inputText ?? ""),
+        inputText: inputText !== undefined ? Buffer.from(inputText) : undefined,
       });
 
     if (!message) {
@@ -161,6 +166,8 @@ export default function Page({
               farcasterUser={farcasterUser}
               loading={loading}
               startFarcasterSignerProcess={startFarcasterSignerProcess}
+              impersonateUser={impersonateUser}
+              logout={logout}
             ></LoginWindow>
           </>
         )}

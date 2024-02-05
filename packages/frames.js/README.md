@@ -1,8 +1,8 @@
-<p align="center"><a href="https://framesjs.org"><img width="1000" title="Frames.js" src='https://framesjs.org/og.png' /></a></p>
-
 # frames.js
 
 frames.js is a TypeScript library and framework for writing and testing Farcaster Frames.
+
+<p align="center"><a href="https://framesjs.org"><img width="1000" title="Frames.js" src='https://framesjs.org/og.png' /></a></p>
 
 ## Features
 
