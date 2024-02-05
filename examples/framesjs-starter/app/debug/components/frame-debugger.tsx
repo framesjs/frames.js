@@ -26,7 +26,7 @@ export function FrameDebugger({
     <div>
       {children}
       <hr />
-      <h1>Debugging Frame on url: {frameData?.frame?.url}</h1>
+      <h1>Debugging Frame on url: {url}</h1>
       <p>
         <a
           target="_blank"
