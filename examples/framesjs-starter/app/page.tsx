@@ -9,20 +9,12 @@ import {
   validateActionSignature,
 } from "frames.js/next/server";
 import Link from "next/link";
+import { DEBUG_HUB_OPTIONS } from "./debug/constants";
 import { generateImage } from "./generate-image";
-import { HubHttpUrlOptions } from "frames.js";
 
 type State = {
   active: string;
   total_button_presses: number;
-};
-
-// WARN: This is a mock hub for development purposes only that does not verify signatures
-const hubOptions: HubHttpUrlOptions = {
-  hubHttpUrl:
-    process.env.NODE_ENV === "development"
-      ? "http://localhost:3000/debug/hub"
-      : undefined,
 };
 
 const initialState = { active: "1", total_button_presses: 0 };
@@ -46,7 +38,7 @@ export default async function Home({
 
   const validMessage = await validateActionSignature(
     previousFrame.postBody,
-    hubOptions
+    DEBUG_HUB_OPTIONS
   );
 
   const [state, dispatch] = useFramesReducer<State>(

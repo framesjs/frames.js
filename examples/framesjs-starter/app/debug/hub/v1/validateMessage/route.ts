@@ -13,6 +13,10 @@ import {
 
 /** Mocks the Hub /v1/validateMessage endpoint and skips parts that require a valid signer */
 export async function POST(request: NextRequest) {
+  console.warn(
+    "Mock Hub: Validating message without verifying signature. This should only be used in development and not in production."
+  );
+
   const contentType = request.headers.get("content-type") as string;
   let message;
 
@@ -44,10 +48,6 @@ export async function POST(request: NextRequest) {
       new HubError("bad_request.validation_failure", "message data is missing")
     );
   }
-
-  console.log(
-    `Type of message.data.network: ${typeof message.data.network}\n Type of mainnet constant: ${typeof FarcasterNetwork.MAINNET}`
-  );
 
   // 2. Check the network
   if (
