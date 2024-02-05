@@ -5,10 +5,10 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const isPostRedirect =
     req.nextUrl.searchParams.get("postType") === "post_redirect";
+  const postUrl = req.nextUrl.searchParams.get("postUrl")!;
 
   try {
-    const url = body.untrustedData.url;
-    const r = await fetch(url, {
+    const r = await fetch(postUrl, {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -29,7 +29,10 @@ export async function POST(req: NextRequest) {
 
     const htmlString = await r.text();
 
-    const { frame, errors } = getFrame({ htmlString, url });
+    const { frame, errors } = getFrame({
+      htmlString,
+      url: body.untrustedData.url,
+    });
 
     return Response.json({ frame, errors });
   } catch (err) {

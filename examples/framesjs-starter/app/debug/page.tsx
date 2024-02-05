@@ -83,8 +83,13 @@ export default function Page({
       throw new Error("hub error");
     }
 
+    const searchParams = new URLSearchParams({
+      postType: button?.action || "post",
+      postUrl: currentFrame.frame.postUrl,
+    });
+
     const response = await fetch(
-      `/debug/frame-action?postType=${button?.action}`,
+      `/debug/frame-action?${searchParams.toString()}`,
       {
         method: "POST",
         headers: {
