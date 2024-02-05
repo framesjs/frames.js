@@ -29,13 +29,9 @@ export async function POST(req: NextRequest) {
 
     const htmlString = await r.text();
 
-    const frame = getFrame({ htmlString, url });
+    const { frame, errors } = getFrame({ htmlString, url });
 
-    if (!frame) {
-      return new Response("Invalid frame", { status: 400 });
-    }
-
-    return Response.json(frame);
+    return Response.json({ frame, errors });
   } catch (err) {
     console.error(err);
     return Response.error();

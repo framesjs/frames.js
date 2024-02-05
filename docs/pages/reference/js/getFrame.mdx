@@ -7,7 +7,7 @@ Returns a `Frame` object, extracting the frame metadata from the given htmlStrin
 ```ts [example.ts]
 import { getFrame, Frame } from "frames.js"
 
-const frame: Frame = await getFrame({
+const { frame } = await getFrame({
 	htmlString: '<html><head>...</head><body></body></html>',
 	url: 'https://framesjs-homeframe.vercel.app/'
 });

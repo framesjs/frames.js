@@ -1,13 +1,13 @@
 "use client";
 
-import { Frame, FrameActionPayload } from "frames.js";
-import { useSearchParams } from "next/navigation";
+import { Frame, FrameActionPayload, getFrame } from "frames.js";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { LoginWindow } from "./components/create-signer";
 import { FrameRender } from "./components/frame-render";
 import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
 import { createFrameActionMessageWithSignerKey } from "./lib/farcaster";
+import { FrameDebugger } from "./components/frame-debugger";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -22,16 +22,20 @@ export default function Page({
   const [urlInput, setUrlInput] = useState(
     process.env.NEXT_PUBLIC_HOST || "http://localhost:3000"
   );
-  const [frame, setFrame] = useState<Frame | null>(null);
+
+  const [currentFrame, setCurrentFrame] = useState<
+    ReturnType<typeof getFrame> | undefined
+  >(undefined);
 
   // Load initial frame
-  const { data, error, isLoading } = useSWR<Frame>(
+  const { data, error, isLoading } = useSWR<ReturnType<typeof getFrame>>(
     url ? `/debug/og?url=${url}` : null,
     fetcher
   );
 
+  // todo this is kinda nasty
   useEffect(() => {
-    if (data) setFrame(data);
+    setCurrentFrame(data);
   }, [data]);
 
   const submitOption = async ({
@@ -41,11 +45,16 @@ export default function Page({
     buttonIndex: number;
     inputText: string;
   }) => {
-    if (!farcasterUser || !farcasterUser.fid || !frame) {
+    if (
+      !farcasterUser ||
+      !farcasterUser.fid ||
+      !currentFrame ||
+      !currentFrame?.frame
+    ) {
       return;
     }
 
-    const button = frame.buttons![buttonIndex - 1];
+    const button = currentFrame?.frame.buttons![buttonIndex - 1];
 
     const castId = {
       fid: 1,
@@ -59,7 +68,7 @@ export default function Page({
         fid: farcasterUser.fid,
         buttonIndex,
         castId,
-        url: Buffer.from(frame.postUrl),
+        url: Buffer.from(currentFrame.frame.postUrl),
         inputText: Buffer.from(inputText),
       });
 
@@ -77,7 +86,7 @@ export default function Page({
         body: JSON.stringify({
           untrustedData: {
             fid: farcasterUser.fid,
-            url: frame.postUrl,
+            url: currentFrame.frame.postUrl,
             messageHash: `0x${Buffer.from(message.hash).toString("hex")}`,
             timestamp: message.data.timestamp,
             network: 1,
@@ -95,22 +104,22 @@ export default function Page({
       }
     );
 
-    const data = await response.json();
+    const dataRes = await response.json();
 
     if (response.status === 302) {
-      const location = data.location;
+      const location = dataRes.location;
       if (window.confirm("You are about to be redirected to " + location!)) {
         window.location.href = location!;
       }
       return;
     }
 
-    setFrame(data);
+    setCurrentFrame(dataRes);
   };
 
   if (error) return <div>Failed to load</div>;
   if (isLoading) return <div>Loading...</div>;
-  if (url && !frame) return <div>Something is wrong...</div>;
+  if (url && !currentFrame?.frame) return <div>Something is wrong...</div>;
 
   return (
     <div className="p-5 flex justify-center flex-col">
@@ -138,12 +147,14 @@ export default function Page({
           </form>
         ) : (
           <>
-            <FrameRender
-              frame={frame!}
-              url={url}
-              submitOption={submitOption}
-              isLoggedIn={!!farcasterUser?.fid}
-            />
+            <FrameDebugger frameData={currentFrame} url={url}>
+              <FrameRender
+                frame={currentFrame?.frame!}
+                url={url}
+                submitOption={submitOption}
+                isLoggedIn={!!farcasterUser?.fid}
+              />
+            </FrameDebugger>
             <LoginWindow
               farcasterUser={farcasterUser}
               loading={loading}

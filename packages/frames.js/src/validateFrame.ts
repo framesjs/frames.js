@@ -1,21 +1,18 @@
 import * as cheerio from "cheerio";
-import { FrameButton, FrameButtonsType, Frame, ErrorKeys } from "./types";
+import { FrameButton, FrameButtonsType, Frame } from "./types";
 import { getByteLength, isValidVersion } from "./utils";
 
 /**
  * @returns a { frame: Frame | null, errors: null | ErrorMessages } object, extracting the frame metadata from the given htmlString.
  * If the Frame fails validation, the `errors` object will be non-null
  */
-export function getFrame({
+export function validateFrame({
   htmlString,
   url,
 }: {
   htmlString: string;
   url: string;
-}): {
-  frame: Frame | null;
-  errors: null | Record<ErrorKeys[number], string[]>;
-} {
+}): { frame: Frame | null; errors: null | Record<string, string[]> } {
   const $ = cheerio.load(htmlString);
   let errors: null | Record<string, string[]> = null;
 
@@ -110,8 +107,8 @@ export function getFrame({
     ).isStillValid
   ) {
     addError({
-      message: `Gap in buttons sequence, ${buttonsValidation.map((el, i) => `${el ? i + 1 : ""}`).join(",")}`,
-      key: `fc:frame:button:1`,
+      message: "Gap in buttons",
+      key: `fc:frame:button`,
     });
   }
 
