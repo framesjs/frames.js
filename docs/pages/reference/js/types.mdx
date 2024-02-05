@@ -1,8 +1,9 @@
 # Types exported from `frames.js`
 
 ## Example usage
+
 ```tsx
-import { Frame } from 'frames.js'
+import { Frame } from "frames.js";
 ```
 
 ## Reference
@@ -95,5 +96,11 @@ export type FrameActionPayload = {
     /** text input by the user into any input provided, "" if requested and no input, undefined if input not requested */
     inputText?: string;
   };
+};
+
+/** Options available in functions that make use of Hub queries */
+export type HubHttpUrlOptions = {
+  /** Hub HTTP REST API endpoint to use (default: https://nemes.farcaster.xyz:2281) */
+  hubHttpUrl?: string;
 };
 ```
