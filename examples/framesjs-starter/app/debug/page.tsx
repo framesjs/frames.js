@@ -77,7 +77,7 @@ export default function Page({
         body: JSON.stringify({
           untrustedData: {
             fid: farcasterUser.fid,
-            url: frame.postUrl,
+            url: url,
             messageHash: `0x${Buffer.from(message.hash).toString("hex")}`,
             timestamp: message.data.timestamp,
             network: 1,
