@@ -20,7 +20,7 @@ This is a boilerplate repo to get started quickly with `frames.js`
 
 - [Frames.js Documentation](https://framesjs.org)
 - [Awesome frames](https://github.com/davidfurlong/awesome-frames?tab=readme-ov-file)
-- Join the [/frames-dev](https://warpcast.com/frames-dev) channel on Farcaster to ask questions
+- Join the [/frames-dev](https://warpcast.com/~/channel/frames-devs) channel on Farcaster to ask questions
 
 ## If you get stuck or have feedback, [Message @df please!](https://warpcast.com/df)
 
