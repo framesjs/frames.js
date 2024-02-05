@@ -15,7 +15,7 @@ import {
   FrameReducer,
   FrameState,
   HeadersList,
-  NextJSServerPageProps,
+  NextServerPageProps,
   PreviousFrame,
   RedirectMap,
 } from "./types";
@@ -46,7 +46,7 @@ export async function validateActionSignature(
 
 /** deserializes a `PreviousFrame` from url searchParams, fetching headers automatically from nextjs, @returns PreviousFrame */
 export function getPreviousFrame<T extends FrameState = FrameState>(
-  searchParams: NextJSServerPageProps["searchParams"]
+  searchParams: NextServerPageProps["searchParams"]
 ): PreviousFrame<T> {
   const headersObj = headers();
   // not sure about the security of doing this for server only headers.
@@ -81,7 +81,7 @@ export function createPreviousFrame<T extends FrameState = FrameState>(
 
 /** deserializes data stored in the url search params and @returns a Partial PreviousFrame object  */
 export function parseFrameParams<T extends FrameState = FrameState>(
-  searchParams: NextJSServerPageProps["searchParams"]
+  searchParams: NextServerPageProps["searchParams"]
 ): Pick<
   PreviousFrame<T>,
   "postBody" | "prevState" | "pathname" | "prevRedirects"

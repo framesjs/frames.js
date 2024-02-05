@@ -4,7 +4,7 @@ import {
   FrameImage,
   FrameInput,
   FrameReducer,
-  NextJSServerPageProps,
+  NextServerPageProps,
   getPreviousFrame,
   useFramesReducer,
   validateActionSignature,
@@ -32,7 +32,7 @@ const reducer: FrameReducer<State> = (state, action) => {
 export default async function Home({
   params,
   searchParams,
-}: NextJSServerPageProps) {
+}: NextServerPageProps) {
   const previousFrame = getPreviousFrame<State>(searchParams);
 
   const validMessage = await validateActionSignature(previousFrame.postBody);
