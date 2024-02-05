@@ -1,9 +1,9 @@
+import { FrameActionMessage } from "@farcaster/core";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import React from "react";
 import { getByteLength, validateFrameMessage } from "..";
-import { ActionIndex, FrameActionPayload } from "../types";
-import { FrameActionMessage } from "@farcaster/core";
+import { ActionIndex, FrameActionPayload, HubHttpUrlOptions } from "../types";
 // Todo: this isn't respecting the use client directive
 import { FrameButtonRedirectUI, FrameButtonUI } from "./client";
 import {
@@ -28,13 +28,17 @@ export type FrameElementType =
 
 /** validates a frame action message payload signature, @returns message, throws an Error on failure */
 export async function validateActionSignature(
-  frameActionPayload: FrameActionPayload | null
+  frameActionPayload: FrameActionPayload | null,
+  options?: HubHttpUrlOptions
 ): Promise<FrameActionMessage | null> {
   if (!frameActionPayload) {
     // no payload means no action
     return null;
   }
-  const { isValid, message } = await validateFrameMessage(frameActionPayload);
+  const { isValid, message } = await validateFrameMessage(
+    frameActionPayload,
+    options
+  );
 
   if (!isValid || !message) {
     throw new Error("frames.js: signature failed verification");
