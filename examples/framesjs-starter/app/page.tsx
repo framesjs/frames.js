@@ -4,6 +4,7 @@ import {
   FrameImage,
   FrameInput,
   FrameReducer,
+  NextJSServerPageProps,
   getPreviousFrame,
   useFramesReducer,
   validateActionSignature,
@@ -29,10 +30,9 @@ const reducer: FrameReducer<State> = (state, action) => {
 
 // This is a react server component only
 export default async function Home({
+  params,
   searchParams,
-}: {
-  searchParams: Record<string, string>;
-}) {
+}: NextJSServerPageProps) {
   const previousFrame = getPreviousFrame<State>(searchParams);
 
   const validMessage = await validateActionSignature(previousFrame.postBody);
