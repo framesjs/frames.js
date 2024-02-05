@@ -27,6 +27,22 @@ export type Frame = {
   inputText?: string;
 };
 
+/** as const so we can import and enumerate these */
+export const frameErrorKeys = [
+  "fc:frame",
+  "fc:frame:image",
+  "fc:frame:post_url",
+  "fc:frame:input:text",
+  "fc:frame:button:1",
+  "fc:frame:button:2",
+  "fc:frame:button:3",
+  "fc:frame:button:4",
+  "og:image",
+  "og:title",
+] as const;
+
+export type ErrorKeys = typeof frameErrorKeys;
+
 /** A Frame represented as an object with keys and values corresponding to the Frames spec: https://docs.farcaster.xyz/reference/frames/spec */
 export type FrameFlattened = {
   "fc:frame": FrameVersion;

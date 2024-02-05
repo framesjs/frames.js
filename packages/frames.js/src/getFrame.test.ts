@@ -55,7 +55,7 @@ describe("getFrame", () => {
       getFrame({
         htmlString: sampleHtml,
         url: "https://example.com",
-      })
+      }).frame
     ).toEqual(sampleFrame);
 
     expect(
@@ -75,7 +75,7 @@ describe("getFrame", () => {
     <meta name="fc:frame:button:2" content="2"/>
     <meta name="fc:frame:button:2:action" content="post_redirect"/>
     `;
-    const frame = getFrame({
+    const { frame } = getFrame({
       htmlString: html,
       url: "https://example.com",
     });
@@ -102,7 +102,7 @@ describe("getFrame", () => {
     const parsedFrame = getFrame({
       htmlString: html,
       url: "https://example.com",
-    });
+    }).frame;
 
     expect(parsedFrame).toEqual(sampleFrame);
   });
