@@ -1,7 +1,7 @@
 import { getFrame } from "frames.js";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   const url = request.nextUrl.searchParams.get("url");
 
   if (!url) {
