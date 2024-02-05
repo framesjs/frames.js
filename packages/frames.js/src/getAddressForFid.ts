@@ -17,14 +17,13 @@ export async function getAddressForFid<
   fid: number;
   options?: Options;
 }): Promise<AddressReturnType<Options>> {
-  // Merge default options with user provided options
-  options = {
+  const optionsOrDefaults = {
     fallbackToCustodyAddress: options.fallbackToCustodyAddress ?? true,
     hubHttpUrl: options.hubHttpUrl ?? "https://nemes.farcaster.xyz:2281",
   };
 
   const verificationsResponse = await fetch(
-    `${options.hubHttpUrl}/v1/verificationsByFid?fid=${fid}`
+    `${optionsOrDefaults.hubHttpUrl}/v1/verificationsByFid?fid=${fid}`
   );
   const { messages } = await verificationsResponse.json();
   if (messages[0]) {
@@ -34,7 +33,7 @@ export async function getAddressForFid<
       },
     } = messages[0];
     return address;
-  } else if (options?.fallbackToCustodyAddress) {
+  } else if (optionsOrDefaults.fallbackToCustodyAddress) {
     const publicClient = createPublicClient({
       transport: http(),
       chain: optimism,

@@ -15,12 +15,12 @@ export async function validateFrameMessage(
   isValid: boolean;
   message: FrameActionMessage | undefined;
 }> {
-  options = {
+  const optionsOrDefaults: HubHttpUrlOptions = {
     hubHttpUrl: options?.hubHttpUrl || "https://nemes.farcaster.xyz:2281",
   };
 
   const validateMessageResponse = await fetch(
-    `${options.hubHttpUrl}/v1/validateMessage`,
+    `${optionsOrDefaults.hubHttpUrl}/v1/validateMessage`,
     {
       method: "POST",
       headers: {
