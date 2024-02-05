@@ -46,7 +46,9 @@ export function FrameRender({
             style={{ flex: "1 1 0px", padding: "6px", cursor: "pointer" }}
             onClick={() => {
               if (!isLoggedIn) {
-                alert("Log in to use the frame buttons");
+                alert(
+                  "Choose an fid to impersonate or Sign in (costs warps) to use the frame buttons"
+                );
                 return;
               }
               return submitOption({

@@ -29,27 +29,35 @@ export const LoginWindow = ({
             )
           ) : farcasterUser?.status === "impersonating" ? (
             <div>
-              Impersonating {farcasterUser?.fid}{" "}
+              Impersonating fid (for testing):{farcasterUser?.fid}{" "}
               <button onClick={logout}>Logout</button>
             </div>
           ) : farcasterUser?.status === "pending_approval" ? (
             "Approve in Warpcast"
           ) : (
-            "Sign in"
+            <h2>Sign in to test buttons</h2>
           )}
         </div>
         <div>
           {!farcasterUser?.status && (
             <div>
-              <button
-                style={{
-                  cursor: loading ? "not-allowed" : "pointer",
+              <form
+                action=""
+                onSubmit={async (e: any) => {
+                  e.preventDefault();
+                  impersonateUser({ fid: 1 });
                 }}
-                onClick={startFarcasterSignerProcess}
-                disabled={loading}
               >
-                {loading ? "Loading..." : "Sign in with farcaster"}
-              </button>
+                <button
+                  style={{
+                    cursor: loading ? "not-allowed" : "pointer",
+                  }}
+                  type="submit"
+                  disabled={loading}
+                >
+                  Impersonate fid: 1
+                </button>
+              </form>
               <div>or</div>
               <form
                 action=""
@@ -70,6 +78,18 @@ export const LoginWindow = ({
                   Impersonate
                 </button>
               </form>
+
+              <div>or</div>
+
+              <button
+                style={{
+                  cursor: loading ? "not-allowed" : "pointer",
+                }}
+                onClick={startFarcasterSignerProcess}
+                disabled={loading}
+              >
+                {loading ? "Loading..." : "Sign in with farcaster"}
+              </button>
             </div>
           )}
           {farcasterUser?.status === "pending_approval" &&

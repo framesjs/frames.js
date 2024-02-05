@@ -159,6 +159,15 @@ export default function Page({
           </form>
         ) : (
           <>
+            <div style={{ margin: "20px 0" }}>
+              <LoginWindow
+                farcasterUser={farcasterUser}
+                loading={loading}
+                startFarcasterSignerProcess={startFarcasterSignerProcess}
+                impersonateUser={impersonateUser}
+                logout={logout}
+              ></LoginWindow>
+            </div>
             <FrameDebugger frameData={currentFrame} url={url}>
               <FrameRender
                 frame={currentFrame?.frame!}
@@ -167,13 +176,6 @@ export default function Page({
                 isLoggedIn={!!farcasterUser?.fid}
               />
             </FrameDebugger>
-            <LoginWindow
-              farcasterUser={farcasterUser}
-              loading={loading}
-              startFarcasterSignerProcess={startFarcasterSignerProcess}
-              impersonateUser={impersonateUser}
-              logout={logout}
-            ></LoginWindow>
           </>
         )}
       </div>

@@ -14,7 +14,7 @@ import {
 /** Mocks the Hub /v1/validateMessage endpoint and skips parts that require a valid signer */
 export async function POST(request: NextRequest) {
   console.warn(
-    "Mock Hub: Validating message without verifying signature. This should only be used in development and not in production."
+    "info: Mock hub: Validating message without verifying signature. This should only be used in development"
   );
 
   const contentType = request.headers.get("content-type") as string;
