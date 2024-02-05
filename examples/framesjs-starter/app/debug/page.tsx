@@ -49,7 +49,8 @@ export default function Page({
       !farcasterUser ||
       !farcasterUser.fid ||
       !currentFrame ||
-      !currentFrame?.frame
+      !currentFrame?.frame ||
+      !url
     ) {
       return;
     }
@@ -68,8 +69,9 @@ export default function Page({
         fid: farcasterUser.fid,
         buttonIndex,
         castId,
-        url: Buffer.from(currentFrame.frame.postUrl),
-        inputText: Buffer.from(inputText),
+        url: Buffer.from(url),
+        // seems the message in hubs actually requires a value here.
+        inputText: Buffer.from(inputText ?? ""),
       });
 
     if (!message) {
