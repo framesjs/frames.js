@@ -10,6 +10,7 @@ import {
   validateActionSignature,
 } from "frames.js/next/server";
 import Link from "next/link";
+import { DEBUG_HUB_OPTIONS } from "./debug/constants";
 import { generateImage } from "./generate-image";
 
 type State = {
@@ -35,7 +36,10 @@ export default async function Home({
 }: NextServerPageProps) {
   const previousFrame = getPreviousFrame<State>(searchParams);
 
-  const validMessage = await validateActionSignature(previousFrame.postBody);
+  const validMessage = await validateActionSignature(
+    previousFrame.postBody,
+    DEBUG_HUB_OPTIONS
+  );
 
   const [state, dispatch] = useFramesReducer<State>(
     reducer,
