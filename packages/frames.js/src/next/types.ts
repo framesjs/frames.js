@@ -91,3 +91,9 @@ export type FrameButtonPostRedirectProvidedProps = {
   /** a label to display on the button */
   children: string | number;
 };
+
+/** See https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional */
+export type NextServerPageProps = {
+  params: { slug: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
+};
