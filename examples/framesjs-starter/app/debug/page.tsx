@@ -39,7 +39,7 @@ export default function Page({
     inputText,
   }: {
     buttonIndex: number;
-    inputText: string;
+    inputText: string | undefined;
   }) => {
     if (!farcasterUser || !farcasterUser.fid || !frame) {
       return;
@@ -60,7 +60,7 @@ export default function Page({
         buttonIndex,
         castId,
         url: Buffer.from(frame.postUrl),
-        inputText: Buffer.from(inputText),
+        inputText: inputText !== undefined ? Buffer.from(inputText) : undefined,
       });
 
     if (!message) {
