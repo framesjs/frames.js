@@ -39,7 +39,10 @@ export function FrameDebugger({
         <h3>Frame Validations</h3>
         <div>
           {frameErrorKeys.map((key) => (
-            <div style={{ display: "flex", flexDirection: "row", gap: "8px" }}>
+            <div
+              style={{ display: "flex", flexDirection: "row", gap: "8px" }}
+              key={key}
+            >
               <div>{key}</div>
               <div> {frameData?.errors?.[key] ? "🔴" : "🟢"}</div>
               <div>{frameData?.errors?.[key]?.join(",")}</div>
