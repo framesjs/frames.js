@@ -1,40 +1,40 @@
-import { VerificationAddEthAddressMessage } from "@farcaster/core";
 import { createPublicClient, http, parseAbi } from "viem";
 import { optimism } from "viem/chains";
 import { AddressReturnType } from "./types";
-import { bytesToHexString } from "./utils";
 
 export async function getAddressForFid<
   Options extends { fallbackToCustodyAddress?: boolean } | undefined,
 >({
   fid,
-  hubClient,
   options,
 }: {
   fid: number;
-  hubClient: any;
   options?: Options;
 }): Promise<AddressReturnType<Options>> {
-  const verificationsResult = await hubClient.getVerificationsByFid({
-    fid,
-  });
-  const verifications = verificationsResult.unwrapOr(null);
-  if (verifications?.messages[0]) {
+  const hubBaseUrl =
+    process.env.FRAME_HUB_HTTP_URL ||
+    process.env.HUB_HTTP_URL ||
+    "https://nemes.farcaster.xyz:2281";
+
+  const verificationsResponse = await fetch(
+    `${hubBaseUrl}/v1/verificationsByFid?fid=${fid}`
+  );
+  const { messages } = await verificationsResponse.json();
+  if (messages[0]) {
     const {
       data: {
-        verificationAddEthAddressBody: { address: addressBytes },
+        verificationAddEthAddressBody: { address },
       },
-    } = verifications.messages[0] as VerificationAddEthAddressMessage;
-    return bytesToHexString(addressBytes);
+    } = messages[0];
+    return address;
   } else if (options?.fallbackToCustodyAddress) {
     const publicClient = createPublicClient({
       transport: http(),
       chain: optimism,
     });
-    // TODO: Do this async
     const address = await publicClient.readContract({
       abi: parseAbi(["function custodyOf(uint256 fid) view returns (address)"]),
-      // TODO Extract into constants file
+      // IdRegistry contract address
       address: "0x00000000fc6c5f01fc30151999387bb99a9f489b",
       functionName: "custodyOf",
       args: [BigInt(fid)],
