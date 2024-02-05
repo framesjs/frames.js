@@ -5,7 +5,7 @@ export type FrameRenderProps = {
   isLoggedIn: boolean;
   frame: Frame;
   url: string | null;
-  submitOption: (args: { buttonIndex: number; inputText: string }) => void;
+  submitOption: (args: { buttonIndex: number; inputText?: string }) => void;
 };
 
 export function FrameRender({
@@ -49,7 +49,10 @@ export function FrameRender({
                 alert("Log in to use the frame buttons");
                 return;
               }
-              return submitOption({ buttonIndex: index + 1, inputText });
+              return submitOption({
+                buttonIndex: index + 1,
+                inputText: frame.inputText ? inputText : undefined,
+              });
             }}
             key={index}
           >

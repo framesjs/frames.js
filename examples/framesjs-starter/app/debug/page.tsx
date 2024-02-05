@@ -43,7 +43,7 @@ export default function Page({
     inputText,
   }: {
     buttonIndex: number;
-    inputText: string;
+    inputText?: string;
   }) => {
     if (
       !farcasterUser ||
@@ -86,7 +86,7 @@ export default function Page({
         body: JSON.stringify({
           untrustedData: {
             fid: farcasterUser.fid,
-            url: currentFrame.frame.postUrl,
+            url: url,
             messageHash: `0x${Buffer.from(message.hash).toString("hex")}`,
             timestamp: message.data.timestamp,
             network: 1,
