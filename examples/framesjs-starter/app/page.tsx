@@ -62,7 +62,7 @@ export default async function Home({
         state={state}
         previousFrame={previousFrame}
       >
-        <FrameImage src="https://picsum.photos/seed/frames.js/1146/600" />
+        <FrameImage src="https://framesjs.org/og.png" />
         {/* <FrameImage
           src={`data:image/svg+xml,${encodeURIComponent(imageSvg)}`}
         /> */}
