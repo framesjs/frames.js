@@ -1,5 +1,26 @@
 # frames.js
 
+## 0.1.0
+
+### Minor Changes
+
+- 1a73918: fix: Breaking change! `validateFrameMessage` & `getAddressForFid` now take an optional `hubHttpUrl` parameter to allow for custom hub URLs instead of env vars.
+
+  If you were using `getAddressForFid`, you no longer need to include the second `hubClient` argument. Instead, you can optionally pass the `hubHttpUrl` in the second argument.
+
+  ```ts
+  const address = getAddressForFid(fid);
+  // or
+  const address = getAddressForFid(fid, { hubHttpUrl: "..." });
+  ```
+
+- 1598cb6: Breaking change! getFrame now returns a { frame, errors } object instead of a frame or null
+
+### Patch Changes
+
+- 99536fb: fix: frame action message creation to not include inputText if inputText was not requested by the frame
+- 501861d: corrects nextjs type inaccuracy
+
 ## 0.0.4
 
 ### Patch Changes
