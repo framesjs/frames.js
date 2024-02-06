@@ -1,6 +1,57 @@
 # getFrameMessage
 
-Returns a `FrameActionData` object from the message trusted data.
+Returns a `FrameActionData` object from the message trusted data, as well as `FrameActionHubContext` when `fetchHubContext` option is not opted out of
+
+## Usage
+
+```ts
+import { frameMessage } from 'frames.js';
+
+const frameMessage = await getFrameMessage(frameActionPayload);
+console.log(frameMessage);
+/** 
+{
+  buttonIndex: 2,
+  castId: { fid: 1, hash: '0x0000000000000000000000000000000000000000' },
+  inputText: '',
+  requesterFid: 1689,
+  isValid: true,
+  casterFollowsRequester: false,
+  requesterFollowsCaster: false,
+  likedCast: false,
+  recastedCast: false,
+  requesterVerifiedAddresses: [ '0x8d25687829d6b85d9e0020b8c89e3ca24de20a89' ],
+  requesterUserData: {
+    profileImage: 'https://lh3.googleusercontent.com/-S5cdhOpZtJ_Qzg9iPWELEsRTkIsZ7qGYmVlwEORgFB00WWAtZGefRnS4Bjcz5ah40WVOOWeYfU5pP9Eekikb3cLMW2mZQOMQHlWhg',
+    displayName: 'David Furlong',
+    username: 'df',
+    bio: 'Building open source software for /frames, to help Farcaster and decentralized social win'
+  }
+}
+**/
+```
+
+```ts
+import { frameMessage } from 'frames.js';
+// skip a hub roundtrip by opting out of fetching the hub context
+const frameMessage = await getFrameMessage(frameActionPayload, { fetchHubContext: false });
+console.log(frameMessage);
+/** 
+{
+  buttonIndex: 2,
+  castId: { fid: 1, hash: '0x0000000000000000000000000000000000000000' },
+  inputText: '',
+  requesterFid: 1689,
+  requesterUserData: {
+    profileImage: 'https://lh3.googleusercontent.com/-S5cdhOpZtJ_Qzg9iPWELEsRTkIsZ7qGYmVlwEORgFB00WWAtZGefRnS4Bjcz5ah40WVOOWeYfU5pP9Eekikb3cLMW2mZQOMQHlWhg',
+    displayName: 'David Furlong',
+    username: 'df',
+    bio: 'Building open source software for /frames, to help Farcaster and decentralized social win'
+  }
+}
+**/
+```
+
 
 ```ts
 type FrameActionData = {
@@ -25,33 +76,4 @@ type FrameActionHubContext = {
   recastedCast: boolean;
   requesterVerifiedAddresses: string[];
 };
-```
-
-## Usage
-
-```ts
-const frameMessage = await getFrameMessage(frameActionPayload, {
-  fetchHubContext: true,
-});
-console.log(frameMessage);
-/** 
-{
-  buttonIndex: 2,
-  castId: { fid: 1, hash: '0x0000000000000000000000000000000000000000' },
-  inputText: '',
-  requesterFid: 1689,
-  isValid: true,
-  casterFollowsRequester: false,
-  requesterFollowsCaster: false,
-  likedCast: false,
-  recastedCast: false,
-  requesterVerifiedAddresses: [ '0x8d25687829d6b85d9e0020b8c89e3ca24de20a89' ],
-  requesterUserData: {
-    profileImage: 'https://lh3.googleusercontent.com/-S5cdhOpZtJ_Qzg9iPWELEsRTkIsZ7qGYmVlwEORgFB00WWAtZGefRnS4Bjcz5ah40WVOOWeYfU5pP9Eekikb3cLMW2mZQOMQHlWhg',
-    displayName: 'David Furlong',
-    username: 'df',
-    bio: 'Building open source software for /frames, to help Farcaster and decentralized social win'
-  }
-}
-**/
 ```
