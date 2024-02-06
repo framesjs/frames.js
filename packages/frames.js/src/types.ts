@@ -1,5 +1,9 @@
 type FrameVersion = "vNext" | `${number}-${number}-${number}`;
 
+// type CAIP2ChainId = string;
+// export type CAIP10Address = `${CAIP2ChainId}:${string}`;
+// export type FrameButtonTarget = CAIP10Address | `${CAIP10Address}:${number}`
+
 /** A developer friendly representation of a Frame */
 export type Frame = {
   /** A valid frame version string. The string must be a release date (e.g. 2020-01-01 ) or vNext. Apps must ignore versions they do not understand. Currently, the only valid version is vNext.  */
@@ -62,6 +66,14 @@ export type FrameButtonLink = {
   label: string;
 };
 
+export type FrameButtonMint = {
+  action: "mint";
+  /** The target  property MUST be a valid CAIP-10 address, plus an optional token_id . */
+  target: string;
+  /** A 256-byte string which is label of the button */
+  label: string;
+};
+
 export type FrameButtonPost = {
   /** Must be post or post_redirect. Defaults to post if no value was specified.
    * If set to post, app must make the POST request and frame server must respond with a 200 OK, which may contain another frame.
@@ -76,7 +88,8 @@ export type FrameButtonPostRedirect = FrameButtonPost;
 export type FrameButton =
   | FrameButtonPost
   | FrameButtonLink
-  | FrameButtonPostRedirect;
+  | FrameButtonPostRedirect
+  | FrameButtonMint;
 
 /** The permitted types of `buttonIndex` in a Frame POST payload response */
 export type ActionIndex = 1 | 2 | 3 | 4;

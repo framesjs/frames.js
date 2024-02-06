@@ -1,6 +1,11 @@
 import * as cheerio from "cheerio";
 import { FrameButton, FrameButtonsType, Frame, ErrorKeys } from "./types";
-import { getByteLength, isFrameButtonLink, isValidVersion } from "./utils";
+import {
+  getByteLength,
+  isFrameButtonLink,
+  isFrameButtonMint,
+  isValidVersion,
+} from "./utils";
 
 /**
  * @returns a { frame: Frame | null, errors: null | ErrorMessages } object, extracting the frame metadata from the given htmlString.
@@ -121,6 +126,34 @@ export function validateFrame({
           });
         }
       }
+
+      if (action === "mint" && !buttonTarget) {
+        addError({
+          message: "Missing mint target",
+          key: `fc:frame:button:${buttonLabel.buttonIndex}`,
+        });
+      }
+
+      if (buttonTarget?.content && !buttonAction) {
+        addError({
+          message: "Missing button action (should be 'mint')",
+          key: `fc:frame:button:${buttonLabel.buttonIndex}`,
+        });
+      }
+
+      if (
+        !["post_redirect", "post", "mint", "link", undefined].includes(
+          buttonAction?.content
+        )
+      ) {
+        addError({
+          message: "Invalid button action specified",
+          key: `fc:frame:button:${buttonLabel.buttonIndex}`,
+        });
+      }
+
+      // TODO: Validate button target conforms to CAIP-2 address spec
+
       return {
         buttonIndex: buttonLabel.buttonIndex,
         label: buttonLabel.content || "",
@@ -132,12 +165,13 @@ export function validateFrame({
     .sort((a, b) => a.buttonIndex - b.buttonIndex)
     .map((button): FrameButton => {
       // type guards are weird sometimes.
-      if (isFrameButtonLink(button))
+      if (isFrameButtonLink(button) || isFrameButtonMint(button))
         return {
           label: button.label,
           action: button.action,
           target: button.target,
         };
+
       return {
         label: button.label,
         action: button.action,
