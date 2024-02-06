@@ -1,0 +1,51 @@
+# getFrame
+
+Returns a `FrameActionData` object from the message trusted data.
+
+```ts
+type FrameActionData = {
+  buttonIndex: number;
+  requesterFid: number;
+  castId?: {
+    fid: number;
+    hash: `0x${string}`;
+  };
+  inputText?: string;
+};
+```
+
+If the `fetchHubContext` option is enabled, it will also validate the message and fetch additional context of type `FrameActionHubContext` from a Farcaster Hub.
+
+```ts
+type FrameActionHubContext = {
+  isValid: boolean;
+  requesterFollowsCaster: boolean;
+  casterFollowsRequester: boolean;
+  likedCast: boolean;
+  recastedCast: boolean;
+  requesterVerifiedAddresses: string[];
+};
+```
+
+## Usage
+
+```ts
+const frameMessage = await getFrameMessage(frameActionPayload, {
+  fetchHubContext: true,
+});
+console.log(frameMessage);
+/** 
+{
+  buttonIndex: 2,
+  castId: { fid: 1, hash: '0x0000000000000000000000000000000000000000' },
+  inputText: '',
+  requesterFid: 1689,
+  isValid: true,
+  casterFollowsRequester: false,
+  requesterFollowsCaster: false,
+  likedCast: false,
+  recastedCast: false,
+  requesterVerifiedAddresses: [ '0x8d25687829d6b85d9e0020b8c89e3ca24de20a89' ]
+}
+**/
+```

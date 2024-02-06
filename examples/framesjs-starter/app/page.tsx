@@ -8,6 +8,7 @@ import {
   getPreviousFrame,
   useFramesReducer,
   validateActionSignature,
+  getFrameMessage,
 } from "frames.js/next/server";
 import Link from "next/link";
 import { DEBUG_HUB_OPTIONS } from "./debug/constants";
@@ -52,6 +53,28 @@ export default async function Home({
   const image = await generateImage(validMessage!);
 
   console.log("State is:", state);
+
+  const frameMessage = await getFrameMessage(previousFrame.postBody, {
+    ...DEBUG_HUB_OPTIONS,
+    fetchHubContext: true,
+  });
+
+  if (frameMessage) {
+    const {
+      isValid,
+      buttonIndex,
+      inputText,
+      castId,
+      requesterFid,
+      casterFollowsRequester,
+      requesterFollowsCaster,
+      likedCast,
+      recastedCast,
+      requesterVerifiedAddresses,
+    } = frameMessage;
+
+    console.log(frameMessage);
+  }
 
   // then, when done, return next frame
   return (
