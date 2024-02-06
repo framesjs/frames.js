@@ -141,8 +141,9 @@ export function validateFrame({
     });
 
   // buttons order validation without a gap like 1, 3, 4
+  console.log(buttonsValidation);
   if (
-    buttonsValidation.reduce(
+    !buttonsValidation.reduce(
       (prev, next) => ({
         hasFalse: prev.hasFalse || !next,
         isStillValid: !prev.isStillValid
