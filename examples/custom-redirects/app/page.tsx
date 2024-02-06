@@ -56,7 +56,8 @@ export default async function Home({
   // then, when done, return next frame
   return (
     <div>
-      Starter kit. <Link href="/debug">Debug</Link>
+      Starter kit with custom redirects in /frames.{" "}
+      <Link href="/debug">Debug</Link>
       <FrameContainer
         postUrl="/frames"
         state={state}
