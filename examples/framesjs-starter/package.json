@@ -18,6 +18,9 @@
     "satori": "^0.10.13",
     "swr": "^2.2.4"
   },
+  "engines": {
+    "node": ">=18.17.0"
+  },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
