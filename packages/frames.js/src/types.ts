@@ -73,6 +73,8 @@ export type AddressReturnType<
   ? `0x${string}`
   : `0x${string}` | null;
 
+export type UsernameReturnType = string | null;
+
 /**
  * The body of valid `POST` requests triggered by Frame Buttons in other apps, when formatted as json, conforming to the Frames spec
  */
