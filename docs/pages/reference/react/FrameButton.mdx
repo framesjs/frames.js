@@ -6,7 +6,8 @@ Renders a 'fc:frame:button'.
 
 - `children: string`: The label to show on the button
 - `onClick?: Dispatch` specify a button that triggers another Frame. Define the behaviour of the button by changing the reducer based on the `buttonIndex` (the first button will have `buttonIndex` 1, the second 2, ...)
-- `href?: string` render a redirect button specifying an absolute url
+- `href?: string` render a redirect button specifying an absolute url. For shorter urls, use the `redirect` prop with the `redirectHandler`
+- `redirect?: boolean` set to true to render a redirect that uses a redirectHandler in the POST, avoiding the need for the href prop here
 
 ## Usage
 
