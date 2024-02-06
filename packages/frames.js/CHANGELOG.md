@@ -1,5 +1,16 @@
 # frames.js
 
+## 0.1.1
+
+### Patch Changes
+
+- 40d0ad7: feat: Add `getFrameMessage`, which parse frame action payloads and optionally fetches additional context from hubs.
+
+  feat(debugger): Forward unmocked hub requests to an actual hub.
+
+- 57649be: Add a helper function to retrieve the user data for an FID
+- 518ada3: custom redirects handling for long redirect urls
+
 ## 0.1.0
 
 ### Minor Changes

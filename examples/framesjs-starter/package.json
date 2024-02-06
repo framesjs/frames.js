@@ -1,6 +1,6 @@
 {
   "name": "framesjs-starter",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@noble/ed25519": "^2.0.0",
-    "frames.js": "^0.1.0",
+    "frames.js": "^0.1.1",
     "next": "14.1.0",
     "qrcode.react": "^3.1.0",
     "react": "^18",
