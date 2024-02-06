@@ -1,0 +1,19 @@
+# getUserDataForFid
+
+Returns the latest user data for a given Farcaster user's FID if available.
+
+## Usage
+
+```ts [example.ts]
+const userData = await getUserDataForFid({ fid });
+
+console.log(userData);
+/*
+{
+	profileImage: 'https://lh3.googleusercontent.com/-S5cdhOpZtJ_Qzg9iPWELEsRTkIsZ7qGYmVlwEORgFB00WWAtZGefRnS4Bjcz5ah40WVOOWeYfU5pP9Eekikb3cLMW2mZQOMQHlWhg',
+	displayName: 'David Furlong',
+	username: 'df',
+	bio: 'Building open source software for /frames, to help Farcaster and decentralized social win'
+}
+*/
+```
