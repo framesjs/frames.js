@@ -52,7 +52,6 @@ export function FrameRender({
                 );
                 return;
               }
-              console.log(action, label, target);
               if (action === "link") {
                 if (
                   window.confirm("You are about to be redirected to " + target!)
