@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
     buttons: [
       {
         label: `Next (pressed by ${message?.data.fid})`,
+        action: "post",
       },
       {
         label: "Visit frames.js",
