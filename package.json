@@ -9,7 +9,7 @@
     "dev:all": "turbo dev",
     "lint": "turbo lint",
     "publish-packages": "turbo run build lint && changeset version && changeset publish && git push --follow-tags origin main",
-    "publish-canary": "turbo run build lint && npm version --preid canary preminor && npm publish --tag canary && git push --follow-tags origin main",
+    "publish-canary": "turbo run build lint && cd ./packages/frames.js && yarn publish --tag canary && git push --follow-tags origin main",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
