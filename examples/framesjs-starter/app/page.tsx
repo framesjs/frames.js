@@ -84,10 +84,7 @@ export default async function Home({
         state={state}
         previousFrame={previousFrame}
       >
-        {<FrameImage src="https://framesjs.org/og.png" />}
-        {/* <FrameImage
-          src={`data:image/svg+xml,${encodeURIComponent(imageSvg)}`}
-        /> */}
+        <FrameImage src="https://framesjs.org/og.png" />
         <FrameInput text="put some text here" />
         <FrameButton onClick={dispatch}>
           {state?.active === "1" ? "Active" : "Inactive"}

@@ -34,6 +34,11 @@
       "import": "./dist/getFrameHtml.js",
       "types": "./dist/getFrameHtml.d.ts"
     },
+    "./getFrameMessage": {
+      "require": "./dist/getFrameMessage.js",
+      "import": "./dist/getFrameMessage.js",
+      "types": "./dist/getFrameMessage.d.ts"
+    },
     "./validateFrameMessage": {
       "require": "./dist/validateFrameMessage.js",
       "import": "./dist/validateFrameMessage.js",
