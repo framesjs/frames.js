@@ -1,10 +1,10 @@
 import { POST as POSTNextjs, PreviousFrame } from "frames.js/next/server";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export function POST(req: NextRequest) {
+export function POST(req: NextRequest, res: NextResponse) {
   const redirectHandler = (prevFrame: PreviousFrame) => {
     if (prevFrame.postBody?.untrustedData.buttonIndex === 4)
       return "https://www.framesjs.org";
   };
-  return POSTNextjs(req, redirectHandler);
+  return POSTNextjs(req, res, redirectHandler);
 }

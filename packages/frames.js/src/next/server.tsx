@@ -153,6 +153,8 @@ export function useFramesReducer<T extends FrameState = FrameState>(
  */
 export async function POST(
   req: NextRequest,
+  /** unused, but will most frequently be passed a res: NextResponse object. Should stay in here for easy consumption compatible with next.js */
+  res: NextResponse,
   redirectHandler?: RedirectHandler
 ) {
   const body = await req.json();
@@ -200,12 +202,12 @@ export async function POST(
       return NextResponse.json(
         {
           message:
-            "frames.js: You need to define either an href property on your FrameButton that has a `redirect` prop, or pass a second argument to `POST`",
+            "frames.js: You need to define either an href property on your FrameButton that has a `redirect` prop, or pass a third argument to `POST`",
         },
         {
           status: 500,
           statusText:
-            "frames.js: You need to define either an href property on your FrameButton that has a `redirect` prop, or pass a second argument to `POST`",
+            "frames.js: You need to define either an href property on your FrameButton that has a `redirect` prop, or pass a third argument to `POST`",
         }
       );
     }
