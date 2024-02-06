@@ -308,6 +308,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
               throw new Error("too many buttons");
             }
 
+            // Handle Button action types
             if (
               child.props.hasOwnProperty("href") ||
               (child.props.hasOwnProperty("redirect") &&
@@ -315,19 +316,20 @@ export function FrameContainer<T extends FrameState = FrameState>({
             ) {
               if (child.props.hasOwnProperty("onClick")) {
                 throw new Error(
-                  "buttons must either have href or onClick, not both"
+                  "buttons must either have href or onClick, not both, and onClick is incompatible with redirect"
                 );
               }
               let action = "link";
               if (child.props.hasOwnProperty("action")) {
                 if ((child.props as any).action === "post") {
-                  throw new Error("invalid action prop value on Button");
+                  throw new Error(
+                    "invalid action prop value on Button, incompatible with href"
+                  );
                 }
                 action = (child.props as any).action;
               }
-
               if (action === "link") {
-                // no need for a redirectMap
+                // no need for a redirectMap, as no POST request
               } else if (child.props.hasOwnProperty("href")) {
                 redirectMap[nextIndexByComponentType.button] = (
                   child.props as any as FrameButtonPostRedirectProvidedProps
@@ -427,10 +429,10 @@ function FrameRedirect({
         name={`fc:frame:button:${actionIndex}`}
         content={String(children)}
       />
-      <meta
-        name={`fc:frame:button:${actionIndex}:action`}
-        content={"post_redirect"}
-      />
+      <meta name={`fc:frame:button:${actionIndex}:action`} content={action} />
+      {action === "link" ? (
+        <meta name={`fc:frame:button:${actionIndex}:target`} content={href} />
+      ) : null}
     </>
   );
 }

@@ -56,7 +56,7 @@ export default async function Home({
   // example: load the users credentials & check they have an NFT
   const image = await generateImage(frameMessage);
 
-  console.log("State is:", state);
+  console.log("info: state is:", state);
 
   if (frameMessage) {
     const {

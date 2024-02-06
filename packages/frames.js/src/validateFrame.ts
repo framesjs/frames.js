@@ -49,26 +49,31 @@ export function validateFrame({
     "meta[property='fc:frame:input:text'], meta[name='fc:frame:input:text']"
   ).attr("content");
 
-  const buttonLabels = $(
-    "meta[property^='fc:frame:button']:not([property$=':action']), meta[name^='fc:frame:button']:not([name$=':action'])"
-  )
-    .map((i, elem) => parseButtonElement(elem))
-    .filter((i, elem) => elem !== null)
-    .toArray();
+  const buttonLabels = [1, 2, 3, 4].flatMap((el) =>
+    $(
+      `meta[property^='fc:frame:button:${el}'], meta[name='fc:frame:button:${el}']`
+    )
+      .map((i, elem) => parseButtonElement(elem))
+      .filter((i, elem) => elem !== null)
+      .toArray()
+  );
+  const buttonActions = [1, 2, 3, 4].flatMap((el) =>
+    $(
+      `meta[property^='fc:frame:button:${el}:action'], meta[name='fc:frame:button:${el}:action']`
+    )
+      .map((i, elem) => parseButtonElement(elem))
+      .filter((i, elem) => elem !== null)
+      .toArray()
+  );
 
-  const buttonActions = $(
-    'meta[name^="fc:frame:button:"][name$=":action"], meta[property^="fc:frame:button:"][property$=":action"]'
-  )
-    .map((i, elem) => parseButtonElement(elem))
-    .filter((i, elem) => elem !== null)
-    .toArray();
-
-  const buttonTargets = $(
-    'meta[name^="fc:frame:button:"][name$=":target"], meta[property^="fc:frame:button:"][property$=":target"]'
-  )
-    .map((i, elem) => parseButtonElement(elem))
-    .filter((i, elem) => elem !== null)
-    .toArray();
+  const buttonTargets = [1, 2, 3, 4].flatMap((el) =>
+    $(
+      `meta[property^='fc:frame:button:${el}:target'], meta[name='fc:frame:button:${el}:target']`
+    )
+      .map((i, elem) => parseButtonElement(elem))
+      .filter((i, elem) => elem !== null)
+      .toArray()
+  );
 
   let buttonsValidation = [false, false, false, false];
   const buttonsWithActions = buttonLabels
@@ -141,7 +146,6 @@ export function validateFrame({
     });
 
   // buttons order validation without a gap like 1, 3, 4
-  console.log(buttonsValidation);
   if (
     !buttonsValidation.reduce(
       (prev, next) => ({

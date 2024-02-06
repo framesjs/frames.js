@@ -43,6 +43,7 @@ export function FrameRender({
       >
         {frame.buttons?.map(({ label, action, target }, index: number) => (
           <button
+            type="button"
             style={{ flex: "1 1 0px", padding: "6px", cursor: "pointer" }}
             onClick={() => {
               if (!isLoggedIn) {
@@ -51,6 +52,7 @@ export function FrameRender({
                 );
                 return;
               }
+              console.log(action, label, target);
               if (action === "link") {
                 if (
                   window.confirm("You are about to be redirected to " + target!)
