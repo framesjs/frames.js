@@ -37,10 +37,14 @@ export default async function Home({
 }: NextServerPageProps) {
   const previousFrame = getPreviousFrame<State>(searchParams);
 
-  const validMessage = await validateActionSignature(
-    previousFrame.postBody,
-    DEBUG_HUB_OPTIONS
-  );
+  const frameMessage = await getFrameMessage(previousFrame.postBody, {
+    ...DEBUG_HUB_OPTIONS,
+    fetchHubContext: true,
+  });
+
+  if (frameMessage && !frameMessage?.isValid) {
+    throw new Error("Invalid frame payload");
+  }
 
   const [state, dispatch] = useFramesReducer<State>(
     reducer,
@@ -50,14 +54,9 @@ export default async function Home({
 
   // Here: do a server side side effect either sync or async (using await), such as minting an NFT if you want.
   // example: load the users credentials & check they have an NFT
-  const image = await generateImage(validMessage!);
+  const image = await generateImage(frameMessage);
 
   console.log("State is:", state);
-
-  const frameMessage = await getFrameMessage(previousFrame.postBody, {
-    ...DEBUG_HUB_OPTIONS,
-    fetchHubContext: true,
-  });
 
   if (frameMessage) {
     const {
@@ -85,7 +84,7 @@ export default async function Home({
         state={state}
         previousFrame={previousFrame}
       >
-        <FrameImage src="https://framesjs.org/og.png" />
+        {<FrameImage src="https://framesjs.org/og.png" />}
         {/* <FrameImage
           src={`data:image/svg+xml,${encodeURIComponent(imageSvg)}`}
         /> */}

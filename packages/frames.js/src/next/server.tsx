@@ -54,7 +54,10 @@ export async function validateActionSignature(
   return message;
 }
 
-/** Convenience wrapper around `framesjs.getFrameMessage` that accepts a null for payload body */
+/** Convenience wrapper around `framesjs.getFrameMessage` that accepts a null for payload body.
+ * Returns a `FrameActionData` object from the message trusted data. (e.g. button index, input text). The `fetchHubContext` option (default: true) determines whether to validate and fetch other metadata from hubs.
+ * If `isValid` is false, the message should not be trusted.
+ */
 export async function getFrameMessage<T extends GetFrameMessageOptions>(
   frameActionPayload: FrameActionPayload | null,
   options?: T

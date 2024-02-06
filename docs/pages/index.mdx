@@ -46,7 +46,11 @@ const reducer = (state, action) => ({ count: state.count + 1 });
 
 export default async function Home(props) {
   const previousFrame = getPreviousFrame(props.searchParams);
-  await validateActionSignature(previousFrame.postBody);
+  const frameMessage = await getFrameMessage(previousFrame.postBody);
+
+  if (frameMessage && !frameMessage?.isValid) {
+    throw new Error("Invalid frame payload");
+  }
   const [state, dispatch] = useFramesReducer(reducer, { count: 0 }, previousFrame);
 
   return (

@@ -18,12 +18,15 @@ export type FrameMessageReturnType<T extends GetFrameMessageOptions> =
     ? FrameActionDataParsed & FrameActionHubContext
     : FrameActionDataParsed;
 
+/** Returns a `FrameActionData` object from the message trusted data. (e.g. button index, input text). The `fetchHubContext` option (default: true) determines whether to validate and fetch other metadata from hubs.
+ * If `isValid` is false, the message should not be trusted.
+ */
 export async function getFrameMessage<T extends GetFrameMessageOptions>(
   payload: FrameActionPayload,
   options?: T
 ): Promise<FrameMessageReturnType<T>> {
   const optionsOrDefaults = {
-    fetchHubContext: options?.fetchHubContext ?? false,
+    fetchHubContext: options?.fetchHubContext ?? true,
     hubHttpUrl: options?.hubHttpUrl || "https://nemes.farcaster.xyz:2281",
   };
 
