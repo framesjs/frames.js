@@ -19,6 +19,31 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
+    "./getFrame": {
+      "require": "./dist/getFrame.js",
+      "import": "./dist/getFrame.js",
+      "types": "./dist/getFrame.d.ts"
+    },
+    "./getFrameFlattened": {
+      "require": "./dist/getFrameFlattened.js",
+      "import": "./dist/getFrameFlattened.js",
+      "types": "./dist/getFrameFlattened.d.ts"
+    },
+    "./getFrameHtml": {
+      "require": "./dist/getFrameHtml.js",
+      "import": "./dist/getFrameHtml.js",
+      "types": "./dist/getFrameHtml.d.ts"
+    },
+    "./getFrameMessage": {
+      "require": "./dist/getFrameMessage.js",
+      "import": "./dist/getFrameMessage.js",
+      "types": "./dist/getFrameMessage.d.ts"
+    },
+    "./validateFrameMessage": {
+      "require": "./dist/validateFrameMessage.js",
+      "import": "./dist/validateFrameMessage.js",
+      "types": "./dist/validateFrameMessage.d.ts"
+    },
     "./next/client": {
       "require": "./dist/next/client.js",
       "import": "./dist/next/client.js",

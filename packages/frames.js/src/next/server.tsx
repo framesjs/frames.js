@@ -2,7 +2,13 @@ import { FrameActionMessage } from "@farcaster/core";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import React from "react";
-import { getByteLength, validateFrameMessage } from "..";
+import {
+  FrameMessageReturnType,
+  GetFrameMessageOptions,
+  getByteLength,
+  validateFrameMessage,
+  getFrameMessage as _getFrameMessage,
+} from "..";
 import { ActionIndex, FrameActionPayload, HubHttpUrlOptions } from "../types";
 // Todo: this isn't respecting the use client directive
 import { FrameButtonRedirectUI, FrameButtonUI } from "./client";
@@ -46,6 +52,29 @@ export async function validateActionSignature(
   }
 
   return message;
+}
+
+/** Convenience wrapper around `framesjs.getFrameMessage` that accepts a null for payload body.
+ * Returns a `FrameActionData` object from the message trusted data. (e.g. button index, input text). The `fetchHubContext` option (default: true) determines whether to validate and fetch other metadata from hubs.
+ * If `isValid` is false, the message should not be trusted.
+ */
+export async function getFrameMessage<T extends GetFrameMessageOptions>(
+  frameActionPayload: FrameActionPayload | null,
+  options?: T
+): Promise<FrameMessageReturnType<T> | null> {
+  if (!frameActionPayload) {
+    console.log("no frameActionPayload");
+    // no payload means no action
+    return null;
+  }
+
+  const result = await _getFrameMessage(frameActionPayload, options);
+
+  if (!result) {
+    throw new Error("frames.js: something went wrong getting frame message");
+  }
+
+  return result;
 }
 
 /** deserializes a `PreviousFrame` from url searchParams, fetching headers automatically from nextjs, @returns PreviousFrame */

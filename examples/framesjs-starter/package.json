@@ -10,13 +10,16 @@
   },
   "dependencies": {
     "@noble/ed25519": "^2.0.0",
-    "frames.js": "*",
+    "frames.js": "^0.1.0",
     "next": "14.1.0",
     "qrcode.react": "^3.1.0",
     "react": "^18",
     "react-dom": "^18",
     "satori": "^0.10.13",
     "swr": "^2.2.4"
+  },
+  "engines": {
+    "node": ">=18.17.0"
   },
   "devDependencies": {
     "@types/node": "^20",

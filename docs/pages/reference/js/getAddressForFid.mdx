@@ -9,7 +9,7 @@ import { getAddressForFid } from "frames.js"
 
 const address = await getAddressForFid({
 	fid: 1214,
-	{ fallbackToCustodyAddress: true }
+	options: { fallbackToCustodyAddress: true }
 });
 console.log(address) // 0xdAa83039ACA9a33b2e54bb2acC9f9c3A99357618
 ```
