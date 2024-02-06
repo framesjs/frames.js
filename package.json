@@ -33,5 +33,5 @@
     "packages/*"
   ],
   "dependencies": {},
-  "version": "0.1.0-canary.0"
+  "version": "0.2.0-canary.0"
 }
