@@ -28,6 +28,8 @@ export function validateFrame({
     ) {
       console.log(`Error: ${key} ${message}`);
       errors[key]!.push(message);
+    } else {
+      errors[key] = [message];
     }
   }
 
@@ -77,6 +79,12 @@ export function validateFrame({
       const buttonTarget = buttonTargets.find(
         (action) => action?.buttonIndex === buttonLabel?.buttonIndex
       );
+      if (buttonsValidation[buttonLabel.buttonIndex - 1]) {
+        addError({
+          message: "Duplicate button",
+          key: `fc:frame:button:${buttonLabel.buttonIndex}`,
+        });
+      }
       if (![1, 2, 3, 4].includes(buttonLabel.buttonIndex)) {
         addError({
           message: "Incorrect button index (outside of 1,2,3,4)",
@@ -85,12 +93,7 @@ export function validateFrame({
       } else {
         buttonsValidation[buttonLabel.buttonIndex - 1] = true;
       }
-      if (buttonsValidation[buttonLabel.buttonIndex - 1]) {
-        addError({
-          message: "Duplicate button",
-          key: `fc:frame:button:${buttonLabel.buttonIndex}`,
-        });
-      }
+
       const action =
         buttonAction?.content !== undefined ? buttonAction?.content : "post";
       if (action === "link") {
