@@ -2,7 +2,13 @@ import { FrameActionMessage } from "@farcaster/core";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import React from "react";
-import { getByteLength, validateFrameMessage } from "..";
+import {
+  FrameMessageReturnType,
+  GetFrameMessageOptions,
+  getByteLength,
+  validateFrameMessage,
+  getFrameMessage as _getFrameMessage,
+} from "..";
 import { ActionIndex, FrameActionPayload, HubHttpUrlOptions } from "../types";
 // Todo: this isn't respecting the use client directive
 import { FrameButtonRedirectUI, FrameButtonUI } from "./client";
@@ -18,6 +24,7 @@ import {
   NextServerPageProps,
   PreviousFrame,
   RedirectMap,
+  RedirectHandler,
 } from "./types";
 export * from "./types";
 
@@ -46,6 +53,29 @@ export async function validateActionSignature(
   }
 
   return message;
+}
+
+/** Convenience wrapper around `framesjs.getFrameMessage` that accepts a null for payload body.
+ * Returns a `FrameActionData` object from the message trusted data. (e.g. button index, input text). The `fetchHubContext` option (default: true) determines whether to validate and fetch other metadata from hubs.
+ * If `isValid` is false, the message should not be trusted.
+ */
+export async function getFrameMessage<T extends GetFrameMessageOptions>(
+  frameActionPayload: FrameActionPayload | null,
+  options?: T
+): Promise<FrameMessageReturnType<T> | null> {
+  if (!frameActionPayload) {
+    console.log("no frameActionPayload");
+    // no payload means no action
+    return null;
+  }
+
+  const result = await _getFrameMessage(frameActionPayload, options);
+
+  if (!result) {
+    throw new Error("frames.js: something went wrong getting frame message");
+  }
+
+  return result;
 }
 
 /** deserializes a `PreviousFrame` from url searchParams, fetching headers automatically from nextjs, @returns PreviousFrame */
@@ -150,16 +180,19 @@ export function useFramesReducer<T extends FrameState = FrameState>(
  * @param req a `NextRequest` object from `next/server` (Next.js app router server components)
  * @returns NextResponse
  */
-export async function POST(req: NextRequest) {
+export async function POST(
+  req: NextRequest,
+  /** unused, but will most frequently be passed a res: NextResponse object. Should stay in here for easy consumption compatible with next.js */
+  res: NextResponse,
+  redirectHandler?: RedirectHandler
+) {
   const body = await req.json();
 
   const url = new URL(req.url);
   url.pathname = url.searchParams.get("p") || "/";
 
-  const bodyAsString = JSON.stringify(body);
-
   // decompress from 256 bytes limitation of post_url
-  url.searchParams.set("postBody", bodyAsString);
+  url.searchParams.set("postBody", JSON.stringify(body));
   url.searchParams.set("prevState", url.searchParams.get("s") ?? "");
   url.searchParams.set("prevRedirects", url.searchParams.get("r") ?? "");
   // was used to redirect to the correct page, and is no longer needed.
@@ -167,25 +200,66 @@ export async function POST(req: NextRequest) {
   url.searchParams.delete("s");
   url.searchParams.delete("r");
 
-  const parsedParams = parseFrameParams(
+  const prevFrame = getPreviousFrame(
     Object.fromEntries(url.searchParams.entries())
   );
 
+  // Handle 'post_redirect' buttons with href values
   if (
-    parsedParams.postBody?.untrustedData.buttonIndex &&
-    parsedParams.prevRedirects?.hasOwnProperty(
-      parsedParams.postBody?.untrustedData.buttonIndex
+    prevFrame.postBody?.untrustedData.buttonIndex &&
+    prevFrame.prevRedirects?.hasOwnProperty(
+      prevFrame.postBody?.untrustedData.buttonIndex
     ) &&
-    parsedParams.prevRedirects[parsedParams.postBody?.untrustedData.buttonIndex]
+    prevFrame.prevRedirects[prevFrame.postBody?.untrustedData.buttonIndex]
   ) {
     return NextResponse.redirect(
-      parsedParams.prevRedirects[
-        `${parsedParams.postBody?.untrustedData.buttonIndex}`
+      prevFrame.prevRedirects[
+        `${prevFrame.postBody?.untrustedData.buttonIndex}`
       ]!,
       { status: 302 }
     );
   }
+  // Handle 'post_redirect' buttons without defined href values
+  if (
+    prevFrame.postBody?.untrustedData.buttonIndex &&
+    prevFrame.prevRedirects?.hasOwnProperty(
+      `_${prevFrame.postBody?.untrustedData.buttonIndex}`
+    )
+  ) {
+    if (!redirectHandler) {
+      // Error!
+      return NextResponse.json(
+        {
+          message:
+            "frames.js: You need to define either an href property on your FrameButton that has a `redirect` prop, or pass a third argument to `POST`",
+        },
+        {
+          status: 500,
+          statusText:
+            "frames.js: You need to define either an href property on your FrameButton that has a `redirect` prop, or pass a third argument to `POST`",
+        }
+      );
+    }
+    const redirectValue = redirectHandler(prevFrame);
+    if (redirectValue === undefined) {
+      // Error!
+      return NextResponse.json(
+        {
+          message:
+            "frames.js: Your framesReducer (Second argument of POST) returned undefined when it needed to return a url",
+        },
+        {
+          status: 500,
+          statusText:
+            "frames.js: Your framesReducer (Second argument of POST) returned undefined when it needed to return a url",
+        }
+      );
+    }
 
+    return NextResponse.redirect(redirectValue, { status: 302 });
+  }
+
+  // handle 'post' buttons
   return NextResponse.redirect(url.toString());
 }
 
@@ -232,19 +306,27 @@ export function FrameContainer<T extends FrameState = FrameState>({
               throw new Error("too many buttons");
             }
 
-            if (child.props.hasOwnProperty("href")) {
+            if (
+              child.props.hasOwnProperty("href") ||
+              (child.props.hasOwnProperty("redirect") &&
+                (child.props as any)?.redirect)
+            ) {
               if (child.props.hasOwnProperty("onClick")) {
                 throw new Error(
                   "buttons must either have href or onClick, not both"
                 );
               }
-              redirectMap[nextIndexByComponentType.button] = // TODO?
-                (
+              if (child.props.hasOwnProperty("href")) {
+                redirectMap[nextIndexByComponentType.button] = (
                   child.props as any as FrameButtonPostRedirectProvidedProps
-                ).href;
+                ).href!;
+              } else {
+                redirectMap[`_${nextIndexByComponentType.button}`] = "";
+              }
+              const { redirect, ...passThroughProps } = child.props as any;
               return (
                 <FrameRedirect
-                  {...(child.props as any)}
+                  {...passThroughProps}
                   actionIndex={nextIndexByComponentType.button++}
                 />
               );
@@ -295,7 +377,10 @@ export function FrameContainer<T extends FrameState = FrameState>({
 
   const postUrlFull = `${postUrlRoute}?${searchParams.toString()}`;
   if (getByteLength(postUrlFull) > 256) {
-    console.error(`post_url is too long: `, postUrlFull);
+    console.error(
+      `post_url is too long. ${postUrlFull.length} bytes, max is 256. The url is generated to include your state and the redirect urls in <FrameButton href={s. In order to shorten your post_url, you could try storing less in state, or providing redirects via the POST handler's second optional argument instead, which saves url space. The generated post_url was: `,
+      postUrlFull
+    );
     throw new Error("post_url is more than 256 bytes");
   }
   return (

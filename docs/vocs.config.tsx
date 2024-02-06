@@ -35,6 +35,14 @@ const sidebar = [
             link: "/reference/js/getFrameHtml",
           },
           {
+            text: "getFrameMessage",
+            link: "/reference/js/getFrameMessage",
+          },
+          {
+            text: "getUserDataForFid",
+            link: "/reference/js/getUserDataForFid",
+          },
+          {
             text: "validateFrameMessage",
             link: "/reference/js/validateFrameMessage",
           },

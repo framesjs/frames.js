@@ -1,6 +1,6 @@
 {
   "name": "frames.js",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -33,6 +33,11 @@
       "require": "./dist/getFrameHtml.js",
       "import": "./dist/getFrameHtml.js",
       "types": "./dist/getFrameHtml.d.ts"
+    },
+    "./getFrameMessage": {
+      "require": "./dist/getFrameMessage.js",
+      "import": "./dist/getFrameMessage.js",
+      "types": "./dist/getFrameMessage.d.ts"
     },
     "./validateFrameMessage": {
       "require": "./dist/validateFrameMessage.js",

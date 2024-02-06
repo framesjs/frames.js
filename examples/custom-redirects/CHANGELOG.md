@@ -1,18 +1,5 @@
 # framesjs-starter
 
-## 0.1.2
-
-### Patch Changes
-
-- 40d0ad7: feat: Add `getFrameMessage`, which parse frame action payloads and optionally fetches additional context from hubs.
-
-  feat(debugger): Forward unmocked hub requests to an actual hub.
-
-- Updated dependencies [40d0ad7]
-- Updated dependencies [57649be]
-- Updated dependencies [518ada3]
-  - frames.js@0.1.1
-
 ## 0.1.1
 
 ### Patch Changes

@@ -44,7 +44,7 @@ export function FrameButtonRedirectUI(
       suppressHydrationWarning
       type="button"
       onClick={() => {
-        location.href = props.href;
+        if (props.href) location.href = props.href;
       }}
     >
       {props.children}

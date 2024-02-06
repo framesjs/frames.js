@@ -8,7 +8,6 @@ import {
   getPreviousFrame,
   useFramesReducer,
   validateActionSignature,
-  getFrameMessage,
 } from "frames.js/next/server";
 import Link from "next/link";
 import { DEBUG_HUB_OPTIONS } from "./debug/constants";
@@ -37,14 +36,10 @@ export default async function Home({
 }: NextServerPageProps) {
   const previousFrame = getPreviousFrame<State>(searchParams);
 
-  const frameMessage = await getFrameMessage(previousFrame.postBody, {
-    ...DEBUG_HUB_OPTIONS,
-    fetchHubContext: true,
-  });
-
-  if (frameMessage && !frameMessage?.isValid) {
-    throw new Error("Invalid frame payload");
-  }
+  const validMessage = await validateActionSignature(
+    previousFrame.postBody,
+    DEBUG_HUB_OPTIONS
+  );
 
   const [state, dispatch] = useFramesReducer<State>(
     reducer,
@@ -54,38 +49,24 @@ export default async function Home({
 
   // Here: do a server side side effect either sync or async (using await), such as minting an NFT if you want.
   // example: load the users credentials & check they have an NFT
-  const image = await generateImage(frameMessage);
+  const image = await generateImage(validMessage!);
 
   console.log("State is:", state);
-
-  if (frameMessage) {
-    const {
-      isValid,
-      buttonIndex,
-      inputText,
-      castId,
-      requesterFid,
-      casterFollowsRequester,
-      requesterFollowsCaster,
-      likedCast,
-      recastedCast,
-      requesterVerifiedAddresses,
-      requesterUserData,
-    } = frameMessage;
-
-    console.log(frameMessage);
-  }
 
   // then, when done, return next frame
   return (
     <div>
-      Starter kit. <Link href="/debug">Debug</Link>
+      Starter kit with custom redirects in /frames.{" "}
+      <Link href="/debug">Debug</Link>
       <FrameContainer
         postUrl="/frames"
         state={state}
         previousFrame={previousFrame}
       >
         <FrameImage src="https://framesjs.org/og.png" />
+        {/* <FrameImage
+          src={`data:image/svg+xml,${encodeURIComponent(imageSvg)}`}
+        /> */}
         <FrameInput text="put some text here" />
         <FrameButton onClick={dispatch}>
           {state?.active === "1" ? "Active" : "Inactive"}
@@ -94,7 +75,7 @@ export default async function Home({
           {state?.active === "2" ? "Active" : "Inactive"}
         </FrameButton>
         <FrameButton href={`http://localhost:3000/`}>Page link</FrameButton>
-        <FrameButton href={`https://www.google.com`}>External</FrameButton>
+        <FrameButton redirect>External</FrameButton>
       </FrameContainer>
     </div>
   );

@@ -33,9 +33,10 @@ interface JsonArray extends Array<AnyJson> {}
 export type FrameState = AnyJson;
 
 /**
- * A Map from buttonIndex to href url, used to represent the previous Frames redirection state, in order to handle redirect requests
+ * A Map from buttonIndex to href url, used to represent the previous Frames redirection state, in order to handle redirect requests.
+ * Keys that start with an underscore are unspecified hrefs that must be handled in the POST router
  */
-export type RedirectMap = Record<number, string>;
+export type RedirectMap = Record<number | `_${number}`, string>;
 
 /**
  * A representation of the previous frame, used in order to enable state transitions and redirects.
@@ -52,6 +53,11 @@ export type PreviousFrame<T extends FrameState = FrameState> = {
   /** some of the headers present on the `POST` request received of the user action */
   headers: HeadersList;
 };
+
+/**
+ * Similar to React useReducer's first argument. A state machine that takes a state the previous Frame's action data and returns a new state. Used for a reducer. @returns the url to redirect to, or undefined if this url doesn't redirect
+ */
+export type RedirectHandler = (action: PreviousFrame) => string | undefined;
 
 /**
  * Similar to React useReducer's first argument. A state machine that takes a state the previous Frame's action data and returns a new state
@@ -74,9 +80,13 @@ export type FrameButtonAutomatedProps = {
  */
 export type Dispatch = (actionIndex: ActionIndex) => any;
 
-export type FrameButtonProvidedProps =
+export type FrameButtonProvidedProps = (
   | FrameButtonPostRedirectProvidedProps
-  | FrameButtonPostProvidedProps;
+  | FrameButtonPostProvidedProps
+) & {
+  /** defaults to false */
+  redirect?: boolean;
+};
 
 export type FrameButtonPostProvidedProps = {
   /** a label to display on the button */
@@ -86,8 +96,8 @@ export type FrameButtonPostProvidedProps = {
 };
 
 export type FrameButtonPostRedirectProvidedProps = {
-  /** an absolute url to redirect users to */
-  href: string;
+  /** an absolute url to redirect users to. If not defined, specify prop redirect, and you must handle the POST redirects yourself, or provide a second argument to the `POST` function exported for nextjs */
+  href?: string;
   /** a label to display on the button */
   children: string | number;
 };
