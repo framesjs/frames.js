@@ -41,7 +41,7 @@ export function FrameRender({
           gap: "4px",
         }}
       >
-        {frame.buttons?.map(({ label, action }, index: number) => (
+        {frame.buttons?.map(({ label, action, target }, index: number) => (
           <button
             style={{ flex: "1 1 0px", padding: "6px", cursor: "pointer" }}
             onClick={() => {
@@ -51,16 +51,24 @@ export function FrameRender({
                 );
                 return;
               }
-              return submitOption({
-                buttonIndex: index + 1,
-                inputText:
-                  frame.inputText !== undefined ? inputText : undefined,
-              });
+              if (action === "link") {
+                if (
+                  window.confirm("You are about to be redirected to " + target!)
+                ) {
+                  window.location.href = target!;
+                }
+              } else {
+                return submitOption({
+                  buttonIndex: index + 1,
+                  inputText:
+                    frame.inputText !== undefined ? inputText : undefined,
+                });
+              }
             }}
             key={index}
           >
             {label}
-            {action === "post_redirect" ? ` ↗` : ""}
+            {action === "post_redirect" || action === "link" ? ` ↗` : ""}
           </button>
         ))}
       </div>

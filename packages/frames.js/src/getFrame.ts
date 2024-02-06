@@ -1,6 +1,8 @@
 import * as cheerio from "cheerio";
 import { FrameButton, FrameButtonsType, Frame, ErrorKeys } from "./types";
-import { getByteLength, isValidVersion } from "./utils";
+import { getByteLength, isFrameButtonLink, isValidVersion } from "./utils";
+
+// todo: this is identical to validateFrame?
 
 /**
  * @returns a { frame: Frame | null, errors: null | ErrorMessages } object, extracting the frame metadata from the given htmlString.
@@ -61,10 +63,20 @@ export function getFrame({
     .filter((i, elem) => elem !== null)
     .toArray();
 
+  const buttonTargets = $(
+    'meta[name^="fc:frame:button:"][name$=":target"], meta[property^="fc:frame:button:"][property$=":target"]'
+  )
+    .map((i, elem) => parseButtonElement(elem))
+    .filter((i, elem) => elem !== null)
+    .toArray();
+
   let buttonsValidation = [false, false, false, false];
   const buttonsWithActions = buttonLabels
     .map((buttonLabel): FrameButton & { buttonIndex: number } => {
       const buttonAction = buttonActions.find(
+        (action) => action?.buttonIndex === buttonLabel?.buttonIndex
+      );
+      const buttonTarget = buttonTargets.find(
         (action) => action?.buttonIndex === buttonLabel?.buttonIndex
       );
       if (![1, 2, 3, 4].includes(buttonLabel.buttonIndex)) {
@@ -81,21 +93,51 @@ export function getFrame({
           key: `fc:frame:button:${buttonLabel.buttonIndex}`,
         });
       }
+      const action =
+        buttonAction?.content !== undefined ? buttonAction?.content : "post";
+      if (action === "link") {
+        if (!buttonTarget?.content) {
+          addError({
+            message: "No button target, but required for action type link",
+            key: `fc:frame:button:${buttonLabel.buttonIndex}`,
+          });
+        }
+        if (
+          !(
+            buttonTarget?.content?.startsWith("http://") ||
+            buttonTarget?.content?.startsWith("https://")
+          )
+        ) {
+          addError({
+            message:
+              "External links MUST use the https://  or http:// protocols. ",
+            key: `fc:frame:button:${buttonLabel.buttonIndex}`,
+          });
+        }
+      }
       return {
         buttonIndex: buttonLabel.buttonIndex,
         label: buttonLabel.content || "",
-        // this is an optional property
-        action:
-          buttonAction?.content === "post_redirect" ? "post_redirect" : "post",
-      };
+        target: buttonTarget?.content,
+        // this is an optional property, falls back to "post"
+        action: buttonAction?.content || "post",
+      } as FrameButton & { buttonIndex: number };
     })
     .sort((a, b) => a.buttonIndex - b.buttonIndex)
-    .map(
-      (button): FrameButton => ({
+    .map((button): FrameButton => {
+      // type guards are weird sometimes.
+      if (isFrameButtonLink(button))
+        return {
+          label: button.label,
+          action: button.action,
+          target: button.target,
+        };
+      return {
         label: button.label,
         action: button.action,
-      })
-    );
+        target: button.target,
+      };
+    });
 
   // buttons order validation without a gap like 1, 3, 4
   if (

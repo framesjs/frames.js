@@ -93,7 +93,9 @@ export default async function Home({
         <FrameButton onClick={dispatch}>
           {state?.active === "2" ? "Active" : "Inactive"}
         </FrameButton>
-        <FrameButton href={`http://localhost:3000/`}>Page link</FrameButton>
+        <FrameButton href={`http://localhost:3000/`} action="post_redirect">
+          Page link
+        </FrameButton>
         <FrameButton href={`https://www.google.com`}>External</FrameButton>
       </FrameContainer>
     </div>

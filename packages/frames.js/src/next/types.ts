@@ -86,11 +86,14 @@ export type FrameButtonProvidedProps = (
 ) & {
   /** defaults to false */
   redirect?: boolean;
+  /** defaults to inferring from the props, falls back to link over post_redirect */
+  action?: "post" | "link" | "post_redirect";
 };
 
 export type FrameButtonPostProvidedProps = {
   /** a label to display on the button */
   children: string | number;
+  action?: "post";
   /** does nothing at the moment */
   onClick: Dispatch;
 };
@@ -98,6 +101,7 @@ export type FrameButtonPostProvidedProps = {
 export type FrameButtonPostRedirectProvidedProps = {
   /** an absolute url to redirect users to. If not defined, specify prop redirect, and you must handle the POST redirects yourself, or provide a second argument to the `POST` function exported for nextjs */
   href?: string;
+  action?: "post_redirect" | "link";
   /** a label to display on the button */
   children: string | number;
 };
