@@ -70,6 +70,7 @@ export default async function Home({
       likedCast,
       recastedCast,
       requesterVerifiedAddresses,
+      requesterUserData,
     } = frameMessage;
 
     console.log(frameMessage);

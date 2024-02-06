@@ -140,4 +140,6 @@ export type FrameActionHubContext = {
   recastedCast: boolean;
   /** Verified eth addresses of the requester */
   requesterVerifiedAddresses: string[];
+  /** User data of the requester */
+  requesterUserData: UserDataReturnType;
 };

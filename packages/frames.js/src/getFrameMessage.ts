@@ -5,6 +5,7 @@ import {
   FrameActionPayload,
   HubHttpUrlOptions,
   getAddressForFid,
+  getUserDataForFid,
   normalizeCastId,
   validateFrameMessage,
 } from ".";
@@ -60,6 +61,7 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
       likedCast,
       recastedCast,
       requesterVerifiedAddresses,
+      requesterUserData,
     ] = await Promise.all([
       validateFrameMessage(payload, {
         hubHttpUrl: optionsOrDefaults.hubHttpUrl,
@@ -82,6 +84,12 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
           hubHttpUrl: optionsOrDefaults.hubHttpUrl,
         },
       }),
+      getUserDataForFid({
+        fid: requesterFid,
+        options: {
+          hubHttpUrl: optionsOrDefaults.hubHttpUrl,
+        },
+      }),
     ]);
 
     // Perform actions to fetch the HubFrameContext and then return the combined result
@@ -94,6 +102,7 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
       requesterVerifiedAddresses: requesterVerifiedAddresses
         ? [requesterVerifiedAddresses]
         : [],
+      requesterUserData,
     };
     return { ...parsedData, ...hubContext } as FrameMessageReturnType<T>;
   } else {
