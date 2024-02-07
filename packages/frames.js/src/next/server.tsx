@@ -29,6 +29,7 @@ import {
 export * from "./types";
 
 import { ImageResponse } from "@vercel/og";
+import type { SatoriOptions } from "satori";
 
 /** The valid children of a <FrameContainer> */
 export type FrameElementType =
@@ -475,52 +476,59 @@ export function FrameInput({ text }: { text: string }) {
 }
 
 /** Render a 'fc:frame:image', must be used inside a <FrameContainer> */
-export async function FrameImage({
-  src,
-  children,
-}: {
-  src?: string;
-  children?: React.ReactNode;
-}) {
-  const imageResponse = new ImageResponse(
-    (
-      <div
-        style={{
-          display: "flex", // Use flex layout
-          flexDirection: "row", // Align items horizontally
-          alignItems: "stretch", // Stretch items to fill the container height
-          width: "100%",
-          height: "100vh", // Full viewport height
-          backgroundColor: "white",
-        }}
-      >
+export async function FrameImage(
+  props:
+    | {
+        src: string;
+      }
+    | {
+        children: React.ReactNode;
+        options?: SatoriOptions;
+      }
+) {
+  let imgSrc: string;
+
+  if ("children" in props) {
+    const imageResponse = new ImageResponse(
+      (
         <div
           style={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            lineHeight: 1.2,
-            fontSize: 36,
-            color: "black",
-            flex: 1,
-            overflow: "hidden",
+            display: "flex", // Use flex layout
+            flexDirection: "row", // Align items horizontally
+            alignItems: "stretch", // Stretch items to fill the container height
+            width: "100%",
+            height: "100vh", // Full viewport height
+            backgroundColor: "white",
           }}
         >
-          {children}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              lineHeight: 1.2,
+              fontSize: 36,
+              color: "black",
+              flex: 1,
+              overflow: "hidden",
+            }}
+          >
+            {props.children}
+          </div>
         </div>
-      </div>
-    ),
-    {
-      width: 1146,
-      height: 600,
-    }
-  );
-
-  const imgBuffer = await imageResponse.arrayBuffer();
-  const b64 = Buffer.from(imgBuffer).toString("base64");
-
-  const imgSrc = src ? src : children ? `data:image/png;base64,${b64}` : "";
+      ),
+      {
+        width: 1146,
+        height: 600,
+        ...(props.options ?? {}),
+      }
+    );
+    const imgBuffer = await imageResponse?.arrayBuffer();
+    imgSrc = `data:image/png;base64,${Buffer.from(imgBuffer).toString("base64")}`;
+  } else {
+    imgSrc = props.src;
+  }
 
   return (
     <>
