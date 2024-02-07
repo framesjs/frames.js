@@ -131,33 +131,33 @@ export default function Page({
 
   if (error) return <div>Failed to load</div>;
   if (isLoading) return <div>Loading...</div>;
-  if (url && !currentFrame?.frame) return <div>Something is wrong...</div>;
+  if (url && !currentFrame?.frame)
+    return <div>Something is wrong, couldn't fetch frame from {url}...</div>;
 
   return (
     <div className="p-5 flex justify-center flex-col">
       <div className="mx-auto text-center flex flex-col w-full md:w-1/2">
-        {!url ? (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              window.location.href = `?url=${urlInput}`;
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            window.location.href = `?url=${urlInput}`;
+          }}
+        >
+          <input
+            type="text"
+            name="url"
+            value={urlInput}
+            onChange={(e) => {
+              setUrlInput(e.target.value);
             }}
-          >
-            <input
-              type="text"
-              name="url"
-              value={urlInput}
-              onChange={(e) => {
-                setUrlInput(e.target.value);
-              }}
-              placeholder="Enter URL"
-              className="w-full p-2"
-            />
-            <button className="bg-blue-500 text-white p-2 rounded-md">
-              Submit
-            </button>
-          </form>
-        ) : (
+            placeholder="Enter URL"
+            className="w-full p-2"
+          />
+          <button className="bg-blue-500 text-white p-2 rounded-md">
+            Submit
+          </button>
+        </form>
+        {url ? (
           <>
             <div style={{ margin: "20px 0" }}>
               <LoginWindow
@@ -177,7 +177,7 @@ export default function Page({
               />
             </FrameDebugger>
           </>
-        )}
+        ) : null}
       </div>
     </div>
   );

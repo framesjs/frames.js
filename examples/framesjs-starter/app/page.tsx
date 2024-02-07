@@ -74,7 +74,7 @@ export default async function Home({
       requesterUserData,
     } = frameMessage;
 
-    console.log(frameMessage);
+    console.log("info: frameMessage is:", frameMessage);
   }
 
   // then, when done, return next frame
