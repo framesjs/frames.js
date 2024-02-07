@@ -28,6 +28,9 @@ import {
 } from "./types";
 export * from "./types";
 
+import { ImageResponse } from "@vercel/og";
+import type { SatoriOptions } from "satori";
+
 /** The valid children of a <FrameContainer> */
 export type FrameElementType =
   | typeof FrameButton
@@ -473,12 +476,66 @@ export function FrameInput({ text }: { text: string }) {
 }
 
 /** Render a 'fc:frame:image', must be used inside a <FrameContainer> */
-export function FrameImage({ src }: { src: string }) {
+export async function FrameImage(
+  props:
+    | {
+        src: string;
+      }
+    | {
+        /** Children to pass to satori to render to PNG. [Supports tailwind](https://vercel.com/blog/introducing-vercel-og-image-generation-fast-dynamic-social-card-images#tailwind-css-support) via the `tw=` prop instead of `className` */
+        children: React.ReactNode;
+        options?: SatoriOptions;
+      }
+) {
+  let imgSrc: string;
+
+  if ("children" in props) {
+    const imageResponse = new ImageResponse(
+      (
+        <div
+          style={{
+            display: "flex", // Use flex layout
+            flexDirection: "row", // Align items horizontally
+            alignItems: "stretch", // Stretch items to fill the container height
+            width: "100%",
+            height: "100vh", // Full viewport height
+            backgroundColor: "white",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              lineHeight: 1.2,
+              fontSize: 36,
+              color: "black",
+              flex: 1,
+              overflow: "hidden",
+            }}
+          >
+            {props.children}
+          </div>
+        </div>
+      ),
+      {
+        width: 1146,
+        height: 600,
+        ...(props.options ?? {}),
+      }
+    );
+    const imgBuffer = await imageResponse?.arrayBuffer();
+    imgSrc = `data:image/png;base64,${Buffer.from(imgBuffer).toString("base64")}`;
+  } else {
+    imgSrc = props.src;
+  }
+
   return (
     <>
-      {process.env.SHOW_UI ? <img src={src} /> : null}
-      <meta name="fc:frame:image" content={src} />
-      <meta property="og:image" content={src} />
+      {process.env.SHOW_UI ? <img src={imgSrc} /> : null}
+      <meta name="fc:frame:image" content={imgSrc} />
+      <meta property="og:image" content={imgSrc} />
     </>
   );
 }
