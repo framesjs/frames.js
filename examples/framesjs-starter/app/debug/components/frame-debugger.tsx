@@ -120,7 +120,10 @@ export function FrameDebugger({
                 .split("<meta")
                 .filter((t) => !!t)
                 // hacky...
-                .flatMap((el, i) => [`<meta${el}`, <br />])}
+                .flatMap((el, i) => [
+                  <span key={i}>{`<meta${el}`}</span>,
+                  <br key={`br_${i}`} />,
+                ])}
             </pre>
           </div>
         ) : null}
