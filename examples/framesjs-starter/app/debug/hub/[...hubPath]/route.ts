@@ -9,6 +9,9 @@ function getHubUrl(url: string, hubPath: string[]) {
   return newUrl;
 }
 
+const host =
+  process.env.NEXT_PUBLIC_HOST?.replace("http://", "") ?? "localhost:3000";
+
 export async function GET(
   request: NextRequest,
   { params: { hubPath } }: { params: { hubPath: string[] } }
@@ -18,8 +21,15 @@ export async function GET(
   );
 
   const url = getHubUrl(request.url, hubPath);
+
+  const requestHeaders = new Headers(request.headers);
+  // Remove in order to fix this: https://github.com/node-fetch/node-fetch/discussions/1678
+  requestHeaders.delete("host");
+  requestHeaders.set("host", host);
+  requestHeaders.delete("referer");
+
   const response = await fetch(url, {
-    headers: request.headers,
+    headers: requestHeaders,
   });
 
   return response;
@@ -30,9 +40,15 @@ export async function POST(
   { params: { hubPath } }: { params: { hubPath: string[] } }
 ) {
   const url = getHubUrl(request.url, hubPath);
+  const requestHeaders = new Headers(request.headers);
+  // Remove in order to fix this: https://github.com/node-fetch/node-fetch/discussions/1678
+  requestHeaders.delete("host");
+  requestHeaders.set("host", host);
+  requestHeaders.delete("referer");
+
   const response = await fetch(url, {
     method: "POST",
-    headers: request.headers,
+    headers: requestHeaders,
     body: request.body,
   });
   return response;
