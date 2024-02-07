@@ -57,6 +57,7 @@ export default async function Home({
     <div>
       GM user data example. <Link href="/debug">Debug</Link>
       <FrameContainer
+        pathname="/examples/user-data"
         postUrl="/examples/user-data/frames"
         state={state}
         previousFrame={previousFrame}

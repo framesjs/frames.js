@@ -275,6 +275,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
   postUrl,
   children,
   state,
+  pathname = "",
   previousFrame,
 }: {
   /** Either a relative e.g. "/frames" or an absolute path, e.g. "https://google.com/frames" */
@@ -283,6 +284,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
   children: Array<React.ReactElement<FrameElementType> | null>;
   /** The current reducer state object, returned from useFramesReducer */
   state: T;
+  pathname?: string;
   previousFrame: PreviousFrame<T>;
 }) {
   const nextIndexByComponentType: Record<
@@ -380,7 +382,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
   const searchParams = new URLSearchParams();
 
   // short for pathname
-  searchParams.set("p", previousFrame.headers.pathname ?? "/");
+  searchParams.set("p", pathname ?? previousFrame.headers.pathname ?? "/");
   // short for state
   searchParams.set("s", JSON.stringify(state));
   // short for redirects
