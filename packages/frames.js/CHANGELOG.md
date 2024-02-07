@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.3.0
+
+### Minor Changes
+
+- 03d041e: feat: mint action
+
 ## 0.2.1
 
 ### Patch Changes

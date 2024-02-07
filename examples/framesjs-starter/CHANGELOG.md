@@ -1,5 +1,13 @@
 # framesjs-starter
 
+## 0.1.5
+
+### Patch Changes
+
+- 03d041e: feat: mint action
+- Updated dependencies [03d041e]
+  - frames.js@0.3.0
+
 ## 0.1.4
 
 ### Patch Changes
