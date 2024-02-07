@@ -112,6 +112,14 @@ export type FrameButtonPostRedirectProvidedProps = {
   children: string | number;
 };
 
+export type FrameButtonMintProvidedProps = {
+  /** a label to display on the button */
+  children: string | number;
+  action?: "mint";
+  /** a link CAIP-10 url to an NFT smart contract or token */
+  mint: string;
+};
+
 /** See https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional */
 export type NextServerPageProps = {
   params: { slug: string };
