@@ -482,6 +482,7 @@ export async function FrameImage(
         src: string;
       }
     | {
+        /** Children to pass to satori to render to PNG. [Supports tailwind](https://vercel.com/blog/introducing-vercel-og-image-generation-fast-dynamic-social-card-images#tailwind-css-support) via the `tw=` prop instead of `className` */
         children: React.ReactNode;
         options?: SatoriOptions;
       }
