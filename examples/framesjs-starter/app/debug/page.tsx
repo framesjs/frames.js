@@ -31,6 +31,9 @@ export default function Page({
   const [currentFrame, setCurrentFrame] = useState<
     ReturnType<typeof getFrame> | undefined
   >(undefined);
+  const [framePerformanceInSeconds, setFramePerformanceInSeconds] = useState<
+    number | null
+  >(null);
 
   // Load initial frame
   const { data, error, isLoading } = useSWR<ReturnType<typeof getFrame>>(
@@ -88,6 +91,8 @@ export default function Page({
       postUrl: currentFrame.frame.postUrl,
     });
 
+    const tstart = new Date();
+
     const response = await fetch(
       `/debug/frame-action?${searchParams.toString()}`,
       {
@@ -115,6 +120,10 @@ export default function Page({
         } as FrameActionPayload),
       }
     );
+
+    const tend = new Date();
+    const diff = +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2);
+    setFramePerformanceInSeconds(diff);
 
     const dataRes = await response.json();
 
@@ -202,7 +211,11 @@ export default function Page({
         </div>
         {url ? (
           <>
-            <FrameDebugger frameData={currentFrame} url={url}>
+            <FrameDebugger
+              frameData={currentFrame}
+              url={url}
+              framePerformanceInSeconds={framePerformanceInSeconds}
+            >
               <FrameRender
                 frame={currentFrame?.frame!}
                 url={url}
