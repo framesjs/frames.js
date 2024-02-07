@@ -1,5 +1,13 @@
 # framesjs-starter
 
+## 0.1.4
+
+### Patch Changes
+
+- 3ed2cef: fix: generate correct image data in `generateImage` example
+- Updated dependencies [0d9cfaf]
+  - frames.js@0.2.1
+
 ## 0.1.3
 
 ### Patch Changes
