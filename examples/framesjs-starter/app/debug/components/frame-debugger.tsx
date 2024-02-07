@@ -42,17 +42,17 @@ export function FrameDebugger({
                   {" "}
                   {framePerformanceInSeconds > 5
                     ? "🔴"
-                    : framePerformanceInSeconds > 3
+                    : framePerformanceInSeconds > 4
                       ? "🟠"
                       : "🟢"}
                 </div>
-                <div>{"frame speed (seconds)"}</div>
+                <div className="text-slate-600">{"frame speed (seconds)"}</div>
 
-                <div>
+                <div className="font-bold text-red-950">
                   {framePerformanceInSeconds > 5
-                    ? `Request took more than 5s (${framePerformanceInSeconds} seconds). The first time will take longer in development (as next.js builds), but in production, clients will timeout requests after 5s`
-                    : framePerformanceInSeconds > 3
-                      ? `Request took more than 3s (${framePerformanceInSeconds} seconds).The first time will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s - for example europe to america can already add 300ms latency`
+                    ? `Request took more than 5s (${framePerformanceInSeconds} seconds). This may be normal: first request will take longer in development (as next.js builds), but in production, clients will timeout requests after 5s`
+                    : framePerformanceInSeconds > 4
+                      ? `Warning: Request took more than 4s (${framePerformanceInSeconds} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
                       : `${framePerformanceInSeconds} seconds`}
                 </div>
               </div>
