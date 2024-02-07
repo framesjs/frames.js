@@ -7,7 +7,6 @@ import {
   NextServerPageProps,
   getPreviousFrame,
   useFramesReducer,
-  validateActionSignature,
   getFrameMessage,
 } from "frames.js/next/server";
 import Link from "next/link";
@@ -54,7 +53,9 @@ export default async function Home({
 
   // Here: do a server side side effect either sync or async (using await), such as minting an NFT if you want.
   // example: load the users credentials & check they have an NFT
-  const image = await generateImage(frameMessage);
+
+  // Example with satori and sharp:
+  // const imageUrl = await generateImage(frameMessage);
 
   console.log("info: state is:", state);
 
@@ -86,6 +87,7 @@ export default async function Home({
         previousFrame={previousFrame}
       >
         <FrameImage src="https://framesjs.org/og.png" />
+        {/* <FrameImage src={imageUrl} /> */}
         <FrameInput text="put some text here" />
         <FrameButton onClick={dispatch}>
           {state?.active === "1" ? "Active" : "Inactive"}
