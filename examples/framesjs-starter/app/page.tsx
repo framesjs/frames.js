@@ -11,7 +11,6 @@ import {
 } from "frames.js/next/server";
 import Link from "next/link";
 import { DEBUG_HUB_OPTIONS } from "./debug/constants";
-import { generateImage } from "./generate-image";
 import { getTokenUrl } from "frames.js";
 
 type State = {
@@ -56,7 +55,8 @@ export default async function Home({
   // example: load the users credentials & check they have an NFT
 
   // Example with satori and sharp:
-  // const imageUrl = await generateImage(frameMessage);
+  // const imageUrl = await 
+    (frameMessage);
 
   console.log("info: state is:", state);
 
@@ -90,8 +90,12 @@ export default async function Home({
         state={state}
         previousFrame={previousFrame}
       >
-        <FrameImage src="https://framesjs.org/og.png" />
-        {/* <FrameImage src={imageUrl} /> */}
+        {/* <FrameImage src="https://framesjs.org/og.png" /> */}
+        <FrameImage>
+          <div tw="w-full h-full bg-slate-700 text-white justify-center items-center">
+            {frameMessage?.inputText ? frameMessage.inputText : "Hello world"}
+          </div>
+        </FrameImage>
         <FrameInput text="put some text here" />
         <FrameButton onClick={dispatch}>
           {state?.active === "1" ? "Active" : "Inactive"}
