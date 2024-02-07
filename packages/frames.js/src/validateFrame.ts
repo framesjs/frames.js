@@ -147,15 +147,7 @@ export function validateFrame({
 
   // buttons order validation without a gap like 1, 3, 4
   if (
-    !buttonsValidation.reduce(
-      (prev, next) => ({
-        hasFalse: prev.hasFalse || !next,
-        isStillValid: !prev.isStillValid
-          ? !prev.isStillValid
-          : !prev.hasFalse || next,
-      }),
-      { hasFalse: false, isStillValid: true }
-    ).isStillValid
+    buttonsValidation.some((x, i) => !x && i < 3 && buttonsValidation[i + 1])
   ) {
     addError({
       message: `Gap in buttons sequence, ${buttonsValidation.map((el, i) => `${el ? i + 1 : ""}`).join(",")}`,
