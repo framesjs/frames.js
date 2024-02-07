@@ -54,7 +54,9 @@ export default async function Home({
 
   // Here: do a server side side effect either sync or async (using await), such as minting an NFT if you want.
   // example: load the users credentials & check they have an NFT
-  const image = await generateImage(frameMessage);
+  const imageSVG = await generateImage(frameMessage);
+  // Generated image can be supplied directly to <FrameImage src={imageEncoded} /> 
+  const imageEncoded = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(imageSVG)}`;
 
   console.log("State is:", state);
 

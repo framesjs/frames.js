@@ -8,7 +8,7 @@ let interReg = fs.readFileSync(interRegPath);
 
 export async function generateImage(
   actionPayload: FrameActionDataParsed | null
-) {
+): Promise<string> {
   const imageSvg = await satori(
     <div
       style={{
