@@ -191,7 +191,7 @@ export async function POST(
   const body = await req.json();
 
   const url = new URL(req.url);
-  url.pathname = url.searchParams.get("p") || "/";
+  url.pathname = url.searchParams.get("p") || "";
 
   // decompress from 256 bytes limitation of post_url
   url.searchParams.set("postBody", JSON.stringify(body));
@@ -262,7 +262,7 @@ export async function POST(
   }
 
   // handle 'post' buttons
-  return NextResponse.redirect(url.toString());
+  return NextResponse.redirect(url.toString(), { status: 302 });
 }
 
 /**

@@ -2,6 +2,7 @@ import { FrameActionMessage, Message } from "@farcaster/core";
 import {
   FrameActionDataParsed,
   FrameActionHubContext,
+  FrameActionDataParsedAndHubContext,
   FrameActionPayload,
   HubHttpUrlOptions,
   getAddressForFid,
@@ -16,7 +17,7 @@ export type GetFrameMessageOptions = {
 
 export type FrameMessageReturnType<T extends GetFrameMessageOptions> =
   T["fetchHubContext"] extends true
-    ? FrameActionDataParsed & FrameActionHubContext
+    ? FrameActionDataParsedAndHubContext
     : FrameActionDataParsed;
 
 /** Returns a `FrameActionData` object from the message trusted data. (e.g. button index, input text). The `fetchHubContext` option (default: true) determines whether to validate and fetch other metadata from hubs.
