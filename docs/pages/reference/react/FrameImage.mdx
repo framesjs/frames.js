@@ -6,20 +6,47 @@ Renders a 'fc:frame:image'.
 
 - `src: string`: The source of the image. It can be a data url, but beware that the data url shouldn't be longer than the max length of a URL (around 2000 characters)
 
-## Usage
+OR
 
+- `children: React.ReactNode`: JSX to be rendered to the frame image.
+- `options: SatoriOptions`: Options to be passed to Satori for rendering the image (e.g. fonts).
+
+## Usage with `src`
 
 ```tsx [./app/page.tsx]
 import { FrameButton, FrameContainer, FrameImage } from "frames.js/next/server";
 
-return function Home(){
-    return <FrameContainer
-        postUrl="/frames"
-        state={state}
-        previousFrame={previousFrame}
-      >
-        <FrameImage src="https://picsum.photos/seed/frames.js/1146/600" />
-        <FrameButton href={`https://www.google.com`}>External</FrameButton>
-      </FrameContainer>
-}
+return function Home() {
+  return (
+    <FrameContainer
+      postUrl="/frames"
+      state={state}
+      previousFrame={previousFrame}
+    >
+      <FrameImage src="https://picsum.photos/seed/frames.js/1146/600" />
+      <FrameButton href={`https://www.google.com`}>External</FrameButton>
+    </FrameContainer>
+  );
+};
+```
+
+## Usage with React
+
+```tsx [./app/page.tsx]
+import { FrameButton, FrameContainer, FrameImage } from "frames.js/next/server";
+
+return function Home() {
+  return (
+    <FrameContainer
+      postUrl="/frames"
+      state={state}
+      previousFrame={previousFrame}
+    >
+      <FrameImage>
+        <div tw="w-full h-full bg-black text-white">Hello world</div>
+      </FrameImage>
+      <FrameButton href={`https://www.google.com`}>External</FrameButton>
+    </FrameContainer>
+  );
+};
 ```
