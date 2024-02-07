@@ -28,6 +28,14 @@ import {
 } from "./types";
 export * from "./types";
 
+import * as fs from "fs";
+import { join } from "path";
+import satori from "satori";
+import sharp from "sharp";
+
+const interRegPath = join(process.cwd(), "public/Inter-Regular.ttf");
+let interReg = fs.readFileSync(interRegPath);
+
 /** The valid children of a <FrameContainer> */
 export type FrameElementType =
   | typeof FrameButton
@@ -473,12 +481,76 @@ export function FrameInput({ text }: { text: string }) {
 }
 
 /** Render a 'fc:frame:image', must be used inside a <FrameContainer> */
-export function FrameImage({ src }: { src: string }) {
+export async function FrameImage({
+  src,
+  children,
+}: {
+  src?: string;
+  children?: React.ReactNode;
+}) {
+  // Error: Module not found: ESM packages (yoga-wasm-web/asm) need to be imported. Use 'import' to reference the package instead. https://nextjs.org/docs/messages/import-esm-externals
+
+  const imageSvg = await satori(
+    <div
+      style={{
+        display: "flex", // Use flex layout
+        flexDirection: "row", // Align items horizontally
+        alignItems: "stretch", // Stretch items to fill the container height
+        width: "100%",
+        height: "100vh", // Full viewport height
+        backgroundColor: "white",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          paddingLeft: 24,
+          paddingRight: 24,
+          lineHeight: 1.2,
+          fontSize: 36,
+          color: "black",
+          flex: 1,
+          overflow: "hidden",
+          marginTop: 24,
+        }}
+      >
+        {children}
+      </div>
+    </div>,
+    {
+      width: 1146,
+      height: 600,
+      fonts: [
+        {
+          name: "Inter",
+          data: interReg,
+          weight: 400,
+          style: "normal",
+        },
+      ],
+    }
+  );
+
+  const imagePng = await sharp(Buffer.from(imageSvg))
+    .toFormat("png")
+    .toBuffer();
+
+  const imagePngB64 = imagePng.toString("base64");
+
+  const imgSrc = src
+    ? src
+    : children
+      ? `data:image/png;base64,${imagePngB64}`
+      : "";
+
   return (
     <>
-      {process.env.SHOW_UI ? <img src={src} /> : null}
-      <meta name="fc:frame:image" content={src} />
-      <meta property="og:image" content={src} />
+      {process.env.SHOW_UI ? <img src={imgSrc} /> : null}
+      <meta name="fc:frame:image" content={imgSrc} />
+      <meta property="og:image" content={imgSrc} />
     </>
   );
 }
