@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.2.0
+
+### Minor Changes
+
+- 608bac9: Add support for new button action type "link" without changes
+
 ## 0.1.1
 
 ### Patch Changes
