@@ -6,6 +6,7 @@ import {
   isFrameButtonMint,
   isValidVersion,
 } from "./utils";
+import { getTokenFromUrl } from ".";
 
 /**
  * @returns a { frame: Frame | null, errors: null | ErrorMessages } object, extracting the frame metadata from the given htmlString.
@@ -127,16 +128,16 @@ export function validateFrame({
         }
       }
 
-      if (action === "mint" && !buttonTarget) {
+      if (!buttonTarget?.content && ["link", "mint"].includes(action)) {
         addError({
-          message: "Missing mint target",
+          message: `Button target is required for action type ${action}`,
           key: `fc:frame:button:${buttonLabel.buttonIndex}`,
         });
       }
 
       if (buttonTarget?.content && !buttonAction) {
         addError({
-          message: "Missing button action (should be 'mint')",
+          message: "Missing button action (should be 'mint' or 'link')",
           key: `fc:frame:button:${buttonLabel.buttonIndex}`,
         });
       }
@@ -152,7 +153,17 @@ export function validateFrame({
         });
       }
 
-      // TODO: Validate button target conforms to CAIP-2 address spec
+      if (action === "mint" && buttonTarget?.content) {
+        // Validate button target conforms to CAIP-10 url spec
+        try {
+          getTokenFromUrl(buttonTarget.content);
+        } catch (error) {
+          addError({
+            message: "Invalid CAIP-10 URL",
+            key: `fc:frame:button:${buttonLabel.buttonIndex}`,
+          });
+        }
+      }
 
       return {
         buttonIndex: buttonLabel.buttonIndex,
