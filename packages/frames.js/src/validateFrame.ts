@@ -186,6 +186,23 @@ export function validateFrame({
       key: "fc:frame:input:text",
     });
   }
+  if (!(image?.startsWith("http://") || image?.startsWith("https://"))) {
+    // validate image data url is not an svg
+    if (
+      !(
+        image?.startsWith("data:image/png;base64,") ||
+        image?.startsWith("data:image/jpg;base64,") ||
+        image?.startsWith("data:image/jpeg;base64,") ||
+        image?.startsWith("data:image/gif;base64,")
+      )
+    ) {
+      addError({
+        message:
+          "Image has an unrecognized format. Only jpg, png and gif images are supported",
+        key: "fc:frame:image",
+      });
+    }
+  }
 
   // Future:
   // todo: might need to consider validating that there aren't too many of something, like images
