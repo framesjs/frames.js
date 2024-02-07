@@ -55,8 +55,8 @@ export default async function Home({
   // example: load the users credentials & check they have an NFT
 
   // Example with satori and sharp:
-  // const imageUrl = await 
-    (frameMessage);
+  // const imageUrl = await
+  frameMessage;
 
   console.log("info: state is:", state);
 
@@ -78,11 +78,13 @@ export default async function Home({
     console.log("info: frameMessage is:", frameMessage);
   }
 
+  const baseUrl = process.env.NEXT_PUBLIC_HOST || "http://localhost:3000";
+
   // then, when done, return next frame
   return (
     <div className="p-4">
       frames.js starter kit.{" "}
-      <Link href="/debug?url=http://localhost:3000" className="underline">
+      <Link href={`/debug?url=${baseUrl}`} className="underline">
         Debug
       </Link>
       <FrameContainer
