@@ -1,6 +1,6 @@
 {
   "name": "frames.js",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -38,6 +38,16 @@
       "require": "./dist/getFrameMessage.js",
       "import": "./dist/getFrameMessage.js",
       "types": "./dist/getFrameMessage.d.ts"
+    },
+    "./getTokenUrl": {
+      "require": "./dist/getTokenUrl.js",
+      "import": "./dist/getTokenUrl.js",
+      "types": "./dist/getTokenUrl.d.ts"
+    },
+    "./getTokenFromUrl": {
+      "require": "./dist/getTokenFromUrl.js",
+      "import": "./dist/getTokenFromUrl.js",
+      "types": "./dist/getTokenFromUrl.d.ts"
     },
     "./validateFrameMessage": {
       "require": "./dist/validateFrameMessage.js",

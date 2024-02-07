@@ -11,6 +11,7 @@ import {
 } from "frames.js/next/server";
 import Link from "next/link";
 import { DEBUG_HUB_OPTIONS } from "./debug/constants";
+import { getTokenUrl } from "frames.js";
 
 type State = {
   active: string;
@@ -54,7 +55,8 @@ export default async function Home({
   // example: load the users credentials & check they have an NFT
 
   // Example with satori and sharp:
-  // const imageUrl = await generateImage(frameMessage);
+  // const imageUrl = await 
+    (frameMessage);
 
   console.log("info: state is:", state);
 
@@ -78,8 +80,11 @@ export default async function Home({
 
   // then, when done, return next frame
   return (
-    <div>
-      Starter kit. <Link href="/debug">Debug</Link>
+    <div className="p-4">
+      frames.js starter kit.{" "}
+      <Link href="/debug?url=http://localhost:3000" className="underline">
+        Debug
+      </Link>
       <FrameContainer
         postUrl="/frames"
         state={state}
@@ -98,8 +103,14 @@ export default async function Home({
         <FrameButton onClick={dispatch}>
           {state?.active === "2" ? "Active" : "Inactive"}
         </FrameButton>
-        <FrameButton href={`http://localhost:3000/`} action="post_redirect">
-          Page link
+        <FrameButton
+          mint={getTokenUrl({
+            address: "0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df",
+            tokenId: "123",
+            chainId: 7777777,
+          })}
+        >
+          Mint
         </FrameButton>
         <FrameButton href={`https://www.google.com`}>External</FrameButton>
       </FrameContainer>

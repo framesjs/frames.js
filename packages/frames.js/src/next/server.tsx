@@ -25,6 +25,7 @@ import {
   PreviousFrame,
   RedirectMap,
   RedirectHandler,
+  FrameButtonMintProvidedProps,
 } from "./types";
 export * from "./types";
 
@@ -194,7 +195,7 @@ export async function POST(
   const body = await req.json();
 
   const url = new URL(req.url);
-  url.pathname = url.searchParams.get("p") || "/";
+  url.pathname = url.searchParams.get("p") || "";
 
   // decompress from 256 bytes limitation of post_url
   url.searchParams.set("postBody", JSON.stringify(body));
@@ -265,7 +266,7 @@ export async function POST(
   }
 
   // handle 'post' buttons
-  return NextResponse.redirect(url.toString());
+  return NextResponse.redirect(url.toString(), { status: 302 });
 }
 
 /**
@@ -278,6 +279,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
   postUrl,
   children,
   state,
+  pathname = "",
   previousFrame,
 }: {
   /** Either a relative e.g. "/frames" or an absolute path, e.g. "https://google.com/frames" */
@@ -286,6 +288,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
   children: Array<React.ReactElement<FrameElementType> | null>;
   /** The current reducer state object, returned from useFramesReducer */
   state: T;
+  pathname?: string;
   previousFrame: PreviousFrame<T>;
 }) {
   const nextIndexByComponentType: Record<
@@ -348,6 +351,13 @@ export function FrameContainer<T extends FrameState = FrameState>({
                   actionIndex={nextIndexByComponentType.button++}
                 />
               );
+            } else if (child.props.hasOwnProperty("mint")) {
+              return (
+                <FFrameMintButtonShim
+                  {...(child.props as any)}
+                  actionIndex={nextIndexByComponentType.button++}
+                />
+              );
             } else {
               return (
                 <FFrameButtonShim
@@ -383,7 +393,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
   const searchParams = new URLSearchParams();
 
   // short for pathname
-  searchParams.set("p", previousFrame.headers.pathname ?? "/");
+  searchParams.set("p", pathname ?? previousFrame.headers.pathname ?? "/");
   // short for state
   searchParams.set("s", JSON.stringify(state));
   // short for redirects
@@ -461,6 +471,27 @@ function FFrameButtonShim({
         content={String(children)}
       />
       <meta name={`fc:frame:button:${actionIndex}:action`} content={"post"} />
+    </>
+  );
+}
+
+/** An internal component that handles FrameButtons that have type: 'mint' */
+function FFrameMintButtonShim({
+  mint,
+  actionIndex,
+  children,
+}: FrameButtonMintProvidedProps & FrameButtonAutomatedProps) {
+  return (
+    <>
+      {process.env.SHOW_UI ? (
+        <FrameButtonUI actionIndex={actionIndex}>{children}</FrameButtonUI>
+      ) : null}
+      <meta
+        name={`fc:frame:button:${actionIndex}`}
+        content={String(children)}
+      />
+      <meta name={`fc:frame:button:${actionIndex}:action`} content={"mint"} />
+      <meta name={`fc:frame:button:${actionIndex}:target`} content={mint} />
     </>
   );
 }

@@ -141,42 +141,78 @@ export default function Page({
   if (error) return <div>Failed to load</div>;
   if (isLoading) return <div>Loading...</div>;
   if (url && !currentFrame?.frame)
-    return <div>Something is wrong, couldn't fetch frame from {url}...</div>;
+    return (
+      <div>Something is wrong, couldn&apos;t fetch frame from {url}...</div>
+    );
+
+  const baseUrl = process.env.NEXT_PUBLIC_HOST || "http://localhost:3000";
 
   return (
-    <div className="p-5 flex justify-center flex-col">
-      <div className="mx-auto text-center flex flex-col w-full md:w-1/2">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            window.location.href = `?url=${urlInput}`;
-          }}
-        >
-          <input
-            type="text"
-            name="url"
-            value={urlInput}
-            onChange={(e) => {
-              setUrlInput(e.target.value);
-            }}
-            placeholder="Enter URL"
-            className="w-full p-2"
-          />
-          <button className="bg-blue-500 text-white p-2 rounded-md">
-            Submit
-          </button>
-        </form>
+    <div className="">
+      <div className="">
+        <div className="bg-slate-100 mb-4 p-4">
+          <div className="flex flex-row gap-4 items-center">
+            <h2 className="font-bold">Frames.js debugger</h2>
+            <form
+              className="flex flex-row"
+              onSubmit={(e) => {
+                e.preventDefault();
+                window.location.href = `?url=${urlInput}`;
+              }}
+            >
+              <input
+                type="text"
+                name="url"
+                className="w-[300px] px-2 py-1 border border-gray-400 rounded-l"
+                value={urlInput}
+                onChange={(e) => {
+                  setUrlInput(e.target.value);
+                }}
+                placeholder="Enter URL"
+              />
+              <button className="bg-blue-500 text-white p-2 py-1 rounded-r">
+                Debug
+              </button>
+            </form>
+            <span className="ml-4">Examples:</span>
+            <button
+              className="underline"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = `?url=${baseUrl}`;
+              }}
+            >
+              Home
+            </button>
+            <button
+              className="underline"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = `?url=${baseUrl}/examples/user-data`;
+              }}
+            >
+              User data
+            </button>
+            <button
+              className="underline"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = `?url=${baseUrl}/examples/custom-redirects`;
+              }}
+            >
+              Custom Redirects
+            </button>
+          </div>
+          <LoginWindow
+            farcasterUser={farcasterUser}
+            loading={loading}
+            startFarcasterSignerProcess={startFarcasterSignerProcess}
+            impersonateUser={impersonateUser}
+            logout={logout}
+          ></LoginWindow>
+        </div>
         {url ? (
           <>
-            <div style={{ margin: "20px 0" }}>
-              <LoginWindow
-                farcasterUser={farcasterUser}
-                loading={loading}
-                startFarcasterSignerProcess={startFarcasterSignerProcess}
-                impersonateUser={impersonateUser}
-                logout={logout}
-              ></LoginWindow>
-            </div>
             <FrameDebugger
               frameData={currentFrame}
               url={url}

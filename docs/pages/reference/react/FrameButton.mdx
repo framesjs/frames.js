@@ -8,9 +8,9 @@ Renders a 'fc:frame:button'.
 - `onClick?: Dispatch` specify a button that triggers another Frame. Define the behaviour of the button by changing the reducer based on the `buttonIndex` (the first button will have `buttonIndex` 1, the second 2, ...)
 - `href?: string` render a redirect button specifying an absolute url. For shorter urls, use the `redirect` prop with the `redirectHandler`
 - `redirect?: boolean` set to true to render a redirect that uses a redirectHandler in the POST, avoiding the need for the href prop here
+- `mint?: string` render a mint button that should mint the NFT described in the `mint` prop which must be a CAIP-10 url.
 
 ## Usage
-
 
 ```tsx [./app/page.tsx]
 import { FrameButton, FrameContainer, FrameImage } from "frames.js/next/server";
@@ -28,9 +28,8 @@ return function Home(){
         <FrameButton onClick={dispatch}>
           {state?.active === "2" ? "Active" : "Inactive"}
         </FrameButton>
-        <FrameButton href={`http://localhost:3000/`}>Page link</FrameButton>
+        <FrameButton mint={`eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df`}>Mint NFT</FrameButton>
         <FrameButton href={`https://www.google.com`}>External</FrameButton>
       </FrameContainer>
-    );
 }
 ```

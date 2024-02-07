@@ -62,7 +62,7 @@ describe("getFrame", () => {
       getFrame({
         htmlString: htmlName,
         url: "https://example.com",
-      })
+      }).frame
     ).toEqual(sampleFrame);
   });
 
@@ -74,6 +74,12 @@ describe("getFrame", () => {
     <meta name="fc:frame:button:1" content="1"/>
     <meta name="fc:frame:button:2" content="2"/>
     <meta name="fc:frame:button:2:action" content="post_redirect"/>
+    <meta name="fc:frame:button:3" content="3" />
+    <meta name="fc:frame:button:3:action" content="link" />
+    <meta name="fc:frame:button:3:target" content="https://example.com" />
+    <meta name="fc:frame:button:4" content="Mint" />
+    <meta name="fc:frame:button:4:action" content="mint" />
+    <meta name="fc:frame:button:4:target" content="eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df" />
     `;
     const { frame } = getFrame({
       htmlString: html,
@@ -87,10 +93,22 @@ describe("getFrame", () => {
         {
           label: "1",
           action: "post",
+          target: undefined,
         },
         {
           label: "2",
           action: "post_redirect",
+          target: undefined,
+        },
+        {
+          label: "3",
+          action: "link",
+          target: "https://example.com",
+        },
+        {
+          label: "Mint",
+          action: "mint",
+          target: "eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df",
         },
       ],
       postUrl: "https://example.com",
@@ -98,12 +116,43 @@ describe("getFrame", () => {
   });
 
   it("should convert a Farcaster Frame HTML into a Frame object", () => {
-    const html = getFrameHtml(sampleFrame);
+    const exampleFrame: Frame = {
+      version: "vNext",
+      image: "http:/example.com/image.png",
+      buttons: [
+        {
+          label: "1",
+          action: "post",
+          target: undefined,
+        },
+        {
+          label: "2",
+          action: "post_redirect",
+          target: undefined,
+        },
+        {
+          label: "3",
+          action: "link",
+          target: "https://example.com",
+        },
+        {
+          label: "Mint",
+          action: "mint",
+          target: "eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df",
+        },
+      ],
+      postUrl: "https://example.com",
+    };
+
+    const html = getFrameHtml(exampleFrame);
+
+    console.log(html);
+
     const parsedFrame = getFrame({
       htmlString: html,
       url: "https://example.com",
     }).frame;
 
-    expect(parsedFrame).toEqual(sampleFrame);
+    expect(parsedFrame).toEqual(exampleFrame);
   });
 });

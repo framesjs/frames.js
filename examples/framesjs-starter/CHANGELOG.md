@@ -1,5 +1,21 @@
 # framesjs-starter
 
+## 0.1.5
+
+### Patch Changes
+
+- 03d041e: feat: mint action
+- Updated dependencies [03d041e]
+  - frames.js@0.3.0
+
+## 0.1.4
+
+### Patch Changes
+
+- 3ed2cef: fix: generate correct image data in `generateImage` example
+- Updated dependencies [0d9cfaf]
+  - frames.js@0.2.1
+
 ## 0.1.3
 
 ### Patch Changes
