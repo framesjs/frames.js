@@ -85,9 +85,8 @@ export default async function Home({
         state={state}
         previousFrame={previousFrame}
       >
-        {/* <FrameImage src="https://framesjs.org/og.png" /> */}
         <FrameImage>
-          <div>
+          <div tw="w-full h-full bg-black text-white">
             {frameMessage?.inputText ? frameMessage.inputText : "Hello world"}
           </div>
         </FrameImage>

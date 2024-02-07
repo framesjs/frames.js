@@ -83,6 +83,8 @@ export function FrameDebugger({
           color: "white",
           padding: "10px",
           borderRadius: "4px",
+          wordBreak: "break-all",
+          textWrap: "wrap",
         }}
       >
         {JSON.stringify(frameData?.frame, null, 2)}
@@ -108,6 +110,8 @@ export function FrameDebugger({
               color: "white",
               padding: "10px",
               borderRadius: "4px",
+              wordBreak: "break-all",
+              textWrap: "wrap",
             }}
           >
             {getFrameHtmlHead(frameData?.frame)}

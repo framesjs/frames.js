@@ -488,8 +488,6 @@ export async function FrameImage({
   src?: string;
   children?: React.ReactNode;
 }) {
-  // Error: Module not found: ESM packages (yoga-wasm-web/asm) need to be imported. Use 'import' to reference the package instead. https://nextjs.org/docs/messages/import-esm-externals
-
   const imageSvg = await satori(
     <div
       style={{
@@ -507,14 +505,11 @@ export async function FrameImage({
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          paddingLeft: 24,
-          paddingRight: 24,
           lineHeight: 1.2,
           fontSize: 36,
           color: "black",
           flex: 1,
           overflow: "hidden",
-          marginTop: 24,
         }}
       >
         {children}
