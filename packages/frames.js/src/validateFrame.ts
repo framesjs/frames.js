@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio";
-import { FrameButton, FrameButtonsType, Frame } from "./types";
-import { getByteLength, isValidVersion } from "./utils";
+import { FrameButton, FrameButtonsType, Frame, ErrorKeys } from "./types";
+import { getByteLength, isFrameButtonLink, isValidVersion } from "./utils";
 
 /**
  * @returns a { frame: Frame | null, errors: null | ErrorMessages } object, extracting the frame metadata from the given htmlString.
@@ -12,7 +12,10 @@ export function validateFrame({
 }: {
   htmlString: string;
   url: string;
-}): { frame: Frame | null; errors: null | Record<string, string[]> } {
+}): {
+  frame: Frame | null;
+  errors: null | Record<ErrorKeys[number], string[]>;
+} {
   const $ = cheerio.load(htmlString);
   let errors: null | Record<string, string[]> = null;
 
@@ -25,6 +28,8 @@ export function validateFrame({
     ) {
       console.log(`Error: ${key} ${message}`);
       errors[key]!.push(message);
+    } else {
+      errors[key] = [message];
     }
   }
 
@@ -44,19 +49,31 @@ export function validateFrame({
     "meta[property='fc:frame:input:text'], meta[name='fc:frame:input:text']"
   ).attr("content");
 
-  const buttonLabels = $(
-    "meta[property^='fc:frame:button']:not([property$=':action']), meta[name^='fc:frame:button']:not([name$=':action'])"
-  )
-    .map((i, elem) => parseButtonElement(elem))
-    .filter((i, elem) => elem !== null)
-    .toArray();
+  const buttonLabels = [1, 2, 3, 4].flatMap((el) =>
+    $(
+      `meta[property^='fc:frame:button:${el}'], meta[name='fc:frame:button:${el}']`
+    )
+      .map((i, elem) => parseButtonElement(elem))
+      .filter((i, elem) => elem !== null)
+      .toArray()
+  );
+  const buttonActions = [1, 2, 3, 4].flatMap((el) =>
+    $(
+      `meta[property^='fc:frame:button:${el}:action'], meta[name='fc:frame:button:${el}:action']`
+    )
+      .map((i, elem) => parseButtonElement(elem))
+      .filter((i, elem) => elem !== null)
+      .toArray()
+  );
 
-  const buttonActions = $(
-    'meta[name^="fc:frame:button:"][name$=":action"], meta[property^="fc:frame:button:"][property$=":action"]'
-  )
-    .map((i, elem) => parseButtonElement(elem))
-    .filter((i, elem) => elem !== null)
-    .toArray();
+  const buttonTargets = [1, 2, 3, 4].flatMap((el) =>
+    $(
+      `meta[property^='fc:frame:button:${el}:target'], meta[name='fc:frame:button:${el}:target']`
+    )
+      .map((i, elem) => parseButtonElement(elem))
+      .filter((i, elem) => elem !== null)
+      .toArray()
+  );
 
   let buttonsValidation = [false, false, false, false];
   const buttonsWithActions = buttonLabels
@@ -64,6 +81,15 @@ export function validateFrame({
       const buttonAction = buttonActions.find(
         (action) => action?.buttonIndex === buttonLabel?.buttonIndex
       );
+      const buttonTarget = buttonTargets.find(
+        (action) => action?.buttonIndex === buttonLabel?.buttonIndex
+      );
+      if (buttonsValidation[buttonLabel.buttonIndex - 1]) {
+        addError({
+          message: "Duplicate button",
+          key: `fc:frame:button:${buttonLabel.buttonIndex}`,
+        });
+      }
       if (![1, 2, 3, 4].includes(buttonLabel.buttonIndex)) {
         addError({
           message: "Incorrect button index (outside of 1,2,3,4)",
@@ -72,31 +98,56 @@ export function validateFrame({
       } else {
         buttonsValidation[buttonLabel.buttonIndex - 1] = true;
       }
-      if (buttonsValidation[buttonLabel.buttonIndex - 1]) {
-        addError({
-          message: "Duplicate button",
-          key: `fc:frame:button:${buttonLabel.buttonIndex}`,
-        });
+
+      const action =
+        buttonAction?.content !== undefined ? buttonAction?.content : "post";
+      if (action === "link") {
+        if (!buttonTarget?.content) {
+          addError({
+            message: "No button target, but required for action type link",
+            key: `fc:frame:button:${buttonLabel.buttonIndex}`,
+          });
+        }
+        if (
+          !(
+            buttonTarget?.content?.startsWith("http://") ||
+            buttonTarget?.content?.startsWith("https://")
+          )
+        ) {
+          addError({
+            message:
+              "External links MUST use the https://  or http:// protocols. ",
+            key: `fc:frame:button:${buttonLabel.buttonIndex}`,
+          });
+        }
       }
       return {
         buttonIndex: buttonLabel.buttonIndex,
         label: buttonLabel.content || "",
-        // this is an optional property
-        action:
-          buttonAction?.content === "post_redirect" ? "post_redirect" : "post",
-      };
+        target: buttonTarget?.content,
+        // this is an optional property, falls back to "post"
+        action: buttonAction?.content || "post",
+      } as FrameButton & { buttonIndex: number };
     })
     .sort((a, b) => a.buttonIndex - b.buttonIndex)
-    .map(
-      (button): FrameButton => ({
+    .map((button): FrameButton => {
+      // type guards are weird sometimes.
+      if (isFrameButtonLink(button))
+        return {
+          label: button.label,
+          action: button.action,
+          target: button.target,
+        };
+      return {
         label: button.label,
         action: button.action,
-      })
-    );
+        target: button.target,
+      };
+    });
 
   // buttons order validation without a gap like 1, 3, 4
   if (
-    buttonsValidation.reduce(
+    !buttonsValidation.reduce(
       (prev, next) => ({
         hasFalse: prev.hasFalse || !next,
         isStillValid: !prev.isStillValid
@@ -107,8 +158,8 @@ export function validateFrame({
     ).isStillValid
   ) {
     addError({
-      message: "Gap in buttons",
-      key: `fc:frame:button`,
+      message: `Gap in buttons sequence, ${buttonsValidation.map((el, i) => `${el ? i + 1 : ""}`).join(",")}`,
+      key: `fc:frame:button:1`,
     });
   }
 

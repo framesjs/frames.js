@@ -29,7 +29,9 @@ export const LoginWindow = ({
             )
           ) : farcasterUser?.status === "impersonating" ? (
             <div>
-              Impersonating fid (for testing):{farcasterUser?.fid}{" "}
+              Impersonating fid (for testing, only works for local frames using
+              frames.js to validate messages, as they&apos;re mocked):
+              <b>{farcasterUser?.fid}</b>{" "}
               <button onClick={logout}>Logout</button>
             </div>
           ) : farcasterUser?.status === "pending_approval" ? (
@@ -88,7 +90,9 @@ export const LoginWindow = ({
                 onClick={startFarcasterSignerProcess}
                 disabled={loading}
               >
-                {loading ? "Loading..." : "Sign in with farcaster"}
+                {loading
+                  ? "Loading..."
+                  : "Sign in with farcaster (costs warps once, works with remote frames and other libs)"}
               </button>
             </div>
           )}

@@ -64,7 +64,9 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
   options?: T
 ): Promise<FrameMessageReturnType<T> | null> {
   if (!frameActionPayload) {
-    console.log("no frameActionPayload");
+    console.log(
+      "info: no frameActionPayload, this is expected for the homeframe"
+    );
     // no payload means no action
     return null;
   }
@@ -306,6 +308,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
               throw new Error("too many buttons");
             }
 
+            // Handle Button action types
             if (
               child.props.hasOwnProperty("href") ||
               (child.props.hasOwnProperty("redirect") &&
@@ -313,10 +316,21 @@ export function FrameContainer<T extends FrameState = FrameState>({
             ) {
               if (child.props.hasOwnProperty("onClick")) {
                 throw new Error(
-                  "buttons must either have href or onClick, not both"
+                  "buttons must either have href or onClick, not both, and onClick is incompatible with redirect"
                 );
               }
-              if (child.props.hasOwnProperty("href")) {
+              let action = "link";
+              if (child.props.hasOwnProperty("action")) {
+                if ((child.props as any).action === "post") {
+                  throw new Error(
+                    "invalid action prop value on Button, incompatible with href"
+                  );
+                }
+                action = (child.props as any).action;
+              }
+              if (action === "link") {
+                // no need for a redirectMap, as no POST request
+              } else if (child.props.hasOwnProperty("href")) {
                 redirectMap[nextIndexByComponentType.button] = (
                   child.props as any as FrameButtonPostRedirectProvidedProps
                 ).href!;
@@ -327,6 +341,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
               return (
                 <FrameRedirect
                   {...passThroughProps}
+                  action={action}
                   actionIndex={nextIndexByComponentType.button++}
                 />
               );
@@ -395,13 +410,18 @@ export function FrameContainer<T extends FrameState = FrameState>({
 /** An internal component that handles redirects */
 function FrameRedirect({
   href,
+  action,
   actionIndex,
   children,
 }: FrameButtonPostRedirectProvidedProps & FrameButtonAutomatedProps) {
   return (
     <>
       {process.env.SHOW_UI ? (
-        <FrameButtonRedirectUI actionIndex={actionIndex} href={href}>
+        <FrameButtonRedirectUI
+          actionIndex={actionIndex}
+          href={href}
+          action={action}
+        >
           {children}
         </FrameButtonRedirectUI>
       ) : null}
@@ -409,10 +429,10 @@ function FrameRedirect({
         name={`fc:frame:button:${actionIndex}`}
         content={String(children)}
       />
-      <meta
-        name={`fc:frame:button:${actionIndex}:action`}
-        content={"post_redirect"}
-      />
+      <meta name={`fc:frame:button:${actionIndex}:action`} content={action} />
+      {action === "link" ? (
+        <meta name={`fc:frame:button:${actionIndex}:target`} content={href} />
+      ) : null}
     </>
   );
 }

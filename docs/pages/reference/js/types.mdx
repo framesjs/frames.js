@@ -43,30 +43,51 @@ export const frameErrorKeys = [
 
 export type ErrorKeys = typeof frameErrorKeys;
 
+export type ActionButtonType = "post" | "post_redirect" | "link";
+
 /** A Frame represented as an object with keys and values corresponding to the Frames spec: https://docs.farcaster.xyz/reference/frames/spec */
 export type FrameFlattened = {
   "fc:frame": FrameVersion;
   "fc:frame:image": string;
   "fc:frame:post_url": string;
   "fc:frame:button:1"?: string;
-  "fc:frame:button:1:action"?: "post" | "post_redirect";
+  "fc:frame:button:1:action"?: ActionButtonType;
+  "fc:frame:button:1:target"?: string;
   "fc:frame:button:2"?: string;
-  "fc:frame:button:2:action"?: "post" | "post_redirect";
+  "fc:frame:button:2:action"?: ActionButtonType;
+  "fc:frame:button:2:target"?: string;
   "fc:frame:button:3"?: string;
-  "fc:frame:button:3:action"?: "post" | "post_redirect";
+  "fc:frame:button:3:action"?: ActionButtonType;
+  "fc:frame:button:3:target"?: string;
   "fc:frame:button:4"?: string;
-  "fc:frame:button:4:action"?: "post" | "post_redirect";
+  "fc:frame:button:4:action"?: ActionButtonType;
+  "fc:frame:button:4:target"?: string;
   "fc:frame:input:text"?: string;
 };
 
-export type FrameButton = {
+export type FrameButtonLink = {
+  action: "link";
+  /** required for action type 'link' */
+  target: string;
   /** A 256-byte string which is label of the button */
   label: string;
-  /** Must be post or  post_redirect. Defaults to post if no value was specified.
+};
+
+export type FrameButtonPost = {
+  /** Must be post or post_redirect. Defaults to post if no value was specified.
    * If set to post, app must make the POST request and frame server must respond with a 200 OK, which may contain another frame.
    * If set to post_redirect, app must make the POST request, and the frame server must respond with a 302 OK with a location property set on the header. */
-  action?: "post" | "post_redirect";
+  action: "post" | "post_redirect";
+  target?: undefined;
+  /** A 256-byte string which is label of the button */
+  label: string;
 };
+export type FrameButtonPostRedirect = FrameButtonPost;
+
+export type FrameButton =
+  | FrameButtonPost
+  | FrameButtonLink
+  | FrameButtonPostRedirect;
 
 /** The permitted types of `buttonIndex` in a Frame POST payload response */
 export type ActionIndex = 1 | 2 | 3 | 4;
@@ -151,5 +172,8 @@ export type FrameActionHubContext = {
   recastedCast: boolean;
   /** Verified eth addresses of the requester */
   requesterVerifiedAddresses: string[];
+  /** User data of the requester */
+  requesterUserData: UserDataReturnType;
 };
+
 ```

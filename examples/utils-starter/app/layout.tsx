@@ -23,6 +23,7 @@ export const metadata: Metadata = {
     buttons: [
       {
         label: "Next",
+        action: "post",
       },
       {
         label: "Visit frames.js",

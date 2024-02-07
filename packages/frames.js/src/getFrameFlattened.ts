@@ -16,6 +16,7 @@ export function getFrameFlattened(frame: Frame): FrameFlattened {
         ...acc,
         [`fc:frame:button:${index + 1}`]: button.label,
         [`fc:frame:button:${index + 1}:action`]: button.action,
+        [`fc:frame:button:${index + 1}:target`]: button.target,
       }),
       {}
     ),
