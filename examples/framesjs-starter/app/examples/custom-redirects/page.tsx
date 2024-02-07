@@ -10,8 +10,7 @@ import {
   validateActionSignature,
 } from "frames.js/next/server";
 import Link from "next/link";
-import { DEBUG_HUB_OPTIONS } from "./debug/constants";
-import { generateImage } from "./generate-image";
+import { DEBUG_HUB_OPTIONS } from "../../debug/constants";
 
 type State = {
   active: string;
@@ -47,16 +46,10 @@ export default async function Home({
     previousFrame
   );
 
-  // Here: do a server side side effect either sync or async (using await), such as minting an NFT if you want.
-  // example: load the users credentials & check they have an NFT
-  const image = await generateImage(validMessage!);
-
-  console.log("info: state is:", state);
-
   // then, when done, return next frame
   return (
     <div>
-      Starter kit with custom redirects in /frames.{" "}
+      Starter kit with custom redirects in the /frames handler.{" "}
       <Link href="/debug">Debug</Link>
       <FrameContainer
         postUrl="/frames"

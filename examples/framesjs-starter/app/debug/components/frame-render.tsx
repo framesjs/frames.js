@@ -27,7 +27,7 @@ export function FrameRender({
       />
       {frame.inputText && (
         <input
-          style={{ width: "382px", boxSizing: "border-box", padding: "8px" }}
+          className="w-full p-2 border mt-1 border-gray-400 rounded"
           type="text"
           placeholder={frame.inputText}
           onChange={(e) => setInputText(e.target.value)}
@@ -44,7 +44,8 @@ export function FrameRender({
         {frame.buttons?.map(({ label, action, target }, index: number) => (
           <button
             type="button"
-            style={{ flex: "1 1 0px", padding: "6px", cursor: "pointer" }}
+            className="bg-gray-200 p-2 hover:bg-gray-300 border-gray-400 border text-sm text-gray-800 rounded"
+            style={{ flex: "1 1 0px", cursor: "pointer" }}
             onClick={() => {
               if (!isLoggedIn) {
                 alert(
