@@ -1,5 +1,13 @@
 # framesjs-starter
 
+## 0.1.6
+
+### Patch Changes
+
+- ccd3302: feat: JSX-based frame image rendering
+- Updated dependencies [ccd3302]
+  - frames.js@0.4.0
+
 ## 0.1.5
 
 ### Patch Changes
