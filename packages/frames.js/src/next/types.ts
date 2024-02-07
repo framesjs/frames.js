@@ -83,11 +83,12 @@ export type Dispatch = (actionIndex: ActionIndex) => any;
 export type FrameButtonProvidedProps = (
   | FrameButtonPostRedirectProvidedProps
   | FrameButtonPostProvidedProps
+  | FrameButtonMintProvidedProps
 ) & {
   /** defaults to false */
   redirect?: boolean;
   /** defaults to inferring from the props, falls back to link over post_redirect */
-  action?: "post" | "link" | "post_redirect";
+  action?: "post" | "link" | "mint" | "post_redirect";
 };
 
 export type FrameButtonPostProvidedProps = {
@@ -104,6 +105,14 @@ export type FrameButtonPostRedirectProvidedProps = {
   action?: "post_redirect" | "link";
   /** a label to display on the button */
   children: string | number;
+};
+
+export type FrameButtonMintProvidedProps = {
+  /** a label to display on the button */
+  children: string | number;
+  action?: "mint";
+  /** a link CAIP-10 url to an NFT smart contract or token */
+  mint: string;
 };
 
 /** See https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional */
