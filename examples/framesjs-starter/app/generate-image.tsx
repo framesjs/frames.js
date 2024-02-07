@@ -2,6 +2,7 @@ import { FrameActionDataParsed } from "frames.js";
 import * as fs from "fs";
 import { join } from "path";
 import satori from "satori";
+import sharp from "sharp";
 
 const interRegPath = join(process.cwd(), "public/Inter-Regular.ttf");
 let interReg = fs.readFileSync(interRegPath);
@@ -77,5 +78,11 @@ export async function generateImage(
     }
   );
 
-  return imageSvg;
+  const imagePng = await sharp(Buffer.from(imageSvg))
+    .toFormat("png")
+    .toBuffer();
+
+  const imagePngB64 = imagePng.toString("base64");
+
+  return `data:image/png;base64,${imagePngB64}`;
 }
