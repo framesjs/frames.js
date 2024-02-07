@@ -111,7 +111,7 @@ export type FrameButtonMintProvidedProps = {
   /** a label to display on the button */
   children: string | number;
   action?: "mint";
-  /** a link CAIP-10 url to an NFT smart contract or token */
+  /** a [CAIP-10](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md) url to an NFT smart contract or token */
   mint: string;
 };
 

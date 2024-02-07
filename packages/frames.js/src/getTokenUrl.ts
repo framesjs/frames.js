@@ -20,7 +20,7 @@ type GetTokenUrlParameters = {
     }
 );
 
-/** Constructs a {@link https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md|CAIP-10} compliant URL given the address, chain, and token ID (optional) as inputs */
+/** Constructs a [CAIP-10](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md) compliant URL given the address, chain, and token ID (optional) as inputs */
 export function getTokenUrl({
   address,
   tokenId,

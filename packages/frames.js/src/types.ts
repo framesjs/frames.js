@@ -68,7 +68,7 @@ export type FrameButtonLink = {
 
 export type FrameButtonMint = {
   action: "mint";
-  /** The target  property MUST be a valid CAIP-10 address, plus an optional token_id . */
+  /** The target  property MUST be a valid [CAIP-10](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md) address, plus an optional token_id . */
   target: string;
   /** A 256-byte string which is label of the button */
   label: string;
