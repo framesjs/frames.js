@@ -25,9 +25,7 @@ export async function GET(
   const requestHeaders = new Headers(request.headers);
   // Remove in order to fix this: https://github.com/node-fetch/node-fetch/discussions/1678
   requestHeaders.delete("host");
-  requestHeaders.set("host", host);
   requestHeaders.delete("referer");
-
   const response = await fetch(url, {
     headers: requestHeaders,
   });
@@ -41,9 +39,9 @@ export async function POST(
 ) {
   const url = getHubUrl(request.url, hubPath);
   const requestHeaders = new Headers(request.headers);
+
   // Remove in order to fix this: https://github.com/node-fetch/node-fetch/discussions/1678
   requestHeaders.delete("host");
-  requestHeaders.set("host", host);
   requestHeaders.delete("referer");
 
   const response = await fetch(url, {
