@@ -65,11 +65,9 @@
   },
   "dependencies": {
     "@farcaster/core": "^0.13.7",
+    "@vercel/og": "^0.6.2",
     "cheerio": "^1.0.0-rc.12",
-    "satori": "^0.10.13",
-    "sharp": "^0.33.2",
     "tsup": "^8.0.1",
-    "viem": "^2.7.1",
-    "yoga-wasm-web": "^0.3.3"
+    "viem": "^2.7.1"
   }
 }
