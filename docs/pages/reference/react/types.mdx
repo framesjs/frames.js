@@ -1,8 +1,9 @@
 # types exported from `frames.js/next/server`
 
 ## Example usage
+
 ```tsx
-import { HeadersList } from 'frames.js/next/server'
+import { HeadersList } from "frames.js/next/server";
 ```
 
 ## Reference
@@ -112,10 +113,17 @@ export type FrameButtonPostRedirectProvidedProps = {
   children: string | number;
 };
 
+export type FrameButtonMintProvidedProps = {
+  /** a label to display on the button */
+  children: string | number;
+  action?: "mint";
+  /** a [CAIP-10](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md) url to an NFT smart contract or token */
+  mint: string;
+};
+
 /** See https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional */
 export type NextServerPageProps = {
   params: { slug: string };
   searchParams?: { [key: string]: string | string[] | undefined };
 };
-
 ```

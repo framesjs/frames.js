@@ -67,6 +67,8 @@ export function FrameRender({
                 ) {
                   window.location.href = target!;
                 }
+              } else if (action === "mint") {
+                alert(`Requested to mint NFT: ${target}`);
               } else {
                 setIsWaiting(true);
                 try {
@@ -84,6 +86,7 @@ export function FrameRender({
             }}
             key={index}
           >
+            {action === "mint" ? `♦ ` : ""}
             {label}
             {action === "post_redirect" || action === "link" ? ` ↗` : ""}
           </button>

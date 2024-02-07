@@ -1,10 +1,21 @@
 import { CastId, Message } from "@farcaster/core";
-import { FrameActionPayload, FrameButton, FrameButtonLink } from "./types";
+import {
+  FrameActionPayload,
+  FrameButton,
+  FrameButtonLink,
+  FrameButtonMint,
+} from "./types";
 
 export function isFrameButtonLink(
   frameButton: FrameButton
 ): frameButton is FrameButtonLink {
   return frameButton.action === "link";
+}
+
+export function isFrameButtonMint(
+  frameButton: FrameButton
+): frameButton is FrameButtonMint {
+  return frameButton.action === "mint";
 }
 
 export function bytesToHexString(bytes: Uint8Array): `0x${string}` {

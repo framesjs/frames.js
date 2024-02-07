@@ -39,6 +39,16 @@
       "import": "./dist/getFrameMessage.js",
       "types": "./dist/getFrameMessage.d.ts"
     },
+    "./getTokenUrl": {
+      "require": "./dist/getTokenUrl.js",
+      "import": "./dist/getTokenUrl.js",
+      "types": "./dist/getTokenUrl.d.ts"
+    },
+    "./getTokenFromUrl": {
+      "require": "./dist/getTokenFromUrl.js",
+      "import": "./dist/getTokenFromUrl.js",
+      "types": "./dist/getTokenFromUrl.d.ts"
+    },
     "./validateFrameMessage": {
       "require": "./dist/validateFrameMessage.js",
       "import": "./dist/validateFrameMessage.js",

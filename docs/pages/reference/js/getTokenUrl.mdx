@@ -1,0 +1,16 @@
+# getTokenUrl
+
+Helper function to construct [CAIP-10](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md) urls for buttons with `mint` actions.
+
+## Usage
+
+```ts [example.ts]
+import { getTokenUrl } from "frames.js";
+
+const tokenUrl = getTokenUrl({
+  address: "0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df",
+  tokenId: "123",
+  chainId: "7777777",
+});
+console.log(tokenUrl); // eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df:123
+```

@@ -34,6 +34,15 @@ export function FrameDebugger({
         <div className="p-4 h-full">
           <h3 className="font-bold">Frame Validations</h3>
           <div className="min-w-[400px]">
+            <div style={{ display: "flex", flexDirection: "row", gap: "8px" }}>
+              <div>🔶</div>
+              <div className="text-slate-600">Mint</div>
+              <div className="font-bold text-red-800">
+                {" "}
+                This version of frames.js includes Mint. Mint is a spec and may
+                not be supported in clients yet
+              </div>
+            </div>
             {framePerformanceInSeconds ? (
               <div
                 style={{ display: "flex", flexDirection: "row", gap: "8px" }}
@@ -48,7 +57,7 @@ export function FrameDebugger({
                 </div>
                 <div className="text-slate-600">{"frame speed (seconds)"}</div>
 
-                <div className="font-bold text-red-950">
+                <div className="font-bold text-red-800">
                   {framePerformanceInSeconds > 5
                     ? `Request took more than 5s (${framePerformanceInSeconds} seconds). This may be normal: first request will take longer in development (as next.js builds), but in production, clients will timeout requests after 5s`
                     : framePerformanceInSeconds > 4
@@ -66,7 +75,7 @@ export function FrameDebugger({
                   {frameData?.errors?.[key] || !frameData?.frame ? "🔴" : "🟢"}
                 </div>
                 <div className="text-slate-600">{key}</div>
-                <div className="font-bold text-red-950">
+                <div className="font-bold text-red-800">
                   {" "}
                   {frameData?.errors?.[key]?.join(",")}
                 </div>

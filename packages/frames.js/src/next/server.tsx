@@ -25,6 +25,7 @@ import {
   PreviousFrame,
   RedirectMap,
   RedirectHandler,
+  FrameButtonMintProvidedProps,
 } from "./types";
 export * from "./types";
 
@@ -347,6 +348,13 @@ export function FrameContainer<T extends FrameState = FrameState>({
                   actionIndex={nextIndexByComponentType.button++}
                 />
               );
+            } else if (child.props.hasOwnProperty("mint")) {
+              return (
+                <FFrameMintButtonShim
+                  {...(child.props as any)}
+                  actionIndex={nextIndexByComponentType.button++}
+                />
+              );
             } else {
               return (
                 <FFrameButtonShim
@@ -460,6 +468,27 @@ function FFrameButtonShim({
         content={String(children)}
       />
       <meta name={`fc:frame:button:${actionIndex}:action`} content={"post"} />
+    </>
+  );
+}
+
+/** An internal component that handles FrameButtons that have type: 'mint' */
+function FFrameMintButtonShim({
+  mint,
+  actionIndex,
+  children,
+}: FrameButtonMintProvidedProps & FrameButtonAutomatedProps) {
+  return (
+    <>
+      {process.env.SHOW_UI ? (
+        <FrameButtonUI actionIndex={actionIndex}>{children}</FrameButtonUI>
+      ) : null}
+      <meta
+        name={`fc:frame:button:${actionIndex}`}
+        content={String(children)}
+      />
+      <meta name={`fc:frame:button:${actionIndex}:action`} content={"mint"} />
+      <meta name={`fc:frame:button:${actionIndex}:target`} content={mint} />
     </>
   );
 }
