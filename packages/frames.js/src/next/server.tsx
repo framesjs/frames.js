@@ -192,7 +192,7 @@ export async function POST(
   const body = await req.json();
 
   const url = new URL(req.url);
-  url.pathname = url.searchParams.get("p") || "/";
+  url.pathname = url.searchParams.get("p") || "";
 
   // decompress from 256 bytes limitation of post_url
   url.searchParams.set("postBody", JSON.stringify(body));
@@ -263,7 +263,7 @@ export async function POST(
   }
 
   // handle 'post' buttons
-  return NextResponse.redirect(url.toString());
+  return NextResponse.redirect(url.toString(), { status: 302 });
 }
 
 /**
@@ -276,6 +276,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
   postUrl,
   children,
   state,
+  pathname = "",
   previousFrame,
 }: {
   /** Either a relative e.g. "/frames" or an absolute path, e.g. "https://google.com/frames" */
@@ -284,6 +285,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
   children: Array<React.ReactElement<FrameElementType> | null>;
   /** The current reducer state object, returned from useFramesReducer */
   state: T;
+  pathname?: string;
   previousFrame: PreviousFrame<T>;
 }) {
   const nextIndexByComponentType: Record<
@@ -388,7 +390,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
   const searchParams = new URLSearchParams();
 
   // short for pathname
-  searchParams.set("p", previousFrame.headers.pathname ?? "/");
+  searchParams.set("p", pathname ?? previousFrame.headers.pathname ?? "/");
   // short for state
   searchParams.set("s", JSON.stringify(state));
   // short for redirects

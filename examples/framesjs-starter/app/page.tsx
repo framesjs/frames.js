@@ -75,13 +75,16 @@ export default async function Home({
       requesterUserData,
     } = frameMessage;
 
-    console.log(frameMessage);
+    console.log("info: frameMessage is:", frameMessage);
   }
 
   // then, when done, return next frame
   return (
-    <div>
-      Starter kit. <Link href="/debug">Debug</Link>
+    <div className="p-4">
+      frames.js starter kit.{" "}
+      <Link href="/debug?url=http://localhost:3000" className="underline">
+        Debug
+      </Link>
       <FrameContainer
         postUrl="/frames"
         state={state}

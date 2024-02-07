@@ -1,18 +1,15 @@
+import { FrameActionDataParsedAndHubContext } from "frames.js";
 import * as fs from "fs";
 import { join } from "path";
 import satori from "satori";
-import { FrameActionMessage } from "@farcaster/core";
+import sharp from "sharp";
 
 const interRegPath = join(process.cwd(), "public/Inter-Regular.ttf");
 let interReg = fs.readFileSync(interRegPath);
 
-export async function generateImage(validMessage: FrameActionMessage) {
-  const fid = validMessage?.data.fid;
-  const { buttonIndex, inputText: inputTextBytes } =
-    validMessage?.data.frameActionBody || {};
-  const inputText = inputTextBytes
-    ? Buffer.from(inputTextBytes).toString("utf-8")
-    : undefined;
+export async function generateImage(
+  actionPayload: FrameActionDataParsedAndHubContext | null
+) {
   const imageSvg = await satori(
     <div
       style={{
@@ -40,16 +37,19 @@ export async function generateImage(validMessage: FrameActionMessage) {
           marginTop: 24,
         }}
       >
-        {buttonIndex && fid && inputText ? (
+        {actionPayload ? (
           <div
             style={{
               display: "flex",
               flexDirection: "column",
             }}
           >
-            <div style={{ display: "flex" }}>Button index: {buttonIndex}</div>
-            <div style={{ display: "flex" }}>Fid: {fid}</div>
-            <div style={{ display: "flex" }}>{inputText}</div>
+            GM, {actionPayload.requesterUserData?.displayName}! Your FID is{" "}
+            {actionPayload.requesterFid}
+            {", "}
+            {actionPayload.requesterFid < 20_000
+              ? "you're OG!"
+              : "welcome to the Farcaster!"}
           </div>
         ) : (
           <div
@@ -58,7 +58,7 @@ export async function generateImage(validMessage: FrameActionMessage) {
               flexDirection: "column",
             }}
           >
-            Hello world
+            Say GM
           </div>
         )}
       </div>
@@ -77,5 +77,11 @@ export async function generateImage(validMessage: FrameActionMessage) {
     }
   );
 
-  return imageSvg;
+  const imagePng = await sharp(Buffer.from(imageSvg))
+    .toFormat("png")
+    .toBuffer();
+
+  const imagePngB64 = imagePng.toString("base64");
+
+  return `data:image/png;base64,${imagePngB64}`;
 }

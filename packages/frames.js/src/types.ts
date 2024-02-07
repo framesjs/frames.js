@@ -114,6 +114,9 @@ export type UserDataReturnType = {
   profileImage?: string;
 } | null;
 
+export type FrameActionDataParsedAndHubContext = FrameActionDataParsed &
+  FrameActionHubContext;
+
 /**
  * The body of valid `POST` requests triggered by Frame Buttons in other apps, when formatted as json, conforming to the Frames spec
  */
