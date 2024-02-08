@@ -1,16 +1,28 @@
 import { NextRequest } from "next/server";
 
-function getHubUrl(url: string, hubPath: string[]) {
+function getHubRequest(request: NextRequest, hubPath: string[]) {
+  const { url, headers: originalHeaders, ...rest } = request;
+
   const newUrl = new URL(url);
   newUrl.protocol = "https";
-  newUrl.hostname = "nemes.farcaster.xyz";
+  newUrl.hostname = "api.neynar.com";
   newUrl.port = "2281";
   newUrl.pathname = hubPath.join("/");
-  return newUrl;
-}
 
-const host =
-  process.env.NEXT_PUBLIC_HOST?.replace("http://", "") ?? "localhost:3000";
+  const headers = new Headers({
+    api_key: "NEYNAR_FRAMES_JS",
+    ...originalHeaders,
+  });
+  headers.delete("host");
+  headers.delete("referer");
+
+  const hubRequest = new Request(newUrl, {
+    headers,
+    ...rest,
+  });
+
+  return hubRequest;
+}
 
 export async function GET(
   request: NextRequest,
@@ -20,16 +32,8 @@ export async function GET(
     `info: Mock hub: Forwarding message ${hubPath.join("/")} to a real hub`
   );
 
-  const url = getHubUrl(request.url, hubPath);
-
-  const requestHeaders = new Headers(request.headers);
-  // Remove in order to fix this: https://github.com/node-fetch/node-fetch/discussions/1678
-  requestHeaders.delete("host");
-  requestHeaders.delete("referer");
-  const response = await fetch(url, {
-    headers: requestHeaders,
-  });
-
+  const hubRequest = getHubRequest(request, hubPath);
+  const response = await fetch(hubRequest);
   return response;
 }
 
@@ -37,17 +41,11 @@ export async function POST(
   request: NextRequest,
   { params: { hubPath } }: { params: { hubPath: string[] } }
 ) {
-  const url = getHubUrl(request.url, hubPath);
-  const requestHeaders = new Headers(request.headers);
+  console.warn(
+    `info: Mock hub: Forwarding message ${hubPath.join("/")} to a real hub`
+  );
 
-  // Remove in order to fix this: https://github.com/node-fetch/node-fetch/discussions/1678
-  requestHeaders.delete("host");
-  requestHeaders.delete("referer");
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: requestHeaders,
-    body: request.body,
-  });
+  const hubRequest = getHubRequest(request, hubPath);
+  const response = await fetch(hubRequest);
   return response;
 }
