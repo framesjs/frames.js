@@ -52,7 +52,7 @@ export default async function Home({
       Starter kit with custom redirects in the /frames handler.{" "}
       <Link href="/debug">Debug</Link>
       <FrameContainer
-        postUrl="/frames"
+        postUrl="/api/frames"
         state={state}
         previousFrame={previousFrame}
       >

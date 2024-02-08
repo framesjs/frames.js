@@ -60,7 +60,7 @@ export default async function Home(props) {
   const [state, dispatch] = useFramesReducer(reducer, { count: 0 }, previousFrame);
 
   return (
-    <FrameContainer postUrl="/frames" state={state} previousFrame={previousFrame}>
+    <FrameContainer postUrl="/api/frames" state={state} previousFrame={previousFrame}>
       <FrameImage>
         <div tw="w-full h-full bg-slate-700 text-white justify-center items-center">
           {state.count}

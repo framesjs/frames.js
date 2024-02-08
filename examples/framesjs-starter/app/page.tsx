@@ -84,7 +84,7 @@ export default async function Home({
         Debug
       </Link>
       <FrameContainer
-        postUrl="/frames"
+        postUrl="/api/frames"
         state={state}
         previousFrame={previousFrame}
       >
