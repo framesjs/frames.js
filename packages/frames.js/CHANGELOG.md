@@ -1,5 +1,15 @@
 # frames.js
 
+## 0.4.1
+
+### Patch Changes
+
+- 800d887: fix: add warning if `FrameContainer`'s `pathname` prop is not specified.
+- 8112f6f: fix: use nested destructuring for options defaults
+- fd70614: feat: throw clearer error when hub url is specified without protocol (e.g. https://)
+- b71f05b: feat: expose fetch options in HubHttpUrlOptions
+- 8112f6f: fix: use neynar hubs as fallback
+
 ## 0.4.0
 
 ### Minor Changes

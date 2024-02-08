@@ -1,5 +1,17 @@
 # framesjs-starter
 
+## 0.1.7
+
+### Patch Changes
+
+- 8112f6f: fix: use neynar hubs as fallback
+- Updated dependencies [800d887]
+- Updated dependencies [8112f6f]
+- Updated dependencies [fd70614]
+- Updated dependencies [b71f05b]
+- Updated dependencies [8112f6f]
+  - frames.js@0.4.1
+
 ## 0.1.6
 
 ### Patch Changes
