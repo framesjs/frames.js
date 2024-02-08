@@ -10,18 +10,21 @@ export async function getUserDataForFid<
   fid,
   options = {},
 }: {
-  /** the user's Farcaster fid` */
   fid: number;
   options?: Options;
 }): Promise<UserDataReturnType> {
-  const optionsOrDefaults = {
-    hubHttpUrl: options.hubHttpUrl ?? "https://nemes.farcaster.xyz:2281",
-    hubRequestOptions: options.hubRequestOptions ?? {},
-  };
+  const {
+    hubHttpUrl = "https://api.neynar.com:2281",
+    hubRequestOptions = {
+      headers: {
+        api_key: "NEYNAR_FRAMES_JS",
+      },
+    },
+  } = options;
 
   const userDataResponse = await fetch(
-    `${optionsOrDefaults.hubHttpUrl}/v1/userDataByFid?fid=${fid}`,
-    optionsOrDefaults.hubRequestOptions
+    `${hubHttpUrl}/v1/userDataByFid?fid=${fid}`,
+    hubRequestOptions
   );
 
   const { messages } = await userDataResponse.json();

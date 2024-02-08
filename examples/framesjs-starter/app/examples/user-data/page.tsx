@@ -32,7 +32,6 @@ export default async function Home({
 
   const frameMessage = await getFrameMessage(previousFrame.postBody, {
     ...DEBUG_HUB_OPTIONS,
-    fetchHubContext: true,
   });
 
   if (frameMessage && !frameMessage?.isValid) {

@@ -13,19 +13,22 @@ export async function getAddressForFid<
   fid,
   options = {},
 }: {
-  /** the user's Farcaster fid, found in the FrameActionPayload message `fid` */
   fid: number;
   options?: Options;
 }): Promise<AddressReturnType<Options>> {
-  const optionsOrDefaults = {
-    fallbackToCustodyAddress: options.fallbackToCustodyAddress ?? true,
-    hubHttpUrl: options.hubHttpUrl ?? "https://nemes.farcaster.xyz:2281",
-    hubRequestOptions: options.hubRequestOptions ?? {},
-  };
+  const {
+    fallbackToCustodyAddress = true,
+    hubHttpUrl = "https://api.neynar.com:2281",
+    hubRequestOptions = {
+      headers: {
+        api_key: "NEYNAR_FRAMES_JS",
+      },
+    },
+  } = options;
 
   const verificationsResponse = await fetch(
-    `${optionsOrDefaults.hubHttpUrl}/v1/verificationsByFid?fid=${fid}`,
-    optionsOrDefaults.hubRequestOptions
+    `${hubHttpUrl}/v1/verificationsByFid?fid=${fid}`,
+    hubRequestOptions
   );
   const { messages } = await verificationsResponse.json();
   if (messages[0]) {
@@ -35,7 +38,7 @@ export async function getAddressForFid<
       },
     } = messages[0];
     return address;
-  } else if (optionsOrDefaults.fallbackToCustodyAddress) {
+  } else if (fallbackToCustodyAddress) {
     const publicClient = createPublicClient({
       transport: http(),
       chain: optimism,
