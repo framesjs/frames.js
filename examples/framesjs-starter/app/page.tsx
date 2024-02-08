@@ -54,10 +54,6 @@ export default async function Home({
   // Here: do a server side side effect either sync or async (using await), such as minting an NFT if you want.
   // example: load the users credentials & check they have an NFT
 
-  // Example with satori and sharp:
-  // const imageUrl = await
-  frameMessage;
-
   console.log("info: state is:", state);
 
   if (frameMessage) {
