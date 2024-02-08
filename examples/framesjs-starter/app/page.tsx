@@ -37,8 +37,7 @@ export default async function Home({
   const previousFrame = getPreviousFrame<State>(searchParams);
 
   const frameMessage = await getFrameMessage(previousFrame.postBody, {
-    hubHttpUrl: "https://nemes.farcaster.xyz:2281",
-    fetchHubContext: true,
+    ...DEBUG_HUB_OPTIONS,
   });
 
   if (frameMessage && !frameMessage?.isValid) {

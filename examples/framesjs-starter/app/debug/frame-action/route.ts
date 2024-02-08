@@ -34,8 +34,6 @@ export async function POST(req: NextRequest) {
       url: body.untrustedData.url,
     });
 
-    console.log(frame);
-
     return Response.json({ frame, errors });
   } catch (err) {
     console.error(err);
