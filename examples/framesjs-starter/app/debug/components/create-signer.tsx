@@ -36,7 +36,9 @@ export const LoginWindow = ({
               <p>
                 <span className=" text-slate-400">
                   *Impersonation only works for testing local frames using
-                  frames.js to validate messages, as they&apos;re mocked
+                  frames.js to validate messages, as they&apos;re mocked. It
+                  uses the `cast.fid` of `1` and `cast.hash` value of
+                  `0x00...00` as the frame context in payloads.
                 </span>{" "}
               </p>
             </div>
