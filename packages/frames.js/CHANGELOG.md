@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.4.0
+
+### Minor Changes
+
+- ccd3302: feat: JSX-based frame image rendering
+
 ## 0.3.0
 
 ### Minor Changes

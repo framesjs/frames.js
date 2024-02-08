@@ -1,6 +1,6 @@
 {
   "name": "frames.js",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -68,6 +68,7 @@
   "devDependencies": {
     "typescript": "^5.2.2"
   },
+  "license": "MIT",
   "peerDependencies": {
     "next": "14.1.0",
     "react": "^18",
