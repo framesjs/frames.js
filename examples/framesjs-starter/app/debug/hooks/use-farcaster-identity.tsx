@@ -30,6 +30,15 @@ export function useFarcasterIdentity() {
       );
       if (storedData) {
         const user: FarcasterUser = JSON.parse(storedData);
+
+        if (user.status === "pending_approval") {
+          // Validate that deadline hasn't passed
+          if (user.deadline < Math.floor(Date.now() / 1000)) {
+            localStorage.removeItem(LOCAL_STORAGE_KEYS.FARCASTER_USER);
+            return null;
+          }
+        }
+
         return user;
       }
       return null;
