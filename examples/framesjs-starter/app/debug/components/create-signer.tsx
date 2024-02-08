@@ -1,7 +1,9 @@
+"use client";
+
 import QRCode from "qrcode.react";
 import { FarcasterUser } from "../types/farcaster-user";
 
-export const LoginWindow = ({
+const LoginWindow = ({
   farcasterUser,
   loading,
   startFarcasterSignerProcess,
@@ -128,3 +130,5 @@ export const LoginWindow = ({
     </div>
   );
 };
+
+export default LoginWindow;

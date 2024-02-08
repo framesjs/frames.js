@@ -124,6 +124,6 @@ export type FrameButtonMintProvidedProps = {
 
 /** See https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional */
 export type NextServerPageProps = {
-  params: { slug: string };
+  params: {};
   searchParams?: { [key: string]: string | string[] | undefined };
 };

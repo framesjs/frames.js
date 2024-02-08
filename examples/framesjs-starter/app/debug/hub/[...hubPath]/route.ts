@@ -5,7 +5,6 @@ import { sortedSearchParamsString } from "../../lib/utils";
 
 function getHubRequest(request: NextRequest, hubPath: string[]) {
   const { url, headers: originalHeaders, ...rest } = request;
-
   const newUrl = new URL(url);
 
   if (process.env.DEBUG_HUB_HTTP_URL) {

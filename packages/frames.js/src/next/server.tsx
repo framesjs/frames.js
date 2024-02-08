@@ -22,8 +22,6 @@ import {
 import {
   Dispatch,
   FrameButtonAutomatedProps,
-  FrameButtonPostProvidedProps,
-  FrameButtonPostRedirectProvidedProps,
   FrameButtonProvidedProps,
   FrameReducer,
   FrameState,
@@ -32,7 +30,7 @@ import {
   PreviousFrame,
   RedirectMap,
   RedirectHandler,
-  FrameButtonMintProvidedProps,
+  FrameButtonPostRedirectProvidedProps,
 } from "./types";
 export * from "./types";
 
@@ -302,9 +300,24 @@ export async function POST(
     return NextResponse.redirect(redirectValue, { status: 302 });
   }
 
+  console.info("frames.js: POST redirecting to ", newUrl.toString());
   // handle 'post' buttons
   return NextResponse.redirect(newUrl.toString(), { status: 302 });
 }
+
+type ChildType =
+  | React.ReactElement<
+      React.ComponentProps<typeof FrameImage>,
+      typeof FrameImage
+    >
+  | React.ReactElement<
+      React.ComponentProps<typeof FrameButton>,
+      typeof FrameButton
+    >
+  | React.ReactElement<
+      React.ComponentProps<typeof FrameInput>,
+      typeof FrameInput
+    >;
 
 /**
  * A React functional component that Wraps a Frame and processes it, validating certain properties of the Frames spec, as well as adding other props. It also generates the postUrl.
@@ -323,7 +336,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
   /** Either a relative e.g. "/frames" or an absolute path, e.g. "https://google.com/frames" */
   postUrl: string;
   /** The elements to include in the Frame */
-  children: Array<React.ReactElement<FrameElementType> | null>;
+  children: Array<ChildType | null> | ChildType;
   /** The current reducer state object, returned from useFramesReducer */
   state: T;
   previousFrame: PreviousFrame<T>;
@@ -351,7 +364,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
       {React.Children.map(children, (child) => {
         if (child === null) return;
         switch (child.type) {
-          case FrameButton:
+          case FrameButton: {
             if (!React.isValidElement<typeof FrameButton>(child)) {
               return child;
             }
@@ -361,7 +374,12 @@ export function FrameContainer<T extends FrameState = FrameState>({
             }
 
             // set redirect data for retrieval
-            if ((child.props as any).action === "post_redirect") {
+            if (
+              "action" in child.props &&
+              "target" in child.props &&
+              child.props.target &&
+              child.props.action === "post_redirect"
+            ) {
               const target =
                 (child.props as any as FrameButtonPostRedirectProvidedProps)
                   .target || null;
@@ -371,19 +389,48 @@ export function FrameContainer<T extends FrameState = FrameState>({
               redirectMap[buttonIndex] = target;
             }
 
-            return (
-              <FFrameButtonShim
-                {...(child.props as any)}
-                // Don't include target if action is post_redirect, otherwise the next message will be posted to the target url
-                target={
-                  (child.props as any as FrameButtonProvidedProps).action ===
-                  "post_redirect"
-                    ? undefined
-                    : (child.props as any as FrameButtonProvidedProps).target
-                }
-                actionIndex={nextIndexByComponentType.button++ as ActionIndex}
-              />
-            );
+            let absoluteTarget = {};
+            if (
+              "target" in child.props &&
+              child.props.target &&
+              "action" in child.props &&
+              child.props.action !== "post_redirect" // Don't include target if action is post_redirect, otherwise the next message will be posted to the target url
+            ) {
+              let newUrl = new URL(
+                child.props.target.startsWith("/")
+                  ? `${previousFrame.headers.urlWithoutPathname}${child.props.target}`
+                  : child.props.target
+              );
+              // short for pathname
+              newUrl.searchParams.set(
+                "p",
+                pathname ?? previousFrame.headers.pathname ?? "/"
+              );
+              // short for state
+              newUrl.searchParams.set("s", JSON.stringify(state));
+              // short for redirects
+              newUrl.searchParams.set("r", JSON.stringify({}));
+              absoluteTarget = {
+                target: newUrl.toString(),
+              };
+            }
+
+            if (
+              !("target" in child.props) &&
+              "action" in child.props &&
+              child.props.action === "link"
+            )
+              throw new Error("missing required target tag for action='link'");
+
+            const rewrittenProps: React.ComponentProps<
+              typeof FFrameButtonShim
+            > = {
+              ...(child.props as React.ComponentProps<typeof FrameButton>),
+              ...absoluteTarget,
+              actionIndex: nextIndexByComponentType.button++ as ActionIndex,
+            };
+            return <FFrameButtonShim {...rewrittenProps} />;
+          }
 
           case FrameInput:
             if (nextIndexByComponentType.input > 1) {
@@ -445,13 +492,13 @@ export function FrameButton(props: FrameButtonProvidedProps) {
   return null;
 }
 
-/** An internal component that handles FrameButtons that have type: 'post' */
+/** An internal component that handles FrameButtons */
 function FFrameButtonShim({
   actionIndex,
   target,
   action = "post",
   children,
-}: FrameButtonPostProvidedProps & FrameButtonAutomatedProps) {
+}: FrameButtonProvidedProps & FrameButtonAutomatedProps) {
   return (
     <>
       <meta

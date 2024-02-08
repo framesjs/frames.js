@@ -122,6 +122,42 @@ const sidebar = [
           },
         ],
       },
+      {
+        text: "frames.js/render",
+        collapsed: false,
+        items: [
+          {
+            text: "useFrame",
+            link: "/reference/render/use-frame",
+          },
+          {
+            text: "types",
+            link: "/reference/render/types",
+          },
+          {
+            text: "FrameUI",
+            link: "/reference/render/frame-ui",
+          },
+        ],
+      },
+      {
+        text: "frames.js/render/next",
+        collapsed: false,
+        items: [
+          {
+            text: "FrameImage",
+            link: "/reference/render/next/frame-image",
+          },
+          {
+            text: "POST",
+            link: "/reference/render/next/POST",
+          },
+          {
+            text: "GET",
+            link: "/reference/render/next/GET",
+          },
+        ],
+      },
     ],
   },
 ];

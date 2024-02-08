@@ -1,0 +1,54 @@
+# FrameUI
+
+## Usage
+
+```tsx [frames.js/render/types.tsx]
+import { FrameUI, fallbackFrameContext, useFrame } from 'frames.js/render';
+import { FrameImageNext } from "frames.js/render/next";
+
+
+export const Page(){
+    const frameState = useFrame({
+        homeframeUrl: "https://frames.js.org",
+        frameActionRoute: "/frames",
+        frameFetchRoute: "/frames",
+        frameContext: fallbackFrameContext,
+        authState: {
+            user: {},
+            isLoading: false,
+            isLoggedIn: false,
+            logout: () => null,
+            promptLogin: () => null,
+            signFrameAction: ({
+                buttonIndex,
+                frameContext,
+                frameButton,
+                target,
+                inputText,
+                url
+            }) => null
+        },
+    });
+
+    return (
+        <FrameUI
+            frameState={frameState}
+            theme={{}}
+        />
+    );
+}
+
+```
+
+## In order for the styles to work, your project should hae tailwind set up as well as the tailwind.config.js rule
+
+```ts
+// tailwind.config.js
+const config = {
+    // ...
+    content: [
+        "./node_modules/frames.js/dist/render/next/*.{ts,tsx,js,css}",
+        "./node_modules/frames.js/dist/render/*.{ts,tsx,js,css}",
+        // ...
+    ]
+```
