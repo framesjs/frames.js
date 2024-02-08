@@ -10,7 +10,6 @@ import {
 } from "frames.js/next/server";
 import Link from "next/link";
 import { DEBUG_HUB_OPTIONS } from "../../debug/constants";
-import { generateImage } from "./generate-image";
 
 type State = {
   saidGm: boolean;
@@ -48,8 +47,6 @@ export default async function Home({
 
   // Here: do a server side side effect either sync or async (using await), such as minting an NFT if you want.
   // example: load the users credentials & check they have an NFT
-  const image = await generateImage(frameMessage);
-
   console.log("info: state is:", state);
 
   // then, when done, return next frame
@@ -62,7 +59,32 @@ export default async function Home({
         state={state}
         previousFrame={previousFrame}
       >
-        <FrameImage src={image} />
+        <FrameImage>
+          {frameMessage ? (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              GM, {frameMessage.requesterUserData?.displayName}! Your FID is{" "}
+              {frameMessage.requesterFid}
+              {", "}
+              {frameMessage.requesterFid < 20_000
+                ? "you're OG!"
+                : "welcome to the Farcaster!"}
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              Say GM
+            </div>
+          )}
+        </FrameImage>
         {!state.saidGm ? (
           <FrameButton onClick={dispatch}>Say GM</FrameButton>
         ) : null}
