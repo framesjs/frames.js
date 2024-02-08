@@ -218,6 +218,22 @@ export function validateFrame({
     });
   if (!image) {
     addError({ message: "No image found in frame", key: "fc:frame:image" });
+  } else if (!(image?.startsWith("http://") || image?.startsWith("https://"))) {
+    // validate image data url is not an svg
+    if (
+      !(
+        image?.startsWith("data:image/png;base64,") ||
+        image?.startsWith("data:image/jpg;base64,") ||
+        image?.startsWith("data:image/jpeg;base64,") ||
+        image?.startsWith("data:image/gif;base64,")
+      )
+    ) {
+      addError({
+        message:
+          "Image has an unrecognized format. Only jpg, png and gif images are supported",
+        key: "fc:frame:image",
+      });
+    }
   }
   if (!postUrl) {
     addError({
@@ -239,23 +255,6 @@ export function validateFrame({
       message: "Input text should be max 32 bytes",
       key: "fc:frame:input:text",
     });
-  }
-  if (!(image?.startsWith("http://") || image?.startsWith("https://"))) {
-    // validate image data url is not an svg
-    if (
-      !(
-        image?.startsWith("data:image/png;base64,") ||
-        image?.startsWith("data:image/jpg;base64,") ||
-        image?.startsWith("data:image/jpeg;base64,") ||
-        image?.startsWith("data:image/gif;base64,")
-      )
-    ) {
-      addError({
-        message:
-          "Image has an unrecognized format. Only jpg, png and gif images are supported",
-        key: "fc:frame:image",
-      });
-    }
   }
 
   // Future:
