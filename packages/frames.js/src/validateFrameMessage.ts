@@ -15,8 +15,9 @@ export async function validateFrameMessage(
   isValid: boolean;
   message: FrameActionMessage | undefined;
 }> {
-  const optionsOrDefaults: HubHttpUrlOptions = {
+  const optionsOrDefaults = {
     hubHttpUrl: options?.hubHttpUrl || "https://nemes.farcaster.xyz:2281",
+    hubRequestOptions: options?.hubRequestOptions ?? {},
   };
 
   const validateMessageResponse = await fetch(
@@ -25,8 +26,10 @@ export async function validateFrameMessage(
       method: "POST",
       headers: {
         "Content-Type": "application/octet-stream",
+        ...optionsOrDefaults.hubRequestOptions.headers,
       },
       body: hexStringToUint8Array(body.trustedData.messageBytes),
+      ...optionsOrDefaults.hubRequestOptions.headers,
     }
   );
 
