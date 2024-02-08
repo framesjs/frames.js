@@ -5,6 +5,8 @@ export const LOCAL_STORAGE_KEYS = {
   FARCASTER_USER: "farcasterUser",
 };
 
+console.log(process.env);
+
 /** WARNING: This is a mock hub for development purposes only that does not verify signatures */
 export const DEBUG_HUB_OPTIONS: HubHttpUrlOptions = {
   hubHttpUrl:
