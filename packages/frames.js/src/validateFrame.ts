@@ -66,7 +66,7 @@ export function validateFrame({
 
   const buttonLabels = [1, 2, 3, 4].flatMap((el) =>
     $(
-      `meta[property^='fc:frame:button:${el}'], meta[name='fc:frame:button:${el}']`
+      `meta[property='fc:frame:button:${el}'], meta[name='fc:frame:button:${el}']`
     )
       .map((i, elem) => parseButtonElement(elem))
       .filter((i, elem) => elem !== null)
@@ -74,7 +74,7 @@ export function validateFrame({
   );
   const buttonActions = [1, 2, 3, 4].flatMap((el) =>
     $(
-      `meta[property^='fc:frame:button:${el}:action'], meta[name='fc:frame:button:${el}:action']`
+      `meta[property='fc:frame:button:${el}:action'], meta[name='fc:frame:button:${el}:action']`
     )
       .map((i, elem) => parseButtonElement(elem))
       .filter((i, elem) => elem !== null)
@@ -83,7 +83,7 @@ export function validateFrame({
 
   const buttonTargets = [1, 2, 3, 4].flatMap((el) =>
     $(
-      `meta[property^='fc:frame:button:${el}:target'], meta[name='fc:frame:button:${el}:target']`
+      `meta[property='fc:frame:button:${el}:target'], meta[name='fc:frame:button:${el}:target']`
     )
       .map((i, elem) => parseButtonElement(elem))
       .filter((i, elem) => elem !== null)
