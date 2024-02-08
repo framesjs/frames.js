@@ -141,7 +141,12 @@ export type FrameActionPayload = {
     /** the button index, starting from 1 that the user pressed to invoke this POST */
     buttonIndex: ActionIndex;
     /** the unique identifiers of the Farcaster cast, via the user who casted's `fid` and the cast `hash`, which is a unique identifier */
-    castId: { fid: number; hash: string };
+    castId: {
+      /** the fid of the Farcaster user (unique identifier) that shared the cast that included the frame */
+      fid: number;
+      /** the hash of the cast (unique identifier) that included the frame */
+      hash: string;
+    };
     /** text input by the user into any input provided, "" if requested and no input, undefined if input not requested */
     inputText?: string;
   };
@@ -151,6 +156,8 @@ export type FrameActionPayload = {
 export type HubHttpUrlOptions = {
   /** Hub HTTP REST API endpoint to use (default: https://nemes.farcaster.xyz:2281) */
   hubHttpUrl?: string;
+  /** Hub HTTP request options (use this for setting API keys) */
+  hubRequestOptions?: RequestInit;
 };
 
 /** Data extracted and parsed from the frame message body */
@@ -158,7 +165,9 @@ export type FrameActionDataParsed = {
   buttonIndex: number;
   requesterFid: number;
   castId?: {
+    /** the fid of the Farcaster user (unique identifier) that shared the cast that included the frame */
     fid: number;
+    /** the hash of the cast (unique identifier) that included the frame */
     hash: `0x${string}`;
   };
   inputText?: string;

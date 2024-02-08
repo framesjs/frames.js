@@ -43,10 +43,19 @@ export async function validateActionSignature(
   frameActionPayload: FrameActionPayload | null,
   options?: HubHttpUrlOptions
 ): Promise<FrameActionMessage | null> {
+  if (options?.hubHttpUrl) {
+    if (!options.hubHttpUrl.startsWith("http")) {
+      throw new Error(
+        `frames.js: Invalid Hub URL: ${options?.hubHttpUrl}, ensure you have included the protocol (e.g. https://)`
+      );
+    }
+  }
+
   if (!frameActionPayload) {
     // no payload means no action
     return null;
   }
+
   const { isValid, message } = await validateFrameMessage(
     frameActionPayload,
     options
@@ -67,6 +76,14 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
   frameActionPayload: FrameActionPayload | null,
   options?: T
 ): Promise<FrameMessageReturnType<T> | null> {
+  if (options?.hubHttpUrl) {
+    if (!options.hubHttpUrl.startsWith("http")) {
+      throw new Error(
+        `frames.js: Invalid Hub URL: ${options?.hubHttpUrl}, ensure you have included the protocol (e.g. https://)`
+      );
+    }
+  }
+
   if (!frameActionPayload) {
     console.log(
       "info: no frameActionPayload, this is expected for the homeframe"

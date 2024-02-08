@@ -24,7 +24,7 @@ export function getFrameHtml(
   const html = `<!DOCTYPE html>
   <html>
     <head>
-      ${options.title ? `<title>${options.title}</title>` : ""}
+      <title>${options.title ?? "frame"}</title>
       ${options.og?.title ? `<meta property="og:title" content="${options.og.title}"/>` : ""}
       ${getFrameHtmlHead(frame)}
       ${options.htmlHead || ""}

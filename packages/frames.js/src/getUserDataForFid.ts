@@ -16,10 +16,12 @@ export async function getUserDataForFid<
 }): Promise<UserDataReturnType> {
   const optionsOrDefaults = {
     hubHttpUrl: options.hubHttpUrl ?? "https://nemes.farcaster.xyz:2281",
+    hubRequestOptions: options.hubRequestOptions ?? {},
   };
 
   const userDataResponse = await fetch(
-    `${optionsOrDefaults.hubHttpUrl}/v1/userDataByFid?fid=${fid}`
+    `${optionsOrDefaults.hubHttpUrl}/v1/userDataByFid?fid=${fid}`,
+    optionsOrDefaults.hubRequestOptions
   );
 
   const { messages } = await userDataResponse.json();
