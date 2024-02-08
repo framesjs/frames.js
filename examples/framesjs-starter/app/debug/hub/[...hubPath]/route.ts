@@ -10,8 +10,8 @@ function getHubRequest(request: NextRequest, hubPath: string[]) {
   newUrl.pathname = hubPath.join("/");
 
   const headers = new Headers({
-    ...originalHeaders,
     api_key: "NEYNAR_FRAMES_JS",
+    ...originalHeaders,
   });
   headers.delete("host");
   headers.delete("referer");
