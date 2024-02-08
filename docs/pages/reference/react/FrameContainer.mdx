@@ -7,6 +7,7 @@ Renders a 'fc:frame:container'.
 - `postUrl: string` An absolute or relative url of the route that will handle the `POST` request
 - `state: State` the state returned from `useFramesReducer`
 - `previousFrame?: PreviousFrame` the previous frame from the return of `getPreviousFrame`
+- `pathname?: string` the path of the page that the frame is being rendered on (default: '/')
 
 A FrameContainer must:
 - have a `<FrameImage/>` child

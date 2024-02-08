@@ -279,7 +279,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
   postUrl,
   children,
   state,
-  pathname = "",
+  pathname,
   previousFrame,
 }: {
   /** Either a relative e.g. "/frames" or an absolute path, e.g. "https://google.com/frames" */
@@ -288,9 +288,15 @@ export function FrameContainer<T extends FrameState = FrameState>({
   children: Array<React.ReactElement<FrameElementType> | null>;
   /** The current reducer state object, returned from useFramesReducer */
   state: T;
-  pathname?: string;
   previousFrame: PreviousFrame<T>;
+  /** The absolute or relative path of the page that this frame is on, relative to root (/), defaults to (/) */
+  pathname?: string;
 }) {
+  if (!pathname)
+    console.warn(
+      "frames.js: info: You have not specified a `pathname` prop on your <FrameContainer>. This is not recommended, as it will default to the root path and not work if your frame is being rendered at a different path. Please specify a `pathname` prop on your <FrameContainer>."
+    );
+
   const nextIndexByComponentType: Record<
     "button" | "image" | "input",
     ActionIndex
