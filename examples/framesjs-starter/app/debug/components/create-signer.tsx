@@ -60,6 +60,7 @@ export const LoginWindow = ({
                   style={{
                     cursor: loading ? "not-allowed" : "pointer",
                   }}
+                  className="underline"
                   type="submit"
                   disabled={loading}
                 >
@@ -80,6 +81,7 @@ export const LoginWindow = ({
                   style={{
                     cursor: loading ? "not-allowed" : "pointer",
                   }}
+                  className="underline"
                   type="submit"
                   disabled={loading}
                 >
@@ -93,6 +95,7 @@ export const LoginWindow = ({
                 style={{
                   cursor: loading ? "not-allowed" : "pointer",
                 }}
+                className="underline"
                 onClick={startFarcasterSignerProcess}
                 disabled={loading}
               >
@@ -111,6 +114,7 @@ export const LoginWindow = ({
                 <a
                   href={farcasterUser.signerApprovalUrl}
                   target="_blank"
+                  className="underline"
                   rel="noopener noreferrer"
                 >
                   <button>open url</button>

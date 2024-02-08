@@ -39,6 +39,15 @@ export function validateFrame({
     }
   }
 
+  const pageTitle = $("title").text();
+  if (pageTitle === undefined) {
+    // This should probably be a warning instead of an error. would help
+    addError({
+      message: `A <title> tag is required in order for your frames to work in Warpcast`,
+      key: `<title>`,
+    });
+  }
+
   const version = $("meta[property='fc:frame'], meta[name='fc:frame']").attr(
     "content"
   );
