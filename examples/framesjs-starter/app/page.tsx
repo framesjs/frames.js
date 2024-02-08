@@ -37,7 +37,7 @@ export default async function Home({
   const previousFrame = getPreviousFrame<State>(searchParams);
 
   const frameMessage = await getFrameMessage(previousFrame.postBody, {
-    ...DEBUG_HUB_OPTIONS,
+    hubHttpUrl: "https://nemes.farcaster.xyz:2281",
     fetchHubContext: true,
   });
 
@@ -53,10 +53,6 @@ export default async function Home({
 
   // Here: do a server side side effect either sync or async (using await), such as minting an NFT if you want.
   // example: load the users credentials & check they have an NFT
-
-  // Example with satori and sharp:
-  // const imageUrl = await
-  frameMessage;
 
   console.log("info: state is:", state);
 

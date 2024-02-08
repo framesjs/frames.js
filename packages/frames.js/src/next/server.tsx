@@ -43,10 +43,19 @@ export async function validateActionSignature(
   frameActionPayload: FrameActionPayload | null,
   options?: HubHttpUrlOptions
 ): Promise<FrameActionMessage | null> {
+  if (options?.hubHttpUrl) {
+    if (!options.hubHttpUrl.startsWith("http")) {
+      throw new Error(
+        `frames.js: Invalid Hub URL: ${options?.hubHttpUrl}, ensure you have included the protocol (e.g. https://)`
+      );
+    }
+  }
+
   if (!frameActionPayload) {
     // no payload means no action
     return null;
   }
+
   const { isValid, message } = await validateFrameMessage(
     frameActionPayload,
     options
@@ -67,6 +76,14 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
   frameActionPayload: FrameActionPayload | null,
   options?: T
 ): Promise<FrameMessageReturnType<T> | null> {
+  if (options?.hubHttpUrl) {
+    if (!options.hubHttpUrl.startsWith("http")) {
+      throw new Error(
+        `frames.js: Invalid Hub URL: ${options?.hubHttpUrl}, ensure you have included the protocol (e.g. https://)`
+      );
+    }
+  }
+
   if (!frameActionPayload) {
     console.log(
       "info: no frameActionPayload, this is expected for the homeframe"
@@ -279,7 +296,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
   postUrl,
   children,
   state,
-  pathname = "",
+  pathname,
   previousFrame,
 }: {
   /** Either a relative e.g. "/frames" or an absolute path, e.g. "https://google.com/frames" */
@@ -288,9 +305,15 @@ export function FrameContainer<T extends FrameState = FrameState>({
   children: Array<React.ReactElement<FrameElementType> | null>;
   /** The current reducer state object, returned from useFramesReducer */
   state: T;
-  pathname?: string;
   previousFrame: PreviousFrame<T>;
+  /** The absolute or relative path of the page that this frame is on, relative to root (/), defaults to (/) */
+  pathname?: string;
 }) {
+  if (!pathname)
+    console.warn(
+      "frames.js: warning: You have not specified a `pathname` prop on your <FrameContainer>. This is not recommended, as it will default to the root path and not work if your frame is being rendered at a different path. Please specify a `pathname` prop on your <FrameContainer>."
+    );
+
   const nextIndexByComponentType: Record<
     "button" | "image" | "input",
     ActionIndex

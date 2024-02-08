@@ -30,6 +30,7 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
   const optionsOrDefaults = {
     fetchHubContext: options?.fetchHubContext ?? true,
     hubHttpUrl: options?.hubHttpUrl || "https://nemes.farcaster.xyz:2281",
+    hubRequestOptions: options?.hubRequestOptions || {},
   };
 
   const decodedMessage = Message.decode(
@@ -66,29 +67,36 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
     ] = await Promise.all([
       validateFrameMessage(payload, {
         hubHttpUrl: optionsOrDefaults.hubHttpUrl,
+        hubRequestOptions: optionsOrDefaults.hubRequestOptions,
       }),
       fetch(
-        `${optionsOrDefaults.hubHttpUrl}/v1/linkById?fid=${requesterFid}&target_fid=${castId?.fid}&link_type=follow`
+        `${optionsOrDefaults.hubHttpUrl}/v1/linkById?fid=${requesterFid}&target_fid=${castId?.fid}&link_type=follow`,
+        optionsOrDefaults.hubRequestOptions
       ).then((res) => res.ok || requesterFid === castId?.fid),
       fetch(
-        `${optionsOrDefaults.hubHttpUrl}/v1/linkById?fid=${castId?.fid}&target_fid=${requesterFid}&link_type=follow`
+        `${optionsOrDefaults.hubHttpUrl}/v1/linkById?fid=${castId?.fid}&target_fid=${requesterFid}&link_type=follow`,
+        optionsOrDefaults.hubRequestOptions
       ).then((res) => res.ok || requesterFid === castId?.fid),
       fetch(
-        `${optionsOrDefaults.hubHttpUrl}/v1/reactionById?fid=${requesterFid}&reaction_type=1&target_fid=${castId?.fid}&target_hash=${castId?.hash}`
+        `${optionsOrDefaults.hubHttpUrl}/v1/reactionById?fid=${requesterFid}&reaction_type=1&target_fid=${castId?.fid}&target_hash=${castId?.hash}`,
+        optionsOrDefaults.hubRequestOptions
       ).then((res) => res.ok),
       fetch(
-        `${optionsOrDefaults.hubHttpUrl}/v1/reactionById?fid=${requesterFid}&reaction_type=2&target_fid=${castId?.fid}&target_hash=${castId?.hash}`
+        `${optionsOrDefaults.hubHttpUrl}/v1/reactionById?fid=${requesterFid}&reaction_type=2&target_fid=${castId?.fid}&target_hash=${castId?.hash}`,
+        optionsOrDefaults.hubRequestOptions
       ).then((res) => res.ok),
       getAddressForFid({
         fid: requesterFid,
         options: {
           hubHttpUrl: optionsOrDefaults.hubHttpUrl,
+          hubRequestOptions: optionsOrDefaults.hubRequestOptions,
         },
       }),
       getUserDataForFid({
         fid: requesterFid,
         options: {
           hubHttpUrl: optionsOrDefaults.hubHttpUrl,
+          hubRequestOptions: optionsOrDefaults.hubRequestOptions,
         },
       }),
     ]);
