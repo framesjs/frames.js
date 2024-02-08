@@ -151,6 +151,8 @@ export type FrameActionPayload = {
 export type HubHttpUrlOptions = {
   /** Hub HTTP REST API endpoint to use (default: https://nemes.farcaster.xyz:2281) */
   hubHttpUrl?: string;
+  /** Hub HTTP request options (use this for setting API keys) */
+  hubRequestOptions?: RequestInit;
 };
 
 /** Data extracted and parsed from the frame message body */

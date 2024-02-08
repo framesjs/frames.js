@@ -20,10 +20,12 @@ export async function getAddressForFid<
   const optionsOrDefaults = {
     fallbackToCustodyAddress: options.fallbackToCustodyAddress ?? true,
     hubHttpUrl: options.hubHttpUrl ?? "https://nemes.farcaster.xyz:2281",
+    hubRequestOptions: options.hubRequestOptions ?? {},
   };
 
   const verificationsResponse = await fetch(
-    `${optionsOrDefaults.hubHttpUrl}/v1/verificationsByFid?fid=${fid}`
+    `${optionsOrDefaults.hubHttpUrl}/v1/verificationsByFid?fid=${fid}`,
+    optionsOrDefaults.hubRequestOptions
   );
   const { messages } = await verificationsResponse.json();
   if (messages[0]) {
