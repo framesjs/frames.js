@@ -294,7 +294,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
 }) {
   if (!pathname)
     console.warn(
-      "frames.js: info: You have not specified a `pathname` prop on your <FrameContainer>. This is not recommended, as it will default to the root path and not work if your frame is being rendered at a different path. Please specify a `pathname` prop on your <FrameContainer>."
+      "frames.js: warning: You have not specified a `pathname` prop on your <FrameContainer>. This is not recommended, as it will default to the root path and not work if your frame is being rendered at a different path. Please specify a `pathname` prop on your <FrameContainer>."
     );
 
   const nextIndexByComponentType: Record<
