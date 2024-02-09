@@ -1,8 +1,6 @@
 type FrameVersion = "vNext" | `${number}-${number}-${number}`;
 
-// type CAIP2ChainId = string;
-// export type CAIP10Address = `${CAIP2ChainId}:${string}`;
-// export type FrameButtonTarget = CAIP10Address | `${CAIP10Address}:${number}`
+export type ImageAspectRatio = "1.91:1" | "1:1";
 
 /** A developer friendly representation of a Frame */
 export type Frame = {
@@ -12,9 +10,11 @@ export type Frame = {
   postUrl: string;
   /** A page may contain 0 to 4 buttons. If more than 1 button is present, the idx values must be in sequence starting from 1 (e.g. 1, 2 3). If a broken sequence is present (e.g 1, 2, 4), apps must not render the frame and instead render an OG embed. */
   buttons?: FrameButtonsType;
-  /** An image which must be smaller than 10MB and should have an aspect ratio of 1.91:1 */
+  /** An image which should have an aspect ratio of 1.91:1 or 1:1 */
   image: string;
-  /** An image which must be smaller than 10MB and should have an aspect ratio of 1.91:1. Fallback for clients that do not support frames. */
+  /** Must be either `1.91:1` or `1:1`. Defaults to `1.91:1` */
+  imageAspectRatio?: ImageAspectRatio;
+  /** An image which should have an aspect ratio of 1.91:1. Fallback for clients that do not support frames. */
   ogImage?: string;
   /** Adding this property enables the text field. The content is a 32-byte label that is shown to the user (e.g. Enter a message). */
   inputText?: string;
@@ -24,6 +24,7 @@ export type Frame = {
 export const frameErrorKeys = [
   "fc:frame",
   "fc:frame:image",
+  "fc:frame:image:aspect_ratio",
   "fc:frame:post_url",
   "fc:frame:input:text",
   "fc:frame:button:1",
@@ -42,6 +43,7 @@ export type ActionButtonType = "post" | "post_redirect" | "link";
 export type FrameFlattened = {
   "fc:frame": FrameVersion;
   "fc:frame:image": string;
+  "fc:frame:image:aspect_ratio"?: string;
   "fc:frame:post_url": string;
   "fc:frame:button:1"?: string;
   "fc:frame:button:1:action"?: ActionButtonType;

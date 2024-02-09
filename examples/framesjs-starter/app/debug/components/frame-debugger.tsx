@@ -34,15 +34,6 @@ export function FrameDebugger({
         <div className="p-4 h-full">
           <h3 className="font-bold">Frame Validations</h3>
           <div className="min-w-[400px]">
-            <div style={{ display: "flex", flexDirection: "row", gap: "8px" }}>
-              <div>🔶</div>
-              <div className="text-slate-600">Mint</div>
-              <div className="font-bold text-red-800">
-                {" "}
-                This version of frames.js includes Mint. Mint is a spec and may
-                not be supported in clients yet
-              </div>
-            </div>
             {framePerformanceInSeconds ? (
               <div
                 style={{ display: "flex", flexDirection: "row", gap: "8px" }}

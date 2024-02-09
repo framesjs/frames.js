@@ -9,7 +9,12 @@ import {
   validateFrameMessage,
   getFrameMessage as _getFrameMessage,
 } from "..";
-import { ActionIndex, FrameActionPayload, HubHttpUrlOptions } from "../types";
+import {
+  ActionIndex,
+  FrameActionPayload,
+  HubHttpUrlOptions,
+  ImageAspectRatio,
+} from "../types";
 // Todo: this isn't respecting the use client directive
 import { FrameButtonRedirectUI, FrameButtonUI } from "./client";
 import {
@@ -531,7 +536,10 @@ export function FrameInput({ text }: { text: string }) {
 
 /** Render a 'fc:frame:image', must be used inside a <FrameContainer> */
 export async function FrameImage(
-  props:
+  props: {
+    /** 'fc:frame:aspect_ratio' (defaults to 1:91) */
+    aspectRatio?: ImageAspectRatio;
+  } & (
     | {
         src: string;
       }
@@ -540,10 +548,24 @@ export async function FrameImage(
         children: React.ReactNode;
         options?: SatoriOptions;
       }
+  )
 ) {
   let imgSrc: string;
 
   if ("children" in props) {
+    const imageOptions = {
+      ...(props.aspectRatio === "1:1"
+        ? {
+            width: 1146,
+            height: 1146,
+          }
+        : {
+            width: 1146,
+            height: 600,
+          }),
+      ...(props.options ?? {}),
+    };
+
     const imageResponse = new ImageResponse(
       (
         <div
@@ -573,11 +595,7 @@ export async function FrameImage(
           </div>
         </div>
       ),
-      {
-        width: 1146,
-        height: 600,
-        ...(props.options ?? {}),
-      }
+      imageOptions
     );
     const imgBuffer = await imageResponse?.arrayBuffer();
     imgSrc = `data:image/png;base64,${Buffer.from(imgBuffer).toString("base64")}`;
@@ -590,6 +608,12 @@ export async function FrameImage(
       {process.env.SHOW_UI ? <img src={imgSrc} /> : null}
       <meta name="fc:frame:image" content={imgSrc} />
       <meta property="og:image" content={imgSrc} />
+      {props.aspectRatio && (
+        <meta
+          name="fc:frame:image:aspect_ratio"
+          content={props.aspectRatio}
+        ></meta>
+      )}
     </>
   );
 }
