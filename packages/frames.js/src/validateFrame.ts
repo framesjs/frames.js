@@ -1,5 +1,11 @@
 import * as cheerio from "cheerio";
-import { FrameButton, FrameButtonsType, Frame, ErrorKeys } from "./types";
+import {
+  FrameButton,
+  FrameButtonsType,
+  Frame,
+  ErrorKeys,
+  ImageAspectRatio,
+} from "./types";
 import {
   getByteLength,
   isFrameButtonLink,
@@ -281,7 +287,7 @@ export function validateFrame({
     frame: {
       version: version as "vNext" | `${number}-${number}-${number}`,
       image: image!,
-      imageAspectRatio: imageAspectRatio as "1.91:1" | "1:1",
+      imageAspectRatio: imageAspectRatio as ImageAspectRatio,
       buttons: buttonsWithActions as FrameButtonsType,
       postUrl,
       inputText,
