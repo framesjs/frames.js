@@ -25,9 +25,10 @@ export function FrameRender({
       <img
         src={frame.image}
         alt="Description of the image"
-        width={382}
         style={{ borderRadius: "4px", border: "1px solid #ccc" }}
-        height={200}
+        {...((frame.imageAspectRatio ?? "1.91:1") === "1:1"
+          ? { width: 382, height: 382 }
+          : { height: 200, width: 382 })}
       />
       {frame.inputText && (
         <input
