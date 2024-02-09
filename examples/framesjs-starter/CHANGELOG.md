@@ -1,5 +1,14 @@
 # framesjs-starter
 
+## 0.1.9
+
+### Patch Changes
+
+- d861fb9: fix: url validation and smoother navigation
+- Updated dependencies [e54b9ad]
+- Updated dependencies [a09c555]
+  - frames.js@0.4.3
+
 ## 0.1.8
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # frames.js
 
+## 0.4.3
+
+### Patch Changes
+
+- e54b9ad: add meta frame.imageAspectRatio to getFrameHtmlHead fn in getFrameHtml.ts
+- a09c555: fix bug with validateFrameMessage
+
 ## 0.4.2
 
 ### Patch Changes
