@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.4.2
+
+### Patch Changes
+
+- ccb8317: feat: support for `fc:frame:image:aspect_ratio`
+
 ## 0.4.1
 
 ### Patch Changes
