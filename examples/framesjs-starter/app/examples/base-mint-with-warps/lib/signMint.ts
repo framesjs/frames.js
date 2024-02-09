@@ -35,8 +35,6 @@ interface MintData {
 async function signMintData(mintData: MintData): Promise<Hex> {
   const account = privateKeyToAccount(SIGNER_PRIVATE_KEY);
 
-  console.log({ mintData, domain, types, account });
-
   return account.signTypedData({
     domain,
     types,

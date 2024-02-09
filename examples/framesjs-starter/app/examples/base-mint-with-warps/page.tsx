@@ -1,8 +1,5 @@
 import { FrameActionMessage, Message } from "@farcaster/core";
 import {
-  FrameButton,
-  FrameContainer,
-  FrameImage,
   FrameReducer,
   NextServerPageProps,
   getFrameMessage,
@@ -10,17 +7,14 @@ import {
   useFramesReducer,
 } from "frames.js/next/server";
 import type { Metadata } from "next";
-import React from "react";
-import { Card } from "./components/Card";
-import { NEXT_PUBLIC_URL } from "./config";
+import { DEBUG_HUB_OPTIONS } from "../../debug/constants";
 import { getCollection } from "./lib/collection";
-import { Page, State } from "./lib/types";
+import { State } from "./lib/types";
+import { CheckPage } from "./pages/check";
 import { ConfirmPage } from "./pages/confirm";
 import { InitialPage } from "./pages/initial";
 import { RelayPage } from "./pages/relay";
 import { StartPage } from "./pages/start";
-import { CheckPage } from "./pages/check";
-import { DEBUG_HUB_OPTIONS } from "../../debug/constants";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { name } = await getCollection();
@@ -28,11 +22,6 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: name,
     description: "Check if you're eligible for a free mint",
-    openGraph: {
-      title: name,
-      description: "Check if you're eligible for a free mint",
-      images: [`${NEXT_PUBLIC_URL}/api/images/start`],
-    },
   };
 }
 
@@ -74,10 +63,7 @@ const reducer: FrameReducer<State> = (state, action) => {
   return nextState;
 };
 
-export default async function Page({
-  params,
-  searchParams,
-}: NextServerPageProps) {
+export default async function Page({ searchParams }: NextServerPageProps) {
   const previousFrame = getPreviousFrame<State>(searchParams);
 
   const frameMessage = await getFrameMessage(previousFrame.postBody, {
@@ -148,7 +134,7 @@ export default async function Page({
           </a>
           <div className="text-xs text-stone-400 hover:underline tracking-tighter text-center">
             <a
-              href="https://github.com/horsefacts/base-mint-with-warps"
+              href="https://github.com/framesjs/frames.js/tree/main/examples/framesjs-starter/app/examples/base-mint-with-warps"
               target="_blank"
             >
               See code on Github
