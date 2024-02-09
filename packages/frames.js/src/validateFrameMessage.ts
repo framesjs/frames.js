@@ -38,17 +38,17 @@ export async function validateFrameMessage(
 
   const validateMessageJson = await validateMessageResponse.json();
 
-  if (!validateMessageJson.valid) {
-    return {
-      isValid: false,
-      message: undefined,
-    };
-  } else {
+  if (validateMessageJson.valid) {
     return {
       isValid: true,
       message: Message.fromJSON(
         validateMessageJson.message
       ) as FrameActionMessage,
+    };
+  } else {
+    return {
+      isValid: false,
+      message: undefined,
     };
   }
 }
