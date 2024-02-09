@@ -4,9 +4,6 @@ describe("getUserDataForFid", () => {
   it("should get latest user data for fid", async () => {
     const fid = 1214;
     const userData = await getUserDataForFid({ fid });
-
-    console.log(userData);
-
     expect(userData).not.toBe(null);
   });
 

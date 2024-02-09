@@ -115,6 +115,52 @@ describe("getFrame", () => {
     });
   });
 
+  it("should accept valid aspect ratio", () => {
+    const html = `
+    <meta name="fc:frame" content="vNext"/>
+    <meta name="fc:frame:post_url" content="https://example.com"/>
+    <meta name="fc:frame:image" content="http:/example.com/image.png"/>
+    <meta name="fc:frame:image:aspect_ratio" content="1:91"/>
+    `;
+    const { frame } = getFrame({
+      htmlString: html,
+      url: "https://example.com",
+    });
+
+    expect(frame?.imageAspectRatio).toEqual("1:91");
+
+    const html2 = `
+    <meta name="fc:frame" content="vNext"/>
+    <meta name="fc:frame:post_url" content="https://example.com"/>
+    <meta name="fc:frame:image" content="http:/example.com/image.png"/>
+    <meta name="fc:frame:image:aspect_ratio" content="1:1"/>
+    `;
+
+    const { frame: frame2 } = getFrame({
+      htmlString: html2,
+      url: "https://example.com",
+    });
+
+    expect(frame2?.imageAspectRatio).toEqual("1:1");
+  });
+
+  it("should reject invalid aspect ratio", () => {
+    const html = `
+    <meta name="fc:frame" content="vNext"/>
+    <meta name="fc:frame:post_url" content="https://example.com"/>
+    <meta name="fc:frame:image" content="http://example.com/image.png"/>
+    <meta name="fc:frame:image:aspect_ratio" content="1:2"/>
+    `;
+    const { errors } = getFrame({
+      htmlString: html,
+      url: "https://example.com",
+    });
+
+    expect(errors?.["fc:frame:image:aspect_ratio"]).toEqual([
+      "Invalid image aspect ratio",
+    ]);
+  });
+
   it("should convert a Farcaster Frame HTML into a Frame object", () => {
     const exampleFrame: Frame = {
       version: "vNext",
@@ -145,8 +191,6 @@ describe("getFrame", () => {
     };
 
     const html = getFrameHtml(exampleFrame);
-
-    console.log(html);
 
     const parsedFrame = getFrame({
       htmlString: html,

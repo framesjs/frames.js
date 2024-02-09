@@ -54,6 +54,9 @@ export function validateFrame({
   const image = $(
     "meta[property='fc:frame:image'], meta[name='fc:frame:image']"
   ).attr("content");
+  const imageAspectRatio = $(
+    "meta[property='fc:frame:image:aspect_ratio'], meta[name='fc:frame:image:aspect_ratio']"
+  ).attr("content");
 
   const postUrl =
     $(
@@ -235,6 +238,18 @@ export function validateFrame({
       });
     }
   }
+
+  if (
+    imageAspectRatio &&
+    imageAspectRatio !== "1.91:1" &&
+    imageAspectRatio !== "1:1"
+  ) {
+    addError({
+      message: "Invalid image aspect ratio",
+      key: "fc:frame:image:aspect_ratio",
+    });
+  }
+
   if (!postUrl) {
     addError({
       message: "No post_url in frame",
@@ -266,6 +281,7 @@ export function validateFrame({
     frame: {
       version: version as "vNext" | `${number}-${number}-${number}`,
       image: image!,
+      imageAspectRatio: imageAspectRatio as "1.91:1" | "1:1",
       buttons: buttonsWithActions as FrameButtonsType,
       postUrl,
       inputText,
