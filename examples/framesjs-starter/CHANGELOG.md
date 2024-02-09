@@ -1,5 +1,13 @@
 # framesjs-starter
 
+## 0.1.8
+
+### Patch Changes
+
+- 2150e11: chore(debugger): remove mint spec warning
+- Updated dependencies [ccb8317]
+  - frames.js@0.4.2
+
 ## 0.1.7
 
 ### Patch Changes
