@@ -8,6 +8,8 @@ import { FrameRender } from "./components/frame-render";
 import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
 import { createFrameActionMessageWithSignerKey } from "./lib/farcaster";
 import { FrameDebugger } from "./components/frame-debugger";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -23,6 +25,7 @@ export default function Page({
     logout,
     impersonateUser,
   } = useFarcasterIdentity();
+  const router = useRouter();
   const url = searchParams.url;
   const [urlInput, setUrlInput] = useState(
     process.env.NEXT_PUBLIC_HOST || "http://localhost:3000"
@@ -36,10 +39,9 @@ export default function Page({
   >(null);
 
   // Load initial frame
-  const { data, error, isLoading } = useSWR<ReturnType<typeof getFrame>>(
-    url ? `/debug/og?url=${url}` : null,
-    fetcher
-  );
+  const { data, error, isLoading, mutate } = useSWR<
+    ReturnType<typeof getFrame>
+  >(url ? `/debug/og?url=${url}` : null, fetcher);
 
   // todo this is kinda nasty
   useEffect(() => {
@@ -142,7 +144,15 @@ export default function Page({
   if (isLoading) return <div>Loading...</div>;
   if (url && !currentFrame?.frame)
     return (
-      <div>Something is wrong, couldn&apos;t fetch frame from {url}...</div>
+      <div>
+        Something is wrong, couldn&apos;t fetch frame from {url}...{" "}
+        {!(url.startsWith("http://") || url.startsWith("https://"))
+          ? "URL must start with http:// or https://"
+          : ""}{" "}
+        <Link href="/debug" className="underline block">
+          Go back
+        </Link>
+      </div>
     );
 
   const baseUrl = process.env.NEXT_PUBLIC_HOST || "http://localhost:3000";
@@ -157,7 +167,17 @@ export default function Page({
               className="flex flex-row"
               onSubmit={(e) => {
                 e.preventDefault();
-                window.location.href = `?url=${urlInput}`;
+                console.log("urlInput", urlInput);
+                if (
+                  !(
+                    urlInput.startsWith("http://") ||
+                    urlInput.startsWith("https://")
+                  )
+                ) {
+                  alert("URL must start with http:// or https://");
+                  return;
+                }
+                router.push(`?url=${encodeURIComponent(urlInput)}`);
               }}
             >
               <input
@@ -179,7 +199,7 @@ export default function Page({
               className="underline"
               onClick={(e) => {
                 e.preventDefault();
-                window.location.href = `?url=${baseUrl}`;
+                router.push(`?url=${baseUrl}`);
               }}
             >
               Home
@@ -188,7 +208,7 @@ export default function Page({
               className="underline"
               onClick={(e) => {
                 e.preventDefault();
-                window.location.href = `?url=${baseUrl}/examples/user-data`;
+                router.push(`?url=${baseUrl}/examples/user-data`);
               }}
             >
               User data
@@ -197,7 +217,7 @@ export default function Page({
               className="underline"
               onClick={(e) => {
                 e.preventDefault();
-                window.location.href = `?url=${baseUrl}/examples/custom-redirects`;
+                router.push(`?url=${baseUrl}/examples/custom-redirects`);
               }}
             >
               Custom Redirects
