@@ -54,11 +54,6 @@
       "import": "./dist/validateFrameMessage.js",
       "types": "./dist/validateFrameMessage.d.ts"
     },
-    "./next/client": {
-      "require": "./dist/next/client.js",
-      "import": "./dist/next/client.js",
-      "types": "./dist/next/client.d.ts"
-    },
     "./next/server": {
       "require": "./dist/next/server.js",
       "import": "./dist/next/server.js",

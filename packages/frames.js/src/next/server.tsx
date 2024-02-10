@@ -438,7 +438,6 @@ function FFrameButtonShim({
 export function FrameInput({ text }: { text: string }) {
   return (
     <>
-      {process.env.SHOW_UI ? <input type="text" placeholder={text} /> : null}
       <meta name="fc:frame:input:text" content={text} />
     </>
   );
@@ -515,7 +514,6 @@ export async function FrameImage(
 
   return (
     <>
-      {process.env.SHOW_UI ? <img src={imgSrc} /> : null}
       <meta name="fc:frame:image" content={imgSrc} />
       <meta property="og:image" content={imgSrc} />
       {props.aspectRatio && (
