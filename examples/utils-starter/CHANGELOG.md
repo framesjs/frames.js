@@ -1,5 +1,12 @@
 # utils-starter
 
+## 1.0.4
+
+### Patch Changes
+
+- Updated dependencies [40d2662]
+  - frames.js@0.5.0
+
 ## 1.0.3
 
 ### Patch Changes
