@@ -28,7 +28,7 @@ export default function Page({
   const router = useRouter();
   const url = searchParams.url;
   const [urlInput, setUrlInput] = useState(
-    process.env.NEXT_PUBLIC_HOST || "http://localhost:3000"
+    url || process.env.NEXT_PUBLIC_HOST || "http://localhost:3000"
   );
 
   const [currentFrame, setCurrentFrame] = useState<
@@ -189,7 +189,7 @@ export default function Page({
               <input
                 type="text"
                 name="url"
-                className="w-[300px] px-2 py-1 border border-gray-400 rounded-l"
+                className="w-[400px] px-2 py-1 border border-gray-400 rounded-l"
                 value={urlInput}
                 onChange={(e) => {
                   setUrlInput(e.target.value);
