@@ -15,49 +15,49 @@
   },
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "require": "./dist/index.js",
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "import": "./dist/index.mjs"
     },
     "./getFrame": {
+      "types": "./dist/getFrame.d.ts",
       "require": "./dist/getFrame.js",
-      "import": "./dist/getFrame.js",
-      "types": "./dist/getFrame.d.ts"
+      "import": "./dist/getFrame.mjs"
     },
     "./getFrameFlattened": {
+      "types": "./dist/getFrameFlattened.d.ts",
       "require": "./dist/getFrameFlattened.js",
-      "import": "./dist/getFrameFlattened.js",
-      "types": "./dist/getFrameFlattened.d.ts"
+      "import": "./dist/getFrameFlattened.mjs"
     },
     "./getFrameHtml": {
+      "types": "./dist/getFrameHtml.d.ts",
       "require": "./dist/getFrameHtml.js",
-      "import": "./dist/getFrameHtml.js",
-      "types": "./dist/getFrameHtml.d.ts"
+      "import": "./dist/getFrameHtml.mjs"
     },
     "./getFrameMessage": {
+      "types": "./dist/getFrameMessage.d.ts",
       "require": "./dist/getFrameMessage.js",
-      "import": "./dist/getFrameMessage.js",
-      "types": "./dist/getFrameMessage.d.ts"
+      "import": "./dist/getFrameMessage.mjs"
     },
     "./getTokenUrl": {
+      "types": "./dist/getTokenUrl.d.ts",
       "require": "./dist/getTokenUrl.js",
-      "import": "./dist/getTokenUrl.js",
-      "types": "./dist/getTokenUrl.d.ts"
+      "import": "./dist/getTokenUrl.mjs"
     },
     "./getTokenFromUrl": {
+      "types": "./dist/getTokenFromUrl.d.ts",
       "require": "./dist/getTokenFromUrl.js",
-      "import": "./dist/getTokenFromUrl.js",
-      "types": "./dist/getTokenFromUrl.d.ts"
+      "import": "./dist/getTokenFromUrl.mjs"
     },
     "./validateFrameMessage": {
+      "types": "./dist/validateFrameMessage.d.ts",
       "require": "./dist/validateFrameMessage.js",
-      "import": "./dist/validateFrameMessage.js",
-      "types": "./dist/validateFrameMessage.d.ts"
+      "import": "./dist/validateFrameMessage.mjs"
     },
     "./next/server": {
+      "types": "./dist/next/server.d.ts",
       "require": "./dist/next/server.js",
-      "import": "./dist/next/server.js",
-      "types": "./dist/next/server.d.ts"
+      "import": "./dist/next/server.mjs"
     }
   },
   "devDependencies": {
