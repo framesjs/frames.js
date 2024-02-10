@@ -71,7 +71,7 @@
     "react-dom": "^18.2.0"
   },
   "dependencies": {
-    "@farcaster/core": "^0.13.7",
+    "@farcaster/core": "^0.14.0",
     "@vercel/og": "^0.6.2",
     "cheerio": "^1.0.0-rc.12",
     "viem": "^2.7.1"
