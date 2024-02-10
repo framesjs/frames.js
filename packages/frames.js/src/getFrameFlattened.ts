@@ -14,6 +14,9 @@ export function getFrameFlattened(frame: Frame): FrameFlattened {
     ...frame.buttons?.reduce(
       (acc, button, index) => ({
         ...acc,
+        ...(frame.imageAspectRatio
+          ? { [`fc:frame:image:aspect_ratio`]: frame.imageAspectRatio }
+          : {}),
         [`fc:frame:button:${index + 1}`]: button.label,
         [`fc:frame:button:${index + 1}:action`]: button.action,
         [`fc:frame:button:${index + 1}:target`]: button.target,
