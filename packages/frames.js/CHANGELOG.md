@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.4.4
+
+### Patch Changes
+
+- b174138: Fix getFrameFlattened meta tags
+
 ## 0.4.3
 
 ### Patch Changes
