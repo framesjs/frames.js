@@ -84,9 +84,7 @@ export default async function Home({
             </div>
           )}
         </FrameImage>
-        {!state.saidGm ? (
-          <FrameButton onClick={dispatch}>Say GM</FrameButton>
-        ) : null}
+        {!state.saidGm ? <FrameButton>Say GM</FrameButton> : null}
       </FrameContainer>
     </div>
   );

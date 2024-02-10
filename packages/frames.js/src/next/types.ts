@@ -84,10 +84,9 @@ export type FrameButtonProvidedProps = (
   | FrameButtonPostRedirectProvidedProps
   | FrameButtonPostProvidedProps
   | FrameButtonMintProvidedProps
+  | FrameButtonLinkProvidedProps
 ) & {
-  /** defaults to false */
-  redirect?: boolean;
-  /** defaults to inferring from the props, falls back to link over post_redirect */
+  /** defaults to post */
   action?: "post" | "link" | "mint" | "post_redirect";
 };
 
@@ -95,24 +94,32 @@ export type FrameButtonPostProvidedProps = {
   /** a label to display on the button */
   children: string | number;
   action?: "post";
-  /** does nothing at the moment */
-  onClick: Dispatch;
+  /** an absolute url to post to. If not defined */
+  target?: string;
+};
+
+export type FrameButtonLinkProvidedProps = {
+  /** a label to display on the button */
+  children: string | number;
+  action: "link";
+  /** an absolute url to redirect users to */
+  target?: string;
 };
 
 export type FrameButtonPostRedirectProvidedProps = {
-  /** an absolute url to redirect users to. If not defined, specify prop redirect, and you must handle the POST redirects yourself, or provide a second argument to the `POST` function exported for nextjs */
-  href?: string;
-  action?: "post_redirect" | "link";
   /** a label to display on the button */
   children: string | number;
+  action: "post_redirect";
+  /** an absolute url to redirect users to */
+  target?: string;
 };
 
 export type FrameButtonMintProvidedProps = {
   /** a label to display on the button */
   children: string | number;
-  action?: "mint";
+  action: "mint";
   /** a [CAIP-10](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md) url to an NFT smart contract or token */
-  mint: string;
+  target: string;
 };
 
 /** See https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional */
