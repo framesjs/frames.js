@@ -78,8 +78,8 @@ export default async function Home({
   // then, when done, return next frame
   return (
     <div className="p-4">
-      frames.js starter kit. The Template Frame is on this page, it&aposs in the
-      html meta tags (inspect source).{" "}
+      frames.js starter kit. The Template Frame is on this page, it&apos;s in
+      the html meta tags (inspect source).{" "}
       <Link href={`/debug?url=${baseUrl}`} className="underline">
         Debug
       </Link>
@@ -95,14 +95,15 @@ export default async function Home({
           </div>
         </FrameImage>
         <FrameInput text="put some text here" />
-        <FrameButton onClick={dispatch}>
+        <FrameButton>
           {state?.active === "1" ? "Active" : "Inactive"}
         </FrameButton>
-        <FrameButton onClick={dispatch}>
+        <FrameButton>
           {state?.active === "2" ? "Active" : "Inactive"}
         </FrameButton>
         <FrameButton
-          mint={getTokenUrl({
+          action="mint"
+          target={getTokenUrl({
             address: "0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df",
             tokenId: "123",
             chainId: 7777777,
@@ -110,7 +111,9 @@ export default async function Home({
         >
           Mint
         </FrameButton>
-        <FrameButton href={`https://www.google.com`}>External</FrameButton>
+        <FrameButton action="link" target={`https://www.google.com`}>
+          External
+        </FrameButton>
       </FrameContainer>
     </div>
   );

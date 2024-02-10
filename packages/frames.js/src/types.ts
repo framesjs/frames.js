@@ -81,7 +81,11 @@ export type FrameButtonPost = {
    * If set to post, app must make the POST request and frame server must respond with a 200 OK, which may contain another frame.
    * If set to post_redirect, app must make the POST request, and the frame server must respond with a 302 OK with a location property set on the header. */
   action: "post" | "post_redirect";
-  target?: undefined;
+  /**
+   * POST the packet to fc:frame:button:$idx:action:target if present
+   * POST the packet to fc:frame:post_url if target was not present.
+   */
+  target?: string;
   /** A 256-byte string which is label of the button */
   label: string;
 };

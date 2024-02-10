@@ -15,8 +15,6 @@ import {
   HubHttpUrlOptions,
   ImageAspectRatio,
 } from "../types";
-// Todo: this isn't respecting the use client directive
-import { FrameButtonRedirectUI, FrameButtonUI } from "./client";
 import {
   Dispatch,
   FrameButtonAutomatedProps,
@@ -342,58 +340,20 @@ export function FrameContainer<T extends FrameState = FrameState>({
               throw new Error("too many buttons");
             }
 
-            // Handle Button action types
-            if (
-              child.props.hasOwnProperty("href") ||
-              (child.props.hasOwnProperty("redirect") &&
-                (child.props as any)?.redirect)
-            ) {
-              if (child.props.hasOwnProperty("onClick")) {
-                throw new Error(
-                  "buttons must either have href or onClick, not both, and onClick is incompatible with redirect"
-                );
-              }
-              let action = "link";
-              if (child.props.hasOwnProperty("action")) {
-                if ((child.props as any).action === "post") {
-                  throw new Error(
-                    "invalid action prop value on Button, incompatible with href"
-                  );
-                }
-                action = (child.props as any).action;
-              }
-              if (action === "link") {
-                // no need for a redirectMap, as no POST request
-              } else if (child.props.hasOwnProperty("href")) {
-                redirectMap[nextIndexByComponentType.button] = (
-                  child.props as any as FrameButtonPostRedirectProvidedProps
-                ).href!;
-              } else {
-                redirectMap[`_${nextIndexByComponentType.button}`] = "";
-              }
-              const { redirect, ...passThroughProps } = child.props as any;
-              return (
-                <FrameRedirect
-                  {...passThroughProps}
-                  action={action}
-                  actionIndex={nextIndexByComponentType.button++}
-                />
-              );
-            } else if (child.props.hasOwnProperty("mint")) {
-              return (
-                <FFrameMintButtonShim
-                  {...(child.props as any)}
-                  actionIndex={nextIndexByComponentType.button++}
-                />
-              );
-            } else {
-              return (
-                <FFrameButtonShim
-                  {...(child.props as any)}
-                  actionIndex={nextIndexByComponentType.button++}
-                />
-              );
+            // set redirect data for retrieval
+            if ((child.props as any).action === "post_redirect") {
+              redirectMap[nextIndexByComponentType.button] = (
+                child.props as any as FrameButtonPostRedirectProvidedProps
+              ).target!;
             }
+
+            return (
+              <FFrameButtonShim
+                {...(child.props as any)}
+                actionIndex={nextIndexByComponentType.button++ as ActionIndex}
+              />
+            );
+
           case FrameInput:
             if (nextIndexByComponentType.input > 1) {
               throw new Error("max one input allowed");
@@ -448,36 +408,6 @@ export function FrameContainer<T extends FrameState = FrameState>({
   );
 }
 
-/** An internal component that handles redirects */
-function FrameRedirect({
-  href,
-  action,
-  actionIndex,
-  children,
-}: FrameButtonPostRedirectProvidedProps & FrameButtonAutomatedProps) {
-  return (
-    <>
-      {process.env.SHOW_UI ? (
-        <FrameButtonRedirectUI
-          actionIndex={actionIndex}
-          href={href}
-          action={action}
-        >
-          {children}
-        </FrameButtonRedirectUI>
-      ) : null}
-      <meta
-        name={`fc:frame:button:${actionIndex}`}
-        content={String(children)}
-      />
-      <meta name={`fc:frame:button:${actionIndex}:action`} content={action} />
-      {action === "link" ? (
-        <meta name={`fc:frame:button:${actionIndex}:target`} content={href} />
-      ) : null}
-    </>
-  );
-}
-
 /** Renders a 'fc:frame:button', must be used inside a <FrameContainer> */
 export function FrameButton(props: FrameButtonProvidedProps) {
   return null;
@@ -486,40 +416,20 @@ export function FrameButton(props: FrameButtonProvidedProps) {
 /** An internal component that handles FrameButtons that have type: 'post' */
 function FFrameButtonShim({
   actionIndex,
+  target,
+  action = "post",
   children,
-  onClick,
 }: FrameButtonPostProvidedProps & FrameButtonAutomatedProps) {
   return (
     <>
-      {process.env.SHOW_UI ? (
-        <FrameButtonUI actionIndex={actionIndex}>{children}</FrameButtonUI>
-      ) : null}
       <meta
         name={`fc:frame:button:${actionIndex}`}
         content={String(children)}
       />
-      <meta name={`fc:frame:button:${actionIndex}:action`} content={"post"} />
-    </>
-  );
-}
-
-/** An internal component that handles FrameButtons that have type: 'mint' */
-function FFrameMintButtonShim({
-  mint,
-  actionIndex,
-  children,
-}: FrameButtonMintProvidedProps & FrameButtonAutomatedProps) {
-  return (
-    <>
-      {process.env.SHOW_UI ? (
-        <FrameButtonUI actionIndex={actionIndex}>{children}</FrameButtonUI>
+      <meta name={`fc:frame:button:${actionIndex}:action`} content={action} />
+      {target ? (
+        <meta name={`fc:frame:button:${actionIndex}:target`} content={target} />
       ) : null}
-      <meta
-        name={`fc:frame:button:${actionIndex}`}
-        content={String(children)}
-      />
-      <meta name={`fc:frame:button:${actionIndex}:action`} content={"mint"} />
-      <meta name={`fc:frame:button:${actionIndex}:target`} content={mint} />
     </>
   );
 }
@@ -528,7 +438,6 @@ function FFrameMintButtonShim({
 export function FrameInput({ text }: { text: string }) {
   return (
     <>
-      {process.env.SHOW_UI ? <input type="text" placeholder={text} /> : null}
       <meta name="fc:frame:input:text" content={text} />
     </>
   );
@@ -605,7 +514,6 @@ export async function FrameImage(
 
   return (
     <>
-      {process.env.SHOW_UI ? <img src={imgSrc} /> : null}
       <meta name="fc:frame:image" content={imgSrc} />
       <meta property="og:image" content={imgSrc} />
       {props.aspectRatio && (
