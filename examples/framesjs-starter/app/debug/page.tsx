@@ -219,15 +219,6 @@ export default function Page({
             >
               User data
             </button>
-            <button
-              className="underline"
-              onClick={(e) => {
-                e.preventDefault();
-                router.push(`?url=${baseUrl}/examples/custom-redirects`);
-              }}
-            >
-              Custom Redirects
-            </button>
           </div>
           <LoginWindow
             farcasterUser={farcasterUser}
