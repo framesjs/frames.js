@@ -34,16 +34,6 @@ export default async function Home({
   searchParams,
 }: NextServerPageProps) {
   const previousFrame = getPreviousFrame<State>(searchParams);
-
-  const body = previousFrame.postBody;
-  if (!body) {
-    console.log(
-      "info: no frameActionPayload, this is expected for the homeframe"
-    );
-    // no payload means no action
-    return null;
-  }
-
   const frameMessage = await getFrameMessage(previousFrame.postBody, {
     ...DEBUG_HUB_OPTIONS,
   });
