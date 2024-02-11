@@ -91,7 +91,7 @@ export type FrameButtonPost = {
 };
 export type FrameButtonPostRedirect = FrameButtonPost;
 
-export type FrameButton =
+export type FrameButtonType =
   | FrameButtonPost
   | FrameButtonLink
   | FrameButtonPostRedirect
@@ -102,10 +102,10 @@ export type ActionIndex = 1 | 2 | 3 | 4;
 
 export type FrameButtonsType =
   | []
-  | [FrameButton]
-  | [FrameButton, FrameButton]
-  | [FrameButton, FrameButton, FrameButton]
-  | [FrameButton, FrameButton, FrameButton, FrameButton];
+  | [FrameButtonType]
+  | [FrameButtonType, FrameButtonType]
+  | [FrameButtonType, FrameButtonType, FrameButtonType]
+  | [FrameButtonType, FrameButtonType, FrameButtonType, FrameButtonType];
 
 export type AddressReturnType<
   Options extends { fallbackToCustodyAddress?: boolean } | undefined,

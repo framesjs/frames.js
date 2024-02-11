@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio";
 import {
-  FrameButton,
+  FrameButtonType,
   FrameButtonsType,
   Frame,
   ErrorKeys,
@@ -101,7 +101,7 @@ export function validateFrame({
 
   let buttonsValidation = [false, false, false, false];
   const buttonsWithActions = buttonLabels
-    .map((buttonLabel): FrameButton & { buttonIndex: number } => {
+    .map((buttonLabel): FrameButtonType & { buttonIndex: number } => {
       const buttonAction = buttonActions.find(
         (action) => action?.buttonIndex === buttonLabel?.buttonIndex
       );
@@ -189,10 +189,10 @@ export function validateFrame({
         target: buttonTarget?.content,
         // this is an optional property, falls back to "post"
         action: buttonAction?.content || "post",
-      } as FrameButton & { buttonIndex: number };
+      } as FrameButtonType & { buttonIndex: number };
     })
     .sort((a, b) => a.buttonIndex - b.buttonIndex)
-    .map((button): FrameButton => {
+    .map((button): FrameButtonType => {
       // type guards are weird sometimes.
       if (isFrameButtonLink(button) || isFrameButtonMint(button))
         return {

@@ -1,17 +1,16 @@
+import { getPreviousFrame, NextServerPageProps } from "frames.js/next/server";
 import {
+  useFramesReducer,
+  FrameReducer,
+  getTokenUrl,
+  getFrameMessage,
   FrameButton,
   FrameContainer,
   FrameImage,
   FrameInput,
-  FrameReducer,
-  NextServerPageProps,
-  getPreviousFrame,
-  useFramesReducer,
-  getFrameMessage,
-} from "frames.js/next/server";
+} from "frames.js";
 import Link from "next/link";
 import { DEBUG_HUB_OPTIONS } from "./debug/constants";
-import { getTokenUrl } from "frames.js";
 
 type State = {
   active: string;
@@ -35,6 +34,15 @@ export default async function Home({
   searchParams,
 }: NextServerPageProps) {
   const previousFrame = getPreviousFrame<State>(searchParams);
+
+  const body = previousFrame.postBody;
+  if (!body) {
+    console.log(
+      "info: no frameActionPayload, this is expected for the homeframe"
+    );
+    // no payload means no action
+    return null;
+  }
 
   const frameMessage = await getFrameMessage(previousFrame.postBody, {
     ...DEBUG_HUB_OPTIONS,

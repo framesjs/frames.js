@@ -1,13 +1,12 @@
+import { NextServerPageProps, getPreviousFrame } from "frames.js/next/server";
 import {
   FrameButton,
   FrameContainer,
   FrameImage,
   FrameReducer,
-  NextServerPageProps,
   getFrameMessage,
-  getPreviousFrame,
   useFramesReducer,
-} from "frames.js/next/server";
+} from "frames.js";
 import Link from "next/link";
 import { DEBUG_HUB_OPTIONS } from "../../debug/constants";
 

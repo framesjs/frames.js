@@ -1,19 +1,19 @@
 import { CastId, Message } from "@farcaster/core";
 import {
   FrameActionPayload,
-  FrameButton,
+  FrameButtonType,
   FrameButtonLink,
   FrameButtonMint,
 } from "./types";
 
 export function isFrameButtonLink(
-  frameButton: FrameButton
+  frameButton: FrameButtonType
 ): frameButton is FrameButtonLink {
   return frameButton.action === "link";
 }
 
 export function isFrameButtonMint(
-  frameButton: FrameButton
+  frameButton: FrameButtonType
 ): frameButton is FrameButtonMint {
   return frameButton.action === "mint";
 }

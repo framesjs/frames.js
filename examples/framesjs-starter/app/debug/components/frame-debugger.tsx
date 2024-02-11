@@ -1,4 +1,4 @@
-import { Frame, frameErrorKeys, getFrame, getFrameHtmlHead } from "frames.js";
+import { frameErrorKeys, getFrame, getFrameHtmlHead } from "frames.js";
 import { useEffect, useState } from "react";
 import { FrameRender } from "./frame-render";
 import React from "react";

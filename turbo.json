@@ -1,22 +1,13 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": [
-    "**/.env.*local"
-  ],
+  "globalDependencies": ["**/.env.*local"],
   "pipeline": {
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        ".next/**",
-        "!.next/cache/**"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**"]
     },
     "lint": {
-      "dependsOn": [
-        "^lint"
-      ]
+      "dependsOn": ["^lint"]
     },
     "dev": {
       "cache": false,
@@ -25,6 +16,7 @@
   },
   "globalEnv": [
     "NEXT_PUBLIC_HOST",
+    "EXPRESS_PUBLIC_HOST",
     "FARCASTER_DEVELOPER_FID",
     "FARCASTER_DEVELOPER_MNEMONIC"
   ]
