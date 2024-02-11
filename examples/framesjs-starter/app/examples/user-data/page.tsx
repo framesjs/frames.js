@@ -4,11 +4,11 @@ import {
   FrameContainer,
   FrameImage,
   FrameReducer,
-  getFrameMessage,
   useFramesReducer,
 } from "frames.js";
 import Link from "next/link";
 import { DEBUG_HUB_OPTIONS } from "../../debug/constants";
+import { getFrameMessage } from "../../utils";
 
 type State = {
   saidGm: boolean;

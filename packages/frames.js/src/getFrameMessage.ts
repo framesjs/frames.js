@@ -9,7 +9,7 @@ import {
   getUserDataForFid,
   normalizeCastId,
   validateFrameMessage,
-} from "./";
+} from ".";
 
 export type GetFrameMessageOptions = {
   fetchHubContext?: boolean;
@@ -36,7 +36,7 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
   }: T = {} as T
 ): Promise<FrameMessageReturnType<T>> {
   const decodedMessage = Message.decode(
-    Buffer.from(payload?.trustedData.messageBytes, "hex")
+    Buffer.from(payload.trustedData.messageBytes, "hex")
   ) as FrameActionMessage;
 
   const { buttonIndex, inputText: inputTextBytes } =
