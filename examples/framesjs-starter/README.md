@@ -4,6 +4,11 @@ This is a boilerplate repo to get started quickly with `frames.js`
 
 ## Quickstart
 
+If running from the frames.js repository itself:
+
+- Run `yarn` from the repository root
+- Run `cd examples/framesjs-starter`
+
 1. Install dependencies `yarn install`
 
 2. Run the dev server `yarn dev`
