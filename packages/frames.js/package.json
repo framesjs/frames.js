@@ -107,7 +107,15 @@
   },
   "files": [
     "dist",
-    "src"
+    "src",
+    "getFrame",
+    "getFrameFlattened",
+    "getFrameHtml",
+    "getFrameMessage",
+    "getTokenUrl",
+    "getTokenFromUrl",
+    "validateFrameMessage",
+    "next/server"
   ],
   "devDependencies": {
     "typescript": "^5.3.3",
