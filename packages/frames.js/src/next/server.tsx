@@ -1,4 +1,4 @@
-import { FrameActionMessage } from "@farcaster/core";
+import { FrameActionMessage } from "../farcaster";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import React from "react";
