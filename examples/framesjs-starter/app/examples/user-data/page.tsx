@@ -1,10 +1,10 @@
 import {
   FrameButton,
   FrameContainer,
+  FrameImage,
   FrameReducer,
-  useFramesReducer,
-} from "frames.js";
-import { FrameImage } from 'frames.js/common/server';
+  useFramesReducer
+} from 'frames.js/common/server';
 import { NextServerPageProps, getPreviousFrame } from "frames.js/next/server";
 import Link from "next/link";
 import { DEBUG_HUB_OPTIONS } from "../../debug/constants";
