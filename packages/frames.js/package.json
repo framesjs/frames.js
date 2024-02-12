@@ -6,7 +6,9 @@
   "types": "index.d.cts",
   "typesVersions": {
     "*": {
-      "*": ["./dist/*"]
+      "*": [
+        "./dist/*"
+      ]
     }
   },
   "scripts": {
@@ -118,6 +120,16 @@
         "types": "./dist/next/types.d.cts",
         "default": "./dist/next/types.cjs"
       }
+    },
+    "./farcaster": {
+      "import": {
+        "types": "./dist/farcaster/index.d.ts",
+        "default": "./dist/farcaster/index.js"
+      },
+      "require": {
+        "types": "./dist/farcaster/index.d.cts",
+        "default": "./dist/farcaster/index.cjs"
+      }
     }
   },
   "files": [
@@ -125,8 +137,8 @@
     "src"
   ],
   "devDependencies": {
-    "typescript": "^5.3.3",
-    "tsup": "^8.0.1"
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3"
   },
   "license": "MIT",
   "peerDependencies": {
@@ -135,9 +147,9 @@
     "react-dom": "^18.2.0"
   },
   "dependencies": {
-    "@farcaster/core": "^0.13.7",
     "@vercel/og": "^0.6.2",
     "cheerio": "^1.0.0-rc.12",
+    "protobufjs": "^7.2.6",
     "viem": "^2.7.1"
   }
 }

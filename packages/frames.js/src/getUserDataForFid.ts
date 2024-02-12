@@ -1,4 +1,4 @@
-import { MessageType, UserDataType, Message } from "@farcaster/core";
+import { MessageType, UserDataType, Message } from "./farcaster";
 import { HubHttpUrlOptions, UserDataReturnType } from "./types";
 
 /**
