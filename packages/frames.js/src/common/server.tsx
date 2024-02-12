@@ -14,7 +14,6 @@ import {
   PreviousFrame,
   RedirectMap,
 } from "./types";
-import { ImageResponse } from "next/og"; // FIXME: Use satori and sharp
 
 /** The valid children of a <FrameContainer> */
 export type FrameElementType =
@@ -231,68 +230,15 @@ export async function FrameImage(
       }
   )
 ) {
-  let imgSrc: string = "";
-  if ("children" in props) {
-    const imageOptions = {
-      ...(props.aspectRatio === "1:1"
-        ? {
-            width: 1146,
-            height: 1146,
-          }
-        : {
-            width: 1146,
-            height: 600,
-          }),
-      ...(props.options ?? {}),
-    };
+  let imgSrc = '';
 
-    const imageResponse = new ImageResponse(
-      (
-        <div
-          style={{
-            display: "flex", // Use flex layout
-            flexDirection: "row", // Align items horizontally
-            alignItems: "stretch", // Stretch items to fill the container height
-            width: "100%",
-            height: "100vh", // Full viewport height
-            backgroundColor: "white",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
-              lineHeight: 1.2,
-              fontSize: 36,
-              color: "black",
-              flex: 1,
-              overflow: "hidden",
-            }}
-          >
-            {props.children}
-          </div>
-        </div>
-      ),
-      imageOptions
-    );
-    const imgBuffer = await imageResponse?.arrayBuffer();
-    imgSrc = `data:image/png;base64,${Buffer.from(imgBuffer).toString("base64")}`;
-  } else {
-    imgSrc = props.src;
-  }
-
+  // TODO: 
+ 
   return (
     <>
       <meta name="fc:frame:image" content={imgSrc} />
       <meta property="og:image" content={imgSrc} />
-      {props.aspectRatio && (
-        <meta
-          name="fc:frame:image:aspect_ratio"
-          content={props.aspectRatio}
-        ></meta>
-      )}
+      {props.aspectRatio && <meta name="fc:frame:image:aspect_ratio" content={props.aspectRatio} />}
     </>
   );
 }
