@@ -9,8 +9,8 @@ import {
   PreviousFrame,
   RedirectHandler,
   RedirectMap,
-} from "../common";
-import { createPreviousFrame } from "../common";
+  createPreviousFrame
+} from "../common/server";
 
 export * from "./types";
 

@@ -1,4 +1,4 @@
-import { FrameState } from "../common";
+import { FrameState } from "../common/server";
 import { Request } from "express";
 
 export interface ParsedFrameParams {

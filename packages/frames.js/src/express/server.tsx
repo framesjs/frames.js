@@ -4,7 +4,7 @@ import {
   HeadersList,
   PreviousFrame,
   RedirectHandler,
-} from "../common";
+} from "../common/server";
 import { createPreviousFrame } from "../common/server";
 export * from "./types";
 

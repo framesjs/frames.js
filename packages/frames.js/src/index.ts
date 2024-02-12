@@ -9,4 +9,3 @@ export * from "./validateFrameMessage";
 export * from "./getFrameMessage";
 export * from "./getTokenUrl";
 export * from "./getTokenFromUrl";
-export * from "./common";
