@@ -1,9 +1,10 @@
 import * as cheerio from "cheerio";
+import { getTokenFromUrl } from ".";
 import {
-  FrameButtonType,
-  FrameButtonsType,
-  Frame,
   ErrorKeys,
+  Frame,
+  FrameButton,
+  FrameButtonsType,
   ImageAspectRatio,
 } from "./types";
 import {
@@ -12,7 +13,6 @@ import {
   isFrameButtonMint,
   isValidVersion,
 } from "./utils";
-import { getTokenFromUrl } from ".";
 
 /**
  * @returns a { frame: Frame | null, errors: null | ErrorMessages } object, extracting the frame metadata from the given htmlString.
@@ -101,7 +101,7 @@ export function validateFrame({
 
   let buttonsValidation = [false, false, false, false];
   const buttonsWithActions = buttonLabels
-    .map((buttonLabel): FrameButtonType & { buttonIndex: number } => {
+    .map((buttonLabel): FrameButton & { buttonIndex: number } => {
       const buttonAction = buttonActions.find(
         (action) => action?.buttonIndex === buttonLabel?.buttonIndex
       );
@@ -189,10 +189,10 @@ export function validateFrame({
         target: buttonTarget?.content,
         // this is an optional property, falls back to "post"
         action: buttonAction?.content || "post",
-      } as FrameButtonType & { buttonIndex: number };
+      } as FrameButton & { buttonIndex: number };
     })
     .sort((a, b) => a.buttonIndex - b.buttonIndex)
-    .map((button): FrameButtonType => {
+    .map((button): FrameButton => {
       // type guards are weird sometimes.
       if (isFrameButtonLink(button) || isFrameButtonMint(button))
         return {
