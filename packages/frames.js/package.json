@@ -116,7 +116,15 @@
   },
   "files": [
     "dist",
-    "src"
+    "src",
+    "getFrame",
+    "getFrameFlattened",
+    "getFrameHtml",
+    "getFrameMessage",
+    "getTokenUrl",
+    "getTokenFromUrl",
+    "validateFrameMessage",
+    "next/server"
   ],
   "devDependencies": {
     "@xmtp/frames-validator": "^0.5.0",

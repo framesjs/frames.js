@@ -1,0 +1,4 @@
+{
+  "main": "../dist/getFrame.cjs",
+  "types": "../dist/getFrame.d.cts"
+}

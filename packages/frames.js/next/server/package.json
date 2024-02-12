@@ -1,0 +1,4 @@
+{
+  "main": "../../dist/next/server.cjs",
+  "types": "../../dist/next/server.d.cts"
+}
