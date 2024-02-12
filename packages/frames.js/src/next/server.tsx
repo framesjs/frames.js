@@ -215,16 +215,21 @@ export async function POST(
   const body = await req.json();
 
   const url = new URL(req.url);
-  url.pathname = url.searchParams.get("p") || "";
+  let newUrl = new URL(req.url);
+  const isFullUrl =
+    url.searchParams.get("p")?.startsWith("http://") ||
+    url.searchParams.get("p")?.startsWith("https://");
+  if (isFullUrl) newUrl = new URL(url.searchParams.get("p")!);
+  else newUrl.pathname = url.searchParams.get("p") || "";
 
   // decompress from 256 bytes limitation of post_url
-  url.searchParams.set("postBody", JSON.stringify(body));
-  url.searchParams.set("prevState", url.searchParams.get("s") ?? "");
-  url.searchParams.set("prevRedirects", url.searchParams.get("r") ?? "");
+  newUrl.searchParams.set("postBody", JSON.stringify(body));
+  newUrl.searchParams.set("prevState", url.searchParams.get("s") ?? "");
+  newUrl.searchParams.set("prevRedirects", url.searchParams.get("r") ?? "");
   // was used to redirect to the correct page, and is no longer needed.
-  url.searchParams.delete("p");
-  url.searchParams.delete("s");
-  url.searchParams.delete("r");
+  newUrl.searchParams.delete("p");
+  newUrl.searchParams.delete("s");
+  newUrl.searchParams.delete("r");
 
   const prevFrame = getPreviousFrame(
     Object.fromEntries(url.searchParams.entries())
@@ -286,7 +291,7 @@ export async function POST(
   }
 
   // handle 'post' buttons
-  return NextResponse.redirect(url.toString(), { status: 302 });
+  return NextResponse.redirect(newUrl.toString(), { status: 302 });
 }
 
 /**

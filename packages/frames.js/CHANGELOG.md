@@ -1,5 +1,17 @@
 # frames.js
 
+## 0.5.0
+
+### Minor Changes
+
+- 40d2662: Change <FrameButton> props to reflect Farcaster Frames schema names
+
+## 0.4.4
+
+### Patch Changes
+
+- b174138: Fix getFrameFlattened meta tags
+
 ## 0.4.3
 
 ### Patch Changes
