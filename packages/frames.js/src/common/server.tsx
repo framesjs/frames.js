@@ -1,8 +1,9 @@
+import { FrameActionMessage } from "@farcaster/core";
 import { ImageResponse } from "@vercel/og";
 import React from "react";
 import { SatoriOptions } from "satori";
-import { getByteLength } from "../";
-import { ActionIndex, ImageAspectRatio } from "../types";
+import { getByteLength, validateFrameMessage } from "../";
+import { ActionIndex, FrameActionPayload, HubHttpUrlOptions, ImageAspectRatio } from "../types";
 import {
   Dispatch,
   FrameButtonAutomatedProps,
@@ -16,6 +17,36 @@ import {
   RedirectMap,
 } from "./types";
 export * from "./types";
+
+/** validates a frame action message payload signature, @returns message, throws an Error on failure */
+export async function validateActionSignature(
+  frameActionPayload: FrameActionPayload | null,
+  options?: HubHttpUrlOptions
+): Promise<FrameActionMessage | null> {
+  if (options?.hubHttpUrl) {
+    if (!options.hubHttpUrl.startsWith("http")) {
+      throw new Error(
+        `frames.js: Invalid Hub URL: ${options?.hubHttpUrl}, ensure you have included the protocol (e.g. https://)`
+      );
+    }
+  }
+  console.log(frameActionPayload);
+  if (!frameActionPayload) {
+    // no payload means no action
+    return null;
+  }
+
+  const { isValid, message } = await validateFrameMessage(
+    frameActionPayload,
+    options
+  );
+
+  if (!isValid || !message) {
+    throw new Error("frames.js: signature failed verification");
+  }
+
+  return message;
+}
 
 /** The valid children of a <FrameContainer> */
 export type FrameElementType =

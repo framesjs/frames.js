@@ -1,9 +1,5 @@
-import { FrameActionMessage } from "@farcaster/core";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { validateFrameMessage } from "../";
-import { FrameActionPayload, HubHttpUrlOptions } from "../types";
-import { NextServerPageProps } from "./types";
 import {
   FrameState,
   PreviousFrame,
@@ -11,38 +7,10 @@ import {
   RedirectMap,
   createPreviousFrame
 } from "../common/server";
+import { FrameActionPayload } from "../types";
+import { NextServerPageProps } from "./types";
 
 export * from "./types";
-
-/** validates a frame action message payload signature, @returns message, throws an Error on failure */
-export async function validateActionSignature(
-  frameActionPayload: FrameActionPayload | null,
-  options?: HubHttpUrlOptions
-): Promise<FrameActionMessage | null> {
-  if (options?.hubHttpUrl) {
-    if (!options.hubHttpUrl.startsWith("http")) {
-      throw new Error(
-        `frames.js: Invalid Hub URL: ${options?.hubHttpUrl}, ensure you have included the protocol (e.g. https://)`
-      );
-    }
-  }
-
-  if (!frameActionPayload) {
-    // no payload means no action
-    return null;
-  }
-
-  const { isValid, message } = await validateFrameMessage(
-    frameActionPayload,
-    options
-  );
-
-  if (!isValid || !message) {
-    throw new Error("frames.js: signature failed verification");
-  }
-
-  return message;
-}
 
 /** deserializes a `PreviousFrame` from url searchParams, fetching headers automatically from nextjs, @returns PreviousFrame */
 export function getPreviousFrame<T extends FrameState = FrameState>(
