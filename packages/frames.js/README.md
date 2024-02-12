@@ -38,10 +38,11 @@ import {
   FrameImage,
   FrameButton,
   useFramesReducer,
-  getPreviousFrame,
   validateActionSignature,
   FrameInput,
-} from "frames.js/next/server";
+} from "frames.js/common/server";
+
+import { getPreviousFrame } from "frames.js/next/server";
 
 const reducer = (state, action) => ({ count: state.count + 1 });
 
