@@ -8,6 +8,6 @@ export interface ParsedFrameParams {
   prevRedirects: Record<string, any> | null;
 }
 
-export interface ExpressFramePageProps {
+export interface ExpressServerPageProps {
   req: Request;
 }
