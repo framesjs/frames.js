@@ -5,13 +5,12 @@ import {
   FrameInput,
   FrameReducer,
   NextServerPageProps,
+  getFrameMessage,
   getPreviousFrame,
   useFramesReducer,
-  getFrameMessage,
 } from "frames.js/next/server";
 import Link from "next/link";
 import { DEBUG_HUB_OPTIONS } from "./debug/constants";
-import { getTokenUrl } from "frames.js";
 
 type State = {
   active: string;
@@ -90,7 +89,7 @@ export default async function Home({
         previousFrame={previousFrame}
       >
         {/* <FrameImage src="https://framesjs.org/og.png" /> */}
-        <FrameImage>
+        <FrameImage aspectRatio="1.91:1">
           <div tw="w-full h-full bg-slate-700 text-white justify-center items-center">
             {frameMessage?.inputText ? frameMessage.inputText : "Hello world"}
           </div>
@@ -101,16 +100,6 @@ export default async function Home({
         </FrameButton>
         <FrameButton>
           {state?.active === "2" ? "Active" : "Inactive"}
-        </FrameButton>
-        <FrameButton
-          action="mint"
-          target={getTokenUrl({
-            address: "0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df",
-            tokenId: "123",
-            chainId: 7777777,
-          })}
-        >
-          Mint
         </FrameButton>
         <FrameButton action="link" target={`https://www.google.com`}>
           External
