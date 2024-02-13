@@ -219,6 +219,15 @@ export default function Page({
             >
               User data
             </button>
+            <button
+              className="underline"
+              onClick={(e) => {
+                e.preventDefault();
+                router.push(`?url=${baseUrl}/examples/multi-page`);
+              }}
+            >
+              Multi-page
+            </button>
           </div>
           <LoginWindow
             farcasterUser={farcasterUser}
