@@ -710,10 +710,10 @@
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.56.0.tgz#ef20350fec605a7f7035a01764731b2de0f3782b"
   integrity sha512-gMsVel9D7f2HLkBma9VbtzZRehRogVRfbr++f06nL2vnCGCNlzOD+/MUov/F4p8myyAHspEhVobgjpX64q5m6A==
 
-"@farcaster/core@^0.13.7":
-  version "0.13.7"
-  resolved "https://registry.yarnpkg.com/@farcaster/core/-/core-0.13.7.tgz#b27ed3486292bff304029b99ad7048f8561c5205"
-  integrity sha512-TMvVrlnGAWdHWCe36doFIMT7oj7HdN94rxdME5MDM+EKQyj4E9bgMghh/3il0waMr6PPG5ZlE4rJrhnTYqaIAw==
+"@farcaster/core@^0.14.0":
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/@farcaster/core/-/core-0.14.0.tgz#cd75058d24e95cc0640c77756e10692c72a52365"
+  integrity sha512-2K0hxvToytt37NGC0yrOOS09FC4FSZjdqmdr4/2ZGGTVaG0VXGOUxZGOMZSsm9wkBIvGHQ3s/nCFYiQrH2ZhZQ==
   dependencies:
     "@noble/curves" "^1.0.0"
     "@noble/hashes" "^1.3.0"
