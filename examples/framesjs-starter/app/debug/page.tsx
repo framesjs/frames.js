@@ -228,6 +228,15 @@ export default function Page({
             >
               Multi-page
             </button>
+            <button
+              className="underline"
+              onClick={(e) => {
+                e.preventDefault();
+                router.push(`?url=${baseUrl}/examples/mint-button`);
+              }}
+            >
+              Mint button
+            </button>
           </div>
           <LoginWindow
             farcasterUser={farcasterUser}
