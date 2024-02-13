@@ -1,17 +1,12 @@
 {
   "name": "frames.js",
   "version": "0.5.0",
-  "type": "module",
-  "main": "./dist/index.cjs",
-  "types": "index.d.cts",
-  "typesVersions": {
-    "*": {
-      "*": ["./dist/*"]
-    }
-  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "lint": "eslint \"./src/**/*.ts*\"",
-    "build": "tsup `find ./src -type f \\( -regex '.*\\.tsx*' -a -not -regex '.*\\.test\\.tsx*' \\)` --format cjs,esm --dts",
+    "build": "tsup `find ./src \\( -name '*.ts' -o -name '*.tsx' \\)` --format cjs,esm --dts",
     "dev": "npm run build -- --watch"
   },
   "repository": {
@@ -20,110 +15,51 @@
   },
   "exports": {
     ".": {
-      "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      },
-      "require": {
-        "types": "./dist/index.d.cts",
-        "default": "./dist/index.cjs"
-      }
+      "require": "./dist/index.js",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     },
     "./getFrame": {
-      "import": {
-        "types": "./dist/getFrame.d.ts",
-        "default": "./dist/getFrame.js"
-      },
-      "require": {
-        "types": "./dist/getFrame.d.cts",
-        "default": "./dist/getFrame.cjs"
-      }
+      "require": "./dist/getFrame.js",
+      "import": "./dist/getFrame.js",
+      "types": "./dist/getFrame.d.ts"
     },
     "./getFrameFlattened": {
-      "import": {
-        "types": "./dist/getFrameFlattened.d.ts",
-        "default": "./dist/getFrameFlattened.js"
-      },
-      "require": {
-        "types": "./dist/getFrameFlattened.d.cts",
-        "default": "./dist/getFrameFlattened.cjs"
-      }
+      "require": "./dist/getFrameFlattened.js",
+      "import": "./dist/getFrameFlattened.js",
+      "types": "./dist/getFrameFlattened.d.ts"
     },
     "./getFrameHtml": {
-      "import": {
-        "types": "./dist/getFrameHtml.d.ts",
-        "default": "./dist/getFrameHtml.js"
-      },
-      "require": {
-        "types": "./dist/getFrameHtml.d.cts",
-        "default": "./dist/getFrameHtml.cjs"
-      }
+      "require": "./dist/getFrameHtml.js",
+      "import": "./dist/getFrameHtml.js",
+      "types": "./dist/getFrameHtml.d.ts"
     },
     "./getFrameMessage": {
-      "import": {
-        "types": "./dist/getFrameMessage.d.ts",
-        "default": "./dist/getFrameMessage.js"
-      },
-      "require": {
-        "types": "./dist/getFrameMessage.d.cts",
-        "default": "./dist/getFrameMessage.cjs"
-      }
+      "require": "./dist/getFrameMessage.js",
+      "import": "./dist/getFrameMessage.js",
+      "types": "./dist/getFrameMessage.d.ts"
     },
     "./getTokenUrl": {
-      "import": {
-        "types": "./dist/getTokenUrl.d.ts",
-        "default": "./dist/getTokenUrl.js"
-      },
-      "require": {
-        "types": "./dist/getTokenUrl.d.cts",
-        "default": "./dist/getTokenUrl.cjs"
-      }
+      "require": "./dist/getTokenUrl.js",
+      "import": "./dist/getTokenUrl.js",
+      "types": "./dist/getTokenUrl.d.ts"
     },
     "./getTokenFromUrl": {
-      "import": {
-        "types": "./dist/getTokenFromUrl.d.ts",
-        "default": "./dist/getTokenFromUrl.js"
-      },
-      "require": {
-        "types": "./dist/getTokenFromUrl.d.cts",
-        "default": "./dist/getTokenFromUrl.cjs"
-      }
+      "require": "./dist/getTokenFromUrl.js",
+      "import": "./dist/getTokenFromUrl.js",
+      "types": "./dist/getTokenFromUrl.d.ts"
     },
     "./validateFrameMessage": {
-      "import": {
-        "types": "./dist/validateFrameMessage.d.ts",
-        "default": "./dist/validateFrameMessage.js"
-      },
-      "require": {
-        "types": "./dist/validateFrameMessage.d.cts",
-        "default": "./dist/validateFrameMessage.cjs"
-      }
+      "require": "./dist/validateFrameMessage.js",
+      "import": "./dist/validateFrameMessage.js",
+      "types": "./dist/validateFrameMessage.d.ts"
     },
     "./next/server": {
-      "import": {
-        "types": "./dist/next/server.d.ts",
-        "default": "./dist/next/server.js"
-      },
-      "require": {
-        "types": "./dist/next/server.d.cts",
-        "default": "./dist/next/server.cjs"
-      }
-    },
-    "./next/types": {
-      "import": {
-        "types": "./dist/next/types.d.ts",
-        "default": "./dist/next/types.js"
-      },
-      "require": {
-        "types": "./dist/next/types.d.cts",
-        "default": "./dist/next/types.cjs"
-      }
+      "require": "./dist/next/server.js",
+      "import": "./dist/next/server.js",
+      "types": "./dist/next/server.d.ts"
     }
   },
-  "files": [
-    "dist",
-    "src"
-  ],
   "devDependencies": {
     "typescript": "^5.3.3",
     "tsup": "^8.0.1"
