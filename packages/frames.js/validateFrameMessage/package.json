@@ -1,4 +1,0 @@
-{
-  "main": "../dist/validateFrameMessage.cjs",
-  "types": "../dist/validateFrameMessage.d.cts"
-}

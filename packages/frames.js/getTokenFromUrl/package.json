@@ -1,4 +1,0 @@
-{
-  "main": "../dist/getTokenFromUrl.cjs",
-  "types": "../dist/getTokenFromUrl.d.cts"
-}
