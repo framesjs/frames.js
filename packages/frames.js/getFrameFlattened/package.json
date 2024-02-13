@@ -1,4 +1,0 @@
-{
-  "main": "../dist/getFrameFlattened.cjs",
-  "types": "../dist/getFrameFlattened.d.cts"
-}
