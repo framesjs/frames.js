@@ -1,5 +1,5 @@
 import { Frame } from "frames.js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export type FrameRenderProps = {
   isLoggedIn: boolean;
@@ -35,6 +35,7 @@ export function FrameRender({
           className="w-full p-2 border mt-1 border-gray-400 rounded"
           type="text"
           placeholder={frame.inputText}
+          value={inputText}
           onChange={(e) => setInputText(e.target.value)}
         />
       )}
@@ -50,7 +51,7 @@ export function FrameRender({
           <button
             type="button"
             disabled={isWaiting}
-            className={`bg-gray-200 p-2 hover:bg-gray-300 ${isWaiting ? "bg-gray-100 hover:bg-gray-100" : ""} border-gray-400 border text-sm text-gray-800 rounded`}
+            className={`${isWaiting ? "bg-gray-100 hover:bg-gray-100" : "bg-gray-200 hover:bg-gray-300"} p-2 border-gray-400 border text-sm text-gray-800 rounded`}
             style={{
               flex: "1 1 0px",
               cursor: isWaiting ? undefined : "pointer",
@@ -78,6 +79,7 @@ export function FrameRender({
                     inputText:
                       frame.inputText !== undefined ? inputText : undefined,
                   });
+                  setInputText("");
                 } catch (err) {
                   alert("error: check the console");
                   console.error(err);
