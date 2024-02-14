@@ -91,6 +91,11 @@
         "default": "./dist/getTokenFromUrl.cjs"
       }
     },
+    "./utils": {
+      "require": "./dist/utils.js",
+      "import": "./dist/utils.js",
+      "types": "./dist/utils.d.ts"
+    },
     "./validateFrameMessage": {
       "import": {
         "types": "./dist/validateFrameMessage.d.ts",

@@ -1,0 +1,4 @@
+name = "frames-multi-page-worker"
+main = "src/index.ts"
+compatibility_date = "2024-02-14"
+compatibility_flags = [ "nodejs_compat" ]
