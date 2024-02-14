@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import { CastId, Message } from "./farcaster";
 import {
   FrameActionPayload,

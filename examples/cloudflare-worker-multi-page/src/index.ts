@@ -2,6 +2,7 @@
 // @ts-expect-error - it has the same API as @vercel/og
 import { ImageResponse } from "workers-og";
 import { Buffer } from "node:buffer";
+import { getFrameHtml, getFrameMessageFromRequestBody } from "frames.js";
 
 // These initial Types are based on bindings that don't exist in the project yet,
 // you can follow the links to learn how to implement them.
@@ -16,20 +17,32 @@ interface Env {
   // MY_BUCKET: R2Bucket
 }
 
+function parsePreviousFrameState(
+  searchParams: URLSearchParams,
+  initialState: any
+) {
+  try {
+    const stateValue = searchParams.get("s");
+
+    if (!stateValue) {
+      return initialState;
+    }
+
+    const parsedValue = JSON.parse(stateValue);
+
+    return parsedValue && typeof parsedValue === "object"
+      ? parsedValue
+      : initialState;
+  } catch (e) {
+    return initialState;
+  }
+}
+
 export default {
   async fetch(req: Request, env: Env, ctx: ExecutionContext) {
     const url = new URL(req.url);
     const totalPages = 5;
-    const state = {
-      pageIndex: 0,
-    };
-    // use dynamic import because @farcaster/core subdependency of frames.js is causing worker to fail
-    // because it manipulates global object
-    const {
-      getFrameHtml,
-      getFrameMessageFromRequestBody,
-      validateFrameMessage,
-    } = await import("frames.js");
+    const state = parsePreviousFrameState(url.searchParams, { pageIndex: 0 });
 
     if (req.method === "POST") {
       const body = await req.json();
@@ -39,16 +52,23 @@ export default {
         return new Response("Invalid message", { status: 400 });
       }
 
-      const result = await validateFrameMessage(body);
+      /* const result = await validateFrameMessage(body, {
+        hubHttpUrl: "https://nemes.farcaster.xyz:2281",
+        hubRequestOptions: {},
+      });
+      console.log(result);
 
       if (!result.isValid) {
         return new Response("Invalid message", { status: 400 });
-      }
+      }*/
 
       const buttonIndex = untrustedMessage.data?.frameActionBody?.buttonIndex;
 
       state.pageIndex = buttonIndex
-        ? state.pageIndex + ((buttonIndex === 2 ? 1 : -1) % totalPages)
+        ? Math.max(
+            0,
+            (state.pageIndex + (buttonIndex === 2 ? 1 : -1)) % totalPages
+          )
         : state.pageIndex;
     }
 
@@ -95,7 +115,10 @@ export default {
                     },
                     {
                       type: "div",
-                      props: { tw: "flex", children: "This is slide" },
+                      props: {
+                        tw: "flex",
+                        children: `This is slide ${state.pageIndex + 1} / ${totalPages}`,
+                      },
                     },
                   ],
                 },
@@ -112,6 +135,10 @@ export default {
     const imgBuffer = await imgResponse.arrayBuffer();
     const imageUrl = `data:image/png;base64,${Buffer.from(imgBuffer).toString("base64")}`;
 
+    const postUrl = new URL("/", url);
+
+    postUrl.searchParams.set("s", JSON.stringify(state));
+
     const html = getFrameHtml(
       {
         version: "vNext",
@@ -127,7 +154,7 @@ export default {
           },
         ],
         ogImage: imageUrl,
-        postUrl: new URL("/", url).toString(),
+        postUrl: postUrl.toString(),
       },
       {
         title: "Multi-page example frame",
