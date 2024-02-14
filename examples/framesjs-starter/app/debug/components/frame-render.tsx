@@ -24,7 +24,16 @@ export function FrameRender({
     <div style={{ width: "382px" }}>
       <img
         src={frame.image}
-        alt="Description of the image"
+        title={
+          frame.image?.startsWith("data:")
+            ? `Frame image: ${Math.ceil(Buffer.from(frame.image).length / 1024)}kb`
+            : "No image"
+        }
+        alt={
+          frame.image?.startsWith("data:")
+            ? `Frame image: ${Math.ceil(Buffer.from(frame.image).length / 1024)}kb`
+            : "No image"
+        }
         style={{ borderRadius: "4px", border: "1px solid #ccc" }}
         {...((frame.imageAspectRatio ?? "1.91:1") === "1:1"
           ? { width: 382, height: 382 }
