@@ -54,25 +54,6 @@ export default async function Home({
 
   console.log("info: state is:", state);
 
-  if (frameMessage) {
-    const {
-      isValid,
-      buttonIndex,
-      inputText,
-      castId,
-      requesterFid,
-      casterFollowsRequester,
-      requesterFollowsCaster,
-      likedCast,
-      recastedCast,
-      requesterCustodyAddress,
-      requesterVerifiedAddresses,
-      requesterUserData,
-    } = frameMessage;
-
-    console.log("info: frameMessage is:", frameMessage);
-  }
-
   const baseUrl = process.env.NEXT_PUBLIC_HOST || "http://localhost:3000";
 
   // then, when done, return next frame
@@ -91,8 +72,33 @@ export default async function Home({
       >
         {/* <FrameImage src="https://framesjs.org/og.png" /> */}
         <FrameImage aspectRatio="1.91:1">
-          <div tw="w-full h-full bg-slate-700 text-white justify-center items-center">
-            {frameMessage?.inputText ? frameMessage.inputText : "Hello world"}
+          <div tw="w-full h-full bg-slate-700 text-white justify-center items-center flex flex-col">
+            <div tw="flex flex-row">
+              {frameMessage?.inputText ? frameMessage.inputText : "Hello world"}
+            </div>
+            {frameMessage && (
+              <div tw="flex flex-col">
+                <div tw="flex">
+                  Requester is @{frameMessage.requesterUserData?.username}{" "}
+                </div>
+                <div tw="flex">
+                  Requester follows caster:{" "}
+                  {frameMessage.requesterFollowsCaster ? "true" : "false"}
+                </div>
+                <div tw="flex">
+                  Caster follows requester:{" "}
+                  {frameMessage.casterFollowsRequester ? "true" : "false"}
+                </div>
+                <div tw="flex">
+                  Requester liked cast:{" "}
+                  {frameMessage.likedCast ? "true" : "false"}
+                </div>
+                <div tw="flex">
+                  Requester recasted cast:{" "}
+                  {frameMessage.recastedCast ? "true" : "false"}
+                </div>
+              </div>
+            )}
           </div>
         </FrameImage>
         <FrameInput text="put some text here" />
