@@ -98,7 +98,7 @@ export function FrameRender({
             }}
             key={index}
           >
-            {action === "mint" ? `♦ ` : ""}
+            {action === "mint" ? `⬗ ` : ""}
             {label}
             {action === "post_redirect" || action === "link" ? ` ↗` : ""}
           </button>
