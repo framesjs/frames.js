@@ -18,7 +18,7 @@ export async function getAddressForFid<
 }): Promise<AddressReturnType<Options>> {
   const {
     fallbackToCustodyAddress = true,
-    hubHttpUrl = "https://api.neynar.com:2281",
+    hubHttpUrl = "https://hub-api.neynar.com",
     hubRequestOptions = {
       headers: {
         api_key: "NEYNAR_FRAMES_JS",
