@@ -1,4 +1,4 @@
-type FrameVersion = "vNext" | `${number}-${number}-${number}`;
+export type FrameVersion = "vNext" | `${number}-${number}-${number}`;
 
 export type ImageAspectRatio = "1.91:1" | "1:1";
 

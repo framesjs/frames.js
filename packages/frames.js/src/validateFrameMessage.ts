@@ -22,6 +22,12 @@ export async function validateFrameMessage(
   isValid: boolean;
   message: FrameActionMessage | undefined;
 }> {
+  if (!body) {
+    throw new Error(
+      "Tried to call validateFrameMessage with no frame action payload. You may be calling it incorrectly on the homeframe"
+    );
+  }
+
   const { headers, ...rest } = hubRequestOptions;
   const validateMessageResponse = await fetch(
     `${hubHttpUrl}/v1/validateMessage`,
