@@ -1,0 +1,10 @@
+name = "frames-multi-page-worker-external-og-service"
+main = "src/index.ts"
+compatibility_date = "2024-02-14"
+compatibility_flags = [ "nodejs_compat" ]
+
+[vars]
+# generate something random but make sure it is the same for both services
+OG_SERVICE_KEY = "secret"
+# fill with the URL in output of yarn deploy:og-service command
+OG_SERVICE_URL = "https://frames-multi-page-worker-og-service.michal-kvasnicak.workers.dev"

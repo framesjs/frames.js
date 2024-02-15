@@ -1,0 +1,8 @@
+name = "frames-multi-page-worker-og-service"
+main = "src/og.ts"
+compatibility_date = "2024-02-14"
+compatibility_flags = [ "nodejs_compat" ]
+
+[vars]
+# generate something random but make sure it is the same for both services
+OG_SERVICE_KEY = "secret"
