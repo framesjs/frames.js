@@ -82,7 +82,6 @@ export async function FrameRouter<TAppState>({
   framesHandlerURL,
   framesURL,
 }: FrameRouterProps<TAppState>) {
-  console.log(searchParams);
   const previousFrame = getPreviousFrame(searchParams);
   let decodedState: TAppState = initialState;
   let path: string = "/";

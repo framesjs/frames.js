@@ -246,6 +246,15 @@ export default function Page({
             >
               Router
             </button>
+            <button
+              className="underline"
+              onClick={(e) => {
+                e.preventDefault();
+                router.push(`?url=${baseUrl}/examples/next-routing`);
+              }}
+            >
+              Next Router
+            </button>
           </div>
           <LoginWindow
             farcasterUser={farcasterUser}
