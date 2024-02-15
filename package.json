@@ -10,7 +10,8 @@
     "lint": "turbo lint",
     "publish-packages": "turbo run build lint && changeset version && changeset publish && git push --follow-tags origin main",
     "publish-canary": "turbo run build lint && cd ./packages/frames.js && yarn publish --tag canary && git push --follow-tags origin main",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "update:proto": "curl https://raw.githubusercontent.com/farcasterxyz/hub-monorepo/main/packages/core/src/protobufs/generated/message.ts -o packages/frames.js/src/farcaster/generated/message.ts"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
