@@ -1,0 +1,8 @@
+name = "frames-multi-page-static-images-worker"
+main = "src/index.ts"
+compatibility_date = "2024-02-14"
+compatibility_flags = [ "nodejs_compat" ]
+
+rules = [
+  { type = "Data", globs = ["**/*.png"], fallthrough = true }
+]

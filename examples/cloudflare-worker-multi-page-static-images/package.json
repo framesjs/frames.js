@@ -1,0 +1,23 @@
+{
+  "name": "cloud-flare-worker-multi-page-static-images",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "lint": "eslint . --max-warnings 0"
+  },
+  "dependencies": {
+    "frames.js": "^0.5.0",
+    "workers-og": "^0.0.20"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^3.14.1",
+    "@framesjs/eslint-config": "*",
+    "@framesjs/typescript-config": "*",
+    "@types/eslint": "^8.56.1",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3",
+    "wrangler": "^3.28.2"
+  }
+}
