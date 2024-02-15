@@ -237,6 +237,15 @@ export default function Page({
             >
               Mint button
             </button>
+            <button
+              className="underline"
+              onClick={(e) => {
+                e.preventDefault();
+                router.push(`?url=${baseUrl}/examples/router`);
+              }}
+            >
+              Router
+            </button>
           </div>
           <LoginWindow
             farcasterUser={farcasterUser}
