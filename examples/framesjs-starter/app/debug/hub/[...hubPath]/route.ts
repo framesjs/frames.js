@@ -5,8 +5,8 @@ function getHubRequest(request: NextRequest, hubPath: string[]) {
 
   const newUrl = new URL(url);
   newUrl.protocol = "https";
-  newUrl.hostname = "api.neynar.com";
-  newUrl.port = "2281";
+  newUrl.hostname = "hub-api.neynar.com";
+  newUrl.port = "443";
   newUrl.pathname = hubPath.join("/");
 
   const headers = new Headers({
