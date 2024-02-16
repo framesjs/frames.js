@@ -103,9 +103,9 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
       }),
     ]);
 
-    const requesterCustodyAddress = requesterEthAddresses.filter(
+    const requesterCustodyAddress = requesterEthAddresses.find(
       (item) => item.type === "custody"
-    )[0]!.address;
+    )!.address;
     const requesterVerifiedAddresses = requesterEthAddresses
       .filter((item) => item.type === "verified")
       .map((item) => item.address);
