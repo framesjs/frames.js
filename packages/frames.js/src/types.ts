@@ -113,6 +113,11 @@ export type AddressReturnType<
   ? `0x${string}`
   : `0x${string}` | null;
 
+export type AddressWithType = {
+  address: `0x${string}`;
+  type: "verified" | "custody";
+};
+
 export type UserDataReturnType = {
   displayName?: string;
   username?: string;
@@ -192,6 +197,8 @@ export type FrameActionHubContext = {
   recastedCast: boolean;
   /** Verified eth addresses of the requester */
   requesterVerifiedAddresses: string[];
+  /** Custody address of the requester */
+  requesterCustodyAddress: string;
   /** User data of the requester */
   requesterUserData: UserDataReturnType;
 };

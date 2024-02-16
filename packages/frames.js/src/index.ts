@@ -1,4 +1,5 @@
 export * from "./getAddressForFid";
+export * from "./getAddressesForFid";
 export * from "./getUserDataForFid";
 export * from "./getFrame";
 export * from "./getFrameHtml";

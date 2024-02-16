@@ -1,0 +1,26 @@
+# getAddressesForFid
+
+Returns the first page of verified addresses for a given user fid if available, also includes their custody address as the last element in the array.
+
+## Usage
+
+```ts [example.ts]
+import { getAddressesForFid } from "frames.js";
+
+const addresses = await getAddressesForFid({
+  fid: 1214,
+});
+console.log(addresses);
+/*
+[
+  {
+    address: '0xdaa83039aca9a33b2e54bb2acc9f9c3a99357618',
+    type: 'verified'
+  },
+  {
+    address: '0xCD1bAe2391651198850B076C2b600d534df53ade',
+    type: 'custody'
+  }
+]
+/*
+```

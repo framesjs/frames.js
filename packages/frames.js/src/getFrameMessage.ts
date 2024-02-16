@@ -5,7 +5,7 @@ import {
   FrameActionDataParsedAndHubContext,
   FrameActionPayload,
   HubHttpUrlOptions,
-  getAddressForFid,
+  getAddressesForFid,
   getUserDataForFid,
   normalizeCastId,
   validateFrameMessage,
@@ -64,7 +64,7 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
       casterFollowsRequester,
       likedCast,
       recastedCast,
-      requesterVerifiedAddresses,
+      requesterEthAddresses,
       requesterUserData,
     ] = await Promise.all([
       validateFrameMessage(payload, {
@@ -87,7 +87,7 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
         `${hubHttpUrl}/v1/reactionById?fid=${requesterFid}&reaction_type=2&target_fid=${castId?.fid}&target_hash=${castId?.hash}`,
         hubRequestOptions
       ).then((res) => res.ok),
-      getAddressForFid({
+      getAddressesForFid({
         fid: requesterFid,
         options: {
           hubHttpUrl,
@@ -103,6 +103,13 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
       }),
     ]);
 
+    const requesterCustodyAddress = requesterEthAddresses.find(
+      (item) => item.type === "custody"
+    )!.address;
+    const requesterVerifiedAddresses = requesterEthAddresses
+      .filter((item) => item.type === "verified")
+      .map((item) => item.address);
+
     // Perform actions to fetch the HubFrameContext and then return the combined result
     const hubContext: FrameActionHubContext = {
       isValid: validationResult.isValid,
@@ -110,9 +117,8 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
       requesterFollowsCaster: requesterFollowsCaster,
       likedCast,
       recastedCast,
-      requesterVerifiedAddresses: requesterVerifiedAddresses
-        ? [requesterVerifiedAddresses]
-        : [],
+      requesterVerifiedAddresses,
+      requesterCustodyAddress,
       requesterUserData,
     };
     return { ...parsedData, ...hubContext } as FrameMessageReturnType<T>;
