@@ -273,15 +273,13 @@ export default function Page({
                   submitOption={submitOption}
                   isLoggedIn={!!farcasterUser?.fid}
                 />
-                {process.env.NODE_ENV === "development" && (
-                  <div className="mt-4">
-                    <h3 className="font-bold">Mock Hub State</h3>
-                    <MockHubConfig
-                      hubContext={mockHubContext}
-                      setHubContext={setMockHubContext}
-                    ></MockHubConfig>
-                  </div>
-                )}
+                <div className="mt-4">
+                  <h3 className="font-bold">Mock Hub State</h3>
+                  <MockHubConfig
+                    hubContext={mockHubContext}
+                    setHubContext={setMockHubContext}
+                  ></MockHubConfig>
+                </div>
               </div>
             </FrameDebugger>
           </>
