@@ -136,7 +136,8 @@ export default function Page({
           trustedData: {
             messageBytes: trustedBytes,
           },
-          mockData: mockHubContext,
+          mockData:
+            process.env.NODE_ENV === "development" ? mockHubContext : undefined,
         } as FrameActionPayload & { mockData: Partial<FrameActionHubContext> }),
       }
     );
@@ -272,13 +273,15 @@ export default function Page({
                   submitOption={submitOption}
                   isLoggedIn={!!farcasterUser?.fid}
                 />
-                <div className="mt-4">
-                  <h3 className="font-bold">Mock Hub State</h3>
-                  <MockHubConfig
-                    hubContext={mockHubContext}
-                    setHubContext={setMockHubContext}
-                  ></MockHubConfig>
-                </div>
+                {process.env.NODE_ENV === "development" && (
+                  <div className="mt-4">
+                    <h3 className="font-bold">Mock Hub State</h3>
+                    <MockHubConfig
+                      hubContext={mockHubContext}
+                      setHubContext={setMockHubContext}
+                    ></MockHubConfig>
+                  </div>
+                )}
               </div>
             </FrameDebugger>
           </>
