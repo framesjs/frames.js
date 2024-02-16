@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import fs from "fs";
 import path from "path";
+import { sortedSearchParamsString } from "../../lib/utils";
 
 function getHubRequest(request: NextRequest, hubPath: string[]) {
   const { url, headers: originalHeaders, ...rest } = request;
@@ -41,8 +42,9 @@ export async function GET(
     const file = path.join(process.cwd(), "app", "debug", "mocks.json");
     const json = fs.readFileSync(file, "utf-8");
     const mocks = JSON.parse(json);
-    const pathAndQuery =
-      "/" + hubPath.join("/") + "?" + request.url.split("?")[1];
+    const searchParams = new URL(request.url).searchParams;
+    const pathAndQuery = `/${hubPath.join("/")}?${sortedSearchParamsString(searchParams)}`;
+
     const mockResult: { ok: boolean | undefined } = mocks[pathAndQuery];
     if (mockResult.ok !== undefined) {
       console.log(

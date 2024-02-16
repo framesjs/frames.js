@@ -2,6 +2,7 @@ import { FrameActionHubContext, getFrame } from "frames.js";
 import { NextRequest } from "next/server";
 import fs from "fs";
 import path from "path";
+import { sortedSearchParamsString } from "../lib/utils";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -55,11 +56,36 @@ function persistMockRequest({
   mockData: FrameActionHubContext;
   untrustedData: { fid: string; castId: { fid: string; hash: string } };
 }) {
-  // TODO: Order of seach params shouldn't matter
-  const requesterFollowsCaster = `/v1/linkById?fid=${requesterFid}&target_fid=${castId.fid}&link_type=follow`;
-  const casterFollowsRequester = `/v1/linkById?fid=${castId.fid}&target_fid=${requesterFid}&link_type=follow`;
-  const likedCast = `/v1/reactionById?fid=${requesterFid}&reaction_type=1&target_fid=${castId.fid}&target_hash=${castId.hash}`;
-  const recastedCast = `/v1/reactionById?fid=${requesterFid}&reaction_type=2&target_fid=${castId.fid}&target_hash=${castId.hash}`;
+  const requesterFollowsCaster = `/v1/linkById?${sortedSearchParamsString(
+    new URLSearchParams({
+      fid: requesterFid,
+      target_fid: castId.fid,
+      link_type: "follow",
+    })
+  )}`;
+  const casterFollowsRequester = `/v1/linkById?${sortedSearchParamsString(
+    new URLSearchParams({
+      fid: castId.fid,
+      target_fid: requesterFid,
+      link_type: "follow",
+    })
+  )}`;
+  const likedCast = `/v1/reactionById?${sortedSearchParamsString(
+    new URLSearchParams({
+      fid: requesterFid,
+      reaction_type: "1",
+      target_fid: castId.fid,
+      target_hash: castId.hash,
+    })
+  )}`;
+  const recastedCast = `/v1/reactionById?${sortedSearchParamsString(
+    new URLSearchParams({
+      fid: requesterFid,
+      reaction_type: "2",
+      target_fid: castId.fid,
+      target_hash: castId.hash,
+    })
+  )}`;
 
   // Write to file
   const file = path.join(process.cwd(), "app", "debug", "mocks.json");
