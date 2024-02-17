@@ -28,7 +28,6 @@ import {
   PreviousFrame,
   RedirectMap,
   RedirectHandler,
-  FrameButtonMintProvidedProps,
 } from "./types";
 export * from "./types";
 
@@ -460,7 +459,7 @@ export async function FrameImage(
     | {
         /** Children to pass to satori to render to PNG. [Supports tailwind](https://vercel.com/blog/introducing-vercel-og-image-generation-fast-dynamic-social-card-images#tailwind-css-support) via the `tw=` prop instead of `className` */
         children: React.ReactNode;
-        options?: SatoriOptions;
+        options?: Partial<SatoriOptions>;
       }
   )
 ) {

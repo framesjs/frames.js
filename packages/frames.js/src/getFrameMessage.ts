@@ -5,7 +5,7 @@ import {
   FrameActionDataParsedAndHubContext,
   FrameActionPayload,
   HubHttpUrlOptions,
-  getAddressForFid,
+  getAddressesForFid,
   getUserDataForFid,
   normalizeCastId,
   validateFrameMessage,
@@ -87,13 +87,13 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
         `${hubHttpUrl}/v1/reactionById?fid=${requesterFid}&reaction_type=2&target_fid=${castId?.fid}&target_hash=${castId?.hash}`,
         hubRequestOptions
       ).then((res) => res.ok),
-      getAddressForFid({
+      getAddressesForFid({
         fid: requesterFid,
         options: {
           hubHttpUrl,
           hubRequestOptions,
         },
-      }),
+      }) as Promise<string[] | null>,
       getUserDataForFid({
         fid: requesterFid,
         options: {
@@ -111,7 +111,7 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
       likedCast,
       recastedCast,
       requesterVerifiedAddresses: requesterVerifiedAddresses
-        ? [requesterVerifiedAddresses]
+        ? requesterVerifiedAddresses
         : [],
       requesterUserData,
     };

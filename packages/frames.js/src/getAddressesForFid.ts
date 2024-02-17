@@ -3,9 +3,9 @@ import { optimism } from "viem/chains";
 import { AddressReturnType, HubHttpUrlOptions } from "./types";
 
 /**
- * Returns the first verified address for a given `Farcaster` users `fid` if available, falling back to their account custodyAddress
+ * Returns all verified addresses for a given `Farcaster` users `fid` if available, falling back to their account custodyAddress
  */
-export async function getAddressForFid<
+export async function getAddressesForFid<
   Options extends
     | ({ fallbackToCustodyAddress?: boolean } & HubHttpUrlOptions)
     | undefined,
@@ -15,7 +15,7 @@ export async function getAddressForFid<
 }: {
   fid: number;
   options?: Options;
-}): Promise<AddressReturnType<Options>> {
+}): Promise<AddressReturnType<Options>[] | null> {
   const {
     fallbackToCustodyAddress = true,
     hubHttpUrl = "https://api.neynar.com:2281",
@@ -31,13 +31,11 @@ export async function getAddressForFid<
     hubRequestOptions
   );
   const { messages } = await verificationsResponse.json();
-  if (messages[0]) {
-    const {
-      data: {
-        verificationAddEthAddressBody: { address },
-      },
-    } = messages[0];
-    return address;
+  if (messages?.length > 0) {
+    const addresses: AddressReturnType<Options>[] = messages.map(
+      (message: any) => message.data.verificationAddEthAddressBody.address
+    );
+    return addresses;
   } else if (fallbackToCustodyAddress) {
     const publicClient = createPublicClient({
       transport: http(),
@@ -50,8 +48,8 @@ export async function getAddressForFid<
       functionName: "custodyOf",
       args: [BigInt(fid)],
     });
-    return address;
+    return [address];
   } else {
-    return null as AddressReturnType<Options>;
+    return null;
   }
 }
