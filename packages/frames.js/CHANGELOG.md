@@ -1,5 +1,18 @@
 # frames.js
 
+## 0.5.1
+
+### Patch Changes
+
+- 157ec44: chore: update fallback neynar hub api url
+- 426d5eb: feat: validate frame image data uri length in debugger
+- 70a0ff6: improve error
+- d1596ac: feat: `getAddressesForFid`, which returns all addresses and their types for a given FID.
+
+  feat: `getFrameMessage` now returns `requesterCustodyAddress` and the `requesterVerifiedAddresses` field returns all verified addresses
+
+- 62be50d: fixes absolute pathname handling
+
 ## 0.5.0
 
 ### Minor Changes
