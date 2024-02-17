@@ -11,7 +11,7 @@ import { FrameActionMessage, Message } from "@farcaster/core";
 export async function validateFrameMessage(
   body: FrameActionPayload,
   {
-    hubHttpUrl = "https://api.neynar.com:2281",
+    hubHttpUrl = "https://hub-api.neynar.com",
     hubRequestOptions = {
       headers: {
         api_key: "NEYNAR_FRAMES_JS",
@@ -22,6 +22,12 @@ export async function validateFrameMessage(
   isValid: boolean;
   message: FrameActionMessage | undefined;
 }> {
+  if (!body) {
+    throw new Error(
+      "Tried to call validateFrameMessage with no frame action payload. You may be calling it incorrectly on the homeframe"
+    );
+  }
+
   const { headers, ...rest } = hubRequestOptions;
   const validateMessageResponse = await fetch(
     `${hubHttpUrl}/v1/validateMessage`,

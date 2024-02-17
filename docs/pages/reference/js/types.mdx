@@ -109,6 +109,11 @@ export type AddressReturnType<
   ? `0x${string}`
   : `0x${string}` | null;
 
+export type AddressWithType = {
+  address: `0x${string}`;
+  type: "verified" | "custody";
+};
+
 export type UserDataReturnType = {
   displayName?: string;
   username?: string;
@@ -148,7 +153,7 @@ export type FrameActionPayload = {
 
 /** Options available in functions that make use of Hub queries */
 export type HubHttpUrlOptions = {
-  /** Hub HTTP REST API endpoint to use (default: https://api.neynar.com:2281 w/ public API key) */
+  /** Hub HTTP REST API endpoint to use (default: https://hub-api.neynar.com w/ public API key) */
   hubHttpUrl?: string;
   /** Hub HTTP request options (use this for setting API keys) */
   hubRequestOptions?: RequestInit;
@@ -178,6 +183,8 @@ export type FrameActionHubContext = {
   recastedCast: boolean;
   /** Verified eth addresses of the requester */
   requesterVerifiedAddresses: string[];
+  /** Custody address of the requester */
+  requesterCustodyAddress: string;
   /** User data of the requester */
   requesterUserData: UserDataReturnType;
 };

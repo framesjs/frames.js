@@ -21,6 +21,7 @@ console.log(frameMessage);
   likedCast: false,
   recastedCast: false,
   requesterVerifiedAddresses: [ '0x8d25687829d6b85d9e0020b8c89e3ca24de20a89' ],
+  requesterCustodyAddress: '0x2738B21cB9520338F9A375c3b971B1778ae1004a',
   requesterUserData: {
     profileImage: 'https://lh3.googleusercontent.com/-S5cdhOpZtJ_Qzg9iPWELEsRTkIsZ7qGYmVlwEORgFB00WWAtZGefRnS4Bjcz5ah40WVOOWeYfU5pP9Eekikb3cLMW2mZQOMQHlWhg',
     displayName: 'David Furlong',
@@ -41,13 +42,7 @@ console.log(frameMessage);
   buttonIndex: 2,
   castId: { fid: 1, hash: '0x0000000000000000000000000000000000000000' },
   inputText: '',
-  requesterFid: 1689,
-  requesterUserData: {
-    profileImage: 'https://lh3.googleusercontent.com/-S5cdhOpZtJ_Qzg9iPWELEsRTkIsZ7qGYmVlwEORgFB00WWAtZGefRnS4Bjcz5ah40WVOOWeYfU5pP9Eekikb3cLMW2mZQOMQHlWhg',
-    displayName: 'David Furlong',
-    username: 'df',
-    bio: 'Building open source software for /frames, to help Farcaster and decentralized social win'
-  }
+  requesterFid: 1689
 }
 **/
 ```
@@ -75,5 +70,6 @@ type FrameActionHubContext = {
   likedCast: boolean;
   recastedCast: boolean;
   requesterVerifiedAddresses: string[];
+  requesterCustodyAddress: string;
 };
 ```

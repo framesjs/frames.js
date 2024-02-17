@@ -14,7 +14,7 @@ export async function getUserDataForFid<
   options?: Options;
 }): Promise<UserDataReturnType> {
   const {
-    hubHttpUrl = "https://api.neynar.com:2281",
+    hubHttpUrl = "https://hub-api.neynar.com",
     hubRequestOptions = {
       headers: {
         api_key: "NEYNAR_FRAMES_JS",

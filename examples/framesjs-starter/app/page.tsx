@@ -65,6 +65,7 @@ export default async function Home({
       requesterFollowsCaster,
       likedCast,
       recastedCast,
+      requesterCustodyAddress,
       requesterVerifiedAddresses,
       requesterUserData,
     } = frameMessage;
