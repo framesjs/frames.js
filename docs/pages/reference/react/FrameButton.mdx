@@ -22,14 +22,14 @@ return function Home(){
         previousFrame={previousFrame}
       >
         <FrameImage src="https://picsum.photos/seed/frames.js/1146/600" />
-        <FrameButton onClick={dispatch}>
+        <FrameButton>
           {state?.active === "1" ? "Active" : "Inactive"}
         </FrameButton>
-        <FrameButton onClick={dispatch}>
+        <FrameButton>
           {state?.active === "2" ? "Active" : "Inactive"}
         </FrameButton>
-        <FrameButton mint={`eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df`}>Mint NFT</FrameButton>
-        <FrameButton href={`https://www.google.com`}>External</FrameButton>
+        <FrameButton action="mint" target={`eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df`}>Mint NFT</FrameButton>
+        <FrameButton action="link" target={`https://www.google.com`}>External</FrameButton>
       </FrameContainer>
 }
 ```
