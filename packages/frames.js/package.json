@@ -61,8 +61,8 @@
     }
   },
   "devDependencies": {
-    "typescript": "^5.3.3",
-    "tsup": "^8.0.1"
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3"
   },
   "license": "MIT",
   "peerDependencies": {
@@ -72,6 +72,7 @@
   },
   "dependencies": {
     "@farcaster/core": "^0.14.0",
+    "@open-frames/types": "^0.0.6",
     "@vercel/og": "^0.6.2",
     "cheerio": "^1.0.0-rc.12",
     "viem": "^2.7.1"

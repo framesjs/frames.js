@@ -1231,6 +1231,11 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
+"@open-frames/types@^0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@open-frames/types/-/types-0.0.6.tgz#e85dddb462260cb779f5dbed3a9770a3d96f7e5a"
+  integrity sha512-YisT+uVKAcDwe8k/4xEEFRmxj1hsuSKgBoYLXQmx8KMIzIIl/lvUWwmY6jWa84PJMQZYgdb8ZDNzFfNGbNJSFQ==
+
 "@pkgjs/parseargs@^0.11.0":
   version "0.11.0"
   resolved "https://registry.yarnpkg.com/@pkgjs/parseargs/-/parseargs-0.11.0.tgz#a77ea742fab25775145434eb1d2328cf5013ac33"

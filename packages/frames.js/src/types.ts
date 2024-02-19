@@ -171,6 +171,14 @@ export type HubHttpUrlOptions = {
   hubRequestOptions?: RequestInit;
 };
 
+export type ProtocolIdentifier = string;
+
+export type ClientProtocol = `${ProtocolIdentifier}@${string}`;
+
+export interface ValidateFrameMessageOptions extends HubHttpUrlOptions {
+  supportedClientProtocols?: ClientProtocol[];
+}
+
 /** Data extracted and parsed from the frame message body */
 export type FrameActionDataParsed = {
   buttonIndex: number;
