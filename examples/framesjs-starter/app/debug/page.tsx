@@ -255,6 +255,15 @@ export default function Page({
             >
               Next Router
             </button>
+            <button
+              className="underline"
+              onClick={(e) => {
+                e.preventDefault();
+                router.push(`?url=${baseUrl}/examples/next-routing-better`);
+              }}
+            >
+              Next Router v2
+            </button>
           </div>
           <LoginWindow
             farcasterUser={farcasterUser}
