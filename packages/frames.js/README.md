@@ -28,7 +28,17 @@ yarn add frames.js
 
 ## Quick Start
 
-## Start with frames.js in Next.js in two copy-pastes
+### Clone the frames.js starter template (with local debugger)
+
+Run to clone the starter into a new folder called `framesjs-starter`
+
+```bash
+npx degit github:framesjs/frames.js/examples/framesjs-starter#main framesjs-starter
+```
+
+or [clone from github](https://github.com/framesjs/frames.js/tree/main/examples/framesjs-starter)
+
+### Alternatively, Start with frames.js in Next.js in two copy-pastes
 
 ```tsx filename="// ./app/page.tsx"
 // ./app/page.tsx
@@ -72,8 +82,6 @@ export default async function Home(props) {
 
 export { POST } from "frames.js/next/server";
 ```
-
-## Alternatively, [Fork our boilerplate](https://github.com/framesjs/frames.js/tree/main/examples/framesjs-starter) that includes local debugging
 
 ## Local fully interactive Debugger & Frame validation
 
