@@ -8,7 +8,7 @@ export default async function RouteExample({
   const frame = currentFrame({ searchParams, initialState });
 
   return (
-    <Frame {...{ frame }}>
+    <Frame frame={frame}>
       <FrameImage>
         <div>Hello world</div>
       </FrameImage>

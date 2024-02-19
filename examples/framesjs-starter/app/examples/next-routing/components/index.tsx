@@ -1,13 +1,14 @@
 import {
   FrameImage,
-  NextServerPageProps,
-  PreviousFrame,
+  type FrameState,
+  type NextServerPageProps,
+  type PreviousFrame,
   getPreviousFrame,
 } from "frames.js/next/server";
 import { headers } from "next/headers";
 import { cloneElement, Children } from "react";
 
-export type FrameRouterState<TAppState> = {
+export type FrameRouterState<TAppState extends FrameState = FrameState> = {
   /**
    * URL.pathname value, this is used for routing
    */
@@ -32,12 +33,12 @@ function resolveUrl(url: URL, pathOrUrl: string | URL | undefined): URL {
   return pathOrUrl;
 }
 
-type CurrentFrame<TAppState> = {
+type CurrentFrame<TAppState extends FrameState = FrameState> = {
   state: TAppState;
   previousFrame: PreviousFrame | undefined;
 };
 
-export function currentFrame<TAppState>({
+export function currentFrame<TAppState extends FrameState = FrameState>({
   initialState,
   searchParams,
 }: {
@@ -73,7 +74,7 @@ export function currentFrame<TAppState>({
   };
 }
 
-type FrameLinkProps<TAppState> = {
+type FrameLinkProps<TAppState extends FrameState = FrameState> = {
   children: string;
   to: string | ((state: TAppState) => { path: string; state: TAppState });
   /**
@@ -86,7 +87,7 @@ type FrameLinkProps<TAppState> = {
   $frameContext?: FrameContext<TAppState>;
 };
 
-export function FrameLink<TAppState>({
+export function FrameLink<TAppState extends FrameState = FrameState>({
   children,
   to,
   $frameContext,
@@ -109,7 +110,7 @@ export function FrameLink<TAppState>({
   );
 }
 
-type FrameContext<TAppState> = {
+type FrameContext<TAppState extends FrameState = FrameState> = {
   registerButton(): number;
   generateLinkTarget(
     pathOrPathFn:
@@ -120,7 +121,7 @@ type FrameContext<TAppState> = {
 
 type AllowedFrameChildren = typeof FrameImage | typeof FrameLink;
 
-type FrameProps<TAppState> = {
+type FrameProps<TAppState = unknown> = {
   children:
     | React.ReactElement<AllowedFrameChildren>
     | (React.ReactElement<AllowedFrameChildren> | null)[]
@@ -136,7 +137,7 @@ type FrameProps<TAppState> = {
   framesURL?: string | URL;
 };
 
-export function Frame<TAppState>({
+export function Frame<TAppState extends FrameState = FrameState>({
   children,
   frame,
   framesHandlerURL,
@@ -215,7 +216,9 @@ export function Frame<TAppState>({
   );
 }
 
-export function createFrameComponent<TAppState>({
+export function createFrameComponent<
+  TAppState extends FrameState = FrameState,
+>({
   framesHandlerURL,
   // @todo this leaks just because of debugger being an app that runs on the same port and domains as frames
   // normally we should have standalone debugger that doesn't interfere with how frames are implemented
@@ -237,7 +240,9 @@ export function createFrameComponent<TAppState>({
   };
 }
 
-function createFrameComponentWithFrame<TAppState>({
+function createFrameComponentWithFrame<
+  TAppState extends FrameState = FrameState,
+>({
   framesHandlerURL,
   // @todo this leaks just because of debugger being an app that runs on the same port and domains as frames
   // normally we should have standalone debugger that doesn't interfere with how frames are implemented
@@ -265,14 +270,15 @@ function createFrameComponentWithFrame<TAppState>({
   };
 }
 
-export type FramePageProps<TAppState> = NextServerPageProps & {
-  frame: CurrentFrame<TAppState>;
-  Frame: React.ComponentType<
-    Omit<FrameProps<TAppState>, "framesHandlerURL" | "framesURL" | "frame">
-  >;
-};
+export type FramePageProps<TAppState extends FrameState = FrameState> =
+  NextServerPageProps & {
+    frame: CurrentFrame<TAppState>;
+    Frame: React.ComponentType<
+      Omit<FrameProps<TAppState>, "framesHandlerURL" | "framesURL" | "frame">
+    >;
+  };
 
-export function createFramePage<TAppState>(
+export function createFramePage<TAppState extends FrameState = FrameState>(
   {
     initialState,
     framesHandlerURL,

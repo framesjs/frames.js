@@ -10,7 +10,7 @@ export default function EnterValueFrame({ searchParams }: NextServerPageProps) {
   const frame = currentFrame({ searchParams, initialState });
 
   return (
-    <Frame {...{ frame }}>
+    <Frame frame={frame}>
       <FrameImage>
         <div>Please enter 1 or 0.</div>
       </FrameImage>
