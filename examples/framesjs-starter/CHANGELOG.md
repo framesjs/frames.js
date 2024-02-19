@@ -1,5 +1,20 @@
 # framesjs-starter
 
+## 0.1.11
+
+### Patch Changes
+
+- 157ec44: chore: update fallback neynar hub api url
+- 548a9c3: feat: multi-page example
+- 426d5eb: feat: validate frame image data uri length in debugger
+- 8317894: fix: reset input state on submit, waiting state buttons styling
+- Updated dependencies [157ec44]
+- Updated dependencies [426d5eb]
+- Updated dependencies [70a0ff6]
+- Updated dependencies [d1596ac]
+- Updated dependencies [62be50d]
+  - frames.js@0.5.1
+
 ## 0.1.10
 
 ### Patch Changes
