@@ -64,6 +64,10 @@ export function validateFrame({
     "meta[property='fc:frame:image:aspect_ratio'], meta[name='fc:frame:image:aspect_ratio']"
   ).attr("content");
 
+  const state = $(
+    "meta[property='fc:frame:state'], meta[name='fc:frame:state']"
+  ).attr("content");
+
   const accepts = $("meta")
     .filter((i, el) => {
       const name = $(el).attr("name") || $(el).attr("property");
@@ -258,6 +262,13 @@ export function validateFrame({
       });
     }
 
+    if (state && Buffer.from(state).length > 4096) {
+      addError({
+        message: `State is more than 4kb (${Math.ceil(Buffer.from(state).length / 4096)}kb)`,
+        key: "fc:frame:state",
+      });
+    }
+
     // validate data url is less than 256kb (warpcast)
     if (getByteLength(image) > 256 * 1024) {
       addError({
@@ -314,6 +325,7 @@ export function validateFrame({
       postUrl,
       inputText,
       accepts,
+      state,
     },
     errors,
   };

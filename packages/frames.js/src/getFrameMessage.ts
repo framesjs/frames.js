@@ -40,8 +40,15 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
     Buffer.from(payload.trustedData.messageBytes, "hex")
   ) as FrameActionMessage;
 
-  const { buttonIndex, inputText: inputTextBytes } =
-    decodedMessage.data.frameActionBody || {};
+  const {
+    buttonIndex,
+    inputText: inputTextBytes,
+    state: stateBytes,
+  } = (decodedMessage.data
+    .frameActionBody as typeof decodedMessage.data.frameActionBody & {
+    // TODO: Update protobuf when released
+    state?: Uint8Array;
+  }) || {};
   const inputText = inputTextBytes
     ? Buffer.from(inputTextBytes).toString("utf-8")
     : undefined;
@@ -51,11 +58,16 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
     ? normalizeCastId(decodedMessage.data.frameActionBody.castId)
     : undefined;
 
+  const state = stateBytes
+    ? Buffer.from(stateBytes).toString("utf-8")
+    : undefined;
+
   const parsedData: FrameActionDataParsed = {
     buttonIndex,
     castId,
     inputText,
     requesterFid,
+    state,
   };
 
   if (fetchHubContext) {
