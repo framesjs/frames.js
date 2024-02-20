@@ -6,6 +6,8 @@ import { createServer } from "http";
 import { parse } from "url";
 import next from "next";
 import isPortReachable from "is-port-reachable";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import open from "open";
 
 const args = yargs(hideBin(process.argv))
@@ -54,7 +56,13 @@ async function resolveAvailablePort(port = 3000) {
 }
 
 const port = await resolveAvailablePort();
-const app = next({ dev, hostname, port });
+const app = next({
+  dev,
+  hostname,
+  port,
+  // resolve dirname relative to current file as we can call the command from any directory in the system
+  dir: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../"),
+});
 const handle = app.getRequestHandler();
 const url = `http://${hostname}:${port}`;
 const hubUrl = `${url}/hub`;
