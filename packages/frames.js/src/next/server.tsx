@@ -188,6 +188,7 @@ export function useFramesReducer<T extends FrameState = FrameState>(
   initializerArg: PreviousFrame<T>
 ): [T, Dispatch] {
   function frameReducerInit(initial: PreviousFrame<T>): T {
+    console.log('useFramesReducer --=> ', initial )
     if (initial.prevState === null || initial.postBody === null)
       return initialState;
 

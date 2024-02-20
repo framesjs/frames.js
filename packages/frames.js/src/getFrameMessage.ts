@@ -27,7 +27,7 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
   payload: FrameActionPayload,
   {
     fetchHubContext = true,
-    hubHttpUrl = "https://hub-api.neynar.com",
+    hubHttpUrl = process.env.NODE_ENV === "development" ? "http://localhost:3000/debug/hub" : "https://hub-api.neynar.com",
     hubRequestOptions = {
       headers: {
         api_key: "NEYNAR_FRAMES_JS",

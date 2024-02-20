@@ -11,7 +11,7 @@ import { FrameActionMessage, Message } from "@farcaster/core";
 export async function validateFrameMessage(
   body: FrameActionPayload,
   {
-    hubHttpUrl = "https://hub-api.neynar.com",
+    hubHttpUrl = process.env.NODE_ENV === "development" ? "http://localhost:3000/debug/hub" : "https://hub-api.neynar.com",
     hubRequestOptions = {
       headers: {
         api_key: "NEYNAR_FRAMES_JS",

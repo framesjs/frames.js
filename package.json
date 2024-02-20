@@ -4,6 +4,7 @@
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev --filter=framesjs-starter...",
+    "dev:express": "turbo dev --filter=framesjs-starter-express...",
     "dev:custom-redirects": "turbo dev --filter=custom-redirects...",
     "dev:utils-starter": "turbo dev --filter=utils-starter...",
     "dev:all": "turbo dev",
