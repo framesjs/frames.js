@@ -49,56 +49,28 @@ export default async function Home({
   const previousFrame = getPreviousFrame<State>(searchParams);
   const [state] = useFramesReducer<State>(reducer, initialState, previousFrame);
 
+  let fid: number | undefined;
+  let walletAddress: string | undefined;
+
   if (
     previousFrame.postBody &&
     isXmtpFrameActionPayload(previousFrame.postBody)
   ) {
     const frameMessage = await getXmtpFrameMessage(previousFrame.postBody);
-
-    return (
-      <FrameContainer
-        pathname="/examples/multi-protocol"
-        postUrl="/examples/multi-protocol/frames"
-        state={state}
-        previousFrame={previousFrame}
-        accepts={acceptedProtocols}
-      >
-        <FrameImage>
-          <div tw="flex flex-col">
-            <div tw="flex">
-              The connected user&apos;s wallet address is:{" "}
-              {frameMessage.verifiedWalletAddress}
-            </div>
-          </div>
-        </FrameImage>
-        <FrameButton>Done</FrameButton>
-      </FrameContainer>
-    );
+    walletAddress = frameMessage?.verifiedWalletAddress;
   } else {
     const frameMessage = await getFrameMessage(
       previousFrame.postBody,
       DEBUG_HUB_OPTIONS
     );
 
-    if (frameMessage && frameMessage?.isValid)
-      return (
-        <FrameContainer
-          pathname="/examples/multi-protocol"
-          postUrl="/examples/multi-protocol/frames"
-          state={state}
-          previousFrame={previousFrame}
-          accepts={acceptedProtocols}
-        >
-          <FrameImage>
-            <div tw="flex flex-col">
-              <div tw="flex">
-                The connected user&apos;s FID is: {frameMessage?.requesterFid}
-              </div>
-            </div>
-          </FrameImage>
-          <FrameButton>Done</FrameButton>
-        </FrameContainer>
-      );
+    if (frameMessage && frameMessage?.isValid) {
+      fid = frameMessage?.requesterFid;
+      walletAddress =
+        frameMessage?.requesterCustodyAddress.length > 0
+          ? frameMessage?.requesterCustodyAddress
+          : frameMessage.requesterCustodyAddress;
+    }
   }
 
   return (
@@ -113,8 +85,14 @@ export default async function Home({
       >
         <FrameImage>
           <div tw="flex flex-col">
-            This frame gets the interactor&apos;s wallet address or FID
-            depending on the client protocol.
+            <div tw="flex">
+              This frame gets the interactor&apos;s wallet address or FID
+              depending on the client protocol.
+            </div>
+            {fid && <div tw="flex">FID: {fid}</div>}
+            {walletAddress && (
+              <div tw="flex">Wallet Address: {walletAddress}</div>
+            )}
           </div>
         </FrameImage>
         <FrameButton>Check</FrameButton>
