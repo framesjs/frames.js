@@ -1,0 +1,25 @@
+# getXmtpFrameMessage
+
+Returns a `XmtpFrameMessageReturnType` object from the message payload. Throws an error if the message is invalid. Requires the `@xmtp/frames-validator` peer dependency to be installed.
+
+## Usage
+
+```ts
+yarn add @xmtp/frames-validator
+```
+
+```ts
+import { getXmtpFrameMessage } from "frames.js/xmtp";
+
+const frameMessage = await getXmtpFrameMessage(frameActionPayload);
+console.log(frameMessage);
+/**
+{
+  frameUrl: 'https://example.com',
+  buttonIndex: 1,
+  timestamp: 1234567890,
+  opaqueConversationIdentifier: "...",
+  verifiedWalletAddress: "0x...",
+}
+**/
+```

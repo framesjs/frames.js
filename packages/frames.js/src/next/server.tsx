@@ -412,10 +412,9 @@ export function FrameContainer<T extends FrameState = FrameState>({
     <>
       <meta name="fc:frame" content="vNext" />
       <meta name="fc:frame:post_url" content={postUrlFull} />
-      {...accepts?.map(
-        ({ id, version }) =>
-          `<meta name="of:accepts:${id}" content="${version}"/>`
-      ) ?? []}
+      {...accepts?.map(({ id, version }) => (
+        <meta name={`of:accepts:${id}`} content={version} />
+      )) ?? []}
       {newTree}
     </>
   );

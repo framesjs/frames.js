@@ -166,6 +166,7 @@ export type FrameActionPayload = {
     /** text input by the user into any input provided, "" if requested and no input, undefined if input not requested */
     inputText?: string;
   };
+  /** Open Frames spec: the identifier and version of the client protocol that sent the request e.g. farcaster@vNext */
   clientProtocol?: string;
 };
 
