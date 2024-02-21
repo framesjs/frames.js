@@ -50,7 +50,8 @@
     "dev": "next dev",
     "build": "rimraf .next && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prepublishOnly": "npm run build"
   },
   "postcss": {
     "plugins": {
