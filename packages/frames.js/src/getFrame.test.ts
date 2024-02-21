@@ -21,22 +21,28 @@ describe("getFrame", () => {
       {
         label: "Green",
         action: "post",
+        target: undefined,
       },
       {
         label: "Purple",
         action: "post",
+        target: undefined,
       },
       {
         label: "Red",
         action: "post",
+        target: undefined,
       },
       {
         label: "Blue",
         action: "post",
+        target: undefined,
       },
     ],
     postUrl: "https://example.com",
     inputText: "Enter a message",
+    imageAspectRatio: undefined,
+    accepts: [],
   } as Frame;
 
   it("should parse html meta tags", () => {
@@ -112,6 +118,9 @@ describe("getFrame", () => {
         },
       ],
       postUrl: "https://example.com",
+      inputText: undefined,
+      imageAspectRatio: undefined,
+      accepts: [],
     });
   });
 
@@ -188,6 +197,12 @@ describe("getFrame", () => {
         },
       ],
       postUrl: "https://example.com",
+      accepts: [
+        {
+          id: "xmtp",
+          version: "vNext",
+        },
+      ],
     };
 
     const html = getFrameHtml(exampleFrame);
@@ -198,5 +213,24 @@ describe("getFrame", () => {
     }).frame;
 
     expect(parsedFrame).toEqual(exampleFrame);
+  });
+
+  it("should parse of:accepts", () => {
+    const html = `
+    <meta name="fc:frame" content="vNext"/>
+    <meta name="fc:frame:post_url" content="https://example.com"/>
+    <meta name="fc:frame:image" content="http:/example.com/image.png"/>
+    <meta name="of:accepts:xmtp" content="vNext"/>
+    <meta name="of:accepts:lens" content="1.5"/>
+    `;
+    const { frame } = getFrame({
+      htmlString: html,
+      url: "https://example.com",
+    });
+
+    expect(frame?.accepts).toEqual([
+      { id: "xmtp", version: "vNext" },
+      { id: "lens", version: "1.5" },
+    ]);
   });
 });

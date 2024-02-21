@@ -64,6 +64,20 @@ export function validateFrame({
     "meta[property='fc:frame:image:aspect_ratio'], meta[name='fc:frame:image:aspect_ratio']"
   ).attr("content");
 
+  const accepts = $("meta")
+    .filter((i, el) => {
+      const name = $(el).attr("name") || $(el).attr("property");
+      const content = $(el).attr("content");
+      return name && content ? name.startsWith("of:accepts:") : false;
+    })
+    .map((i, el) => {
+      const attribute = $(el).attr("name") || $(el).attr("property");
+      const id = attribute?.substring("of:accepts:".length)!;
+      const version = $(el).attr("content")!;
+      return { id, version };
+    })
+    .toArray();
+
   const postUrl =
     $(
       "meta[property='fc:frame:post_url'], meta[name='fc:frame:post_url']"
@@ -299,6 +313,7 @@ export function validateFrame({
       buttons: buttonsWithActions as FrameButtonsType,
       postUrl,
       inputText,
+      accepts,
     },
     errors,
   };
