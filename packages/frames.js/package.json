@@ -6,7 +6,9 @@
   "types": "index.d.cts",
   "typesVersions": {
     "*": {
-      "*": ["./dist/*"]
+      "*": [
+        "./dist/*"
+      ]
     }
   },
   "scripts": {
@@ -107,15 +109,6 @@
       "require": {
         "types": "./dist/next/server.d.cts",
         "default": "./dist/next/server.cjs"
-    },
-    "./xmtp": {
-      "import": {
-        "types": "./dist/xmtp/index.d.ts",
-        "default": "./dist/xmtp/index.js"
-      },
-      "require": {
-        "types": "./dist/xmtp/index.d.cts",
-        "default": "./dist/xmtp/index.cjs"
       }
     },
     "./next/types": {
@@ -126,6 +119,16 @@
       "require": {
         "types": "./dist/next/types.d.cts",
         "default": "./dist/next/types.cjs"
+      }
+    },
+    "./xmtp": {
+      "import": {
+        "types": "./dist/xmtp/index.d.ts",
+        "default": "./dist/xmtp/index.js"
+      },
+      "require": {
+        "types": "./dist/xmtp/index.d.cts",
+        "default": "./dist/xmtp/index.cjs"
       }
     }
   },
