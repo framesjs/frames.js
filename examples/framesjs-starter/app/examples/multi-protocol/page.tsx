@@ -1,34 +1,14 @@
+import { ClientProtocolId } from "frames.js";
 import {
   FrameButton,
   FrameContainer,
   FrameImage,
-  FrameReducer,
   NextServerPageProps,
   getFrameMessage,
   getPreviousFrame,
-  useFramesReducer,
 } from "frames.js/next/server";
 import { getXmtpFrameMessage, isXmtpFrameActionPayload } from "frames.js/xmtp";
-import Link from "next/link";
 import { DEBUG_HUB_OPTIONS } from "../../debug/constants";
-import { ClientProtocolId } from "frames.js";
-
-type State = {
-  pageIndex: number;
-};
-
-const totalPages = 5;
-const initialState: State = { pageIndex: 0 };
-
-const reducer: FrameReducer<State> = (state, action) => {
-  const buttonIndex = action.postBody?.untrustedData.buttonIndex;
-
-  return {
-    pageIndex: buttonIndex
-      ? (state.pageIndex + (buttonIndex === 2 ? 1 : -1)) % totalPages
-      : state.pageIndex,
-  };
-};
 
 const acceptedProtocols: ClientProtocolId[] = [
   {
@@ -46,8 +26,7 @@ export default async function Home({
   params,
   searchParams,
 }: NextServerPageProps) {
-  const previousFrame = getPreviousFrame<State>(searchParams);
-  const [state] = useFramesReducer<State>(reducer, initialState, previousFrame);
+  const previousFrame = getPreviousFrame(searchParams);
 
   let fid: number | undefined;
   let walletAddress: string | undefined;
@@ -75,11 +54,10 @@ export default async function Home({
 
   return (
     <div>
-      Multi-protocol example <Link href="/debug">Debug</Link>
       <FrameContainer
         pathname="/examples/multi-protocol"
         postUrl="/examples/multi-protocol/frames"
-        state={state}
+        state={{}}
         previousFrame={previousFrame}
         accepts={acceptedProtocols}
       >
