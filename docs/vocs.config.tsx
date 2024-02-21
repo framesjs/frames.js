@@ -46,6 +46,24 @@ const sidebar = [
             text: "validateFrameMessage",
             link: "/reference/js/validateFrameMessage",
           },
+          {
+            text: "XMTP",
+            collapsed: false,
+            items: [
+              {
+                text: "Tutorial",
+                link: "/reference/js/xmtp",
+              },
+              {
+                text: "getXmtpFrameMessage",
+                link: "/reference/js/xmtp/getXmtpFrameMessage",
+              },
+              {
+                text: "isXmtpFrameActionPayload",
+                link: "/reference/js/xmtp/isXmtpFrameActionPayload",
+              },
+            ],
+          },
         ],
       },
       {
