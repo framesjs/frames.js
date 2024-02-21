@@ -1,4 +1,4 @@
-import { FrameActionMessage, Message } from "@farcaster/core";
+import { FrameActionMessage, Message } from "./farcaster";
 import {
   FrameActionDataParsed,
   FrameActionHubContext,
@@ -10,6 +10,7 @@ import {
   normalizeCastId,
   validateFrameMessage,
 } from ".";
+import { DEFAULT_HUB_API_KEY, DEFAULT_HUB_API_URL } from "./default";
 
 export type GetFrameMessageOptions = {
   fetchHubContext?: boolean;
@@ -27,10 +28,10 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
   payload: FrameActionPayload,
   {
     fetchHubContext = true,
-    hubHttpUrl = "https://hub-api.neynar.com",
+    hubHttpUrl = DEFAULT_HUB_API_URL,
     hubRequestOptions = {
       headers: {
-        api_key: "NEYNAR_FRAMES_JS",
+        api_key: DEFAULT_HUB_API_KEY,
       },
     },
   }: T = {} as T

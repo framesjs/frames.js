@@ -1,4 +1,4 @@
-import { CastId, Message } from "@farcaster/core";
+import { CastId, Message } from "./farcaster";
 import {
   FrameActionPayload,
   FrameButton,

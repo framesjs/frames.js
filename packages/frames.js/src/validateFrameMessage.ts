@@ -3,7 +3,8 @@ import {
   HubHttpUrlOptions,
   hexStringToUint8Array,
 } from ".";
-import { FrameActionMessage, Message } from "@farcaster/core";
+import { DEFAULT_HUB_API_KEY, DEFAULT_HUB_API_URL } from "./default";
+import { FrameActionMessage, Message } from "./farcaster";
 
 /**
  * @returns a Promise that resolves with whether the message signature is valid, by querying a Farcaster hub, as well as the message itself
@@ -11,10 +12,10 @@ import { FrameActionMessage, Message } from "@farcaster/core";
 export async function validateFrameMessage(
   body: FrameActionPayload,
   {
-    hubHttpUrl = "https://hub-api.neynar.com",
+    hubHttpUrl = DEFAULT_HUB_API_URL,
     hubRequestOptions = {
       headers: {
-        api_key: "NEYNAR_FRAMES_JS",
+        api_key: DEFAULT_HUB_API_KEY,
       },
     },
   }: HubHttpUrlOptions = {}

@@ -5,8 +5,10 @@ export function MockHubConfig({
   hubContext,
   setHubContext,
 }: {
-  hubContext: FrameActionHubContext;
-  setHubContext: React.Dispatch<React.SetStateAction<FrameActionHubContext>>;
+  hubContext: Partial<FrameActionHubContext>;
+  setHubContext: React.Dispatch<
+    React.SetStateAction<Partial<FrameActionHubContext>>
+  >;
 }) {
   const isDev = process.env.NODE_ENV === "development";
 

@@ -7,9 +7,20 @@ function getHubRequest(request: NextRequest, hubPath: string[]) {
   const { url, headers: originalHeaders, ...rest } = request;
 
   const newUrl = new URL(url);
-  newUrl.protocol = "https";
-  newUrl.hostname = "hub-api.neynar.com";
-  newUrl.port = "443";
+
+  if (process.env.DEBUG_HUB_HTTP_URL) {
+    const hubUrl = new URL(process.env.DEBUG_HUB_HTTP_URL);
+    newUrl.protocol = hubUrl.protocol;
+    newUrl.hostname = hubUrl.hostname;
+    newUrl.port = hubUrl.port;
+  } else {
+    newUrl.protocol = "https";
+    newUrl.hostname = "hub-api.neynar.com";
+    newUrl.port = "443";
+  }
+
+  console.log("info: Mock hub: Forwarding message to", newUrl.toString());
+
   newUrl.pathname = hubPath.join("/");
 
   const headers = new Headers({

@@ -1,4 +1,4 @@
-import { FrameActionMessage } from "@farcaster/core";
+import { FrameActionMessage } from "../farcaster";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import React from "react";
@@ -11,6 +11,7 @@ import {
 } from "..";
 import {
   ActionIndex,
+  ClientProtocolId,
   FrameActionPayload,
   HubHttpUrlOptions,
   ImageAspectRatio,
@@ -306,6 +307,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
   state,
   pathname,
   previousFrame,
+  accepts,
 }: {
   /** Either a relative e.g. "/frames" or an absolute path, e.g. "https://google.com/frames" */
   postUrl: string;
@@ -316,6 +318,8 @@ export function FrameContainer<T extends FrameState = FrameState>({
   previousFrame: PreviousFrame<T>;
   /** The absolute or relative path of the page that this frame is on, relative to root (/), defaults to (/) */
   pathname?: string;
+  /** Client protocols to accept */
+  accepts?: ClientProtocolId[];
 }) {
   if (!pathname)
     console.warn(
@@ -408,6 +412,9 @@ export function FrameContainer<T extends FrameState = FrameState>({
     <>
       <meta name="fc:frame" content="vNext" />
       <meta name="fc:frame:post_url" content={postUrlFull} />
+      {...accepts?.map(({ id, version }) => (
+        <meta name={`of:accepts:${id}`} content={version} />
+      )) ?? []}
       {newTree}
     </>
   );

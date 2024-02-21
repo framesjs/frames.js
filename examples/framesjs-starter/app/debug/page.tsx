@@ -39,14 +39,13 @@ export default function Page({
     number | null
   >(null);
 
-  const [mockHubContext, setMockHubContext] = useState<FrameActionHubContext>({
-    isValid: false,
+  const [mockHubContext, setMockHubContext] = useState<
+    Partial<FrameActionHubContext>
+  >({
     requesterFollowsCaster: false,
     casterFollowsRequester: false,
     likedCast: false,
     recastedCast: false,
-    requesterVerifiedAddresses: [],
-    requesterUserData: {}, // Adjust default value according to actual UserDataReturnType structure
   });
 
   // Load initial frame
@@ -249,6 +248,15 @@ export default function Page({
               }}
             >
               Mint button
+            </button>
+            <button
+              className="underline"
+              onClick={(e) => {
+                e.preventDefault();
+                router.push(`?url=${baseUrl}/examples/multi-protocol`);
+              }}
+            >
+              Multi-protocol
             </button>
           </div>
           <LoginWindow
