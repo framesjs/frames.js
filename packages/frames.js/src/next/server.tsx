@@ -3,17 +3,20 @@ import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import React from "react";
 import {
-  FrameMessageReturnType,
-  GetFrameMessageOptions,
   getByteLength,
   validateFrameMessage,
   getFrameMessage as _getFrameMessage,
+  getFrameMessageNew as _getFrameMessageNew,
+  isFarcasterFrameActionPayload,
 } from "..";
 import {
   ActionIndex,
+  BaseFrameActionDataParsed,
+  BaseFrameActionPayload,
   FrameActionPayload,
   HubHttpUrlOptions,
   ImageAspectRatio,
+  ProtocolValidatorArray,
 } from "../types";
 import {
   Dispatch,
@@ -34,6 +37,10 @@ export * from "./types";
 
 import { ImageResponse } from "@vercel/og";
 import type { SatoriOptions } from "satori";
+import {
+  FrameMessageReturnType,
+  GetFrameMessageOptions,
+} from "../validators/farcaster/types";
 
 /** The valid children of a <FrameContainer> */
 export type FrameElementType =
@@ -76,7 +83,7 @@ export async function validateActionSignature(
  * If `isValid` is false, the message should not be trusted.
  */
 export async function getFrameMessage<T extends GetFrameMessageOptions>(
-  frameActionPayload: FrameActionPayload | null,
+  frameActionPayload: BaseFrameActionPayload | null,
   options?: T
 ): Promise<FrameMessageReturnType<T> | null> {
   if (options?.hubHttpUrl) {
@@ -95,7 +102,36 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
     return null;
   }
 
+  if (!isFarcasterFrameActionPayload(frameActionPayload)) {
+    throw new Error("frames.js: invalid frame action payload");
+  }
+
   const result = await _getFrameMessage(frameActionPayload, options);
+
+  if (!result) {
+    throw new Error("frames.js: something went wrong getting frame message");
+  }
+
+  return result;
+}
+
+/** Convenience wrapper around `framesjs.getFrameMessageNew` that accepts a null for payload body.
+ * Returns a `FrameActionData` object from the message trusted data. (e.g. button index, input text). The `fetchHubContext` option (default: true) determines whether to validate and fetch other metadata from hubs.
+ * If `isValid` is false, the message should not be trusted.
+ */
+export async function getFrameMessageNew(
+  frameActionPayload: BaseFrameActionPayload | null,
+  validators?: ProtocolValidatorArray
+): Promise<BaseFrameActionDataParsed | null> {
+  if (!frameActionPayload) {
+    console.log(
+      "info: no frameActionPayload, this is expected for the homeframe"
+    );
+    // no payload means no action
+    return null;
+  }
+
+  const result = await _getFrameMessageNew(frameActionPayload, validators);
 
   if (!result) {
     throw new Error("frames.js: something went wrong getting frame message");
@@ -148,7 +184,7 @@ export function parseFrameParams<T extends FrameState = FrameState>(
 > {
   const frameActionReceived =
     searchParams?.postBody && typeof searchParams?.postBody === "string"
-      ? (JSON.parse(searchParams?.postBody) as FrameActionPayload)
+      ? (JSON.parse(searchParams?.postBody) as BaseFrameActionPayload)
       : null;
 
   const framePrevState =

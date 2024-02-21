@@ -1,11 +1,19 @@
 import {
+  ProtocolValidatorArray,
+  createFarcasterValidator,
+  farcasterValidator,
+  isFarcasterFrameActionWithHubContext,
+  isXmtpFrameAction,
+  xmtpValidator,
+} from "frames.js";
+import {
   FrameButton,
   FrameContainer,
   FrameImage,
   FrameInput,
   FrameReducer,
   NextServerPageProps,
-  getFrameMessage,
+  getFrameMessageNew,
   getPreviousFrame,
   useFramesReducer,
 } from "frames.js/next/server";
@@ -28,6 +36,12 @@ const reducer: FrameReducer<State> = (state, action) => {
   };
 };
 
+const validators = [
+  createFarcasterValidator(DEBUG_HUB_OPTIONS),
+  // farcasterValidator, // use this instead if not using the debugger
+  xmtpValidator,
+] as ProtocolValidatorArray;
+
 // This is a react server component only
 export default async function Home({
   params,
@@ -35,9 +49,10 @@ export default async function Home({
 }: NextServerPageProps) {
   const previousFrame = getPreviousFrame<State>(searchParams);
 
-  const frameMessage = await getFrameMessage(previousFrame.postBody, {
-    ...DEBUG_HUB_OPTIONS,
-  });
+  const frameMessage = await getFrameMessageNew(
+    previousFrame.postBody,
+    validators
+  );
 
   if (frameMessage && !frameMessage?.isValid) {
     throw new Error("Invalid frame payload");
@@ -76,7 +91,8 @@ export default async function Home({
             <div tw="flex flex-row">
               {frameMessage?.inputText ? frameMessage.inputText : "Hello world"}
             </div>
-            {frameMessage && (
+            {frameMessage &&
+            isFarcasterFrameActionWithHubContext(frameMessage) ? (
               <div tw="flex flex-col">
                 <div tw="flex">
                   Requester is @{frameMessage.requesterUserData?.username}{" "}
@@ -98,6 +114,15 @@ export default async function Home({
                   {frameMessage.recastedCast ? "true" : "false"}
                 </div>
               </div>
+            ) : frameMessage && isXmtpFrameAction(frameMessage) ? (
+              <div tw="flex flex-col">
+                <div tw="flex">
+                  Requester&apos;s verified wallet address is
+                  {frameMessage.verifiedWalletAddress}{" "}
+                </div>
+              </div>
+            ) : (
+              <></>
             )}
           </div>
         </FrameImage>

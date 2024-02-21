@@ -8,5 +8,7 @@ export * from "./types";
 export * from "./utils";
 export * from "./validateFrameMessage";
 export * from "./getFrameMessage";
+export * from "./getFrameMessageNew";
 export * from "./getTokenUrl";
 export * from "./getTokenFromUrl";
+export * from "./validators";

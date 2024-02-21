@@ -1,4 +1,8 @@
-import { ActionIndex, FrameActionPayload } from "../types";
+import {
+  ActionIndex,
+  BaseFrameActionPayload,
+  FrameActionPayload,
+} from "../types";
 
 /**
  * A subset of HTTP request headers provided to the server request
@@ -43,7 +47,7 @@ export type RedirectMap = Record<number | `_${number}`, string>;
  */
 export type PreviousFrame<T extends FrameState = FrameState> = {
   /** the body of the `POST` request of a button click, including what button the user pressed and the signature */
-  postBody: FrameActionPayload | null;
+  postBody: BaseFrameActionPayload | null;
   /** the previous Frame's state, before the user pressed the button */
   prevState: T | null;
   /** the previous Frame's redirects */
