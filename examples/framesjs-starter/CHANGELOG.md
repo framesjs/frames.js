@@ -1,5 +1,17 @@
 # framesjs-starter
 
+## 0.1.12
+
+### Patch Changes
+
+- 99b998f: fix: debugger build
+- 108280c: feat: add mock hub state to debugger
+- 1707ea4: feat: `DEBUG_HUB_HTTP_URL` env var
+- Updated dependencies [18c887d]
+- Updated dependencies [0ba4b88]
+- Updated dependencies [f9d4356]
+  - frames.js@0.5.2
+
 ## 0.1.11
 
 ### Patch Changes
