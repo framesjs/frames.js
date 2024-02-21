@@ -1,6 +1,8 @@
 import { createPublicClient, http, parseAbi } from "viem";
 import { optimism } from "viem/chains";
 import { AddressReturnType, HubHttpUrlOptions } from "./types";
+import { DEFAULT_HUB_API_KEY, DEFAULT_HUB_API_URL } from "./default";
+import { Message, MessageType } from "./farcaster";
 
 /**
  * Returns the first verified address for a given `Farcaster` users `fid` if available, falling back to their account custodyAddress
@@ -18,22 +20,35 @@ export async function getAddressForFid<
 }): Promise<AddressReturnType<Options>> {
   const {
     fallbackToCustodyAddress = true,
-    hubHttpUrl = "https://hub-api.neynar.com",
+    hubHttpUrl = DEFAULT_HUB_API_URL,
     hubRequestOptions = {
       headers: {
-        api_key: "NEYNAR_FRAMES_JS",
+        api_key: DEFAULT_HUB_API_KEY,
       },
     },
   } = options;
 
-  const verificationsResponse = await fetch(
+  const response = await fetch(
     `${hubHttpUrl}/v1/verificationsByFid?fid=${fid}`,
     hubRequestOptions
   );
-  const { messages } = await verificationsResponse.json();
-  if (messages[0]) {
+  const { messages } = (await response
+    .clone()
+    .json()
+    .catch(async () => {
+      // body has not been
+      throw new Error(
+        `Failed to parse response body as JSON because server hub returned response with status "${response.status}" and body "${await response.clone().text()}"`
+      );
+    })) as { messages?: Message[] };
+
+  if (
+    messages?.[0]?.data &&
+    messages[0].data.type === MessageType.VERIFICATION_ADD_ETH_ADDRESS
+  ) {
     const {
       data: {
+        // @ts-expect-error this is correct but somehow it is missing in Message definition
         verificationAddEthAddressBody: { address },
       },
     } = messages[0];

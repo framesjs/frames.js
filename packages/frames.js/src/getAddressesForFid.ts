@@ -1,6 +1,8 @@
 import { createPublicClient, http, parseAbi } from "viem";
 import { optimism } from "viem/chains";
 import { AddressWithType, HubHttpUrlOptions } from "./types";
+import { DEFAULT_HUB_API_KEY, DEFAULT_HUB_API_URL } from "./default";
+import { Message } from "./farcaster";
 
 async function getCustodyAddressForFid(fid: number): Promise<AddressWithType> {
   const publicClient = createPublicClient({
@@ -26,12 +28,12 @@ export async function getAddressesForFid({
 }: {
   fid: number;
   options?: HubHttpUrlOptions;
-}): Promise<{ address: `0x${string}`; type: "verified" | "custody" }[]> {
+}): Promise<AddressWithType[]> {
   const {
-    hubHttpUrl = "https://api.neynar.com:2281",
+    hubHttpUrl = DEFAULT_HUB_API_URL,
     hubRequestOptions = {
       headers: {
-        api_key: "NEYNAR_FRAMES_JS",
+        api_key: DEFAULT_HUB_API_KEY,
       },
     },
   } = options;
@@ -41,15 +43,26 @@ export async function getAddressesForFid({
     getCustodyAddressForFid(fid),
   ]);
 
-  const { messages } = await verificationsResponse.json();
+  const { messages } = (await verificationsResponse
+    .clone()
+    .json()
+    .catch(async () => {
+      // body has not been
+      throw new Error(
+        `Failed to parse response body as JSON because server hub returned response with status "${verificationsResponse.status}" and body "${await verificationsResponse.clone().text()}"`
+      );
+    })) as { messages?: Message[] };
+
   if (messages) {
-    const verifiedAddresses = messages.map((message: any) => {
+    const verifiedAddresses = messages.map((message) => {
       const {
         data: {
+          // @ts-expect-error this is correct but somehow the property is not defined on MessageData
           verificationAddEthAddressBody: { address },
         },
       } = message;
-      return { address, type: "verified" };
+
+      return { address, type: "verified" } as AddressWithType;
     });
     return [...verifiedAddresses, custodyAddress];
   } else {

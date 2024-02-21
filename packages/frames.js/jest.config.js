@@ -13,4 +13,5 @@ module.exports = {
     ],
   },
   transformIgnorePatterns: ["./node_modules/"],
+  testPathIgnorePatterns: ["/dist/", "/node_modules/"],
 };
