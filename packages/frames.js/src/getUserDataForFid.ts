@@ -1,3 +1,4 @@
+import { DEFAULT_HUB_API_KEY, DEFAULT_HUB_API_URL } from "./default";
 import { MessageType, UserDataType, Message } from "./farcaster";
 import { HubHttpUrlOptions, UserDataReturnType } from "./types";
 
@@ -14,10 +15,10 @@ export async function getUserDataForFid<
   options?: Options;
 }): Promise<UserDataReturnType> {
   const {
-    hubHttpUrl = "https://hub-api.neynar.com",
+    hubHttpUrl = DEFAULT_HUB_API_URL,
     hubRequestOptions = {
       headers: {
-        api_key: "NEYNAR_FRAMES_JS",
+        api_key: DEFAULT_HUB_API_KEY,
       },
     },
   } = options;
@@ -27,26 +28,40 @@ export async function getUserDataForFid<
     hubRequestOptions
   );
 
-  const { messages } = await userDataResponse.json();
+  const { messages } = (await userDataResponse
+    .clone()
+    .json()
+    .catch(async () => {
+      // body has not been
+      throw new Error(
+        `Failed to parse response body as JSON because server hub returned response with status "${userDataResponse.status}" and body "${await userDataResponse.clone().text()}"`
+      );
+    })) as { messages?: Message[] };
 
   if (messages && messages.length > 0) {
-    const valuesByType = messages.reduce((acc: any, messageJson: any) => {
-      const message = Message.fromJSON(messageJson);
+    const valuesByType = messages.reduce(
+      (acc, messageJson: Message) => {
+        const message = Message.fromJSON(messageJson);
 
-      if (message.data?.type !== MessageType.USER_DATA_ADD) {
-        return;
-      }
+        if (message.data?.type !== MessageType.USER_DATA_ADD) {
+          return acc;
+        }
 
-      const timestamp = message.data.timestamp;
-      const { type, value } = message.data.userDataBody!;
+        const timestamp = message.data.timestamp;
+        const { type, value } = message.data.userDataBody!;
 
-      if (!acc[type]) {
-        acc[type] = { value, timestamp };
-      } else if (message.data.timestamp > acc[type].timestamp) {
-        acc[type] = { value, timestamp };
-      }
-      return acc;
-    }, {});
+        if (!acc[type]) {
+          acc[type] = { value, timestamp };
+        } else if (message.data.timestamp > acc[type]!.timestamp) {
+          acc[type] = { value, timestamp };
+        }
+        return acc;
+      },
+      {} as Record<
+        UserDataType,
+        undefined | { value: string; timestamp: number }
+      >
+    );
 
     return {
       profileImage: valuesByType[UserDataType.PFP]?.value,
