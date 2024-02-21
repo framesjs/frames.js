@@ -1,8 +1,12 @@
 # getXmtpFrameMessage
 
-Returns a `XmtpFrameMessageReturnType` object from the message payload. Throws an error if the message is invalid.
+Returns a `XmtpFrameMessageReturnType` object from the message payload. Throws an error if the message is invalid. Requires the `@xmtp/frames-validator` peer dependency to be installed.
 
 ## Usage
+
+```ts
+yarn add @xmtp/frames-validator
+```
 
 ```ts
 import { getXmtpFrameMessage } from "frames.js/xmtp";
