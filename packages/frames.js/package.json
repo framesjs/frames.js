@@ -153,5 +153,13 @@
     "cheerio": "^1.0.0-rc.12",
     "protobufjs": "^7.2.6",
     "viem": "^2.7.1"
+  },
+  "resolutions": {
+    "ffi-napi": "npm:dry-uninstall",
+    "ref-napi": "npm:dry-uninstall"
+  },
+  "overrides": {
+    "ffi-napi": "npm:dry-uninstall",
+    "ref-napi": "npm:dry-uninstall"
   }
 }

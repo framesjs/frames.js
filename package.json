@@ -36,5 +36,13 @@
     "packages/*"
   ],
   "dependencies": {},
-  "version": "0.3.0-canary.0"
+  "version": "0.3.0-canary.0",
+  "resolutions": {
+    "ffi-napi": "npm:dry-uninstall",
+    "ref-napi": "npm:dry-uninstall"
+  },
+  "overrides": {
+    "ffi-napi": "npm:dry-uninstall",
+    "ref-napi": "npm:dry-uninstall"
+  }
 }

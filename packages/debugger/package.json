@@ -45,6 +45,14 @@
   "devDependencies": {
     "rimraf": "^5.0.5"
   },
+  "resolutions": {
+    "ffi-napi": "npm:dry-uninstall",
+    "ref-napi": "npm:dry-uninstall"
+  },
+  "overrides": {
+    "ffi-napi": "npm:dry-uninstall",
+    "ref-napi": "npm:dry-uninstall"
+  },
   "engineStrict": true,
   "scripts": {
     "dev": "next dev",
