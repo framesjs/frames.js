@@ -24,6 +24,10 @@ export function getFrameFlattened(frame: Frame): FrameFlattened {
       }),
       {}
     ),
+    ...(frame.accepts?.map(
+      ({ id, version }) =>
+        `<meta name="of:accepts:${id}" content="${version}"/>`
+    ) ?? []),
   };
 
   return metadata;
