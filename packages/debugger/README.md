@@ -29,12 +29,12 @@ $ frames-debugger
 
 ## Set your Frames app to use the debugger
 
-Set the `hubHttpUrl` to `http://localhost:3010` (this is default used by debugger, you can change it by running debugger with `--port` flag).
+Set the `hubHttpUrl` to `http://localhost:3010/hub` (this is default used by debugger, you can change it by running debugger with `--port` flag).
 
 ```js
 import { getFrameMessage } from "frames.js/next/server";
 
 const frameMessage = await getFrameMessage(previousFrame.postBody, {
-  hubHttpUrl: 'http://localhost:3010',
+  hubHttpUrl: 'http://localhost:3010/hub',
 });
 ```
