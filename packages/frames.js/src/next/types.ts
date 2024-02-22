@@ -36,7 +36,7 @@ export type FrameState = AnyJson;
  * A Map from buttonIndex to href url, used to represent the previous Frames redirection state, in order to handle redirect requests.
  * Keys that start with an underscore are unspecified hrefs that must be handled in the POST router
  */
-export type RedirectMap = Record<number | `_${number}`, string>;
+export type RedirectMap = Record<number | `_${number}`, string | null>;
 
 /**
  * A representation of the previous frame, used in order to enable state transitions and redirects.

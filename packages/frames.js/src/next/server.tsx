@@ -235,7 +235,6 @@ export async function POST(
     prevRedirects: RedirectMap;
   };
 
-  const url = new URL(req.url);
   let newUrl = new URL(req.url);
   const isFullUrl =
     frameState.pathname.startsWith("http://") ||
@@ -243,12 +242,10 @@ export async function POST(
   if (isFullUrl) newUrl = new URL(frameState.pathname);
   else newUrl.pathname = frameState.pathname || "";
 
+  const postBodyString = JSON.stringify(body);
   // decompress from 256 bytes limitation of post_url
-  newUrl.searchParams.set("postBody", JSON.stringify(body));
-
-  const prevFrame = getPreviousFrame(
-    Object.fromEntries(url.searchParams.entries())
-  );
+  newUrl.searchParams.set("postBody", postBodyString);
+  const prevFrame = getPreviousFrame({ postBody: postBodyString });
 
   // Handle 'post_redirect' buttons with href values
   if (
@@ -365,14 +362,24 @@ export function FrameContainer<T extends FrameState = FrameState>({
 
             // set redirect data for retrieval
             if ((child.props as any).action === "post_redirect") {
-              redirectMap[nextIndexByComponentType.button] = (
-                child.props as any as FrameButtonPostRedirectProvidedProps
-              ).target!;
+              const target =
+                (child.props as any as FrameButtonPostRedirectProvidedProps)
+                  .target || null;
+              const buttonIndex = target
+                ? nextIndexByComponentType.button
+                : (`_${nextIndexByComponentType.button}` as `_${number}`);
+              redirectMap[buttonIndex] = target;
             }
 
             return (
               <FFrameButtonShim
                 {...(child.props as any)}
+                // Don't include target if action is post_redirect, otherwise the next message will be posted to the target url
+                target={
+                  (child.props as any).action === "post_redirect"
+                    ? undefined
+                    : (child.props as any).target
+                }
                 actionIndex={nextIndexByComponentType.button++ as ActionIndex}
               />
             );
@@ -432,7 +439,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
   );
 }
 
-/** Renders a 'fc:frame:button', must be used inside a <FrameContainer> */
+/** Renders a 'fc:frame:button', must be used inside a `FrameContainer` */
 export function FrameButton(props: FrameButtonProvidedProps) {
   return null;
 }
