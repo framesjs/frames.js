@@ -8,6 +8,8 @@ import {
   useFramesReducer,
 } from "frames.js/next/server";
 import Link from "next/link";
+import { createDebugUrl } from "../../debug";
+import { currentURL } from "../../utils";
 
 type State = {
   pageIndex: number;
@@ -31,6 +33,7 @@ export default async function Home({
   params,
   searchParams,
 }: NextServerPageProps) {
+  const url = currentURL("/examples/multi-page");
   const previousFrame = getPreviousFrame<State>(searchParams);
   const [state] = useFramesReducer<State>(reducer, initialState, previousFrame);
   const imageUrl = `https://picsum.photos/seed/frames.js-${state.pageIndex}/1146/600`;
@@ -38,7 +41,10 @@ export default async function Home({
   // then, when done, return next frame
   return (
     <div>
-      Multi-page example <Link href="/debug">Debug</Link>
+      Multi-page example{" "}
+      <Link className="underline" href={createDebugUrl(url)}>
+        Debug
+      </Link>
       <FrameContainer
         pathname="/examples/multi-page"
         postUrl="/examples/multi-page/frames"

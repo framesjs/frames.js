@@ -9,7 +9,8 @@ import {
   useFramesReducer,
 } from "frames.js/next/server";
 import Link from "next/link";
-import { DEBUG_HUB_OPTIONS } from "../../debug/constants";
+import { DEFAULT_DEBUGGER_HUB_URL, createDebugUrl } from "../../debug";
+import { currentURL } from "../../utils";
 
 type State = {
   saidGm: boolean;
@@ -28,10 +29,11 @@ export default async function Home({
   params,
   searchParams,
 }: NextServerPageProps) {
+  const url = currentURL("/examples/user-data");
   const previousFrame = getPreviousFrame<State>(searchParams);
 
   const frameMessage = await getFrameMessage(previousFrame.postBody, {
-    ...DEBUG_HUB_OPTIONS,
+    hubHttpUrl: DEFAULT_DEBUGGER_HUB_URL,
   });
 
   if (frameMessage && !frameMessage?.isValid) {
@@ -51,7 +53,10 @@ export default async function Home({
   // then, when done, return next frame
   return (
     <div>
-      GM user data example. <Link href="/debug">Debug</Link>
+      GM user data example.{" "}
+      <Link className="underline" href={createDebugUrl(url)}>
+        Debug
+      </Link>
       <FrameContainer
         pathname="/examples/user-data"
         postUrl="/examples/user-data/frames"

@@ -17,7 +17,7 @@ If running from the frames.js repository itself:
 
 4. Edit `app/page.tsx`
 
-5. Visit [http://localhost:3000/debug](http://localhost:3000/debug) to debug your frame.
+5. Visit [http://localhost:3010/](http://localhost:3010/) to debug your frame.
 
 6. (Optional) To use a real signer (costs warps), copy `.env.sample` to `.env` and fill in the env variables following the comments provided
 

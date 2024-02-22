@@ -1,5 +1,5 @@
 import { Frame } from "frames.js";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export type FrameRenderProps = {
   isLoggedIn: boolean;

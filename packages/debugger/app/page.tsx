@@ -1,6 +1,6 @@
 "use client";
 
-import { FrameActionPayload, getFrame } from "frames.js";
+import { FrameActionHubContext, FrameActionPayload, getFrame } from "frames.js";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { LoginWindow } from "./components/create-signer";
@@ -10,6 +10,7 @@ import { createFrameActionMessageWithSignerKey } from "./lib/farcaster";
 import { FrameDebugger } from "./components/frame-debugger";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { MockHubConfig } from "./components/mock-hub-config";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -37,6 +38,15 @@ export default function Page({
   const [framePerformanceInSeconds, setFramePerformanceInSeconds] = useState<
     number | null
   >(null);
+
+  const [mockHubContext, setMockHubContext] = useState<
+    Partial<FrameActionHubContext>
+  >({
+    requesterFollowsCaster: false,
+    casterFollowsRequester: false,
+    likedCast: false,
+    recastedCast: false,
+  });
 
   // Load initial frame
   const { data, error, isLoading, mutate } = useSWR<
@@ -123,7 +133,9 @@ export default function Page({
         trustedData: {
           messageBytes: trustedBytes,
         },
-      } as FrameActionPayload),
+        mockData:
+          process.env.NODE_ENV === "development" ? mockHubContext : undefined,
+      } as FrameActionPayload & { mockData: Partial<FrameActionHubContext> }),
     });
 
     const tend = new Date();
@@ -152,7 +164,7 @@ export default function Page({
         {!(url.startsWith("http://") || url.startsWith("https://"))
           ? "URL must start with http:// or https://"
           : ""}{" "}
-        <Link href="/debug" className="underline block">
+        <Link href="/" className="underline block">
           Go back
         </Link>
       </div>
@@ -213,12 +225,21 @@ export default function Page({
               url={url}
               framePerformanceInSeconds={framePerformanceInSeconds}
             >
-              <FrameRender
-                frame={currentFrame?.frame!}
-                url={url}
-                submitOption={submitOption}
-                isLoggedIn={!!farcasterUser?.fid}
-              />
+              <div>
+                <FrameRender
+                  frame={currentFrame?.frame!}
+                  url={url}
+                  submitOption={submitOption}
+                  isLoggedIn={!!farcasterUser?.fid}
+                />
+                <div className="mt-4">
+                  <h3 className="font-bold">Mock Hub State</h3>
+                  <MockHubConfig
+                    hubContext={mockHubContext}
+                    setHubContext={setMockHubContext}
+                  ></MockHubConfig>
+                </div>
+              </div>
             </FrameDebugger>
           </>
         ) : null}

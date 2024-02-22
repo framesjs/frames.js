@@ -8,7 +8,9 @@ import {
   getPreviousFrame,
 } from "frames.js/next/server";
 import { getXmtpFrameMessage, isXmtpFrameActionPayload } from "frames.js/xmtp";
-import { DEBUG_HUB_OPTIONS } from "../../debug/constants";
+import Link from "next/link";
+import { DEFAULT_DEBUGGER_HUB_URL, createDebugUrl } from "../../debug";
+import { currentURL } from "../../utils";
 
 const acceptedProtocols: ClientProtocolId[] = [
   {
@@ -26,6 +28,7 @@ export default async function Home({
   params,
   searchParams,
 }: NextServerPageProps) {
+  const url = currentURL("/examples/multi-protocol");
   const previousFrame = getPreviousFrame(searchParams);
 
   let fid: number | undefined;
@@ -38,10 +41,9 @@ export default async function Home({
     const frameMessage = await getXmtpFrameMessage(previousFrame.postBody);
     walletAddress = frameMessage?.verifiedWalletAddress;
   } else {
-    const frameMessage = await getFrameMessage(
-      previousFrame.postBody,
-      DEBUG_HUB_OPTIONS
-    );
+    const frameMessage = await getFrameMessage(previousFrame.postBody, {
+      hubHttpUrl: DEFAULT_DEBUGGER_HUB_URL,
+    });
 
     if (frameMessage && frameMessage?.isValid) {
       fid = frameMessage?.requesterFid;
@@ -54,6 +56,10 @@ export default async function Home({
 
   return (
     <div>
+      Multi-protocol example{" "}
+      <Link className="underline" href={createDebugUrl(url)}>
+        Debug
+      </Link>
       <FrameContainer
         pathname="/examples/multi-protocol"
         postUrl="/examples/multi-protocol/frames"

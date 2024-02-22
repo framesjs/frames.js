@@ -1,5 +1,5 @@
 import { FrameActionHubContext } from "frames.js";
-import React, { useState } from "react";
+import React from "react";
 
 export function MockHubConfig({
   hubContext,

@@ -10,7 +10,8 @@ import {
   useFramesReducer,
 } from "frames.js/next/server";
 import Link from "next/link";
-import { DEBUG_HUB_OPTIONS } from "./debug/constants";
+import { currentURL } from "./utils";
+import { DEFAULT_DEBUGGER_HUB_URL, createDebugUrl } from "./debug";
 
 type State = {
   active: string;
@@ -33,10 +34,11 @@ export default async function Home({
   params,
   searchParams,
 }: NextServerPageProps) {
+  const url = currentURL("/");
   const previousFrame = getPreviousFrame<State>(searchParams);
 
   const frameMessage = await getFrameMessage(previousFrame.postBody, {
-    ...DEBUG_HUB_OPTIONS,
+    hubHttpUrl: DEFAULT_DEBUGGER_HUB_URL,
   });
 
   if (frameMessage && !frameMessage?.isValid) {
@@ -61,8 +63,12 @@ export default async function Home({
     <div className="p-4">
       frames.js starter kit. The Template Frame is on this page, it&apos;s in
       the html meta tags (inspect source).{" "}
-      <Link href={`/debug?url=${baseUrl}`} className="underline">
+      <Link href={createDebugUrl(url)} className="underline">
         Debug
+      </Link>{" "}
+      or see{" "}
+      <Link href="/examples" className="underline">
+        other examples
       </Link>
       <FrameContainer
         postUrl="/frames"

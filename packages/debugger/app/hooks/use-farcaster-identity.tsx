@@ -156,7 +156,7 @@ export function useFarcasterIdentity() {
     try {
       const keypair = await createKeypair();
       const keypairString = convertKeypairToHex(keypair);
-      const authorizationResponse = await fetch(`/debug/signer`, {
+      const authorizationResponse = await fetch(`/signer`, {
         method: "POST",
         body: JSON.stringify({
           publicKey: keypairString.publicKey,
