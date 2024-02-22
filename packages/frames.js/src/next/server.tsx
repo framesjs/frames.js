@@ -1,6 +1,9 @@
 import { FrameActionMessage } from "../farcaster";
 import { headers } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
+import {
+  type NextRequest,
+  NextResponse as NextResponseBase,
+} from "next/server";
 import React from "react";
 import {
   FrameMessageReturnType,
@@ -35,6 +38,11 @@ export * from "./types";
 
 import { ImageResponse } from "@vercel/og";
 import type { SatoriOptions } from "satori";
+
+// this is ugly hack to go around the issue https://github.com/vercel/next.js/pull/61721
+const NextResponse = (
+  "default" in NextResponseBase ? NextResponseBase.default : NextResponseBase
+) as typeof NextResponseBase;
 
 /** The valid children of a <FrameContainer> */
 export type FrameElementType =
@@ -210,7 +218,7 @@ export function useFramesReducer<T extends FrameState = FrameState>(
 export async function POST(
   req: NextRequest,
   /** unused, but will most frequently be passed a res: NextResponse object. Should stay in here for easy consumption compatible with next.js */
-  res: NextResponse,
+  res: typeof NextResponse,
   redirectHandler?: RedirectHandler
 ) {
   const body = await req.json();
