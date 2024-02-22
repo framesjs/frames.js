@@ -41,7 +41,7 @@ export default function Page({
   // Load initial frame
   const { data, error, isLoading, mutate } = useSWR<
     ReturnType<typeof getFrame>
-  >(url ? `/debug/og?url=${url}` : null, fetcher);
+  >(url ? `/og?url=${url}` : null, fetcher);
 
   // todo this is kinda nasty
   useEffect(() => {
@@ -101,33 +101,30 @@ export default function Page({
 
     const tstart = new Date();
 
-    const response = await fetch(
-      `/debug/frame-action?${searchParams.toString()}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+    const response = await fetch(`/frame-action?${searchParams.toString()}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        untrustedData: {
+          fid: farcasterUser.fid,
+          url: url,
+          messageHash: `0x${Buffer.from(message.hash).toString("hex")}`,
+          timestamp: message.data.timestamp,
+          network: 1,
+          buttonIndex: Number(message.data.frameActionBody.buttonIndex),
+          castId: {
+            fid: castId.fid,
+            hash: `0x${Buffer.from(castId.hash).toString("hex")}`,
+          },
+          inputText,
         },
-        body: JSON.stringify({
-          untrustedData: {
-            fid: farcasterUser.fid,
-            url: url,
-            messageHash: `0x${Buffer.from(message.hash).toString("hex")}`,
-            timestamp: message.data.timestamp,
-            network: 1,
-            buttonIndex: Number(message.data.frameActionBody.buttonIndex),
-            castId: {
-              fid: castId.fid,
-              hash: `0x${Buffer.from(castId.hash).toString("hex")}`,
-            },
-            inputText,
-          },
-          trustedData: {
-            messageBytes: trustedBytes,
-          },
-        } as FrameActionPayload),
-      }
-    );
+        trustedData: {
+          messageBytes: trustedBytes,
+        },
+      } as FrameActionPayload),
+    });
 
     const tend = new Date();
     const diff = +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2);
