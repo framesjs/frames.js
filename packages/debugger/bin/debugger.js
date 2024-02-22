@@ -22,6 +22,12 @@ const args = yargs(hideBin(process.argv))
     alias: "fid",
     type: "number",
     description: `Only needed for the debugger to create a real Farcaster signer. Get this by visiting your Warpccast profile, pressing the kebab (three dots) menu and then "About" and then your fid should be there.`,
+  })
+  .option("port", {
+    alias: "p",
+    type: "number",
+    description: "Port to run the debugger on. Default is 3010.",
+    default: 3010,
   }).argv;
 
 process.env.FARCASTER_DEVELOPER_MNEMONIC = args["farcaster-developer-mnmonic"];
@@ -45,7 +51,7 @@ function getRandomInt(min, max) {
  * @param {Number} port
  * @returns Promise<Number>
  */
-async function resolveAvailablePort(port = 3000) {
+async function resolveAvailablePort(port) {
   const isReachable = await isPortReachable(port, { host: hostname });
 
   if (isReachable) {
@@ -55,7 +61,7 @@ async function resolveAvailablePort(port = 3000) {
   return port;
 }
 
-const port = await resolveAvailablePort();
+const port = await resolveAvailablePort(args.port);
 const app = next({
   dev,
   hostname,
