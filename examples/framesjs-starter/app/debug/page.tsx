@@ -90,6 +90,10 @@ export default function Page({
         buttonIndex,
         castId,
         url: Buffer.from(url),
+        state:
+          currentFrame.frame.state !== undefined
+            ? Buffer.from(currentFrame.frame.state)
+            : undefined,
         // it seems the message in hubs actually requires a value here.
         inputText: inputText !== undefined ? Buffer.from(inputText) : undefined,
       });
@@ -131,6 +135,7 @@ export default function Page({
               hash: `0x${Buffer.from(castId.hash).toString("hex")}`,
             },
             inputText,
+            state: currentFrame.frame.state,
           },
           trustedData: {
             messageBytes: trustedBytes,

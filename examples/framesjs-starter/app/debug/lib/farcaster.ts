@@ -15,12 +15,14 @@ export async function createFrameActionMessageWithSignerKey(
     buttonIndex,
     castId,
     inputText,
+    state,
   }: {
     fid: number;
     url: Uint8Array;
     buttonIndex: number;
     inputText: Uint8Array | undefined;
     castId: CastId;
+    state: Uint8Array | undefined;
   }
 ) {
   const signer = new NobleEd25519Signer(Buffer.from(signerKey.slice(2), "hex"));
@@ -35,6 +37,7 @@ export async function createFrameActionMessageWithSignerKey(
       url,
       buttonIndex,
       castId,
+      state,
       inputText: inputText !== undefined ? Buffer.from(inputText) : undefined,
     }),
     messageDataOptions,
