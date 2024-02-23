@@ -1,4 +1,4 @@
-import { CastId, Message, MessageData, MessageType } from "./farcaster";
+import { CastId, Message, MessageType } from "./farcaster";
 import {
   FrameActionPayload,
   FrameButton,
