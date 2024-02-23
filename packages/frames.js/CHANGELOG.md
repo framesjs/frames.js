@@ -1,5 +1,13 @@
 # frames.js
 
+## 0.5.2
+
+### Patch Changes
+
+- 18c887d: chore: remove @farcaster/core dependency
+- 0ba4b88: fix: properly handle hub api responses
+- f9d4356: feat: add support for `of:accepts` and xmtp frame messages
+
 ## 0.5.1
 
 ### Patch Changes
