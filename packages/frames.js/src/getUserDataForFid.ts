@@ -36,11 +36,11 @@ export async function getUserDataForFid<
       throw new Error(
         `Failed to parse response body as JSON because server hub returned response with status "${userDataResponse.status}" and body "${await userDataResponse.clone().text()}"`
       );
-    })) as { messages?: Message[] };
+    })) as { messages?: Record<string, any>[] };
 
   if (messages && messages.length > 0) {
     const valuesByType = messages.reduce(
-      (acc, messageJson: Message) => {
+      (acc, messageJson) => {
         const message = Message.fromJSON(messageJson);
 
         if (message.data?.type !== MessageType.USER_DATA_ADD) {
