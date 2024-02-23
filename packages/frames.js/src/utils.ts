@@ -1,4 +1,4 @@
-import { CastId, Message } from "./farcaster";
+import { CastId, Message, MessageData, MessageType } from "./farcaster";
 import {
   FrameActionPayload,
   FrameButton,
@@ -80,4 +80,60 @@ export function isValidVersion(version: string): boolean {
   }
 
   return true;
+}
+
+export function getEnumKeyByEnumValue<
+  TEnumKey extends string,
+  TEnumVal extends string | number,
+>(
+  enumDefinition: { [key in TEnumKey]: TEnumVal },
+  enumValue: TEnumVal
+): string {
+  return (
+    Object.keys(enumDefinition)[
+      Object.values(enumDefinition).indexOf(enumValue)
+    ] ?? ""
+  );
+}
+
+export function extractAddressFromJSONMessage(message: any): `0x${string}` {
+  const { data } = Message.fromJSON(message);
+
+  if (!data) {
+    throw new Error("Invalid message provided. Message data is missing");
+  }
+
+  if (data.type !== MessageType.VERIFICATION_ADD_ETH_ADDRESS) {
+    throw new Error(
+      `Invalid message provided. Expected message type to be ${MessageType.VERIFICATION_ADD_ETH_ADDRESS} but got ${getEnumKeyByEnumValue(MessageType, data.type)}.`
+    );
+  }
+
+  if (
+    !data.verificationAddAddressBody &&
+    // this is not defined on protobuf but just in case
+    !(data as any).verificationAddEthAddressBody
+  ) {
+    throw new Error(
+      "Invalid message provided. Message data is missing verificationAddAddressBody or verificationAddEthAddressBody"
+    );
+  }
+
+  let address: `0x${string}`;
+
+  if (data.verificationAddAddressBody) {
+    address = message.data.verificationAddAddressBody.address;
+  } else {
+    address = (data as any).verificationAddEthAddressBody.address;
+  }
+
+  /**
+   * This is ugly hack but we want to return the address as a string that is expected by the users ( essentially what they see in the response from the hub ).
+   * We could use Buffer.from(data.verificationAddAddressBody.address).toString('base64') here but that results in different base64.
+   * Therefore we return address from source message and not from decoded message.
+   *
+   * For example for value 0x8d25687829d6b85d9e0020b8c89e3ca24de20a89 from API we get 0x8d25687829d6b85d9e0020b8c89e3ca24de20a8w== from Buffer.from(...).toString('base64').
+   * The values are the same if you compare them as Buffer.from(a).equals(Buffer.from(b)).
+   */
+  return address;
 }
