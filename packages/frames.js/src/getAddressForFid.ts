@@ -44,8 +44,15 @@ export async function getAddressForFid<
 
   let address: AddressReturnType<Options> | null = null;
 
-  if (messages && messages.length > 0) {
-    address = extractAddressFromJSONMessage(messages[0]);
+  // find first valid address
+  if (messages) {
+    for (const message of messages) {
+      address = extractAddressFromJSONMessage(message) ?? null;
+
+      if (address) {
+        break;
+      }
+    }
   }
 
   if (!address && fallbackToCustodyAddress) {
