@@ -42,26 +42,25 @@ export async function getAddressForFid<
       );
     })) as { messages?: Record<string, any>[] };
 
-  if (!messages || messages.length === 0) {
-    if (fallbackToCustodyAddress) {
-      const publicClient = createPublicClient({
-        transport: http(),
-        chain: optimism,
-      });
-      const address = await publicClient.readContract({
-        abi: parseAbi([
-          "function custodyOf(uint256 fid) view returns (address)",
-        ]),
-        // IdRegistry contract address
-        address: "0x00000000fc6c5f01fc30151999387bb99a9f489b",
-        functionName: "custodyOf",
-        args: [BigInt(fid)],
-      });
-      return address;
-    }
-  } else {
-    return extractAddressFromJSONMessage(messages[0]);
+  let address: AddressReturnType<Options> | null = null;
+
+  if (messages && messages.length > 0) {
+    address = extractAddressFromJSONMessage(messages[0]);
   }
 
-  return null as AddressReturnType<Options>;
+  if (!address && fallbackToCustodyAddress) {
+    const publicClient = createPublicClient({
+      transport: http(),
+      chain: optimism,
+    });
+    address = await publicClient.readContract({
+      abi: parseAbi(["function custodyOf(uint256 fid) view returns (address)"]),
+      // IdRegistry contract address
+      address: "0x00000000fc6c5f01fc30151999387bb99a9f489b",
+      functionName: "custodyOf",
+      args: [BigInt(fid)],
+    });
+  }
+
+  return address as AddressReturnType<Options>;
 }

@@ -54,12 +54,21 @@ export async function getAddressesForFid({
     })) as { messages?: Record<string, any>[] };
 
   if (messages) {
-    const verifiedAddresses = messages.map((message) => {
-      return {
-        address: extractAddressFromJSONMessage(message),
-        type: "verified",
-      } as AddressWithType;
-    });
+    const verifiedAddresses = messages
+      .map((message) => {
+        const address = extractAddressFromJSONMessage(message);
+
+        if (!address) {
+          return null;
+        }
+
+        return {
+          address: extractAddressFromJSONMessage(message),
+          type: "verified",
+        } as AddressWithType;
+      })
+      // filter out unsupported addresses
+      .filter((val): val is AddressWithType => val !== null);
     return [...verifiedAddresses, custodyAddress];
   } else {
     return [custodyAddress];

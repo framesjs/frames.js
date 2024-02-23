@@ -1,4 +1,4 @@
-import { CastId, Message, MessageType } from "./farcaster";
+import { CastId, Message, MessageType, Protocol } from "./farcaster";
 import {
   FrameActionPayload,
   FrameButton,
@@ -96,7 +96,9 @@ export function getEnumKeyByEnumValue<
   );
 }
 
-export function extractAddressFromJSONMessage(message: any): `0x${string}` {
+export function extractAddressFromJSONMessage(
+  message: any
+): `0x${string}` | null {
   const { data } = Message.fromJSON(message);
 
   if (!data) {
@@ -109,22 +111,14 @@ export function extractAddressFromJSONMessage(message: any): `0x${string}` {
     );
   }
 
-  if (
-    !data.verificationAddAddressBody &&
-    // this is not defined on protobuf but just in case
-    !(data as any).verificationAddEthAddressBody
-  ) {
+  if (!data.verificationAddAddressBody) {
     throw new Error(
-      "Invalid message provided. Message data is missing verificationAddAddressBody or verificationAddEthAddressBody"
+      "Invalid message provided. Message data is missing verificationAddAddressBody"
     );
   }
 
-  let address: `0x${string}`;
-
-  if (data.verificationAddAddressBody) {
-    address = message.data.verificationAddAddressBody.address;
-  } else {
-    address = (data as any).verificationAddEthAddressBody.address;
+  if (data.verificationAddAddressBody.protocol !== Protocol.ETHEREUM) {
+    return null;
   }
 
   /**
@@ -135,5 +129,5 @@ export function extractAddressFromJSONMessage(message: any): `0x${string}` {
    * For example for value 0x8d25687829d6b85d9e0020b8c89e3ca24de20a89 from API we get 0x8d25687829d6b85d9e0020b8c89e3ca24de20a8w== from Buffer.from(...).toString('base64').
    * The values are the same if you compare them as Buffer.from(a).equals(Buffer.from(b)).
    */
-  return address;
+  return message.data.verificationAddAddressBody.address;
 }
