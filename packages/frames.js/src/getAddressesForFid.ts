@@ -2,7 +2,7 @@ import { createPublicClient, http, parseAbi } from "viem";
 import { optimism } from "viem/chains";
 import { AddressWithType, HubHttpUrlOptions } from "./types";
 import { DEFAULT_HUB_API_KEY, DEFAULT_HUB_API_URL } from "./default";
-import { Message } from "./farcaster";
+import { extractAddressFromJSONMessage } from ".";
 
 async function getCustodyAddressForFid(fid: number): Promise<AddressWithType> {
   const publicClient = createPublicClient({
@@ -51,19 +51,24 @@ export async function getAddressesForFid({
       throw new Error(
         `Failed to parse response body as JSON because server hub returned response with status "${verificationsResponse.status}" and body "${await verificationsResponse.clone().text()}"`
       );
-    })) as { messages?: Message[] };
+    })) as { messages?: Record<string, any>[] };
 
   if (messages) {
-    const verifiedAddresses = messages.map((message) => {
-      const {
-        data: {
-          // @ts-expect-error this is correct but somehow the property is not defined on MessageData
-          verificationAddEthAddressBody: { address },
-        },
-      } = message;
+    const verifiedAddresses = messages
+      .map((message) => {
+        const address = extractAddressFromJSONMessage(message);
 
-      return { address, type: "verified" } as AddressWithType;
-    });
+        if (!address) {
+          return null;
+        }
+
+        return {
+          address: extractAddressFromJSONMessage(message),
+          type: "verified",
+        } as AddressWithType;
+      })
+      // filter out unsupported addresses
+      .filter((val): val is AddressWithType => val !== null);
     return [...verifiedAddresses, custodyAddress];
   } else {
     return [custodyAddress];

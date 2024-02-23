@@ -2,7 +2,7 @@ import { createPublicClient, http, parseAbi } from "viem";
 import { optimism } from "viem/chains";
 import { AddressReturnType, HubHttpUrlOptions } from "./types";
 import { DEFAULT_HUB_API_KEY, DEFAULT_HUB_API_URL } from "./default";
-import { Message, MessageType } from "./farcaster";
+import { extractAddressFromJSONMessage } from ".";
 
 /**
  * Returns the first verified address for a given `Farcaster` users `fid` if available, falling back to their account custodyAddress
@@ -40,33 +40,34 @@ export async function getAddressForFid<
       throw new Error(
         `Failed to parse response body as JSON because server hub returned response with status "${response.status}" and body "${await response.clone().text()}"`
       );
-    })) as { messages?: Message[] };
+    })) as { messages?: Record<string, any>[] };
 
-  if (
-    messages?.[0]?.data &&
-    messages[0].data.type === MessageType.VERIFICATION_ADD_ETH_ADDRESS
-  ) {
-    const {
-      data: {
-        // @ts-expect-error this is correct but somehow it is missing in Message definition
-        verificationAddEthAddressBody: { address },
-      },
-    } = messages[0];
-    return address;
-  } else if (fallbackToCustodyAddress) {
+  let address: AddressReturnType<Options> | null = null;
+
+  // find first valid address
+  if (messages) {
+    for (const message of messages) {
+      address = extractAddressFromJSONMessage(message) ?? null;
+
+      if (address) {
+        break;
+      }
+    }
+  }
+
+  if (!address && fallbackToCustodyAddress) {
     const publicClient = createPublicClient({
       transport: http(),
       chain: optimism,
     });
-    const address = await publicClient.readContract({
+    address = await publicClient.readContract({
       abi: parseAbi(["function custodyOf(uint256 fid) view returns (address)"]),
       // IdRegistry contract address
       address: "0x00000000fc6c5f01fc30151999387bb99a9f489b",
       functionName: "custodyOf",
       args: [BigInt(fid)],
     });
-    return address;
-  } else {
-    return null as AddressReturnType<Options>;
   }
+
+  return address as AddressReturnType<Options>;
 }
