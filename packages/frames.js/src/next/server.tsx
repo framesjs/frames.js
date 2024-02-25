@@ -219,11 +219,28 @@ export async function POST(
   req: NextRequest,
   /** unused, but will most frequently be passed a res: NextResponse object. Should stay in here for easy consumption compatible with next.js */
   res: typeof NextResponse,
-  redirectHandler?: RedirectHandler
+  redirectHandler?: RedirectHandler,
+  /** useful for docker proxies. process.env.NEXT_PUBLIC_HOST is a possible value for this. */
+  baseUrl?: string
 ) {
   const body = await req.json();
 
-  const url = new URL(req.url);
+  // If url is local, suck as in docker, warn if not using baseUrl
+  if (
+    !baseUrl &&
+    process.env.NODE_ENV === "development" &&
+    (req.url.replace(/http(s)*\:\/\//i, "").startsWith("localhost") ||
+      req.url.replace(/http(s)*\:\/\//i, "").startsWith("0.0") ||
+      req.url.replace(/http(s)*\:\/\//i, "").startsWith("127.0"))
+  ) {
+    console.warn(
+      `frames.js info: If you're experiencing an issue, try passing process.env.NEXT_PUBLIC_HOST as the 4th argument to the POST function`
+    );
+  }
+
+  const url = baseUrl
+    ? new URL(`${req.nextUrl.pathname}${req.nextUrl.search}`, baseUrl)
+    : new URL(req.url);
   let newUrl = new URL(req.url);
   const isFullUrl =
     url.searchParams.get("p")?.startsWith("http://") ||
