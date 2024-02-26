@@ -205,6 +205,27 @@ export function useFramesReducer<T extends FrameState = FrameState>(
   return [frameReducerInit(initializerArg), dispatch];
 }
 
+const isProduction = process.env.NODE_ENV === "production";
+
+function toUrl(req: NextRequest) {
+  const url = new URL(req.url);
+  const protocol = req.headers.get("x-forwarded-proto") || "https";
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+
+  // ngrok + next.js has x-forwarded-port set to 3000, which is incorrect for https
+  const port = isProduction
+    ? req.headers.get("x-forwarded-port") || "443"
+    : protocol === "https"
+      ? "443"
+      : req.headers.get("x-forwarded-port") || "80";
+
+  url.protocol = protocol;
+  url.host = host || url.host;
+  url.port = port;
+
+  return url;
+}
+
 /**
  * A function ready made for next.js in order to directly export it, which handles all incoming `POST` requests that apps will trigger when users press buttons in your Frame.
  * It handles all the redirecting for you, correctly, based on the <FrameContainer> props defined by the Frame that triggered the user action.
@@ -220,7 +241,7 @@ export async function POST(
   const body = await req.json();
 
   const url = new URL(req.url);
-  let newUrl = new URL(req.url);
+  let newUrl = toUrl(req);
   const isFullUrl =
     url.searchParams.get("p")?.startsWith("http://") ||
     url.searchParams.get("p")?.startsWith("https://");
