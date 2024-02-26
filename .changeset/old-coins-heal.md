@@ -1,5 +1,5 @@
 ---
-"frames.js": patch
+"frames.js": minor
 ---
 
-feat: adds support for fc:frame:state
+feat: Breaking change! Adds support for fc:frame:state - no longer stores state in url params.

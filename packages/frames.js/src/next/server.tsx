@@ -376,9 +376,10 @@ export function FrameContainer<T extends FrameState = FrameState>({
                 {...(child.props as any)}
                 // Don't include target if action is post_redirect, otherwise the next message will be posted to the target url
                 target={
-                  (child.props as any).action === "post_redirect"
+                  (child.props as any as FrameButtonProvidedProps).action ===
+                  "post_redirect"
                     ? undefined
-                    : (child.props as any).target
+                    : (child.props as any as FrameButtonProvidedProps).target
                 }
                 actionIndex={nextIndexByComponentType.button++ as ActionIndex}
               />

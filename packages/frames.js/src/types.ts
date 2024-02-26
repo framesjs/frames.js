@@ -37,6 +37,7 @@ export const frameErrorKeys = [
   "fc:frame:button:2",
   "fc:frame:button:3",
   "fc:frame:button:4",
+  "fc:frame:state",
   "og:image",
   "og:title",
   "of:accepts",
@@ -65,6 +66,7 @@ export type FrameFlattened = {
   "fc:frame:button:4:action"?: ActionButtonType;
   "fc:frame:button:4:target"?: string;
   "fc:frame:input:text"?: string;
+  "fc:frame:state"?: string;
 };
 
 export type FrameButtonLink = {
