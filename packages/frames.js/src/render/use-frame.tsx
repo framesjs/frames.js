@@ -1,4 +1,3 @@
-import { Frame, FrameButton, getFrame } from "frames.js";
 import { useEffect, useState } from "react";
 import {
   FrameState,
@@ -8,6 +7,8 @@ import {
   FrameActionBodyPayload,
   FramesStack,
 } from "./types";
+import type { Frame, FrameButton } from "../types";
+import { getFrame } from "../getFrame";
 
 function onMintFallback({ target }: onMintArgs) {
   if (window.confirm("You are about to be redirected to " + target!)) {
