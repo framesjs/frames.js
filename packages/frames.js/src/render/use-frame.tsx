@@ -36,6 +36,7 @@ export function useFrame<
   frameActionRoute,
   /** Ex: /frames */
   frameFetchRoute,
+  extraButtonRequestPayload,
 }: {
   /** the route used to POST frame actions. The post_url will be added as a the `url` query parameter */
   frameActionRoute: string;
@@ -51,6 +52,10 @@ export function useFrame<
   onMint?: (t: onMintArgs) => void;
   /** the context of this frame, used for generating Frame Action payloads */
   frameContext: FrameContext;
+  /**
+   * Extra data appended to the frame action payload
+   */
+  extraButtonRequestPayload?: Record<string, unknown>;
 }): FrameState {
   const [inputText, setInputText] = useState("");
   const [framesStack, setFramesStack] = useState<FramesStack>([]);
@@ -184,7 +189,10 @@ export function useFrame<
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          ...extraButtonRequestPayload,
+          ...body,
+        }),
       });
       const dataRes = await response.json();
       frame = dataRes;

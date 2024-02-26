@@ -1,7 +1,5 @@
-import { NextRequest } from "next/server";
-import fs from "fs";
-import path from "path";
-import { sortedSearchParamsString } from "../../lib/utils";
+import { type NextRequest } from "next/server";
+import { loadMockResponseForDebugHubRequest } from "../../utils/mock-hub-utils";
 
 function getHubRequest(request: NextRequest, hubPath: string[]) {
   const { url, headers: originalHeaders, ...rest } = request;
@@ -41,33 +39,14 @@ export async function GET(
   request: NextRequest,
   { params: { hubPath } }: { params: { hubPath: string[] } }
 ) {
-  // Check if the request needs to be mocked
-  // Open json config file
-  // Check if the request is in the json file
-  // If it is, return the response from the json file
-  // If it is not, forward the request to the real hub
+  const mockResponse = await loadMockResponseForDebugHubRequest(
+    request,
+    hubPath
+  );
 
-  try {
-    // Only available in local development
-    const file = path.join(process.cwd(), "app", "debug", "mocks.json");
-    const json = fs.readFileSync(file, "utf-8");
-    const mocks = JSON.parse(json);
-    const searchParams = new URL(request.url).searchParams;
-    const pathAndQuery = `/${hubPath.join("/")}?${sortedSearchParamsString(searchParams)}`;
-
-    const mockResult: { ok: boolean | undefined } = mocks[pathAndQuery];
-    if (mockResult.ok !== undefined) {
-      console.log(
-        `info: Mock hub: Found mock for ${pathAndQuery}, returning ${mockResult.ok ? "200" : "404"}`
-      );
-      return new Response(JSON.stringify(mocks[pathAndQuery]), {
-        headers: {
-          "content-type": "application/json",
-        },
-        status: mockResult.ok ? 200 : 404,
-      });
-    }
-  } catch (error) {}
+  if (mockResponse) {
+    return mockResponse;
+  }
 
   console.warn(
     `info: Mock hub: Forwarding message ${hubPath.join("/")} to a real hub`

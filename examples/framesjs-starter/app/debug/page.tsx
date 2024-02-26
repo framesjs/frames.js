@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { MockHubConfig } from "./components/mock-hub-config";
 
 import dynamic from "next/dynamic";
+import { type FrameActionHubContext } from "frames.js";
 const LoginWindow = dynamic(() => import("./components/create-signer"), {
   ssr: false,
 });
@@ -44,6 +45,7 @@ export default function Page({
     frameFetchRoute: "/debug/frames",
     frameContext: fallbackFrameContext,
     authState,
+    extraButtonRequestPayload: { mockData: mockHubContext },
   });
 
   const baseUrl = process.env.NEXT_PUBLIC_HOST || "http://localhost:3000";
