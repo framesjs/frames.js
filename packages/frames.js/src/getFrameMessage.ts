@@ -45,10 +45,7 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
     inputText: inputTextBytes,
     state: stateBytes,
   } = (decodedMessage.data
-    .frameActionBody as typeof decodedMessage.data.frameActionBody & {
-    // TODO: Update protobuf when released
-    state?: Uint8Array;
-  }) || {};
+    .frameActionBody as typeof decodedMessage.data.frameActionBody) || {};
   const inputText = inputTextBytes
     ? Buffer.from(inputTextBytes).toString("utf-8")
     : undefined;
