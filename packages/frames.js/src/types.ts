@@ -40,7 +40,7 @@ export const frameErrorKeys = [
   "fc:frame:state",
   "og:image",
   "og:title",
-  "of:accepts",
+  "of:accepts", // @todo remove this as there is no validation in validateFrame function
 ] as const;
 
 export type ErrorKeys = typeof frameErrorKeys;
