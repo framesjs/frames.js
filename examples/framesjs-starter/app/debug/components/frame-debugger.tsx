@@ -131,29 +131,38 @@ export function FrameDebugger({
                               : `${frameStackItem.speed} seconds`}
                         </TableCell>
                       </TableRow>
-                      {frameErrorKeys.map((key) => (
-                        <TableRow key={key}>
-                          <TableCell>
-                            {frameStackItem?.frameValidationErrors?.[key] ||
-                            !frameStackItem?.frame
-                              ? "🔴"
-                              : "🟢"}
-                          </TableCell>
-                          <TableCell>{key}</TableCell>
-                          <TableCell className="text-slate-500">
-                            {frameStackItem.frame &&
-                            key !== "og:image" &&
-                            key !== "og:title"
-                              ? getFrameFlattened(frameStackItem.frame)?.[key]
-                              : null}
-                            <p className="font-bold text-red-800">
-                              {frameStackItem?.frameValidationErrors?.[
-                                key
-                              ]?.join(",")}
-                            </p>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {frameErrorKeys
+                        .filter(
+                          (
+                            v
+                          ): v is Exclude<
+                            (typeof frameErrorKeys)[number],
+                            "of:accepts"
+                          > => v !== "of:accepts"
+                        )
+                        .map((key) => (
+                          <TableRow key={key}>
+                            <TableCell>
+                              {frameStackItem?.frameValidationErrors?.[key] ||
+                              !frameStackItem?.frame
+                                ? "🔴"
+                                : "🟢"}
+                            </TableCell>
+                            <TableCell>{key}</TableCell>
+                            <TableCell className="text-slate-500">
+                              {frameStackItem.frame &&
+                              key !== "og:image" &&
+                              key !== "og:title"
+                                ? getFrameFlattened(frameStackItem.frame)?.[key]
+                                : null}
+                              <p className="font-bold text-red-800">
+                                {frameStackItem?.frameValidationErrors?.[
+                                  key
+                                ]?.join(",")}
+                              </p>
+                            </TableCell>
+                          </TableRow>
+                        ))}
                     </TableBody>
                   </Table>
                   <a

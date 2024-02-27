@@ -3,27 +3,20 @@ import {
   FrameContainer,
   FrameImage,
   FrameInput,
-  FrameReducer,
   NextServerPageProps,
   getPreviousFrame,
-  useFramesReducer,
   getFrameMessage,
 } from "frames.js/next/server";
 import Link from "next/link";
 import { kv } from "@vercel/kv";
 import { DEBUG_HUB_OPTIONS } from "../../debug/constants";
+import { PromptToImageRequestStateValue } from "./slow-fetch/route";
 
 type State = {
   page: "homeframe";
 };
 
-const initialState = { page: "homeframe" } as const;
-
-const reducer: FrameReducer<State> = (state, action) => {
-  return {
-    page: "homeframe",
-  };
-};
+const initialState: State = { page: "homeframe" } as const;
 
 // This is a react server component only
 export default async function Home({
@@ -40,128 +33,143 @@ export default async function Home({
     throw new Error("Invalid frame payload");
   }
 
-  const [state, dispatch] = useFramesReducer<State>(
-    reducer,
-    initialState,
-    previousFrame
+  let frame: React.ReactElement;
+
+  const imagineFrame = (
+    <FrameContainer
+      postUrl="/examples/slow-request/frames"
+      pathname="/examples/slow-request"
+      state={initialState}
+      previousFrame={previousFrame}
+    >
+      <FrameImage>
+        <div tw="w-full h-full bg-slate-700 text-white justify-center items-center">
+          Prompt dall-e
+        </div>
+      </FrameImage>
+      <FrameInput text="prompt dall-e" />
+      <FrameButton>Imagine</FrameButton>
+      <FrameButton>Check previous image</FrameButton>
+    </FrameContainer>
   );
 
-  let frame;
+  const checkStatusFrame = (
+    <FrameContainer
+      postUrl="/examples/slow-request/frames"
+      pathname="/examples/slow-request"
+      state={initialState}
+      previousFrame={previousFrame}
+    >
+      <FrameImage>
+        <div tw="w-full h-full bg-slate-700 text-white justify-center items-center">
+          Loading...
+        </div>
+      </FrameImage>
+      <FrameButton>Check status</FrameButton>
+    </FrameContainer>
+  );
+
+  const openImageFrame = (imgUrl: string) => (
+    <FrameContainer
+      postUrl="/examples/slow-request/frames"
+      pathname="/examples/slow-request"
+      state={initialState}
+      previousFrame={previousFrame}
+    >
+      <FrameImage src={imgUrl} />
+      <FrameButton action="link" target={imgUrl}>
+        Open image
+      </FrameButton>
+      <FrameButton target={"/examples/slow-request/frames?reset=true"}>
+        Reset
+      </FrameButton>
+    </FrameContainer>
+  );
+
+  const errorFrame = (error: string) => (
+    <FrameContainer
+      postUrl="/examples/slow-request/frames"
+      pathname="/examples/slow-request"
+      state={initialState}
+      previousFrame={previousFrame}
+    >
+      <FrameImage>{error}</FrameImage>
+      <FrameButton target={"/examples/slow-request/frames?retry=true"}>
+        Retry
+      </FrameButton>
+    </FrameContainer>
+  );
+
   if (frameMessage) {
-    const { castId, requesterFid } = frameMessage;
+    const { requesterFid } = frameMessage;
 
     const uniqueId = `fid:${requesterFid}`;
 
-    if (searchParams?.retry === "true") {
-      console.log("reset req");
-      await kv.set(uniqueId, null);
-    }
-    const existingRequests = await kv.get<{
-      error: string | null;
-      status: string;
-      data: any;
-      timestamp: number;
-    }>(uniqueId);
+    const existingRequest =
+      await kv.get<PromptToImageRequestStateValue>(uniqueId);
 
-    console.log(existingRequests);
+    if (existingRequest) {
+      switch (existingRequest.status) {
+        case "pending":
+          frame = checkStatusFrame;
+          break;
+        case "success":
+          // if retry is true, then try to generate again and show checkStatusFrame
+          if (searchParams?.reset === "true") {
+            // reset to initial state
+            await kv.del(uniqueId);
 
-    if (existingRequests) {
-      if (searchParams?.retry !== "true") {
-        if (existingRequests.status === "error" || existingRequests.error)
-          frame = (
-            <FrameContainer
-              postUrl="/examples/slow-request/frames"
-              pathname="/examples/slow-request"
-              state={state}
-              previousFrame={previousFrame}
-            >
-              <FrameImage>{existingRequests.error as string}</FrameImage>
-              <FrameButton target={"/examples/slow-request/frames?retry=true"}>
-                Retry
-              </FrameButton>
-            </FrameContainer>
-          );
-        else {
-          frame = (
-            <FrameContainer
-              postUrl="/examples/slow-request/frames"
-              pathname="/examples/slow-request"
-              state={state}
-              previousFrame={previousFrame}
-            >
-              <FrameImage src="" />
-              <FrameButton action="link" target="https://xyz">
-                Open image
-              </FrameButton>
-            </FrameContainer>
-          );
-        }
-      } else {
-        frame = (
-          <FrameContainer
-            postUrl="/examples/slow-request/frames"
-            pathname="/examples/slow-request"
-            state={state}
-            previousFrame={previousFrame}
-          >
-            <FrameImage>
-              <div tw="w-full h-full bg-slate-700 text-white justify-center items-center">
-                Loading...
-              </div>
-            </FrameImage>
-            <FrameButton>Check status</FrameButton>
-          </FrameContainer>
-        );
-        if (JSON.parse(searchParams?.postBody as string)?.inputText) {
-          console.log("Slow-fetch", searchParams?.postBody);
+            frame = imagineFrame;
+          } else {
+            frame = openImageFrame(existingRequest.data.data[0]!.url);
+          }
+          break;
+        case "error":
+          // if retry is true, then try to generate again and show checkStatusFrame
+          if (searchParams?.retry === "true") {
+            // reset to initial state
+            await kv.del(uniqueId);
 
-          // start request, don't await it! Return a loading page, let this run in the background
-          fetch(
-            `${process.env.NEXT_PUBLIC_HOST}/examples/slow-request/slow-fetch`,
-            {
-              method: "POST",
-              body: JSON.stringify({
-                postBody: JSON.parse(searchParams?.postBody as string),
-              }),
-            }
-          );
-        }
+            frame = imagineFrame;
+          } else {
+            frame = errorFrame(existingRequest.error);
+          }
+          break;
       }
-    } else {
-      frame = (
-        <FrameContainer
-          postUrl="/examples/slow-request/frames"
-          pathname="/examples/slow-request"
-          state={state}
-          previousFrame={previousFrame}
-        >
-          <FrameImage>
-            <div tw="w-full h-full bg-slate-700 text-white justify-center items-center">
-              Prompt dall-e
-            </div>
-          </FrameImage>
-          <FrameInput text="prompt dall-e" />
-          <FrameButton>Imagine</FrameButton>
-        </FrameContainer>
+    } else if (frameMessage.inputText && frameMessage.inputText.trim()) {
+      await kv.set<PromptToImageRequestStateValue>(
+        uniqueId,
+        {
+          status: "pending",
+          timestamp: new Date().getTime(),
+        },
+        // set as pending for one minute
+        { ex: 60 }
       );
+
+      // start request, don't await it! Return a loading page, let this run in the background
+      fetch(
+        new URL(
+          "/examples/slow-request/slow-fetch",
+          process.env.NEXT_PUBLIC_HOST
+        ).toString(),
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            postBody: JSON.parse(searchParams?.postBody as string),
+          }),
+        }
+      );
+
+      frame = checkStatusFrame;
+    } else {
+      frame = imagineFrame;
     }
   } else {
-    frame = (
-      <FrameContainer
-        postUrl="/examples/slow-request/frames"
-        pathname="/examples/slow-request"
-        state={state}
-        previousFrame={previousFrame}
-      >
-        <FrameImage>
-          <div tw="w-full h-full bg-slate-700 text-white justify-center items-center">
-            Prompt dall-e
-          </div>
-        </FrameImage>
-        <FrameInput text="prompt dall-e" />
-        <FrameButton>Imagine</FrameButton>
-      </FrameContainer>
-    );
+    frame = imagineFrame;
   }
 
   // then, when done, return next frame

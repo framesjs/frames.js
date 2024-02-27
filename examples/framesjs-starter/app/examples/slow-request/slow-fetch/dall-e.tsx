@@ -1,5 +1,3 @@
-const { EXAMPLE_SLOW_REQUEST_IMGUR_CLIENTID } = process.env;
-
 async function fetchBlob(url: string) {
   const response = await fetch(url);
   return response.blob();
@@ -12,7 +10,7 @@ const uploadToImgur = async (file: Blob): Promise<string | null> => {
   const response = await fetch("https://api.imgur.com/3/upload", {
     method: "POST",
     headers: {
-      Authorization: `Client-ID ${EXAMPLE_SLOW_REQUEST_IMGUR_CLIENTID}`, // replace with your Client ID
+      Authorization: `Client-ID ${process.env.EXAMPLE_SLOW_REQUEST_IMGUR_CLIENTID}`, // replace with your Client ID
     },
     body: formData,
   });
@@ -29,23 +27,29 @@ const uploadToImgur = async (file: Blob): Promise<string | null> => {
   return data.link;
 };
 
-export async function Dalle(
-  prompt: string,
-  fid: number
-): Promise<{
-  data?: {
+export type DalleSuccessResult = {
+  data: {
     created: number;
     data: Array<{ url: string; revised_prompt: string }>;
   };
+};
+
+export type DalleErrorResult = {
   error: null | any;
-}> {
+};
+
+type DalleResult = DalleErrorResult | DalleSuccessResult;
+
+export async function Dalle(prompt: string, fid: number): Promise<DalleResult> {
   const imageResponse = await fetch(
     `https://api.openai.com/v1/images/generations`,
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.CHATGPT_API_SECRET}`,
-        "OpenAI-Organization": `${process.env.CHATGPT_ORGANIZATION_ID}`,
+        Authorization: `Bearer ${process.env.EXAMPLE_SLOW_REQUEST_CHATGPT_API_SECRET}`,
+        ...(process.env.EXAMPLE_SLOW_REQUEST_CHATGPT_ORGANIZATION_ID && {
+          "OpenAI-Organization": `${process.env.EXAMPLE_SLOW_REQUEST_CHATGPT_ORGANIZATION_ID}`,
+        }),
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -71,27 +75,27 @@ export async function Dalle(
     data: Array<{ url: string; revised_prompt: string }>;
   } = await imageResponse.json();
 
-  let urls;
   try {
-    urls = await Promise.all(
-      responseBody.data.map(async (el) => {
-        const b = await fetchBlob(el.url);
-        const imgur = await uploadToImgur(b);
-        if (!imgur) throw new Error("couldnt upload to imgur");
-        return imgur;
-      })
-    );
+    return {
+      data: {
+        created: responseBody.created,
+        data: await Promise.all(
+          responseBody.data.map(async (el) => {
+            const imageURL = await uploadToImgur(await fetchBlob(el.url));
+
+            if (!imageURL) throw new Error("couldnt upload to imgur");
+
+            return {
+              url: imageURL,
+              revised_prompt: el.revised_prompt,
+            };
+          })
+        ),
+      },
+    };
   } catch (error) {
     return {
       error: error,
     };
   }
-
-  return {
-    ...responseBody,
-    data: responseBody.data.map((el, i) => ({
-      url: urls[i],
-      revised_prompt: el.revised_prompt,
-    })),
-  };
 }

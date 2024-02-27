@@ -1,16 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { kv } from "@vercel/kv";
 import { getFrameMessage } from "frames.js";
-import { Dalle } from "./dall-e";
+import { Dalle, type DalleSuccessResult } from "./dall-e";
 import { DEBUG_HUB_OPTIONS } from "../../../debug/constants";
 // extend this endpoint to 5 min timeout
 export const maxDuration = 300;
 
-export type SetState = {
-  status: "error" | "success" | "pending";
-  timestamp: number;
-  error: string | null;
-};
+const MAXIMUM_KV_RESULT_LIFETIME_IN_SECONDS = 60 * 60; // 1 hour
+
+export type PromptToImageRequestStateValue =
+  | {
+      error: string;
+      status: "error";
+      timestamp: number;
+    }
+  | {
+      data: DalleSuccessResult["data"];
+      status: "success";
+      timestamp: number;
+    }
+  | {
+      status: "pending";
+      timestamp: number;
+    };
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -25,47 +37,62 @@ export async function POST(req: NextRequest) {
   console.log("!!!!", frameMessage, body);
   if (!prompt) {
     // set error, return
-    await kv.set(uniqueId, {
-      error: "no prompt",
-      status: "pending",
-      timestamp: new Date().getTime(),
-    });
+    await kv.set<PromptToImageRequestStateValue>(
+      uniqueId,
+      {
+        error: "no prompt",
+        status: "error",
+        timestamp: new Date().getTime(),
+      },
+      { ex: MAXIMUM_KV_RESULT_LIFETIME_IN_SECONDS }
+    );
 
     return NextResponse.json({ message: "no prompt set" }, { status: 400 });
   }
-  const { data, error } = await Dalle(prompt, frameMessage.requesterFid);
-
-  if (error) {
-    try {
-      await kv.set(uniqueId, {
-        error,
-        ...data,
-        status: "error",
-        timestamp: new Date().getTime(),
-      });
-      return NextResponse.json({ message: error }, { status: 500 });
-    } catch (err) {
-      return NextResponse.json({ message: err }, { status: 500 });
-    }
-  }
 
   try {
-    await kv.set(uniqueId, {
-      error,
-      ...data,
-      status: "success",
-      timestamp: new Date().getTime(),
-    });
+    const dalleResult = await Dalle(prompt, frameMessage.requesterFid);
 
-    // since this request isn't awaited, doesn't do anything
+    if ("error" in dalleResult) {
+      await kv.set<PromptToImageRequestStateValue>(
+        uniqueId,
+        {
+          error: dalleResult.error,
+          status: "error",
+          timestamp: new Date().getTime(),
+        },
+        { ex: MAXIMUM_KV_RESULT_LIFETIME_IN_SECONDS }
+      );
+
+      return NextResponse.json({ message: dalleResult.error }, { status: 500 });
+    }
+
+    await kv.set<PromptToImageRequestStateValue>(
+      uniqueId,
+      {
+        data: dalleResult.data,
+        status: "success",
+        timestamp: new Date().getTime(),
+      },
+      { ex: MAXIMUM_KV_RESULT_LIFETIME_IN_SECONDS }
+    );
+
     return NextResponse.json({
-      error,
-      ...data,
+      data: dalleResult.data,
       status: "success",
       timestamp: new Date().getTime(),
     });
-  } catch (err) {
+  } catch (e) {
+    await kv.set<PromptToImageRequestStateValue>(
+      uniqueId,
+      {
+        error: String(e),
+        status: "error",
+        timestamp: new Date().getTime(),
+      },
+      { ex: MAXIMUM_KV_RESULT_LIFETIME_IN_SECONDS }
+    );
     // Handle errors
-    return NextResponse.json({ message: err }, { status: 500 });
+    return NextResponse.json({ message: e }, { status: 500 });
   }
 }
