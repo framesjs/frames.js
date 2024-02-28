@@ -1,16 +1,15 @@
+import { kv } from "@vercel/kv";
 import {
   FrameButton,
   FrameContainer,
   FrameImage,
-  FrameInput,
   NextServerPageProps,
-  getPreviousFrame,
   getFrameMessage,
+  getPreviousFrame,
 } from "frames.js/next/server";
 import Link from "next/link";
-import { kv } from "@vercel/kv";
 import { DEBUG_HUB_OPTIONS } from "../../debug/constants";
-import { PromptToImageRequestStateValue } from "./slow-fetch/route";
+import { RandomNumberRequestStateValue } from "./slow-fetch/types";
 
 type State = {
   page: "homeframe";
@@ -35,7 +34,7 @@ export default async function Home({
 
   let frame: React.ReactElement;
 
-  const imagineFrame = (
+  const intialFrame = (
     <FrameContainer
       postUrl="/examples/slow-request/frames"
       pathname="/examples/slow-request"
@@ -44,12 +43,10 @@ export default async function Home({
     >
       <FrameImage>
         <div tw="w-full h-full bg-slate-700 text-white justify-center items-center">
-          Prompt dall-e
+          This random number generator takes 5 seconds to respond
         </div>
       </FrameImage>
-      <FrameInput text="prompt dall-e" />
-      <FrameButton>Imagine</FrameButton>
-      <FrameButton>Check previous image</FrameButton>
+      <FrameButton>Generate</FrameButton>
     </FrameContainer>
   );
 
@@ -66,23 +63,6 @@ export default async function Home({
         </div>
       </FrameImage>
       <FrameButton>Check status</FrameButton>
-    </FrameContainer>
-  );
-
-  const openImageFrame = (imgUrl: string) => (
-    <FrameContainer
-      postUrl="/examples/slow-request/frames"
-      pathname="/examples/slow-request"
-      state={initialState}
-      previousFrame={previousFrame}
-    >
-      <FrameImage src={imgUrl} />
-      <FrameButton action="link" target={imgUrl}>
-        Open image
-      </FrameButton>
-      <FrameButton target={"/examples/slow-request/frames?reset=true"}>
-        Reset
-      </FrameButton>
     </FrameContainer>
   );
 
@@ -106,7 +86,7 @@ export default async function Home({
     const uniqueId = `fid:${requesterFid}`;
 
     const existingRequest =
-      await kv.get<PromptToImageRequestStateValue>(uniqueId);
+      await kv.get<RandomNumberRequestStateValue>(uniqueId);
 
     if (existingRequest) {
       switch (existingRequest.status) {
@@ -119,9 +99,27 @@ export default async function Home({
             // reset to initial state
             await kv.del(uniqueId);
 
-            frame = imagineFrame;
+            frame = intialFrame;
           } else {
-            frame = openImageFrame(existingRequest.data.data[0]!.url);
+            frame = (
+              <FrameContainer
+                postUrl="/examples/slow-request/frames"
+                pathname="/examples/slow-request"
+                state={initialState}
+                previousFrame={previousFrame}
+              >
+                <FrameImage>
+                  <div tw="w-full h-full bg-slate-700 text-white justify-center items-center flex">
+                    The number is {existingRequest.data}
+                  </div>
+                </FrameImage>
+                <FrameButton
+                  target={"/examples/slow-request/frames?reset=true"}
+                >
+                  Reset
+                </FrameButton>
+              </FrameContainer>
+            );
           }
           break;
         case "error":
@@ -130,14 +128,14 @@ export default async function Home({
             // reset to initial state
             await kv.del(uniqueId);
 
-            frame = imagineFrame;
+            frame = intialFrame;
           } else {
             frame = errorFrame(existingRequest.error);
           }
           break;
       }
-    } else if (frameMessage.inputText && frameMessage.inputText.trim()) {
-      await kv.set<PromptToImageRequestStateValue>(
+    } else {
+      await kv.set<RandomNumberRequestStateValue>(
         uniqueId,
         {
           status: "pending",
@@ -165,11 +163,9 @@ export default async function Home({
       );
 
       frame = checkStatusFrame;
-    } else {
-      frame = imagineFrame;
     }
   } else {
-    frame = imagineFrame;
+    frame = intialFrame;
   }
 
   // then, when done, return next frame
