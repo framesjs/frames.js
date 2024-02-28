@@ -7,8 +7,8 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+} from "./ui/accordion";
+import { Table, TableBody, TableCell, TableRow } from "./ui/table";
 import { LoaderIcon } from "lucide-react";
 
 type FrameDebuggerFramePropertiesTableRowsProps = {
