@@ -50,7 +50,7 @@ export async function GET(
 
   try {
     // Only available in local development
-    const file = path.join(process.cwd(), "mocks.json");
+    const file = path.join(__dirname, "../../../mocks.json");
     const json = fs.readFileSync(file, "utf-8");
     const mocks = JSON.parse(json);
     const searchParams = new URL(request.url).searchParams;

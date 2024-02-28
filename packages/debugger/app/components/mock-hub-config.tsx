@@ -10,7 +10,8 @@ export function MockHubConfig({
     React.SetStateAction<Partial<FrameActionHubContext>>
   >;
 }) {
-  const isDev = process.env.NODE_ENV === "development";
+  // TODO: find a better way of determining if mock hub should be enabled (depends on fs)
+  const isEnabled = true;
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -25,8 +26,8 @@ export function MockHubConfig({
   };
 
   return (
-    <div className={!isDev ? "text-gray-500" : ""}>
-      {!isDev && (
+    <div className={!isEnabled ? "text-gray-500" : ""}>
+      {!isEnabled && (
         <div className="text-gray-500">
           Use the debugger locally by cloning{" "}
           <a
@@ -45,7 +46,7 @@ export function MockHubConfig({
           <input
             name="requesterFollowsCaster"
             type="checkbox"
-            disabled={!isDev}
+            disabled={!isEnabled}
             checked={hubContext.requesterFollowsCaster}
             onChange={handleInputChange}
           />{" "}
@@ -55,7 +56,7 @@ export function MockHubConfig({
           <input
             name="casterFollowsRequester"
             type="checkbox"
-            disabled={!isDev}
+            disabled={!isEnabled}
             checked={hubContext.casterFollowsRequester}
             onChange={handleInputChange}
           />{" "}
@@ -65,7 +66,7 @@ export function MockHubConfig({
           <input
             name="likedCast"
             type="checkbox"
-            disabled={!isDev}
+            disabled={!isEnabled}
             checked={hubContext.likedCast}
             onChange={handleInputChange}
           />{" "}
@@ -75,7 +76,7 @@ export function MockHubConfig({
           <input
             name="recastedCast"
             type="checkbox"
-            disabled={!isDev}
+            disabled={!isEnabled}
             checked={hubContext.recastedCast}
             onChange={handleInputChange}
           />{" "}

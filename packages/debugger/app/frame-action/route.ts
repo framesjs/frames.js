@@ -90,7 +90,7 @@ function persistMockRequest({
   )}`;
 
   // Write to file
-  const file = path.join(process.cwd(), "mocks.json");
+  const file = path.join(__dirname, "../../mocks.json");
   const json = {
     [requesterFollowsCaster]: {
       ok: mockData.requesterFollowsCaster,

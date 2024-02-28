@@ -133,8 +133,7 @@ export default function Page({
         trustedData: {
           messageBytes: trustedBytes,
         },
-        mockData:
-          process.env.NODE_ENV === "development" ? mockHubContext : undefined,
+        mockData: mockHubContext,
       } as FrameActionPayload & { mockData: Partial<FrameActionHubContext> }),
     });
 
