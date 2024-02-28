@@ -37,47 +37,42 @@ export type Frame = {
   accepts?: ClientProtocolId[];
 };
 
-/** as const so we can import and enumerate these */
-export const frameErrorKeys = [
-  "fc:frame",
-  "fc:frame:image",
-  "fc:frame:image:aspect_ratio",
-  "fc:frame:post_url",
-  "fc:frame:input:text",
-  "fc:frame:button:1",
-  "fc:frame:button:2",
-  "fc:frame:button:3",
-  "fc:frame:button:4",
-  "fc:frame:state",
-  "og:image",
-  "og:title",
-  "of:accepts",
-] as const;
-
-export type ErrorKeys = typeof frameErrorKeys;
-
 export type ActionButtonType = "post" | "post_redirect" | "link";
 
-/** A Frame represented as an object with keys and values corresponding to the Frames spec: https://docs.farcaster.xyz/reference/frames/spec */
-export type FrameFlattened = {
+type FrameOptionalStringKeys =
+  | "fc:frame:image:aspect_ratio"
+  | "fc:frame:input:text"
+  | `of:accepts:${string}`;
+type FrameOptionalActionButtonTypeKeys =
+  `fc:frame:button:${1 | 2 | 3 | 4}:action`;
+type FrameOptionalButtonStringKeys =
+  | `fc:frame:button:${1 | 2 | 3 | 4}`
+  | `fc:frame:button:${1 | 2 | 3 | 4}:target`;
+type FrameKeys =
+  | FrameOptionalStringKeys
+  | FrameOptionalActionButtonTypeKeys
+  | FrameOptionalButtonStringKeys;
+
+type MapFrameOptionalKeyToValueType<K extends FrameKeys> =
+  K extends FrameOptionalStringKeys
+    ? string | undefined
+    : K extends FrameOptionalActionButtonTypeKeys
+      ? ActionButtonType | undefined
+      : string | undefined;
+
+type FrameRequiredProperties = {
   "fc:frame": FrameVersion;
   "fc:frame:image": string;
   "fc:frame:image:aspect_ratio"?: string;
   "fc:frame:post_url": string;
-  "fc:frame:button:1"?: string;
-  "fc:frame:button:1:action"?: ActionButtonType;
-  "fc:frame:button:1:target"?: string;
-  "fc:frame:button:2"?: string;
-  "fc:frame:button:2:action"?: ActionButtonType;
-  "fc:frame:button:2:target"?: string;
-  "fc:frame:button:3"?: string;
-  "fc:frame:button:3:action"?: ActionButtonType;
-  "fc:frame:button:3:target"?: string;
-  "fc:frame:button:4"?: string;
-  "fc:frame:button:4:action"?: ActionButtonType;
-  "fc:frame:button:4:target"?: string;
-  "fc:frame:input:text"?: string;
-  "fc:frame:state"?: string;
+};
+
+/** A Frame represented as an object with keys and values corresponding to the Frames spec: https://docs.farcaster.xyz/reference/frames/spec */
+export type FrameFlattened = FrameRequiredProperties & {
+  [K in
+    | FrameOptionalStringKeys
+    | FrameOptionalActionButtonTypeKeys
+    | FrameOptionalButtonStringKeys]?: MapFrameOptionalKeyToValueType<K>;
 };
 
 export type FrameButtonLink = {

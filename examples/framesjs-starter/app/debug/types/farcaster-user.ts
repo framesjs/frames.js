@@ -1,4 +1,4 @@
-import {
+import type {
   AuthStateInstance,
   FarcasterFrameActionBodyPayload,
 } from "frames.js/render";

@@ -18,7 +18,17 @@ interface SignedKeyRequest {
   signerUserMetadata?: object;
 }
 
-export function useFarcasterIdentity() {
+type FarcasterIdentity = {
+  user: FarcasterUser | null;
+  isLoggedIn: boolean;
+  signFrameAction: FarcasterAuthState["signFrameAction"];
+  isLoading: boolean;
+  impersonateUser: (args: { fid: number }) => Promise<void>;
+  promptLogin: () => Promise<void>;
+  logout: () => void;
+};
+
+export function useFarcasterIdentity(): FarcasterIdentity {
   const [isLoading, setLoading] = useState(false);
   const [farcasterUser, setFarcasterUser] = useState<FarcasterUser | null>(
     getSignerFromLocalStorage()

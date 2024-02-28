@@ -1,4 +1,4 @@
-import { ErrorKeys, Frame, FrameButton } from "..";
+import type { Frame, FrameButton } from "..";
 
 export interface AuthStateInstance<
   T = object,
@@ -22,16 +22,24 @@ export interface AuthStateInstance<
   logout: () => void;
 }
 
-export type FramesStack = Array<{
+type FrameStackBase = {
   timestamp: Date;
   method: "GET" | "POST";
   /** speed in seconds */
   speed: number;
   url: string;
-  frame: Frame | null;
-  frameValidationErrors: null | Record<ErrorKeys[number], string[]>;
-  requestError: null | unknown;
-}>;
+};
+
+export type FramesStack = Array<
+  | (FrameStackBase & {
+      frame: Frame;
+      frameValidationErrors: null | Record<string, string[]>;
+      isValid: boolean;
+    })
+  | (FrameStackBase & {
+      requestError: unknown;
+    })
+>;
 
 export type FrameState = {
   /** The frame at the top of the stack (at index 0) */
@@ -44,7 +52,7 @@ export type FrameState = {
   onButtonPress: (frameButton: FrameButton, index: number) => void;
   /** Whether the frame at the top of the stack has any frame validation errors. Undefined when the frame is not loaded or set */
   isFrameValid: boolean | undefined;
-  frameValidationErrors: Record<ErrorKeys[number], string[]> | undefined | null;
+  frameValidationErrors: Record<string, string[]> | undefined | null;
   error: null | unknown;
   homeframeUrl: string | null;
 };
