@@ -1,5 +1,18 @@
 # utils-starter
 
+## 1.1.0
+
+### Minor Changes
+
+- 845b30c: refactor: make frame validation errors arbitraty, remove unnecessary validateFrame function
+
+### Patch Changes
+
+- Updated dependencies [845b30c]
+- Updated dependencies [ce1cec6]
+- Updated dependencies [845b30c]
+  - frames.js@0.6.0
+
 ## 1.0.4
 
 ### Patch Changes
