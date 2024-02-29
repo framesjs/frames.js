@@ -261,13 +261,6 @@ export function getFrame({
       });
     }
 
-    if (state && Buffer.from(state).length > 4096) {
-      addError({
-        message: `State is more than 4kb (${Math.ceil(Buffer.from(state).length / 4096)}kb)`,
-        key: "fc:frame:state",
-      });
-    }
-
     // validate data url is less than 256kb (warpcast)
     if (getByteLength(image) > 256 * 1024) {
       addError({
@@ -275,6 +268,13 @@ export function getFrame({
         key: "fc:frame:image",
       });
     }
+  }
+
+  if (state && Buffer.from(state).length > 4096) {
+    addError({
+      message: `State is more than 4kb (${Math.ceil(Buffer.from(state).length / 4096)}kb)`,
+      key: "fc:frame:state",
+    });
   }
 
   if (
