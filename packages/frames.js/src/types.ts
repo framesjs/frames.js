@@ -20,10 +20,10 @@ export type Frame = {
   ogImage?: string;
   /** Adding this property enables the text field. The content is a 32-byte label that is shown to the user (e.g. Enter a message). */
   inputText?: string;
-  /** Open Frames spec: The minimum client protocol version accepted for the given protocol identifier. For example VNext , or 1.5 . At least one $protocol_identifier must be specified. */
-  accepts?: ClientProtocolId[];
   /** Frame servers may set this value and apps must sign and include it in the Frame Signature Packet. May be up to 4kb */
   state?: string;
+  /** Open Frames spec: The minimum client protocol version accepted for the given protocol identifier. For example VNext , or 1.5 . At least one $protocol_identifier must be specified. */
+  accepts?: ClientProtocolId[];
 };
 
 /** as const so we can import and enumerate these */
