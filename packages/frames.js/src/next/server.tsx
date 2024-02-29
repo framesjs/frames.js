@@ -160,21 +160,27 @@ export function parseFrameParams<T extends FrameState = FrameState>(
       ? (JSON.parse(searchParams?.postBody) as FrameActionPayload)
       : null;
 
-  const framePrevState =
-    searchParams?.prevState && typeof searchParams?.prevState === "string"
-      ? (JSON.parse(searchParams?.prevState) as T)
-      : null;
+  if (
+    frameActionReceived === null ||
+    !frameActionReceived.untrustedData.state
+  ) {
+    return {
+      postBody: null,
+      prevState: null,
+      pathname: undefined,
+      prevRedirects: null,
+    };
+  }
 
-  const framePrevRedirects =
-    searchParams?.prevRedirects &&
-    typeof searchParams?.prevRedirects === "string"
-      ? (JSON.parse(searchParams?.prevRedirects) as RedirectMap)
-      : null;
-
-  const pathname =
-    searchParams?.pathname && typeof searchParams?.pathname === "string"
-      ? searchParams?.pathname
-      : undefined;
+  const {
+    pathname,
+    state: framePrevState,
+    prevRedirects: framePrevRedirects,
+  } = JSON.parse(frameActionReceived.untrustedData.state) as {
+    pathname: string;
+    state: T;
+    prevRedirects: RedirectMap;
+  };
 
   return {
     postBody: frameActionReceived,
@@ -223,26 +229,23 @@ export async function POST(
 ) {
   const body = await req.json();
 
-  const url = new URL(req.url);
+  const frameState = JSON.parse(body.untrustedData.state) as {
+    pathname: string;
+    state: FrameState;
+    prevRedirects: RedirectMap;
+  };
+
   let newUrl = new URL(req.url);
   const isFullUrl =
-    url.searchParams.get("p")?.startsWith("http://") ||
-    url.searchParams.get("p")?.startsWith("https://");
-  if (isFullUrl) newUrl = new URL(url.searchParams.get("p")!);
-  else newUrl.pathname = url.searchParams.get("p") || "";
+    frameState.pathname.startsWith("http://") ||
+    frameState.pathname.startsWith("https://");
+  if (isFullUrl) newUrl = new URL(frameState.pathname);
+  else newUrl.pathname = frameState.pathname || "";
 
+  const postBodyString = JSON.stringify(body);
   // decompress from 256 bytes limitation of post_url
-  newUrl.searchParams.set("postBody", JSON.stringify(body));
-  newUrl.searchParams.set("prevState", url.searchParams.get("s") ?? "");
-  newUrl.searchParams.set("prevRedirects", url.searchParams.get("r") ?? "");
-  // was used to redirect to the correct page, and is no longer needed.
-  newUrl.searchParams.delete("p");
-  newUrl.searchParams.delete("s");
-  newUrl.searchParams.delete("r");
-
-  const prevFrame = getPreviousFrame(
-    Object.fromEntries(url.searchParams.entries())
-  );
+  newUrl.searchParams.set("postBody", postBodyString);
+  const prevFrame = getPreviousFrame({ postBody: postBodyString });
 
   // Handle 'post_redirect' buttons with href values
   if (
@@ -359,14 +362,25 @@ export function FrameContainer<T extends FrameState = FrameState>({
 
             // set redirect data for retrieval
             if ((child.props as any).action === "post_redirect") {
-              redirectMap[nextIndexByComponentType.button] = (
-                child.props as any as FrameButtonPostRedirectProvidedProps
-              ).target!;
+              const target =
+                (child.props as any as FrameButtonPostRedirectProvidedProps)
+                  .target || null;
+              const buttonIndex = target
+                ? nextIndexByComponentType.button
+                : (`_${nextIndexByComponentType.button}` as `_${number}`);
+              redirectMap[buttonIndex] = target;
             }
 
             return (
               <FFrameButtonShim
                 {...(child.props as any)}
+                // Don't include target if action is post_redirect, otherwise the next message will be posted to the target url
+                target={
+                  (child.props as any as FrameButtonProvidedProps).action ===
+                  "post_redirect"
+                    ? undefined
+                    : (child.props as any as FrameButtonProvidedProps).target
+                }
                 actionIndex={nextIndexByComponentType.button++ as ActionIndex}
               />
             );
@@ -395,20 +409,17 @@ export function FrameContainer<T extends FrameState = FrameState>({
   if (nextIndexByComponentType.image === 1)
     throw new Error("an <FrameImage> element inside a <Frame> is required");
 
-  const searchParams = new URLSearchParams();
-
-  // short for pathname
-  searchParams.set("p", pathname ?? previousFrame.headers.pathname ?? "/");
-  // short for state
-  searchParams.set("s", JSON.stringify(state));
-  // short for redirects
-  searchParams.set("r", JSON.stringify(redirectMap));
+  const frameState = {
+    pathname: pathname ?? previousFrame.headers.pathname ?? "/",
+    state: state,
+    prevRedirects: redirectMap,
+  };
 
   const postUrlRoute = postUrl.startsWith("/")
     ? `${previousFrame.headers.urlWithoutPathname}${postUrl}`
     : postUrl;
 
-  const postUrlFull = `${postUrlRoute}?${searchParams.toString()}`;
+  const postUrlFull = postUrlRoute;
   if (getByteLength(postUrlFull) > 256) {
     console.error(
       `post_url is too long. ${postUrlFull.length} bytes, max is 256. The url is generated to include your state and the redirect urls in <FrameButton href={s. In order to shorten your post_url, you could try storing less in state, or providing redirects via the POST handler's second optional argument instead, which saves url space. The generated post_url was: `,
@@ -420,6 +431,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
     <>
       <meta name="fc:frame" content="vNext" />
       <meta name="fc:frame:post_url" content={postUrlFull} />
+      <meta name="fc:frame:state" content={JSON.stringify(frameState)} />
       {...accepts?.map(({ id, version }) => (
         <meta name={`of:accepts:${id}`} content={version} />
       )) ?? []}
@@ -428,7 +440,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
   );
 }
 
-/** Renders a 'fc:frame:button', must be used inside a <FrameContainer> */
+/** Renders a 'fc:frame:button', must be used inside a `FrameContainer` */
 export function FrameButton(props: FrameButtonProvidedProps) {
   return null;
 }

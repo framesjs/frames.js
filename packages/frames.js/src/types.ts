@@ -20,6 +20,8 @@ export type Frame = {
   ogImage?: string;
   /** Adding this property enables the text field. The content is a 32-byte label that is shown to the user (e.g. Enter a message). */
   inputText?: string;
+  /** Frame servers may set this value and apps must sign and include it in the Frame Signature Packet. May be up to 4kb */
+  state?: string;
   /** Open Frames spec: The minimum client protocol version accepted for the given protocol identifier. For example VNext , or 1.5 . At least one $protocol_identifier must be specified. */
   accepts?: ClientProtocolId[];
 };
@@ -35,6 +37,7 @@ export const frameErrorKeys = [
   "fc:frame:button:2",
   "fc:frame:button:3",
   "fc:frame:button:4",
+  "fc:frame:state",
   "og:image",
   "og:title",
   "of:accepts",
@@ -63,6 +66,7 @@ export type FrameFlattened = {
   "fc:frame:button:4:action"?: ActionButtonType;
   "fc:frame:button:4:target"?: string;
   "fc:frame:input:text"?: string;
+  "fc:frame:state"?: string;
 };
 
 export type FrameButtonLink = {
@@ -165,6 +169,8 @@ export type FrameActionPayload = {
     };
     /** text input by the user into any input provided, "" if requested and no input, undefined if input not requested */
     inputText?: string;
+    /** Frame servers may set this value and apps must sign and include it in the Frame Signature Packet. May be up to 4kb */
+    state?: string;
   };
   /** Open Frames spec: the identifier and version of the client protocol that sent the request e.g. farcaster@vNext */
   clientProtocol?: string;
@@ -189,6 +195,7 @@ export type FrameActionDataParsed = {
     hash: `0x${string}`;
   };
   inputText?: string;
+  state?: string;
 };
 
 /** Additional context for a frame message which requires communication with a Hub */

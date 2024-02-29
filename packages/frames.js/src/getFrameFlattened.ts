@@ -11,6 +11,7 @@ export function getFrameFlattened(frame: Frame): FrameFlattened {
     "fc:frame:image": frame.image,
     "fc:frame:post_url": frame.postUrl,
     "fc:frame:input:text": frame.inputText,
+    ...(frame.state ? { [`fc:frame:state`]: frame.state } : {}),
     ...(frame.imageAspectRatio
       ? { [`fc:frame:image:aspect_ratio`]: frame.imageAspectRatio }
       : {}),

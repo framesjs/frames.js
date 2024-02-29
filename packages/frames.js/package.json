@@ -137,13 +137,13 @@
     "src"
   ],
   "devDependencies": {
-    "@xmtp/frames-validator": "^0.5.0",
+    "@xmtp/frames-validator": "^0.5.1",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3"
   },
   "license": "MIT",
   "peerDependencies": {
-    "@xmtp/frames-validator": "^0.5.0",
+    "@xmtp/frames-validator": "^0.5.1",
     "next": "14.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
