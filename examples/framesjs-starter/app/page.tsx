@@ -12,6 +12,8 @@ import {
 import Link from "next/link";
 import { DEBUG_HUB_OPTIONS } from "./debug/constants";
 
+const baseUrl = process.env.NEXT_PUBLIC_HOST || "http://localhost:3000";
+
 type State = {
   active: string;
   total_button_presses: number;
@@ -53,8 +55,6 @@ export default async function Home({
   // example: load the users credentials & check they have an NFT
 
   console.log("info: state is:", state);
-
-  const baseUrl = process.env.NEXT_PUBLIC_HOST || "http://localhost:3000";
 
   // then, when done, return next frame
   return (

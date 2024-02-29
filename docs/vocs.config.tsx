@@ -122,6 +122,42 @@ const sidebar = [
           },
         ],
       },
+      {
+        text: "frames.js/render",
+        collapsed: false,
+        items: [
+          {
+            text: "useFrame",
+            link: "/reference/render/use-frame",
+          },
+          {
+            text: "types",
+            link: "/reference/render/types",
+          },
+          {
+            text: "FrameUI",
+            link: "/reference/render/frame-ui",
+          },
+        ],
+      },
+      {
+        text: "frames.js/render/next",
+        collapsed: false,
+        items: [
+          {
+            text: "FrameImage",
+            link: "/reference/render/next/frame-image",
+          },
+          {
+            text: "POST",
+            link: "/reference/render/next/POST",
+          },
+          {
+            text: "GET",
+            link: "/reference/render/next/GET",
+          },
+        ],
+      },
     ],
   },
 ];
@@ -135,6 +171,18 @@ export default defineConfig({
   head: (
     <>
       {/** on production this is rewritten by vercel */}
+      <meta property="og:type" content="website" />
+      <meta name="fc:frame" content="vNext" />
+      <meta
+        name="fc:frame:post_url"
+        content="https://framesjs-homeframe.vercel.app/frames?p=&amp;s=%7B%22page%22%3A1%7D&amp;r=%7B%7D"
+      />
+      <meta name="fc:frame:image" content="https://framesjs.org/og.png" />
+      <meta property="og:image" content="https://framesjs.org/og.png" />
+      <meta name="fc:frame:button:1:target" content="https://framesjs.org" />
+      <meta name="fc:frame:button:1:action" content="link" />
+      <meta name="fc:frame:button:2" content="→" />
+      <meta name="fc:frame:button:2:action" content="post" />
       <script defer src="/_vercel/insights/script.js" />
     </>
   ),

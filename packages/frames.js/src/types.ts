@@ -20,49 +20,48 @@ export type Frame = {
   ogImage?: string;
   /** Adding this property enables the text field. The content is a 32-byte label that is shown to the user (e.g. Enter a message). */
   inputText?: string;
+  /** Frame servers may set this value and apps must sign and include it in the Frame Signature Packet. May be up to 4kb */
+  state?: string;
   /** Open Frames spec: The minimum client protocol version accepted for the given protocol identifier. For example VNext , or 1.5 . At least one $protocol_identifier must be specified. */
   accepts?: ClientProtocolId[];
 };
 
-/** as const so we can import and enumerate these */
-export const frameErrorKeys = [
-  "fc:frame",
-  "fc:frame:image",
-  "fc:frame:image:aspect_ratio",
-  "fc:frame:post_url",
-  "fc:frame:input:text",
-  "fc:frame:button:1",
-  "fc:frame:button:2",
-  "fc:frame:button:3",
-  "fc:frame:button:4",
-  "og:image",
-  "og:title",
-  "of:accepts",
-] as const;
-
-export type ErrorKeys = typeof frameErrorKeys;
-
 export type ActionButtonType = "post" | "post_redirect" | "link";
 
-/** A Frame represented as an object with keys and values corresponding to the Frames spec: https://docs.farcaster.xyz/reference/frames/spec */
-export type FrameFlattened = {
+type FrameOptionalStringKeys =
+  | "fc:frame:image:aspect_ratio"
+  | "fc:frame:input:text"
+  | "fc:frame:state"
+  | `of:accepts:${string}`;
+type FrameOptionalActionButtonTypeKeys =
+  `fc:frame:button:${1 | 2 | 3 | 4}:action`;
+type FrameOptionalButtonStringKeys =
+  | `fc:frame:button:${1 | 2 | 3 | 4}`
+  | `fc:frame:button:${1 | 2 | 3 | 4}:target`;
+type FrameKeys =
+  | FrameOptionalStringKeys
+  | FrameOptionalActionButtonTypeKeys
+  | FrameOptionalButtonStringKeys;
+
+type MapFrameOptionalKeyToValueType<K extends FrameKeys> =
+  K extends FrameOptionalStringKeys
+    ? string | undefined
+    : K extends FrameOptionalActionButtonTypeKeys
+      ? ActionButtonType | undefined
+      : string | undefined;
+
+type FrameRequiredProperties = {
   "fc:frame": FrameVersion;
   "fc:frame:image": string;
-  "fc:frame:image:aspect_ratio"?: string;
   "fc:frame:post_url": string;
-  "fc:frame:button:1"?: string;
-  "fc:frame:button:1:action"?: ActionButtonType;
-  "fc:frame:button:1:target"?: string;
-  "fc:frame:button:2"?: string;
-  "fc:frame:button:2:action"?: ActionButtonType;
-  "fc:frame:button:2:target"?: string;
-  "fc:frame:button:3"?: string;
-  "fc:frame:button:3:action"?: ActionButtonType;
-  "fc:frame:button:3:target"?: string;
-  "fc:frame:button:4"?: string;
-  "fc:frame:button:4:action"?: ActionButtonType;
-  "fc:frame:button:4:target"?: string;
-  "fc:frame:input:text"?: string;
+};
+
+/** A Frame represented as an object with keys and values corresponding to the Frames spec: https://docs.farcaster.xyz/reference/frames/spec */
+export type FrameFlattened = FrameRequiredProperties & {
+  [K in
+    | FrameOptionalStringKeys
+    | FrameOptionalActionButtonTypeKeys
+    | FrameOptionalButtonStringKeys]?: MapFrameOptionalKeyToValueType<K>;
 };
 
 export type FrameButtonLink = {
@@ -165,6 +164,8 @@ export type FrameActionPayload = {
     };
     /** text input by the user into any input provided, "" if requested and no input, undefined if input not requested */
     inputText?: string;
+    /** Frame servers may set this value and apps must sign and include it in the Frame Signature Packet. May be up to 4kb */
+    state?: string;
   };
   /** Open Frames spec: the identifier and version of the client protocol that sent the request e.g. farcaster@vNext */
   clientProtocol?: string;
@@ -189,6 +190,7 @@ export type FrameActionDataParsed = {
     hash: `0x${string}`;
   };
   inputText?: string;
+  state?: string;
 };
 
 /** Additional context for a frame message which requires communication with a Hub */

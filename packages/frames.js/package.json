@@ -130,6 +130,26 @@
         "types": "./dist/xmtp/index.d.cts",
         "default": "./dist/xmtp/index.cjs"
       }
+    },
+    "./render/next": {
+      "import": {
+        "types": "./dist/render/next/index.d.ts",
+        "default": "./dist/render/next/index.js"
+      },
+      "require": {
+        "types": "./dist/render/next/index.d.cts",
+        "default": "./dist/render/next/index.cjs"
+      }
+    },
+    "./render": {
+      "import": {
+        "types": "./dist/render/index.d.ts",
+        "default": "./dist/render/index.js"
+      },
+      "require": {
+        "types": "./dist/render/index.d.cts",
+        "default": "./dist/render/index.cjs"
+      }
     }
   },
   "files": [
@@ -137,13 +157,13 @@
     "src"
   ],
   "devDependencies": {
-    "@xmtp/frames-validator": "^0.5.0",
+    "@xmtp/frames-validator": "^0.5.1",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3"
   },
   "license": "MIT",
   "peerDependencies": {
-    "@xmtp/frames-validator": "^0.5.0",
+    "@xmtp/frames-validator": "^0.5.1",
     "next": "14.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

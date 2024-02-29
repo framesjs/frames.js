@@ -36,7 +36,7 @@ export type FrameState = AnyJson;
  * A Map from buttonIndex to href url, used to represent the previous Frames redirection state, in order to handle redirect requests.
  * Keys that start with an underscore are unspecified hrefs that must be handled in the POST router
  */
-export type RedirectMap = Record<number | `_${number}`, string>;
+export type RedirectMap = Record<number | `_${number}`, string | null>;
 
 /**
  * A representation of the previous frame, used in order to enable state transitions and redirects.
@@ -80,15 +80,11 @@ export type FrameButtonAutomatedProps = {
  */
 export type Dispatch = (actionIndex: ActionIndex) => any;
 
-export type FrameButtonProvidedProps = (
+export type FrameButtonProvidedProps =
   | FrameButtonPostRedirectProvidedProps
   | FrameButtonPostProvidedProps
   | FrameButtonMintProvidedProps
-  | FrameButtonLinkProvidedProps
-) & {
-  /** defaults to post */
-  action?: "post" | "link" | "mint" | "post_redirect";
-};
+  | FrameButtonLinkProvidedProps;
 
 export type FrameButtonPostProvidedProps = {
   /** a label to display on the button */
@@ -124,6 +120,6 @@ export type FrameButtonMintProvidedProps = {
 
 /** See https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional */
 export type NextServerPageProps = {
-  params: { slug: string };
+  params: {};
   searchParams?: { [key: string]: string | string[] | undefined };
 };
