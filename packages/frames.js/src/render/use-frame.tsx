@@ -137,8 +137,6 @@ export function useFrame<
   }
 
   const onButtonPress = async (frameButton: FrameButton, index: number) => {
-    console.log("pressed the ufkcing asjdasdla");
-
     const currentFrame = getCurrentFrame();
 
     if (!currentFrame) {
@@ -210,8 +208,6 @@ export function useFrame<
       return;
     }
 
-    console.log("going to sign frame action");
-
     const { searchParams, body } = await authState.signFrameAction({
       inputText: postInputText,
       frameContext,
@@ -221,8 +217,6 @@ export function useFrame<
       buttonIndex: buttonIndex,
       state,
     });
-
-    console.log("asdasdasdasdasd", { body });
 
     const requestUrl = `${frameActionRoute}?${searchParams.toString()}`;
     const url = searchParams.get("postUrl") ?? "";
