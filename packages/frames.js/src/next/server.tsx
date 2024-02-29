@@ -299,7 +299,6 @@ export async function POST(
     return NextResponse.redirect(redirectValue, { status: 302 });
   }
 
-  console.info("frames.js: POST redirecting to ", newUrl.toString());
   // handle 'post' buttons
   return NextResponse.redirect(newUrl.toString(), { status: 302 });
 }
