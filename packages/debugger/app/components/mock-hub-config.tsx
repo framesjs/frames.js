@@ -10,7 +10,6 @@ export function MockHubConfig({
     React.SetStateAction<Partial<MockHubActionContext>>
   >;
 }) {
-  console.log(hubContext);
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
