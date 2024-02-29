@@ -1,4 +1,4 @@
-import { FrameActionMessage } from "../farcaster";
+import { FrameActionMessage, Message } from "../farcaster";
 import { headers } from "next/headers";
 import {
   type NextRequest,
@@ -156,10 +156,25 @@ export function parseFrameParams<T extends FrameState = FrameState>(
       ? (JSON.parse(searchParams?.postBody) as FrameActionPayload)
       : null;
 
-  const framePrevState =
-    searchParams?.prevState && typeof searchParams?.prevState === "string"
-      ? (JSON.parse(searchParams?.prevState) as T)
-      : null;
+  let framePrevState: T | null = null;
+
+  if (frameActionReceived?.trustedData.messageBytes) {
+    const messageBuffer = Buffer.from(
+      frameActionReceived.trustedData.messageBytes,
+      "hex"
+    );
+    const message = Message.decode(messageBuffer);
+    if (message.data?.frameActionBody?.state) {
+      const stateString = Buffer.from(
+        message.data.frameActionBody.state
+      ).toString();
+      try {
+        framePrevState = JSON.parse(decodeURIComponent(stateString));
+      } catch (error) {
+        console.error("frames.js: error parsing state", error);
+      }
+    }
+  }
 
   const framePrevRedirects =
     searchParams?.prevRedirects &&
@@ -229,11 +244,9 @@ export async function POST(
 
   // decompress from 256 bytes limitation of post_url
   newUrl.searchParams.set("postBody", JSON.stringify(body));
-  newUrl.searchParams.set("prevState", url.searchParams.get("s") ?? "");
   newUrl.searchParams.set("prevRedirects", url.searchParams.get("r") ?? "");
   // was used to redirect to the correct page, and is no longer needed.
   newUrl.searchParams.delete("p");
-  newUrl.searchParams.delete("s");
   newUrl.searchParams.delete("r");
 
   const prevFrame = getPreviousFrame(
@@ -502,8 +515,6 @@ export function FrameContainer<T extends FrameState = FrameState>({
 
   // short for pathname
   searchParams.set("p", pathname ?? previousFrame.headers.pathname ?? "/");
-  // short for state
-  searchParams.set("s", JSON.stringify(state));
   // short for redirects
   searchParams.set("r", JSON.stringify(redirectMap));
 
@@ -524,6 +535,10 @@ export function FrameContainer<T extends FrameState = FrameState>({
     <>
       <meta name="fc:frame" content="vNext" />
       <meta name="fc:frame:post_url" content={postUrlFull} />
+      <meta
+        name="fc:frame:state"
+        content={encodeURIComponent(JSON.stringify(state))}
+      />
       {...accepts?.map(({ id, version }) => (
         <meta name={`of:accepts:${id}`} content={version} />
       )) ?? []}
