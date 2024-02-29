@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import { MockHubConfig } from "./components/mock-hub-config";
 
 import dynamic from "next/dynamic";
-import { type FrameActionHubContext } from "frames.js";
+import { MockHubActionContext } from "./utils/mock-hub-utils";
 const LoginWindow = dynamic(() => import("./components/create-signer"), {
   ssr: false,
 });
@@ -26,8 +26,9 @@ export default function Page({
     url || process.env.NEXT_PUBLIC_HOST || "http://localhost:3000"
   );
   const [mockHubContext, setMockHubContext] = useState<
-    Partial<FrameActionHubContext>
+    Partial<MockHubActionContext>
   >({
+    enabled: true,
     requesterFollowsCaster: false,
     casterFollowsRequester: false,
     likedCast: false,
@@ -41,14 +42,12 @@ export default function Page({
   const authState = useFarcasterIdentity();
   const frameState = useFrame({
     homeframeUrl: url,
-    frameActionRoute: "/debug/frames",
-    frameFetchRoute: "/debug/frames",
+    frameActionRoute: "/frames",
+    frameFetchRoute: "/frames",
     frameContext: fallbackFrameContext,
     authState,
     extraButtonRequestPayload: { mockData: mockHubContext },
   });
-
-  const baseUrl = process.env.NEXT_PUBLIC_HOST || "http://localhost:3000";
 
   return (
     <div className="">
@@ -89,63 +88,6 @@ export default function Page({
                 Debug
               </button>
             </form>
-          </div>
-          <div className="flex flex-row gap-4 items-center">
-            <span>Starter examples:</span>
-            <button
-              className="underline"
-              onClick={(e) => {
-                e.preventDefault();
-                router.push(`?url=${baseUrl}`);
-              }}
-            >
-              Default
-            </button>
-            <button
-              className="underline"
-              onClick={(e) => {
-                e.preventDefault();
-                router.push(`?url=${baseUrl}/examples/user-data`);
-              }}
-            >
-              User data
-            </button>
-            <button
-              className="underline"
-              onClick={(e) => {
-                e.preventDefault();
-                router.push(`?url=${baseUrl}/examples/multi-page`);
-              }}
-            >
-              Multi-page
-            </button>
-            <button
-              className="underline"
-              onClick={(e) => {
-                e.preventDefault();
-                router.push(`?url=${baseUrl}/examples/mint-button`);
-              }}
-            >
-              Mint button
-            </button>
-            <button
-              className="underline"
-              onClick={(e) => {
-                e.preventDefault();
-                router.push(`?url=${baseUrl}/examples/multi-protocol`);
-              }}
-            >
-              Multi-protocol
-            </button>
-            <button
-              className="underline"
-              onClick={(e) => {
-                e.preventDefault();
-                router.push(`?url=${baseUrl}/examples/slow-request`);
-              }}
-            >
-              Slow request
-            </button>
           </div>
           <LoginWindow
             farcasterUser={authState.user}

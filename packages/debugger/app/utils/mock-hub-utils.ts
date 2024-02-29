@@ -2,12 +2,25 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import os from "node:os";
 import { sortedSearchParamsString } from "../lib/utils";
 import { type FrameActionHubContext } from "frames.js";
+import { fileURLToPath } from "node:url";
+
+export type MockHubActionContext = FrameActionHubContext & {
+  enabled: boolean;
+};
 
 const MOCK_FILE_NAME = "mocks.json";
 
-type MockFileData = { [pathname: string]: { ok: boolean } };
+type MockFileData = {
+  enabled: boolean;
+  requests: { [pathname: string]: { ok: boolean } };
+};
+
+function resolveMocksFilePath() {
+  return path.join(os.tmpdir(), MOCK_FILE_NAME);
+}
 
 /**
  * Checks if a mock response is available for the given request and hub path.
@@ -17,7 +30,7 @@ export async function loadMockResponseForDebugHubRequest(
   hubPath: string[]
 ): Promise<Response | undefined> {
   // Only available in local development
-  const file = path.join(process.cwd(), MOCK_FILE_NAME);
+  const file = resolveMocksFilePath();
   const fileExists = await fs
     .access(file, fs.constants.F_OK)
     .then(() => true)
@@ -29,16 +42,21 @@ export async function loadMockResponseForDebugHubRequest(
 
   const json = await fs.readFile(file, "utf-8");
   const mocks: MockFileData = JSON.parse(json);
+
+  if (!mocks.enabled) {
+    return;
+  }
+
   const searchParams = new URL(req.url).searchParams;
   const pathAndQuery = `/${hubPath.join("/")}?${sortedSearchParamsString(searchParams)}`;
-  const mockResult = mocks[pathAndQuery];
+  const mockResult = mocks.requests[pathAndQuery];
 
   if (mockResult?.ok != null) {
     console.log(
       `info: Mock hub: Found mock for ${pathAndQuery}, returning ${mockResult.ok ? "200" : "404"}`
     );
 
-    return new Response(JSON.stringify(mocks[pathAndQuery]), {
+    return new Response(JSON.stringify(mockResult), {
       headers: {
         "content-type": "application/json",
       },
@@ -52,7 +70,7 @@ export async function persistMockResponsesForDebugHubRequests(req: Request) {
     mockData,
     untrustedData: { fid: requesterFid, castId },
   } = (await req.clone().json()) as {
-    mockData: FrameActionHubContext;
+    mockData: MockHubActionContext;
     untrustedData: { fid: string; castId: { fid: string; hash: string } };
   };
 
@@ -88,20 +106,23 @@ export async function persistMockResponsesForDebugHubRequests(req: Request) {
   )}`;
 
   // Write to file
-  const file = path.join(process.cwd(), MOCK_FILE_NAME);
+  const file = resolveMocksFilePath();
 
   const json: MockFileData = {
-    [requesterFollowsCaster]: {
-      ok: mockData.requesterFollowsCaster,
-    },
-    [casterFollowsRequester]: {
-      ok: mockData.casterFollowsRequester,
-    },
-    [likedCast]: {
-      ok: mockData.likedCast,
-    },
-    [recastedCast]: {
-      ok: mockData.recastedCast,
+    enabled: mockData.enabled,
+    requests: {
+      [requesterFollowsCaster]: {
+        ok: mockData.requesterFollowsCaster,
+      },
+      [casterFollowsRequester]: {
+        ok: mockData.casterFollowsRequester,
+      },
+      [likedCast]: {
+        ok: mockData.likedCast,
+      },
+      [recastedCast]: {
+        ok: mockData.recastedCast,
+      },
     },
   };
   await fs.writeFile(file, JSON.stringify(json, null, 2));
