@@ -1,4 +1,4 @@
-import { Frame, FrameFlattened } from "./types";
+import type { Frame, FrameFlattened } from "./types";
 
 /**
  * Takes a `Frame` and formats it as an intermediate step before rendering as html
@@ -6,7 +6,7 @@ import { Frame, FrameFlattened } from "./types";
  * @returns a plain object with frame metadata keys and values according to the frame spec, using their lengthened syntax, e.g. "fc:frame:image"
  */
 export function getFrameFlattened(frame: Frame): FrameFlattened {
-  const metadata = {
+  const metadata: FrameFlattened = {
     "fc:frame": frame.version,
     "fc:frame:image": frame.image,
     "fc:frame:post_url": frame.postUrl,
@@ -18,17 +18,16 @@ export function getFrameFlattened(frame: Frame): FrameFlattened {
     ...frame.buttons?.reduce(
       (acc, button, index) => ({
         ...acc,
-
         [`fc:frame:button:${index + 1}`]: button.label,
         [`fc:frame:button:${index + 1}:action`]: button.action,
         [`fc:frame:button:${index + 1}:target`]: button.target,
       }),
       {}
     ),
-    ...(frame.accepts?.map(
-      ({ id, version }) =>
-        `<meta name="of:accepts:${id}" content="${version}"/>`
-    ) ?? []),
+    ...frame.accepts?.reduce((acc: Record<string, string>, { id, version }) => {
+      acc[`of:accepts:${id}`] = version;
+      return acc;
+    }, {}),
   };
 
   return metadata;

@@ -80,15 +80,11 @@ export type FrameButtonAutomatedProps = {
  */
 export type Dispatch = (actionIndex: ActionIndex) => any;
 
-export type FrameButtonProvidedProps = (
+export type FrameButtonProvidedProps =
   | FrameButtonPostRedirectProvidedProps
   | FrameButtonPostProvidedProps
   | FrameButtonMintProvidedProps
-  | FrameButtonLinkProvidedProps
-) & {
-  /** defaults to post */
-  action?: "post" | "link" | "mint" | "post_redirect";
-};
+  | FrameButtonLinkProvidedProps;
 
 export type FrameButtonPostProvidedProps = {
   /** a label to display on the button */
@@ -124,6 +120,6 @@ export type FrameButtonMintProvidedProps = {
 
 /** See https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional */
 export type NextServerPageProps = {
-  params: { slug: string };
+  params: {};
   searchParams?: { [key: string]: string | string[] | undefined };
 };

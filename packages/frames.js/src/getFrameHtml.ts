@@ -45,7 +45,7 @@ export function getFrameHtmlHead(frame: Frame): string {
     `<meta name="fc:frame" content="${frame.version}"/>`,
     `<meta name="fc:frame:image" content="${frame.image}"/>`,
     `<meta name="fc:frame:post_url" content="${frame.postUrl}"/>`,
-    frame.state ? `<meta name="fc:frame:state" content="${frame.state}"/>` : "",
+    frame.state ? `<meta name="fc:frame:state" content='${frame.state}'/>` : "",
     frame.imageAspectRatio
       ? `<meta name="fc:frame:image:aspect_ratio" content="${frame.imageAspectRatio}"/>`
       : "",

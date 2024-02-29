@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { LOCAL_STORAGE_KEYS } from "../constants";
-import { FarcasterUser } from "../types/farcaster-user";
+import { FarcasterAuthState, FarcasterUser } from "../types/farcaster-user";
 import { convertKeypairToHex, createKeypair } from "../lib/crypto";
+import { createFrameActionMessageWithSignerKey } from "../lib/farcaster";
 
 interface SignedKeyRequest {
   deeplinkUrl: string;
@@ -17,11 +18,42 @@ interface SignedKeyRequest {
   signerUserMetadata?: object;
 }
 
-export function useFarcasterIdentity() {
-  const [loading, setLoading] = useState(false);
+type FarcasterIdentity = {
+  user: FarcasterUser | null;
+  isLoggedIn: boolean;
+  signFrameAction: FarcasterAuthState["signFrameAction"];
+  isLoading: boolean;
+  impersonateUser: (args: { fid: number }) => Promise<void>;
+  promptLogin: () => Promise<void>;
+  logout: () => void;
+};
+
+export function useFarcasterIdentity(): FarcasterIdentity {
+  const [isLoading, setLoading] = useState(false);
   const [farcasterUser, setFarcasterUser] = useState<FarcasterUser | null>(
     getSignerFromLocalStorage()
   );
+
+  async function impersonateUser({ fid }: { fid: number }) {
+    const keypair = await createKeypair();
+    const { privateKey, publicKey } = convertKeypairToHex(keypair);
+    const user: FarcasterUser = {
+      status: "impersonating",
+      fid,
+      // signature: "1",
+      // is ignored for non pending
+      // deadline: new Date().getTime(),
+      privateKey,
+      publicKey,
+    };
+
+    localStorage.setItem(
+      LOCAL_STORAGE_KEYS.FARCASTER_USER,
+      JSON.stringify(user)
+    );
+
+    setFarcasterUser(user);
+  }
 
   function getSignerFromLocalStorage() {
     if (typeof window !== "undefined") {
@@ -33,7 +65,7 @@ export function useFarcasterIdentity() {
 
         if (user.status === "pending_approval") {
           // Validate that deadline hasn't passed
-          if (user.deadline < Math.floor(Date.now() / 1000)) {
+          if (user.deadline && user.deadline < Math.floor(Date.now() / 1000)) {
             localStorage.removeItem(LOCAL_STORAGE_KEYS.FARCASTER_USER);
             return null;
           }
@@ -128,35 +160,79 @@ export function useFarcasterIdentity() {
     }
   }, [farcasterUser]);
 
-  async function startFarcasterSignerProcess() {
+  async function promptLogin() {
     setLoading(true);
     await createAndStoreSigner();
     setLoading(false);
   }
 
-  async function impersonateUser({ fid }: { fid: number }) {
-    const keypair = await createKeypair();
-    const { privateKey, publicKey } = convertKeypairToHex(keypair);
-    const user: FarcasterUser = {
-      status: "impersonating",
-      fid,
-      privateKey,
-      publicKey,
+  const signFrameAction: FarcasterAuthState["signFrameAction"] = async ({
+    buttonIndex,
+    frameContext,
+    frameButton,
+    target,
+    inputText,
+    url,
+    state,
+  }) => {
+    if (!farcasterUser?.fid) {
+      throw new Error("Missing data");
+    }
+
+    const { message, trustedBytes } =
+      await createFrameActionMessageWithSignerKey(farcasterUser.privateKey, {
+        fid: farcasterUser.fid,
+        buttonIndex,
+        castId: {
+          fid: frameContext.castId.fid,
+          hash: new Uint8Array(
+            Buffer.from(frameContext.castId.hash.slice(2), "hex")
+          ),
+        },
+        url: Buffer.from(url),
+        // it seems the message in hubs actually requires a value here.
+        inputText: inputText !== undefined ? Buffer.from(inputText) : undefined,
+        state: state !== undefined ? Buffer.from(state) : undefined,
+      });
+
+    if (!message) {
+      throw new Error("hub error");
+    }
+
+    const searchParams = new URLSearchParams({
+      postType: frameButton?.action || "post",
+      postUrl: target ?? "",
+    });
+
+    return {
+      searchParams: searchParams,
+      body: {
+        untrustedData: {
+          fid: farcasterUser.fid,
+          url: url,
+          messageHash: `0x${Buffer.from(message.hash).toString("hex")}`,
+          timestamp: message.data.timestamp,
+          network: 1,
+          buttonIndex: Number(message.data.frameActionBody.buttonIndex),
+          castId: {
+            fid: frameContext.castId.fid,
+            hash: frameContext.castId.hash,
+          },
+          inputText,
+          state,
+        },
+        trustedData: {
+          messageBytes: trustedBytes,
+        },
+      },
     };
-
-    localStorage.setItem(
-      LOCAL_STORAGE_KEYS.FARCASTER_USER,
-      JSON.stringify(user)
-    );
-
-    setFarcasterUser(user);
-  }
+  };
 
   async function createAndStoreSigner() {
     try {
       const keypair = await createKeypair();
       const keypairString = convertKeypairToHex(keypair);
-      const authorizationResponse = await fetch(`/debug/signer`, {
+      const authorizationResponse = await fetch(`/embed/signer`, {
         method: "POST",
         body: JSON.stringify({
           publicKey: keypairString.publicKey,
@@ -210,10 +286,12 @@ export function useFarcasterIdentity() {
   }
 
   return {
-    farcasterUser,
-    loading,
-    startFarcasterSignerProcess,
-    logout,
+    user: farcasterUser,
+    isLoggedIn: !!farcasterUser?.fid,
+    signFrameAction,
+    isLoading,
     impersonateUser,
+    promptLogin,
+    logout,
   };
 }

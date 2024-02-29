@@ -22,8 +22,6 @@ import {
 import {
   Dispatch,
   FrameButtonAutomatedProps,
-  FrameButtonPostProvidedProps,
-  FrameButtonPostRedirectProvidedProps,
   FrameButtonProvidedProps,
   FrameReducer,
   FrameState,
@@ -32,7 +30,6 @@ import {
   PreviousFrame,
   RedirectMap,
   RedirectHandler,
-  FrameButtonMintProvidedProps,
 } from "./types";
 export * from "./types";
 
@@ -302,8 +299,50 @@ export async function POST(
     return NextResponse.redirect(redirectValue, { status: 302 });
   }
 
+  console.info("frames.js: POST redirecting to ", newUrl.toString());
   // handle 'post' buttons
   return NextResponse.redirect(newUrl.toString(), { status: 302 });
+}
+
+type ChildType =
+  | React.ReactElement<
+      React.ComponentProps<typeof FrameImage>,
+      typeof FrameImage
+    >
+  | React.ReactElement<
+      React.ComponentProps<typeof FrameButton>,
+      typeof FrameButton
+    >
+  | React.ReactElement<
+      React.ComponentProps<typeof FrameInput>,
+      typeof FrameInput
+    >;
+
+function isElementFrameButton(
+  child: ChildType
+): child is React.ReactElement<
+  React.ComponentProps<typeof FrameButton>,
+  typeof FrameButton
+> {
+  return child.type === FrameButton;
+}
+
+function isElementFrameImage(
+  child: ChildType
+): child is React.ReactElement<
+  React.ComponentProps<typeof FrameImage>,
+  typeof FrameImage
+> {
+  return child.type === FrameImage;
+}
+
+function isElementFrameInput(
+  child: ChildType
+): child is React.ReactElement<
+  React.ComponentProps<typeof FrameInput>,
+  typeof FrameInput
+> {
+  return child.type === FrameInput;
 }
 
 /**
@@ -323,7 +362,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
   /** Either a relative e.g. "/frames" or an absolute path, e.g. "https://google.com/frames" */
   postUrl: string;
   /** The elements to include in the Frame */
-  children: Array<React.ReactElement<FrameElementType> | null>;
+  children: Array<ChildType | null> | ChildType;
   /** The current reducer state object, returned from useFramesReducer */
   state: T;
   previousFrame: PreviousFrame<T>;
@@ -346,62 +385,116 @@ export function FrameContainer<T extends FrameState = FrameState>({
     input: 1,
   };
   let redirectMap: RedirectMap = {};
+
+  function createURLForPOSTHandler(target: string): URL {
+    let url: URL;
+
+    if (target.startsWith("/")) {
+      url = new URL(`${previousFrame.headers.urlWithoutPathname}${target}`);
+    } else {
+      url = new URL(target);
+    }
+
+    // pathname
+    url.searchParams.set(
+      "p",
+      pathname ?? previousFrame.headers.pathname ?? "/"
+    );
+    // state
+    url.searchParams.set("s", JSON.stringify(state));
+    // redirects
+    url.searchParams.set("r", JSON.stringify({}));
+
+    return url;
+  }
+
   const newTree = (
     <>
       {React.Children.map(children, (child) => {
         if (child === null) return;
-        switch (child.type) {
-          case FrameButton:
-            if (!React.isValidElement<typeof FrameButton>(child)) {
-              return child;
-            }
 
-            if (nextIndexByComponentType.button > 4) {
-              throw new Error("too many buttons");
-            }
-
-            // set redirect data for retrieval
-            if ((child.props as any).action === "post_redirect") {
-              const target =
-                (child.props as any as FrameButtonPostRedirectProvidedProps)
-                  .target || null;
-              const buttonIndex = target
-                ? nextIndexByComponentType.button
-                : (`_${nextIndexByComponentType.button}` as `_${number}`);
-              redirectMap[buttonIndex] = target;
-            }
-
-            return (
-              <FFrameButtonShim
-                {...(child.props as any)}
-                // Don't include target if action is post_redirect, otherwise the next message will be posted to the target url
-                target={
-                  (child.props as any as FrameButtonProvidedProps).action ===
-                  "post_redirect"
-                    ? undefined
-                    : (child.props as any as FrameButtonProvidedProps).target
-                }
-                actionIndex={nextIndexByComponentType.button++ as ActionIndex}
-              />
-            );
-
-          case FrameInput:
-            if (nextIndexByComponentType.input > 1) {
-              throw new Error("max one input allowed");
-            }
-            nextIndexByComponentType.input++;
-            return child;
-          case FrameImage:
-            if (nextIndexByComponentType.image > 1) {
-              throw new Error("max one image allowed");
-            }
-            nextIndexByComponentType.image++;
-            return child;
-          default:
-            throw new Error(
-              "invalid child of <Frame>, must be a <FrameButton> or <FrameImage>"
-            );
+        if (!React.isValidElement(child)) {
+          return child;
         }
+
+        if (isElementFrameButton(child)) {
+          if (nextIndexByComponentType.button > 4) {
+            throw new Error("too many buttons");
+          }
+
+          const props = child.props;
+
+          let target: URL | undefined;
+
+          switch (props.action) {
+            case "link":
+            case "mint": {
+              if (!props.target) {
+                throw new Error(
+                  "missing required target tag for action='link' or action='mint'"
+                );
+              }
+
+              // we don't use createURLForPostHandler here as it would send our state, etc to target
+              target = new URL(props.target);
+              break;
+            }
+            case "post_redirect": {
+              // Set redirect data for retrieval
+              // Don't set target if action is post_redirect, otherwise the next message will be posted to the target url
+              if (props.target) {
+                redirectMap[nextIndexByComponentType.button] = props.target;
+              } else {
+                redirectMap[
+                  `_${nextIndexByComponentType.button}` as `_${number}`
+                ] = null;
+              }
+
+              break;
+            }
+            default: {
+              // handle post button
+              if (props.target) {
+                target = createURLForPOSTHandler(props.target);
+              }
+            }
+          }
+
+          if (
+            !("target" in child.props) &&
+            "action" in child.props &&
+            child.props.action === "link"
+          )
+            throw new Error("missing required target tag for action='link'");
+
+          const rewrittenProps: React.ComponentProps<typeof FFrameButtonShim> =
+            {
+              ...(child.props as React.ComponentProps<typeof FrameButton>),
+              ...(target ? { target: target.toString() } : {}),
+              actionIndex: nextIndexByComponentType.button++ as ActionIndex,
+            };
+          return <FFrameButtonShim {...rewrittenProps} />;
+        } else if (isElementFrameImage(child)) {
+          if (nextIndexByComponentType.image > 1) {
+            throw new Error("max one image allowed");
+          }
+
+          nextIndexByComponentType.image++;
+
+          return child;
+        } else if (isElementFrameInput(child)) {
+          if (nextIndexByComponentType.input > 1) {
+            throw new Error("max one input allowed");
+          }
+
+          nextIndexByComponentType.input++;
+
+          return child;
+        }
+
+        throw new Error(
+          "invalid child of <Frame>, must be a <FrameButton> or <FrameImage>"
+        );
       })}
     </>
   );
@@ -445,13 +538,13 @@ export function FrameButton(props: FrameButtonProvidedProps) {
   return null;
 }
 
-/** An internal component that handles FrameButtons that have type: 'post' */
+/** An internal component that handles FrameButtons */
 function FFrameButtonShim({
   actionIndex,
   target,
   action = "post",
   children,
-}: FrameButtonPostProvidedProps & FrameButtonAutomatedProps) {
+}: FrameButtonProvidedProps & FrameButtonAutomatedProps) {
   return (
     <>
       <meta

@@ -130,6 +130,26 @@
         "types": "./dist/xmtp/index.d.cts",
         "default": "./dist/xmtp/index.cjs"
       }
+    },
+    "./render/next": {
+      "import": {
+        "types": "./dist/render/next/index.d.ts",
+        "default": "./dist/render/next/index.js"
+      },
+      "require": {
+        "types": "./dist/render/next/index.d.cts",
+        "default": "./dist/render/next/index.cjs"
+      }
+    },
+    "./render": {
+      "import": {
+        "types": "./dist/render/index.d.ts",
+        "default": "./dist/render/index.js"
+      },
+      "require": {
+        "types": "./dist/render/index.d.cts",
+        "default": "./dist/render/index.cjs"
+      }
     }
   },
   "files": [

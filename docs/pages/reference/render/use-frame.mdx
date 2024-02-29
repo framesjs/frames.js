@@ -1,0 +1,127 @@
+# useFrame
+
+## Props
+
+```ts
+type Props = {
+  /** the route used to POST frame actions. The post_url will be added as a the `url` query parameter */
+  frameActionRoute: string;
+  /** the route used to GET the initial frame via proxy */
+  frameFetchRoute: string;
+  /** an auth state object used to determine what actions are possible */
+  authState: AuthStateInstance<T, B>;
+  /** the url of the homeframe, if null won't load a frame */
+  homeframeUrl: string | null;
+  /** the initial frame. if not specified will fetch it from the url prop */
+  frame?: Frame;
+  /** a function to handle mint buttons */
+  onMint?: (t: onMintArgs) => void;
+  /** the context of this frame, used for generating Frame Action payloads */
+  frameContext: FrameContext;
+}
+```
+
+## Usage
+
+```tsx [frames.js/render/types.tsx]
+import { FrameUI, fallbackFrameContext, useFrame } from 'frames.js/render';
+import { FrameImageNext } from "frames.js/render/next";
+
+
+export const Page(){
+    const signFrameAction: FarcasterAuthState["signFrameAction"] = async ({
+        buttonIndex,
+        frameContext,
+        frameButton,
+        target,
+        inputText,
+        url,
+    }) => {
+        if (!farcasterUser?.fid) {
+            throw new Error("Missing data");
+        }
+
+        const { message, trustedBytes } =
+        await createFrameActionMessageWithSignerKey(farcasterUser.privateKey, {
+            fid: farcasterUser.fid,
+            buttonIndex,
+            castId: {
+            fid: frameContext.castId.fid,
+            hash: new Uint8Array(
+                Buffer.from(frameContext.castId.hash.slice(2), "hex")
+            ),
+            },
+            url: Buffer.from(url),
+            // it seems the message in hubs actually requires a value here.
+            inputText: inputText !== undefined ? Buffer.from(inputText) : undefined,
+        });
+
+        if (!message) {
+            throw new Error("hub error");
+        }
+
+        const searchParams = new URLSearchParams({
+            postType: frameButton?.action || "post",
+            postUrl: target ?? "",
+        });
+
+        return {
+            searchParams: searchParams,
+            body: {
+                untrustedData: {
+                    fid: farcasterUser.fid,
+                    url: url,
+                    messageHash: `0x${Buffer.from(message.hash).toString("hex")}`,
+                    timestamp: message.data.timestamp,
+                    network: 1,
+                    buttonIndex: Number(message.data.frameActionBody.buttonIndex),
+                    castId: {
+                        fid: frameContext.castId.fid,
+                        hash: frameContext.castId.hash,
+                    },
+                    inputText,
+                },
+                trustedData: {
+                    messageBytes: trustedBytes,
+                },
+            },
+        };
+    };
+    const frameState = useFrame({
+        homeframeUrl: "https://frames.js.org",
+        frameActionRoute: "/frames",
+        frameFetchRoute: "/frames",
+        frameContext: fallbackFrameContext,
+        authState: {
+            user: {},
+            isLoading: false,
+            isLoggedIn: false,
+            logout: () => null,
+            promptLogin: () => null,
+            signFrameAction: signFrameAction
+        },
+    });
+
+    return (
+        <FrameUI
+            frameState={frameState}
+            theme={{}}
+            FrameImage={FrameImageNext}
+        />
+    );
+}
+
+```
+
+## In order for the styles to work, your project should have tailwind set up as well as the tailwind.config.js rule
+
+```ts
+// tailwind.config.js
+const config = {
+    // ...
+    content: [
+        "./node_modules/frames.js/dist/render/next/*.{ts,tsx,js,css}",
+        "./node_modules/frames.js/dist/render/*.{ts,tsx,js,css}",
+        // ...
+    ]
+```
