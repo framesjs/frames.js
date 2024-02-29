@@ -30,7 +30,6 @@ import {
   PreviousFrame,
   RedirectMap,
   RedirectHandler,
-  FrameButtonPostRedirectProvidedProps,
 } from "./types";
 export * from "./types";
 
@@ -319,6 +318,33 @@ type ChildType =
       typeof FrameInput
     >;
 
+function isElementFrameButton(
+  child: ChildType
+): child is React.ReactElement<
+  React.ComponentProps<typeof FrameButton>,
+  typeof FrameButton
+> {
+  return child.type === FrameButton;
+}
+
+function isElementFrameImage(
+  child: ChildType
+): child is React.ReactElement<
+  React.ComponentProps<typeof FrameImage>,
+  typeof FrameImage
+> {
+  return child.type === FrameImage;
+}
+
+function isElementFrameInput(
+  child: ChildType
+): child is React.ReactElement<
+  React.ComponentProps<typeof FrameInput>,
+  typeof FrameInput
+> {
+  return child.type === FrameInput;
+}
+
 /**
  * A React functional component that Wraps a Frame and processes it, validating certain properties of the Frames spec, as well as adding other props. It also generates the postUrl.
  * It throws an error if the Frame is invalid, which can be caught by using an error boundary.
@@ -359,96 +385,116 @@ export function FrameContainer<T extends FrameState = FrameState>({
     input: 1,
   };
   let redirectMap: RedirectMap = {};
+
+  function createURLForPOSTHandler(target: string): URL {
+    let url: URL;
+
+    if (target.startsWith("/")) {
+      url = new URL(`${previousFrame.headers.urlWithoutPathname}${target}`);
+    } else {
+      url = new URL(target);
+    }
+
+    // pathname
+    url.searchParams.set(
+      "p",
+      pathname ?? previousFrame.headers.pathname ?? "/"
+    );
+    // state
+    url.searchParams.set("s", JSON.stringify(state));
+    // redirects
+    url.searchParams.set("r", JSON.stringify({}));
+
+    return url;
+  }
+
   const newTree = (
     <>
       {React.Children.map(children, (child) => {
         if (child === null) return;
-        switch (child.type) {
-          case FrameButton: {
-            if (!React.isValidElement<typeof FrameButton>(child)) {
-              return child;
-            }
 
-            if (nextIndexByComponentType.button > 4) {
-              throw new Error("too many buttons");
-            }
+        if (!React.isValidElement(child)) {
+          return child;
+        }
 
-            // set redirect data for retrieval
-            if (
-              "action" in child.props &&
-              "target" in child.props &&
-              child.props.target &&
-              child.props.action === "post_redirect"
-            ) {
-              const target =
-                (child.props as any as FrameButtonPostRedirectProvidedProps)
-                  .target || null;
-              const buttonIndex = target
-                ? nextIndexByComponentType.button
-                : (`_${nextIndexByComponentType.button}` as `_${number}`);
-              redirectMap[buttonIndex] = target;
-            }
-
-            let absoluteTarget = {};
-            if (
-              "target" in child.props &&
-              child.props.target &&
-              "action" in child.props &&
-              child.props.action !== "post_redirect" // Don't include target if action is post_redirect, otherwise the next message will be posted to the target url
-            ) {
-              let newUrl = new URL(
-                child.props.target.startsWith("/")
-                  ? `${previousFrame.headers.urlWithoutPathname}${child.props.target}`
-                  : child.props.target
-              );
-              // short for pathname
-              newUrl.searchParams.set(
-                "p",
-                pathname ?? previousFrame.headers.pathname ?? "/"
-              );
-              // short for state
-              newUrl.searchParams.set("s", JSON.stringify(state));
-              // short for redirects
-              newUrl.searchParams.set("r", JSON.stringify({}));
-              absoluteTarget = {
-                target: newUrl.toString(),
-              };
-            }
-
-            if (
-              !("target" in child.props) &&
-              "action" in child.props &&
-              child.props.action === "link"
-            )
-              throw new Error("missing required target tag for action='link'");
-
-            const rewrittenProps: React.ComponentProps<
-              typeof FFrameButtonShim
-            > = {
-              ...(child.props as React.ComponentProps<typeof FrameButton>),
-              ...absoluteTarget,
-              actionIndex: nextIndexByComponentType.button++ as ActionIndex,
-            };
-            return <FFrameButtonShim {...rewrittenProps} />;
+        if (isElementFrameButton(child)) {
+          if (nextIndexByComponentType.button > 4) {
+            throw new Error("too many buttons");
           }
 
-          case FrameInput:
-            if (nextIndexByComponentType.input > 1) {
-              throw new Error("max one input allowed");
+          const props = child.props;
+
+          let target: URL | undefined;
+
+          switch (props.action) {
+            case "link":
+            case "mint": {
+              if (!props.target) {
+                throw new Error(
+                  "missing required target tag for action='link' or action='mint'"
+                );
+              }
+
+              // we don't use createURLForPostHandler here as it would send our state, etc to target
+              target = new URL(props.target);
+              break;
             }
-            nextIndexByComponentType.input++;
-            return child;
-          case FrameImage:
-            if (nextIndexByComponentType.image > 1) {
-              throw new Error("max one image allowed");
+            case "post_redirect": {
+              // Set redirect data for retrieval
+              // Don't set target if action is post_redirect, otherwise the next message will be posted to the target url
+              if (props.target) {
+                redirectMap[nextIndexByComponentType.button] = props.target;
+              } else {
+                redirectMap[
+                  `_${nextIndexByComponentType.button}` as `_${number}`
+                ] = null;
+              }
+
+              break;
             }
-            nextIndexByComponentType.image++;
-            return child;
-          default:
-            throw new Error(
-              "invalid child of <Frame>, must be a <FrameButton> or <FrameImage>"
-            );
+            default: {
+              // handle post button
+              if (props.target) {
+                target = createURLForPOSTHandler(props.target);
+              }
+            }
+          }
+
+          if (
+            !("target" in child.props) &&
+            "action" in child.props &&
+            child.props.action === "link"
+          )
+            throw new Error("missing required target tag for action='link'");
+
+          const rewrittenProps: React.ComponentProps<typeof FFrameButtonShim> =
+            {
+              ...(child.props as React.ComponentProps<typeof FrameButton>),
+              ...(target ? { target: target.toString() } : {}),
+              actionIndex: nextIndexByComponentType.button++ as ActionIndex,
+            };
+          return <FFrameButtonShim {...rewrittenProps} />;
+        } else if (isElementFrameImage(child)) {
+          if (nextIndexByComponentType.image > 1) {
+            throw new Error("max one image allowed");
+          }
+
+          nextIndexByComponentType.image++;
+
+          return child;
+        } else if (isElementFrameInput(child)) {
+          if (nextIndexByComponentType.input > 1) {
+            throw new Error("max one input allowed");
+          }
+
+          nextIndexByComponentType.input++;
+
+          return child;
         }
+
+        throw new Error(
+          "invalid child of <Frame>, must be a <FrameButton> or <FrameImage>"
+        );
       })}
     </>
   );
