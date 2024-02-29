@@ -21,6 +21,7 @@ describe("getFrameFlattened", () => {
       ],
       imageAspectRatio: "1:1",
       inputText: "input",
+      state: JSON.stringify({ foo: "bar" }),
       ogImage: "https://example.com/og-image.png",
       accepts: [
         {
@@ -48,6 +49,7 @@ describe("getFrameFlattened", () => {
       "fc:frame:button:2": "Button 2",
       "fc:frame:button:2:action": "post",
       "fc:frame:button:2:target": "target2",
+      "fc:frame:state": JSON.stringify({ foo: "bar" }),
       "of:accepts:xmtp": "vNext",
       "of:accepts:farcaster": "vNext",
     });

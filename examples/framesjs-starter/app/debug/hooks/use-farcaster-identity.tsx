@@ -173,6 +173,7 @@ export function useFarcasterIdentity(): FarcasterIdentity {
     target,
     inputText,
     url,
+    state,
   }) => {
     if (!farcasterUser?.fid) {
       throw new Error("Missing data");
@@ -191,6 +192,7 @@ export function useFarcasterIdentity(): FarcasterIdentity {
         url: Buffer.from(url),
         // it seems the message in hubs actually requires a value here.
         inputText: inputText !== undefined ? Buffer.from(inputText) : undefined,
+        state: state !== undefined ? Buffer.from(state) : undefined,
       });
 
     if (!message) {
@@ -217,6 +219,7 @@ export function useFarcasterIdentity(): FarcasterIdentity {
             hash: frameContext.castId.hash,
           },
           inputText,
+          state,
         },
         trustedData: {
           messageBytes: trustedBytes,

@@ -12,6 +12,7 @@ export interface AuthStateInstance<
     buttonIndex: number;
     url: string;
     inputText?: string;
+    state?: string;
     frameContext: FrameContext;
   }) => Promise<{
     body: B;

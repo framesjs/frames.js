@@ -137,7 +137,10 @@ export function useFrame<
   }
 
   const onButtonPress = async (frameButton: FrameButton, index: number) => {
+    console.log("pressed the ufkcing asjdasdla");
+
     const currentFrame = getCurrentFrame();
+
     if (!currentFrame) {
       console.error("missing frame");
       return;
@@ -171,6 +174,7 @@ export function useFrame<
         */
           postInputText:
             currentFrame.inputText !== undefined ? inputText : undefined,
+          state: currentFrame.state,
         });
         setInputText("");
       } catch (err) {
@@ -186,10 +190,12 @@ export function useFrame<
     postInputText,
     frameButton,
     target,
+    state,
   }: {
     frameButton: FrameButton;
     buttonIndex: number;
     postInputText: string | undefined;
+    state?: string;
     target: string;
   }) => {
     const currentFrame = getCurrentFrame();
@@ -204,6 +210,8 @@ export function useFrame<
       return;
     }
 
+    console.log("going to sign frame action");
+
     const { searchParams, body } = await authState.signFrameAction({
       inputText: postInputText,
       frameContext,
@@ -211,7 +219,11 @@ export function useFrame<
       target,
       frameButton: frameButton,
       buttonIndex: buttonIndex,
+      state,
     });
+
+    console.log("asdasdasdasdasd", { body });
+
     const requestUrl = `${frameActionRoute}?${searchParams.toString()}`;
     const url = searchParams.get("postUrl") ?? "";
 
