@@ -18,18 +18,17 @@ export function getFrameFlattened(frame: Frame): FrameFlattened {
     ...frame.buttons?.reduce(
       (acc, button, index) => ({
         ...acc,
-
         [`fc:frame:button:${index + 1}`]: button.label,
         [`fc:frame:button:${index + 1}:action`]: button.action,
         [`fc:frame:button:${index + 1}:target`]: button.target,
       }),
       {}
     ),
+    ...frame.accepts?.reduce((acc: Record<string, string>, { id, version }) => {
+      acc[`of:accepts:${id}`] = version;
+      return acc;
+    }, {}),
   };
-
-  for (const accept of frame.accepts ?? []) {
-    metadata[`of:accepts:${accept.id}`] = accept.version;
-  }
 
   return metadata;
 }
