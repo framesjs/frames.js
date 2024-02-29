@@ -4,7 +4,7 @@ import { DEBUG_HUB_OPTIONS } from "../../../debug/constants";
 import { kv } from "@vercel/kv";
 import { RandomNumberRequestStateValue } from "./types";
 
-const MAXIMUM_KV_RESULT_LIFETIME_IN_SECONDS = 60 * 60; // 1 hour
+const MAXIMUM_KV_RESULT_LIFETIME_IN_SECONDS = 2 * 60; // 2 minutes
 
 export async function POST(req: NextRequest) {
   const body = await req.json();

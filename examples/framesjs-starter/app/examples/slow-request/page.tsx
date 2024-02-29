@@ -11,11 +11,9 @@ import Link from "next/link";
 import { DEBUG_HUB_OPTIONS } from "../../debug/constants";
 import { RandomNumberRequestStateValue } from "./slow-fetch/types";
 
-type State = {
-  page: "homeframe";
-};
+type State = {};
 
-const initialState: State = { page: "homeframe" } as const;
+const initialState: State = {} as const;
 
 // This is a react server component only
 export default async function Home({
@@ -43,7 +41,7 @@ export default async function Home({
     >
       <FrameImage>
         <div tw="w-full h-full bg-slate-700 text-white justify-center items-center">
-          This random number generator takes 5 seconds to respond
+          This random number generator takes 10 seconds to respond
         </div>
       </FrameImage>
       <FrameButton>Generate</FrameButton>
