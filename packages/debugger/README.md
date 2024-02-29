@@ -16,15 +16,15 @@ $ pnpm dlx @frames.js/debugger@latest
 ```sh
 # usage with npm
 $ npm install -g @frames.js/debugger
-$ frames-debugger
+$ frames
 
 # usage with yarn
 $ yarn global add @frames.js/debugger
-$ frames-debugger
+$ frames
 
 # usage with pnpm
 $ pnpm add -g @frames.js/debugger
-$ frames-debugger
+$ frames
 ```
 
 ## Set your Frames app to use the debugger
@@ -35,6 +35,6 @@ Set the `hubHttpUrl` to `http://localhost:3010/hub` (this is default used by deb
 import { getFrameMessage } from "frames.js/next/server";
 
 const frameMessage = await getFrameMessage(previousFrame.postBody, {
-  hubHttpUrl: 'http://localhost:3010/hub',
+  hubHttpUrl: "http://localhost:3010/hub",
 });
 ```

@@ -5,9 +5,9 @@
     "frames.js",
     "farcaster"
   ],
-  "version": "0.0.0",
+  "version": "0.0.1",
   "bin": {
-    "frames-debugger": "./bin/debugger.js"
+    "frames": "./bin/debugger.js"
   },
   "type": "module",
   "license": "MIT",
