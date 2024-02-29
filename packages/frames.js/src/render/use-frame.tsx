@@ -137,8 +137,6 @@ export function useFrame<
   }
 
   const onButtonPress = async (frameButton: FrameButton, index: number) => {
-    console.log("pressed the ufkcing asjdasdla");
-
     const currentFrame = getCurrentFrame();
 
     if (!currentFrame) {
@@ -221,8 +219,6 @@ export function useFrame<
       buttonIndex: buttonIndex,
       state,
     });
-
-    console.log("asdasdasdasdasd", { body });
 
     const requestUrl = `${frameActionRoute}?${searchParams.toString()}`;
     const url = searchParams.get("postUrl") ?? "";
