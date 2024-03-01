@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "turbo build",
-    "dev": "turbo dev --filter=framesjs-starter...",
+    "dev": "turbo dev --filter=framesjs-starter... --filter=debugger...",
     "dev:custom-redirects": "turbo dev --filter=custom-redirects...",
     "dev:utils-starter": "turbo dev --filter=utils-starter...",
     "dev:all": "turbo dev",

@@ -10,6 +10,8 @@ import {
 } from "frames.js/next/server";
 import Link from "next/link";
 import { zora } from "viem/chains";
+import { currentURL } from "../../utils";
+import { createDebugUrl } from "../../debug";
 
 type State = {
   pageIndex: number;
@@ -57,17 +59,15 @@ const reducer: FrameReducer<State> = (state, action) => {
 };
 
 // This is a react server component only
-export default async function Home({
-  params,
-  searchParams,
-}: NextServerPageProps) {
+export default async function Home({ searchParams }: NextServerPageProps) {
+  const url = currentURL("/examples/mint-button");
   const previousFrame = getPreviousFrame<State>(searchParams);
   const [state] = useFramesReducer<State>(reducer, initialState, previousFrame);
 
   // then, when done, return next frame
   return (
     <div>
-      Mint button example <Link href="/debug">Debug</Link>
+      Mint button example <Link href={createDebugUrl(url)}>Debug</Link>
       <FrameContainer
         pathname="/examples/mint-button"
         postUrl="/examples/mint-button/frames"
