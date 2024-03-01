@@ -36,83 +36,10 @@ import { FrameButton } from "frames.js";
 import { createFrameActionMessageWithSignerKey } from "./createFrameActionMessageWithSignerKey";
 
 export default function Page() {
-  const farcasterUser = {
-    fid: 1,
-    privateKey: "0",
-  };
-  const signFrameAction = async ({
-    buttonIndex,
-    frameContext,
-    frameButton,
-    target,
-    inputText,
-    state,
-    url,
-  }: {
-    target?: string;
-    frameButton: FrameButton;
-    buttonIndex: number;
-    url: string;
-    inputText?: string;
-    state?: string;
-    frameContext: FrameContext;
-  }): Promise<{
-    body: object;
-    searchParams: URLSearchParams;
-  }> => {
-    if (!farcasterUser?.fid) {
-      throw new Error("Missing data");
-    }
-
-    const { message, trustedBytes } =
-      await createFrameActionMessageWithSignerKey(farcasterUser.privateKey, {
-        fid: farcasterUser.fid,
-        buttonIndex,
-        castId: {
-          fid: frameContext.castId.fid,
-          hash: new Uint8Array(
-            Buffer.from(frameContext.castId.hash.slice(2), "hex")
-          ),
-        },
-        state: state !== undefined ? Buffer.from(state) : undefined,
-        url: Buffer.from(url),
-        // it seems the message in hubs actually requires a value here.
-        inputText: inputText !== undefined ? Buffer.from(inputText) : undefined,
-      });
-
-    if (!message) {
-      throw new Error("hub error");
-    }
-
-    const searchParams = new URLSearchParams({
-      postType: frameButton?.action || "post",
-      postUrl: target ?? "",
-    });
-
-    return {
-      searchParams: searchParams,
-      body: {
-        untrustedData: {
-          fid: farcasterUser.fid,
-          url: url,
-          messageHash: `0x${Buffer.from(message.hash).toString("hex")}`,
-          timestamp: message.data.timestamp,
-          network: 1,
-          buttonIndex: Number(message.data.frameActionBody.buttonIndex),
-          castId: {
-            fid: frameContext.castId.fid,
-            hash: frameContext.castId.hash,
-          },
-          inputText,
-        },
-        trustedData: {
-          messageBytes: trustedBytes,
-        },
-      },
-    };
-  };
   const frameState = useFrame({
-    homeframeUrl: "<INSERT HOME DOMAIN + ROUTE HERE>",
+    // replace with your frame url
+    homeframeUrl:
+      "https://fc-polls.vercel.app/polls/73c6efda-bae7-4d46-8f36-3bb3b8377448",
     // corresponds to the name of the route for POST in step 3
     frameActionRoute: "/frames",
     // corresponds to the name of the route for GET in step 3
@@ -120,12 +47,12 @@ export default function Page() {
     frameContext: fallbackFrameContext,
     // map to your identity if you have one
     authState: {
-      user: {},
-      isLoading: false,
-      isLoggedIn: false,
-      logout: () => null,
-      promptLogin: () => null,
-      signFrameAction: signFrameAction,
+      isLoggedIn: true,
+      promptLogin: () => {
+        // Implement me
+        alert("A frame button was pressed without a signer.");
+      },
+      signFrameAction: () => { alert('implement me.') },
     },
   });
 
@@ -133,80 +60,6 @@ export default function Page() {
     <FrameUI frameState={frameState} theme={{}} FrameImage={FrameImageNext} />
   );
 }
-
-
 ```
 
-```tsx [createFrameActionMessageWithSignerKey.tsx]
-import {
-  CastId,
-  NobleEd25519Signer,
-  makeFrameAction,
-  FarcasterNetwork,
-  Message,
-  FrameActionBody,
-} from "@farcaster/core";
-
-export async function createFrameActionMessageWithSignerKey(
-  signerKey: string,
-  {
-    fid,
-    url,
-    buttonIndex,
-    castId,
-    inputText,
-    state,
-  }: {
-    fid: number;
-    url: Uint8Array;
-    buttonIndex: number;
-    inputText: Uint8Array | undefined;
-    castId: CastId;
-    state: Uint8Array | undefined;
-  }
-) {
-  const signer = new NobleEd25519Signer(Buffer.from(signerKey.slice(2), "hex"));
-
-  const messageDataOptions = {
-    fid,
-    network: FarcasterNetwork.MAINNET,
-  };
-
-  const message = await makeFrameAction(
-    FrameActionBody.create({
-      url,
-      buttonIndex,
-      castId,
-      state,
-      inputText: inputText !== undefined ? Buffer.from(inputText) : undefined,
-    }),
-    messageDataOptions,
-    signer
-  );
-
-  if (message.isErr()) {
-    console.error(message.error);
-  }
-
-  const trustedBytes = Buffer.from(
-    Message.encode(message._unsafeUnwrap()).finish()
-  ).toString("hex");
-
-  return { message: message.unwrapOr(null), trustedBytes: trustedBytes };
-}
-
-
-```
-
-## In order for the styles to work, your project should have tailwind set up as well as the tailwind.config.js rule
-
-```ts
-// tailwind.config.js
-const config = {
-    // ...
-    content: [
-        "./node_modules/frames.js/dist/render/next/*.{ts,tsx,js,css}",
-        "./node_modules/frames.js/dist/render/*.{ts,tsx,js,css}",
-        // ...
-    ]
-```
+[Full example](/guides/display-frames.mdx)

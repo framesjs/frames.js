@@ -9,25 +9,7 @@ import { FrameImageNext } from "frames.js/render/next";
 
 export const Page(){
     const frameState = useFrame({
-        homeframeUrl: "https://frames.js.org",
-        frameActionRoute: "/frames",
-        frameFetchRoute: "/frames",
-        frameContext: fallbackFrameContext,
-        authState: {
-            user: {},
-            isLoading: false,
-            isLoggedIn: false,
-            logout: () => null,
-            promptLogin: () => null,
-            signFrameAction: ({
-                buttonIndex,
-                frameContext,
-                frameButton,
-                target,
-                inputText,
-                url
-            }) => null
-        },
+        // ...
     });
 
     return (
@@ -47,9 +29,9 @@ export const Page(){
 const config = {
     // ...
     content: [
+        // ...
         "./node_modules/frames.js/dist/render/next/*.{ts,tsx,js,css}",
         "./node_modules/frames.js/dist/render/*.{ts,tsx,js,css}",
         "./node_modules/frames.js/dist/**/*.{ts,tsx,js,css}",
-        // ...
     ]
 ```

@@ -4,7 +4,7 @@ export interface AuthStateInstance<
   T = object,
   B extends FrameActionBodyPayload = FrameActionBodyPayload,
 > {
-  user: T | null;
+  user?: T | null;
   isLoggedIn: boolean;
   signFrameAction: (actionContext: {
     target?: string;
@@ -18,9 +18,10 @@ export interface AuthStateInstance<
     body: B;
     searchParams: URLSearchParams;
   }>;
-  isLoading: boolean;
+  isLoading?: boolean;
+  /** A function called when a frame button is clicked without a signer */
   promptLogin: () => void;
-  logout: () => void;
+  logout?: () => void;
 }
 
 type FrameStackBase = {
