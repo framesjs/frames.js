@@ -7,7 +7,7 @@ export interface FarcasterSignerState
     FarcasterFrameActionBodyPayload
   > {}
 
-export type FarcasterSigner = {
+export interface FarcasterSigner {
   /* the Farcaster signer private key */
   privateKey: string;
   /* the Farcaster signer public key */
@@ -20,7 +20,7 @@ export type FarcasterSigner = {
   deadline?: number;
   signerApprovalUrl?: string;
   token?: any;
-};
+}
 
 export const mockFarcasterSigner: FarcasterSigner = {
   fid: 1,

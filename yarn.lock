@@ -2335,6 +2335,16 @@
     "@xmtp/proto" "3.44.0"
     viem "^2.7.8"
 
+"@xmtp/frames-validator@^0.5.2":
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/@xmtp/frames-validator/-/frames-validator-0.5.2.tgz#708389b829f4a9cbe61fbd728b6c0b2a7f2112c3"
+  integrity sha512-m62HoAs47Dz3MHpW1Ec9fdmnvK9GJYyPJl6mWifKblWmoA4s67zAuTF3V8qXv8hEUag6t1XBRF6BpfeKDva4HQ==
+  dependencies:
+    "@noble/curves" "^1.3.0"
+    "@noble/hashes" "^1.3.3"
+    "@xmtp/proto" "3.45.0"
+    viem "^2.7.14"
+
 "@xmtp/proto@3.41.0-beta.6":
   version "3.41.0-beta.6"
   resolved "https://registry.yarnpkg.com/@xmtp/proto/-/proto-3.41.0-beta.6.tgz#08e82888095acbf618c1ed4e8fe903570a6391ae"
@@ -2349,6 +2359,16 @@
   version "3.44.0"
   resolved "https://registry.yarnpkg.com/@xmtp/proto/-/proto-3.44.0.tgz#6750f47869de508c2f3db596bb952e84062988bd"
   integrity sha512-5M23JsxONb/qluZF6QMjoXHT67xDRR7pWwHTd1tfw59jS+jXTxm/+v8/UeSOoK47PBSJhDD5I90bAeA5NrLRig==
+  dependencies:
+    long "^5.2.0"
+    protobufjs "^7.0.0"
+    rxjs "^7.8.0"
+    undici "^5.8.1"
+
+"@xmtp/proto@3.45.0":
+  version "3.45.0"
+  resolved "https://registry.yarnpkg.com/@xmtp/proto/-/proto-3.45.0.tgz#2aaca656a6da85a05ae75f72340ce1ef5e4fb2ec"
+  integrity sha512-6d/UE/vqi1erpL+z/HSGvFOnJt+y7RE23g6SUUUB7tx75VAi5A0/uLwzPr/eyVkiHZGqlbktq8Rzco+HgTyTAw==
   dependencies:
     long "^5.2.0"
     protobufjs "^7.0.0"
@@ -8988,6 +9008,20 @@ viem@^2.7.1:
   version "2.7.2"
   resolved "https://registry.yarnpkg.com/viem/-/viem-2.7.2.tgz#ae2a8cd8307f676bf324c903ba4fcd5b9fcca706"
   integrity sha512-uRoD9ACARMrQG24rmXAqSJh0Sph5RkE6QP7FspmIs1XtuJIT8eS7B57f03oAUi2h/v564qmu9wv1mK/xB+XghA==
+  dependencies:
+    "@adraffy/ens-normalize" "1.10.0"
+    "@noble/curves" "1.2.0"
+    "@noble/hashes" "1.3.2"
+    "@scure/bip32" "1.3.2"
+    "@scure/bip39" "1.2.1"
+    abitype "1.0.0"
+    isows "1.0.3"
+    ws "8.13.0"
+
+viem@^2.7.14:
+  version "2.7.16"
+  resolved "https://registry.yarnpkg.com/viem/-/viem-2.7.16.tgz#99e66bbec661b2284bc32061474f20a90381bdcb"
+  integrity sha512-yOPa9yaoJUm44m0Qe3ugHnkHol3QQlFxN3jT+bq+lQip7X7cWdPfmguyfLWX2viCXcmYZUDiQdeFbkPW9lw11Q==
   dependencies:
     "@adraffy/ens-normalize" "1.10.0"
     "@noble/curves" "1.2.0"

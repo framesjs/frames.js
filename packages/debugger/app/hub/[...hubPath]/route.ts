@@ -1,4 +1,4 @@
-import { type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { loadMockResponseForDebugHubRequest } from "../../utils/mock-hub-utils";
 
 function getHubRequest(request: NextRequest, hubPath: string[]) {
@@ -45,7 +45,9 @@ export async function GET(
   );
 
   if (mockResponse) {
-    return mockResponse;
+    return NextResponse.json(await mockResponse.json(), {
+      status: mockResponse.status,
+    });
   }
 
   console.warn(
@@ -54,7 +56,7 @@ export async function GET(
 
   const hubRequest = getHubRequest(request, hubPath);
   const response = await fetch(hubRequest);
-  return response;
+  return NextResponse.json(await response.json(), { status: response.status });
 }
 
 export async function POST(
@@ -67,5 +69,5 @@ export async function POST(
 
   const hubRequest = getHubRequest(request, hubPath);
   const response = await fetch(hubRequest);
-  return response;
+  return NextResponse.json(await response.json(), { status: response.status });
 }

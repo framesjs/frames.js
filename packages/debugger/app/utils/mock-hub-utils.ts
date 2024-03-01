@@ -5,13 +5,12 @@ import path from "node:path";
 import os from "node:os";
 import { sortedSearchParamsString } from "../lib/utils";
 import { type FrameActionHubContext } from "frames.js";
-import { fileURLToPath } from "node:url";
 
 export type MockHubActionContext = FrameActionHubContext & {
   enabled: boolean;
 };
 
-const MOCK_FILE_NAME = "mocks.json";
+const MOCK_FILE_NAME = "framesjsmocks.json";
 
 type MockFileData = {
   enabled: boolean;
@@ -41,7 +40,14 @@ export async function loadMockResponseForDebugHubRequest(
   }
 
   const json = await fs.readFile(file, "utf-8");
-  const mocks: MockFileData = JSON.parse(json);
+
+  let mocks: MockFileData;
+  try {
+    mocks = JSON.parse(json);
+  } catch (err) {
+    console.error(err);
+    return;
+  }
 
   if (!mocks.enabled) {
     return;
@@ -55,7 +61,6 @@ export async function loadMockResponseForDebugHubRequest(
     console.log(
       `info: Mock hub: Found mock for ${pathAndQuery}, returning ${mockResult.ok ? "200" : "404"}`
     );
-
     return new Response(JSON.stringify(mockResult), {
       headers: {
         "content-type": "application/json",
@@ -125,5 +130,6 @@ export async function persistMockResponsesForDebugHubRequests(req: Request) {
       },
     },
   };
+
   await fs.writeFile(file, JSON.stringify(json, null, 2));
 }

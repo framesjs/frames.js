@@ -42,7 +42,7 @@ import { FrameButton } from "frames.js";
 
 export default function Page() {
   // TODO: replace with your farcaster signer
-  const farcasterUser: FarcasterSigner = {
+  const farcasterSigner: FarcasterSigner = {
     fid: 1,
     status: 'approved',
     publicKey:
@@ -63,7 +63,7 @@ export default function Page() {
     // map to your identity if you have one
     signerState: {
       hasSigner: true,
-      signer: farcasterUser,
+      signer: farcasterSigner,
       onSignerlessFramePress: () => {
         // Implement me
         alert("A frame button was pressed without a signer. Perhaps you want to prompt a login");
