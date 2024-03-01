@@ -205,25 +205,34 @@ export function useFramesReducer<T extends FrameState = FrameState>(
   return [frameReducerInit(initializerArg), dispatch];
 }
 
-const isProduction = process.env.NODE_ENV === "production";
-
 function toUrl(req: NextRequest) {
-  const url = new URL(req.url);
-  const protocol = req.headers.get("x-forwarded-proto") || "https";
+  const reqUrl = new URL(req.url);
+
+  if (process.env.NEXT_PUBLIC_HOST) {
+    const newUrl = new URL(process.env.NEXT_PUBLIC_HOST);
+    newUrl.pathname = reqUrl.pathname;
+    newUrl.search = reqUrl.search;
+    return newUrl;
+  }
+
+  console.info(
+    `frames.js: NEXT_PUBLIC_HOST not set, using x-forwarded-* headers for redirect`
+  );
+
+  // Some next.js versions can have comma separated values protocol
+  // This unreliable, set NEXT_PUBLIC_HOST if you are proxying next.js service for predictable behavior
+  // https://github.com/vercel/next.js/issues/54450
+  const protocol =
+    req.headers.get("x-forwarded-proto")?.split(",")[0] || "http";
   const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+  const port =
+    req.headers.get("x-forwarded-port") ?? protocol === "https" ? "443" : "80";
 
-  // ngrok + next.js has x-forwarded-port set to 3000, which is incorrect for https
-  const port = isProduction
-    ? req.headers.get("x-forwarded-port") || "443"
-    : protocol === "https"
-      ? "443"
-      : req.headers.get("x-forwarded-port") || "80";
+  reqUrl.protocol = protocol;
+  reqUrl.host = host || reqUrl.host;
+  reqUrl.port = port;
 
-  url.protocol = protocol;
-  url.host = host || url.host;
-  url.port = port;
-
-  return url;
+  return reqUrl;
 }
 
 /**
