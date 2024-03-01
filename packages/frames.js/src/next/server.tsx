@@ -205,6 +205,36 @@ export function useFramesReducer<T extends FrameState = FrameState>(
   return [frameReducerInit(initializerArg), dispatch];
 }
 
+function toUrl(req: NextRequest) {
+  const reqUrl = new URL(req.url);
+
+  if (process.env.NEXT_PUBLIC_HOST) {
+    const newUrl = new URL(process.env.NEXT_PUBLIC_HOST);
+    newUrl.pathname = reqUrl.pathname;
+    newUrl.search = reqUrl.search;
+    return newUrl;
+  }
+
+  console.info(
+    `frames.js: NEXT_PUBLIC_HOST not set, using x-forwarded-* headers for redirect`
+  );
+
+  // Some next.js versions can have comma separated values protocol
+  // This unreliable, set NEXT_PUBLIC_HOST if you are proxying next.js service for predictable behavior
+  // https://github.com/vercel/next.js/issues/54450
+  const protocol =
+    req.headers.get("x-forwarded-proto")?.split(",")[0] || "http";
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+  const port =
+    req.headers.get("x-forwarded-port") ?? protocol === "https" ? "443" : "80";
+
+  reqUrl.protocol = protocol;
+  reqUrl.host = host || reqUrl.host;
+  reqUrl.port = port;
+
+  return reqUrl;
+}
+
 /**
  * A function ready made for next.js in order to directly export it, which handles all incoming `POST` requests that apps will trigger when users press buttons in your Frame.
  * It handles all the redirecting for you, correctly, based on the <FrameContainer> props defined by the Frame that triggered the user action.
@@ -220,7 +250,7 @@ export async function POST(
   const body = await req.json();
 
   const url = new URL(req.url);
-  let newUrl = new URL(req.url);
+  let newUrl = toUrl(req);
   const isFullUrl =
     url.searchParams.get("p")?.startsWith("http://") ||
     url.searchParams.get("p")?.startsWith("https://");

@@ -1,5 +1,12 @@
 # frames.js
 
+## 0.5.3
+
+### Patch Changes
+
+- 244d35b: fix: correctly parse protobuf messages and return eth addresses as string
+- b22ad38: fix: correctly export types and commonjs/es modules
+
 ## 0.5.2
 
 ### Patch Changes
