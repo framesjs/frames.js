@@ -1,29 +1,85 @@
-# useFrame
+---
+title: "Guide: Display Frames in your app"
+description: "Frames.js is the react based framework for making frames. Debugger included."
+---
 
-## Props
+# Quickstart Guide: Display Frames in your app (next.js + tailwind app router example)
 
-```ts
-type Props = {
-  /** the route used to POST frame actions. The post_url will be added as a the `url` query parameter */
-  frameActionRoute: string;
-  /** the route used to GET the initial frame via proxy */
-  frameFetchRoute: string;
-  /** an auth state object used to determine what actions are possible */
-  authState: AuthStateInstance<T, B>;
-  /** the url of the homeframe, if null won't load a frame */
-  homeframeUrl: string | null;
-  /** the initial frame. if not specified will fetch it from the url prop */
-  frame?: Frame;
-  /** a function to handle mint buttons */
-  onMint?: (t: onMintArgs) => void;
-  /** the context of this frame, used for generating Frame Action payloads */
-  frameContext: FrameContext;
+1. Run `create-next-app`, and then  `yarn add @farcaster/core frames.js`
+
+2. Create a file called `createFrameActionMessageWithSignerKey.ts`
+
+```tsx filename="// ./app/createFrameActionMessageWithSignerKey.ts"
+// ./app/createFrameActionMessageWithSignerKey.ts
+import {
+  CastId,
+  NobleEd25519Signer,
+  makeFrameAction,
+  FarcasterNetwork,
+  Message,
+  FrameActionBody,
+} from "@farcaster/core";
+
+export async function createFrameActionMessageWithSignerKey(
+  signerKey: string,
+  {
+    fid,
+    url,
+    buttonIndex,
+    castId,
+    inputText,
+    state,
+  }: {
+    fid: number;
+    url: Uint8Array;
+    buttonIndex: number;
+    inputText: Uint8Array | undefined;
+    castId: CastId;
+    state: Uint8Array | undefined;
+  }
+) {
+  const signer = new NobleEd25519Signer(Buffer.from(signerKey.slice(2), "hex"));
+
+  const messageDataOptions = {
+    fid,
+    network: FarcasterNetwork.MAINNET,
+  };
+
+  const message = await makeFrameAction(
+    FrameActionBody.create({
+      url,
+      buttonIndex,
+      castId,
+      state,
+      inputText: inputText !== undefined ? Buffer.from(inputText) : undefined,
+    }),
+    messageDataOptions,
+    signer
+  );
+
+  if (message.isErr()) {
+    console.error(message.error);
+  }
+
+  const trustedBytes = Buffer.from(
+    Message.encode(message._unsafeUnwrap()).finish()
+  ).toString("hex");
+
+  return { message: message.unwrapOr(null), trustedBytes: trustedBytes };
 }
+
 ```
 
-## Usage
+3. Add proxies for routing frame requests via your backend for privacy + preventing CORS issues
+```tsx filename="// ./app/frames/route.tsx"
+// ./app/frames/route.tsx
+export { GET, POST } from "frames.js/render/next";
+```
 
-```tsx [frames.js/render/types.tsx]
+4. Add the renderer to your page
+
+```tsx filename="// ./app/page.tsx"
+// ./app/page.tsx
 "use client";
 import {
   FrameUI,
@@ -134,73 +190,11 @@ export default function Page() {
   );
 }
 
-
 ```
 
-```tsx [createFrameActionMessageWithSignerKey.tsx]
-import {
-  CastId,
-  NobleEd25519Signer,
-  makeFrameAction,
-  FarcasterNetwork,
-  Message,
-  FrameActionBody,
-} from "@farcaster/core";
+5. In order for the styles to work, your project should have tailwind set up as well as the tailwind.config.js rule
 
-export async function createFrameActionMessageWithSignerKey(
-  signerKey: string,
-  {
-    fid,
-    url,
-    buttonIndex,
-    castId,
-    inputText,
-    state,
-  }: {
-    fid: number;
-    url: Uint8Array;
-    buttonIndex: number;
-    inputText: Uint8Array | undefined;
-    castId: CastId;
-    state: Uint8Array | undefined;
-  }
-) {
-  const signer = new NobleEd25519Signer(Buffer.from(signerKey.slice(2), "hex"));
-
-  const messageDataOptions = {
-    fid,
-    network: FarcasterNetwork.MAINNET,
-  };
-
-  const message = await makeFrameAction(
-    FrameActionBody.create({
-      url,
-      buttonIndex,
-      castId,
-      state,
-      inputText: inputText !== undefined ? Buffer.from(inputText) : undefined,
-    }),
-    messageDataOptions,
-    signer
-  );
-
-  if (message.isErr()) {
-    console.error(message.error);
-  }
-
-  const trustedBytes = Buffer.from(
-    Message.encode(message._unsafeUnwrap()).finish()
-  ).toString("hex");
-
-  return { message: message.unwrapOr(null), trustedBytes: trustedBytes };
-}
-
-
-```
-
-## In order for the styles to work, your project should have tailwind set up as well as the tailwind.config.js rule
-
-```ts
+```tsx filename="// tailwind.config.js"
 // tailwind.config.js
 const config = {
     // ...
@@ -209,4 +203,9 @@ const config = {
         "./node_modules/frames.js/dist/render/*.{ts,tsx,js,css}",
         // ...
     ]
+}
 ```
+
+Done! 
+
+If needed, you can implement `FrameUI` yourself, using the [FrameUI](https://github.com/framesjs/frames.js/blob/main/packages/frames.js/src/render/frame-ui.tsx) component as a template
