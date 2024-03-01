@@ -3,7 +3,7 @@ import {
   FrameState,
   onMintArgs,
   FrameContext,
-  AuthStateInstance,
+  SignerStateInstance,
   FrameActionBodyPayload,
   FramesStack,
 } from "./types";
@@ -16,7 +16,7 @@ function onMintFallback({ target }: onMintArgs) {
   }
 }
 
-export const fallbackFrameContext = {
+export const fallbackFrameContext: FrameContext = {
   castId: {
     fid: 1,
     hash: "0x0000000000000000000000000000000000000000" as const,
@@ -30,20 +30,20 @@ export function useFrame<
   homeframeUrl,
   frameContext,
   onMint = onMintFallback,
-  authState,
+  signerState,
   frame,
   /** Ex: /frames */
-  frameActionRoute,
+  frameActionProxy,
   /** Ex: /frames */
-  frameFetchRoute,
+  frameGetProxy,
   extraButtonRequestPayload,
 }: {
   /** the route used to POST frame actions. The post_url will be added as a the `url` query parameter */
-  frameActionRoute: string;
+  frameActionProxy: string;
   /** the route used to GET the initial frame via proxy */
-  frameFetchRoute: string;
-  /** an auth state object used to determine what actions are possible */
-  authState: AuthStateInstance<T, B>;
+  frameGetProxy: string;
+  /** an signer state object used to determine what actions are possible */
+  signerState: SignerStateInstance<T, B>;
   /** the url of the homeframe, if null won't load a frame */
   homeframeUrl: string | null;
   /** the initial frame. if not specified will fetch it from the url prop */
@@ -67,7 +67,7 @@ export function useFrame<
       const tstart = new Date();
       let requestError: unknown | null = null;
       let frame: ReturnType<typeof getFrame> | null = null;
-      const requestUrl = `${frameFetchRoute}?url=${homeframeUrl}`;
+      const requestUrl = `${frameGetProxy}?url=${homeframeUrl}`;
 
       let stackItem: FramesStack[number];
 
@@ -140,11 +140,12 @@ export function useFrame<
     const currentFrame = getCurrentFrame();
 
     if (!currentFrame) {
+      // todo: proper error handling
       console.error("missing frame");
       return;
     }
-    if (!authState.isLoggedIn) {
-      authState.promptLogin();
+    if (!signerState.hasSigner) {
+      signerState.onSignerlessFramePress();
       return;
     }
     const target = frameButton.target ?? currentFrame.postUrl ?? homeframeUrl;
@@ -199,17 +200,19 @@ export function useFrame<
     const currentFrame = getCurrentFrame();
 
     if (
-      !authState.isLoggedIn ||
+      !signerState.hasSigner ||
       !currentFrame ||
       !homeframeUrl ||
       !frameButton
     ) {
+      // todo: error handling
       console.error("missing required value for post");
       return;
     }
 
-    const { searchParams, body } = await authState.signFrameAction({
+    const { searchParams, body } = await signerState.signFrameAction({
       inputText: postInputText,
+      signer: signerState.signer ?? null,
       frameContext,
       url: homeframeUrl,
       target,
@@ -218,7 +221,7 @@ export function useFrame<
       state,
     });
 
-    const requestUrl = `${frameActionRoute}?${searchParams.toString()}`;
+    const requestUrl = `${frameActionProxy}?${searchParams.toString()}`;
     const url = searchParams.get("postUrl") ?? "";
 
     let stackItem: FramesStack[number] | undefined;

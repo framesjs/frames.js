@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { LOCAL_STORAGE_KEYS } from "../constants";
-import { FarcasterAuthState, FarcasterUser } from "../types/farcaster-user";
 import { convertKeypairToHex, createKeypair } from "../lib/crypto";
-import { createFrameActionMessageWithSignerKey } from "../lib/farcaster";
+import {
+  FarcasterSignerState,
+  FarcasterSigner,
+  signFrameAction,
+} from "frames.js/render";
 
 interface SignedKeyRequest {
   deeplinkUrl: string;
@@ -19,25 +22,25 @@ interface SignedKeyRequest {
 }
 
 type FarcasterIdentity = {
-  user: FarcasterUser | null;
-  isLoggedIn: boolean;
-  signFrameAction: FarcasterAuthState["signFrameAction"];
+  signer: FarcasterSigner | null;
+  hasSigner: boolean;
+  signFrameAction: FarcasterSignerState["signFrameAction"];
   isLoading: boolean;
   impersonateUser: (args: { fid: number }) => Promise<void>;
-  promptLogin: () => Promise<void>;
+  onSignerlessFramePress: () => Promise<void>;
   logout: () => void;
 };
 
 export function useFarcasterIdentity(): FarcasterIdentity {
   const [isLoading, setLoading] = useState(false);
-  const [farcasterUser, setFarcasterUser] = useState<FarcasterUser | null>(
+  const [farcasterUser, setFarcasterSigner] = useState<FarcasterSigner | null>(
     getSignerFromLocalStorage()
   );
 
   async function impersonateUser({ fid }: { fid: number }) {
     const keypair = await createKeypair();
     const { privateKey, publicKey } = convertKeypairToHex(keypair);
-    const user: FarcasterUser = {
+    const signer: FarcasterSigner = {
       status: "impersonating",
       fid,
       // signature: "1",
@@ -49,10 +52,10 @@ export function useFarcasterIdentity(): FarcasterIdentity {
 
     localStorage.setItem(
       LOCAL_STORAGE_KEYS.FARCASTER_USER,
-      JSON.stringify(user)
+      JSON.stringify(signer)
     );
 
-    setFarcasterUser(user);
+    setFarcasterSigner(signer);
   }
 
   function getSignerFromLocalStorage() {
@@ -61,17 +64,20 @@ export function useFarcasterIdentity(): FarcasterIdentity {
         LOCAL_STORAGE_KEYS.FARCASTER_USER
       );
       if (storedData) {
-        const user: FarcasterUser = JSON.parse(storedData);
+        const signer: FarcasterSigner = JSON.parse(storedData);
 
-        if (user.status === "pending_approval") {
+        if (signer.status === "pending_approval") {
           // Validate that deadline hasn't passed
-          if (user.deadline && user.deadline < Math.floor(Date.now() / 1000)) {
+          if (
+            signer.deadline &&
+            signer.deadline < Math.floor(Date.now() / 1000)
+          ) {
             localStorage.removeItem(LOCAL_STORAGE_KEYS.FARCASTER_USER);
             return null;
           }
         }
 
-        return user;
+        return signer;
       }
       return null;
     }
@@ -81,12 +87,12 @@ export function useFarcasterIdentity(): FarcasterIdentity {
 
   useEffect(() => {
     const signer = getSignerFromLocalStorage();
-    if (signer) setFarcasterUser(signer);
+    if (signer) setFarcasterSigner(signer);
   }, []);
 
   function logout() {
     localStorage.setItem(LOCAL_STORAGE_KEYS.FARCASTER_USER, "");
-    setFarcasterUser(null);
+    setFarcasterSigner(null);
   }
 
   useEffect(() => {
@@ -124,7 +130,7 @@ export function useFarcasterIdentity(): FarcasterIdentity {
               JSON.stringify(user)
             );
 
-            setFarcasterUser(user);
+            setFarcasterSigner(user);
             clearInterval(intervalId);
           } catch (error) {
             console.info(error);
@@ -160,73 +166,11 @@ export function useFarcasterIdentity(): FarcasterIdentity {
     }
   }, [farcasterUser]);
 
-  async function promptLogin() {
+  async function onSignerlessFramePress() {
     setLoading(true);
     await createAndStoreSigner();
     setLoading(false);
   }
-
-  const signFrameAction: FarcasterAuthState["signFrameAction"] = async ({
-    buttonIndex,
-    frameContext,
-    frameButton,
-    target,
-    inputText,
-    url,
-    state,
-  }) => {
-    if (!farcasterUser?.fid) {
-      throw new Error("Missing data");
-    }
-
-    const { message, trustedBytes } =
-      await createFrameActionMessageWithSignerKey(farcasterUser.privateKey, {
-        fid: farcasterUser.fid,
-        buttonIndex,
-        castId: {
-          fid: frameContext.castId.fid,
-          hash: new Uint8Array(
-            Buffer.from(frameContext.castId.hash.slice(2), "hex")
-          ),
-        },
-        url: Buffer.from(url),
-        // it seems the message in hubs actually requires a value here.
-        inputText: inputText !== undefined ? Buffer.from(inputText) : undefined,
-        state: state !== undefined ? Buffer.from(state) : undefined,
-      });
-
-    if (!message) {
-      throw new Error("hub error");
-    }
-
-    const searchParams = new URLSearchParams({
-      postType: frameButton?.action || "post",
-      postUrl: target ?? "",
-    });
-
-    return {
-      searchParams: searchParams,
-      body: {
-        untrustedData: {
-          fid: farcasterUser.fid,
-          url: url,
-          messageHash: `0x${Buffer.from(message.hash).toString("hex")}`,
-          timestamp: message.data.timestamp,
-          network: 1,
-          buttonIndex: Number(message.data.frameActionBody.buttonIndex),
-          castId: {
-            fid: frameContext.castId.fid,
-            hash: frameContext.castId.hash,
-          },
-          inputText,
-          state,
-        },
-        trustedData: {
-          messageBytes: trustedBytes,
-        },
-      },
-    };
-  };
 
   async function createAndStoreSigner() {
     try {
@@ -265,7 +209,7 @@ export function useFarcasterIdentity(): FarcasterIdentity {
           result: { signedKeyRequest: { token: string; deeplinkUrl: string } };
         };
 
-        const user: FarcasterUser = {
+        const signer: FarcasterSigner = {
           ...authorizationBody,
           publicKey: keypairString.publicKey,
           deadline: deadline,
@@ -276,22 +220,22 @@ export function useFarcasterIdentity(): FarcasterIdentity {
         };
         localStorage.setItem(
           LOCAL_STORAGE_KEYS.FARCASTER_USER,
-          JSON.stringify(user)
+          JSON.stringify(signer)
         );
-        setFarcasterUser(user);
+        setFarcasterSigner(signer);
       }
     } catch (error) {
-      console.error("API Call failed", error);
+      console.error("frames.js: API Call failed", error);
     }
   }
 
   return {
-    user: farcasterUser,
-    isLoggedIn: !!farcasterUser?.fid,
-    signFrameAction,
+    signer: farcasterUser,
+    hasSigner: !!farcasterUser?.fid && !!farcasterUser.privateKey,
+    signFrameAction: signFrameAction,
     isLoading,
     impersonateUser,
-    promptLogin,
+    onSignerlessFramePress,
     logout,
   };
 }

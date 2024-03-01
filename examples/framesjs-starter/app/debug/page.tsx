@@ -38,13 +38,13 @@ export default function Page({
       setUrlInput(url);
     }
   }, [url]);
-  const authState = useFarcasterIdentity();
+  const signerState = useFarcasterIdentity();
   const frameState = useFrame({
     homeframeUrl: url,
-    frameActionRoute: "/debug/frames",
-    frameFetchRoute: "/debug/frames",
+    frameActionProxy: "/debug/frames",
+    frameGetProxy: "/debug/frames",
     frameContext: fallbackFrameContext,
-    authState,
+    signerState,
     extraButtonRequestPayload: { mockData: mockHubContext },
   });
 
@@ -148,11 +148,11 @@ export default function Page({
             </button>
           </div>
           <LoginWindow
-            farcasterUser={authState.user}
-            loading={authState.isLoading}
-            startFarcasterSignerProcess={authState.promptLogin}
-            impersonateUser={authState.impersonateUser}
-            logout={authState.logout}
+            farcasterUser={signerState.signer}
+            loading={signerState.isLoading}
+            startFarcasterSignerProcess={signerState.onSignerlessFramePress}
+            impersonateUser={signerState.impersonateUser}
+            logout={signerState.logout}
           ></LoginWindow>
         </div>
         {url ? (

@@ -19,76 +19,13 @@ This guide shows you how to add frames rendering to your next.js + tailwind app 
 
 `yarn install`
 
-2. Create a file called `createFrameActionMessageWithSignerKey.ts` in `/app`
-
-```tsx filename="// ./app/createFrameActionMessageWithSignerKey.ts"
-// ./app/createFrameActionMessageWithSignerKey.ts
-import {
-  CastId,
-  NobleEd25519Signer,
-  makeFrameAction,
-  FarcasterNetwork,
-  Message,
-  FrameActionBody,
-} from "@farcaster/core";
-
-export async function createFrameActionMessageWithSignerKey(
-  signerKey: string,
-  {
-    fid,
-    url,
-    buttonIndex,
-    castId,
-    inputText,
-    state,
-  }: {
-    fid: number;
-    url: Uint8Array;
-    buttonIndex: number;
-    inputText: Uint8Array | undefined;
-    castId: CastId;
-    state: Uint8Array | undefined;
-  }
-) {
-  const signer = new NobleEd25519Signer(Buffer.from(signerKey.slice(2), "hex"));
-
-  const messageDataOptions = {
-    fid,
-    network: FarcasterNetwork.MAINNET,
-  };
-
-  const message = await makeFrameAction(
-    FrameActionBody.create({
-      url,
-      buttonIndex,
-      castId,
-      state,
-      inputText: inputText !== undefined ? Buffer.from(inputText) : undefined,
-    }),
-    messageDataOptions,
-    signer
-  );
-
-  if (message.isErr()) {
-    console.error(message.error);
-  }
-
-  const trustedBytes = Buffer.from(
-    Message.encode(message._unsafeUnwrap()).finish()
-  ).toString("hex");
-
-  return { message: message.unwrapOr(null), trustedBytes: trustedBytes };
-}
-
-```
-
-3. Add proxies for routing frame requests via your backend for privacy + preventing CORS issues
+2. Add proxies for routing frame requests via your backend for privacy + preventing CORS issues
 ```tsx filename="// ./app/frames/route.tsx"
 // ./app/frames/route.tsx
 export { GET, POST } from "frames.js/render/next";
 ```
 
-4. Add the renderer to your page
+3. Add the renderer to your page
 
 ```tsx filename="// ./app/page.tsx"
 // ./app/page.tsx
@@ -99,103 +36,37 @@ import {
   useFrame,
   FrameContext,
 } from "frames.js/render";
+import { signFrameAction, FarcasterSigner } from 'frames.js/render/farcaster'
 import { FrameImageNext } from "frames.js/render/next";
 import { FrameButton } from "frames.js";
-import { createFrameActionMessageWithSignerKey } from "./createFrameActionMessageWithSignerKey";
 
 export default function Page() {
-  // replace me
-  const farcasterUser = {
+  // TODO: replace with your farcaster signer
+  const farcasterUser: FarcasterSigner = {
     fid: 1,
+    status: 'approved',
+    publicKey:
+      "0x00000000000000000000000000000000000000000000000000000000000000000",
     privateKey:
       "0x00000000000000000000000000000000000000000000000000000000000000000",
   };
-  const signFrameAction = async ({
-    buttonIndex,
-    frameContext,
-    frameButton,
-    target,
-    inputText,
-    state,
-    url,
-  }: {
-    target?: string;
-    frameButton: FrameButton;
-    buttonIndex: number;
-    url: string;
-    inputText?: string;
-    state?: string;
-    frameContext: FrameContext;
-  }): Promise<{
-    body: object;
-    searchParams: URLSearchParams;
-  }> => {
-    if (!farcasterUser?.fid) {
-      throw new Error("Missing data");
-    }
-
-    const { message, trustedBytes } =
-      await createFrameActionMessageWithSignerKey(farcasterUser.privateKey, {
-        fid: farcasterUser.fid,
-        buttonIndex,
-        castId: {
-          fid: frameContext.castId.fid,
-          hash: new Uint8Array(
-            Buffer.from(frameContext.castId.hash.slice(2), "hex")
-          ),
-        },
-        state: state !== undefined ? Buffer.from(state) : undefined,
-        url: Buffer.from(url),
-        // it seems the message in hubs actually requires a value here.
-        inputText: inputText !== undefined ? Buffer.from(inputText) : undefined,
-      });
-
-    if (!message) {
-      throw new Error("hub error");
-    }
-
-    const searchParams = new URLSearchParams({
-      postType: frameButton?.action || "post",
-      postUrl: target ?? "",
-    });
-
-    return {
-      searchParams: searchParams,
-      body: {
-        untrustedData: {
-          fid: farcasterUser.fid,
-          url: url,
-          messageHash: `0x${Buffer.from(message.hash).toString("hex")}`,
-          timestamp: message.data.timestamp,
-          network: 1,
-          buttonIndex: Number(message.data.frameActionBody.buttonIndex),
-          castId: {
-            fid: frameContext.castId.fid,
-            hash: frameContext.castId.hash,
-          },
-          inputText,
-        },
-        trustedData: {
-          messageBytes: trustedBytes,
-        },
-      },
-    };
-  };
+  
   const frameState = useFrame({
     // replace with your frame url
     homeframeUrl:
       "https://fc-polls.vercel.app/polls/73c6efda-bae7-4d46-8f36-3bb3b8377448",
     // corresponds to the name of the route for POST in step 3
-    frameActionRoute: "/frames",
+    frameActionProxy: "/frames",
     // corresponds to the name of the route for GET in step 3
-    frameFetchRoute: "/frames",
+    frameGetProxy: "/frames",
     frameContext: fallbackFrameContext,
     // map to your identity if you have one
-    authState: {
-      isLoggedIn: true,
-      promptLogin: () => {
+    signerState: {
+      hasSigner: true,
+      signer: farcasterUser,
+      onSignerlessFramePress: () => {
         // Implement me
-        alert("A frame button was pressed without a signer.");
+        alert("A frame button was pressed without a signer. Perhaps you want to prompt a login");
       },
       signFrameAction: signFrameAction,
     },
@@ -210,7 +81,7 @@ export default function Page() {
 
 ```
 
-5. In order for the styles to work, your project should have tailwind set up as well as the tailwind.config.js rule
+4. In order for the styles to work, your project should have tailwind set up as well as the tailwind.config.js rule
 
 ```tsx filename="// tailwind.config.js"
 // tailwind.config.js
@@ -226,7 +97,7 @@ const config = {
 }
 ```
 
-6. Allow images from any domain
+5. Allow images from any domain
 
 ```tsx filename="// next.config.js"
 // next.config.js
@@ -242,9 +113,9 @@ const nextConfig = {
 };
 ```
 
-7. Run `yarn run dev`
+6. Run `yarn run dev`
 
-8. Done! 🎉
+7. Done! 🎉
 
 
 ### Optional

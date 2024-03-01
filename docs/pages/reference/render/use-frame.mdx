@@ -5,11 +5,11 @@
 ```ts
 type Props = {
   /** the route used to POST frame actions. The post_url will be added as a the `url` query parameter */
-  frameActionRoute: string;
+  frameActionProxy: string;
   /** the route used to GET the initial frame via proxy */
-  frameFetchRoute: string;
+  frameGetProxy: string;
   /** an auth state object used to determine what actions are possible */
-  authState: AuthStateInstance<T, B>;
+  signerState: SignerStateInstance<T, B>;
   /** the url of the homeframe, if null won't load a frame */
   homeframeUrl: string | null;
   /** the initial frame. if not specified will fetch it from the url prop */
@@ -33,7 +33,7 @@ import {
 } from "frames.js/render";
 import { FrameImageNext } from "frames.js/render/next";
 import { FrameButton } from "frames.js";
-import { createFrameActionMessageWithSignerKey } from "./createFrameActionMessageWithSignerKey";
+import { mockFarcasterSigner, createFrameActionMessageWithSignerKey } from "frames.js/render/farcaster";
 
 export default function Page() {
   const frameState = useFrame({
@@ -41,14 +41,16 @@ export default function Page() {
     homeframeUrl:
       "https://fc-polls.vercel.app/polls/73c6efda-bae7-4d46-8f36-3bb3b8377448",
     // corresponds to the name of the route for POST in step 3
-    frameActionRoute: "/frames",
+    frameActionProxy: "/frames",
     // corresponds to the name of the route for GET in step 3
-    frameFetchRoute: "/frames",
+    frameGetProxy: "/frames",
     frameContext: fallbackFrameContext,
     // map to your identity if you have one
-    authState: {
-      isLoggedIn: true,
-      promptLogin: () => {
+    signerState: {
+      // TODO: replace with your signer
+      signer: mockFarcasterSigner,
+      hasSigner: true,
+      onSignerlessFramePress: () => {
         // Implement me
         alert("A frame button was pressed without a signer.");
       },
