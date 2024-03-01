@@ -1,4 +1,4 @@
-import { FrameActionMessage } from "../farcaster";
+import { FrameActionMessage } from "@farcaster/core";
 import { headers } from "next/headers";
 import {
   type NextRequest,
