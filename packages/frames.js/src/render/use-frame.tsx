@@ -11,6 +11,7 @@ import {
 } from "./types";
 import type { Frame, FrameButton } from "../types";
 import { getFrame } from "../getFrame";
+import { getFarcasterTime } from "@farcaster/core";
 
 function onMintFallback({ target }: onMintArgs) {
   if (window.confirm("You are about to be redirected to " + target!)) {
@@ -38,7 +39,7 @@ export const unsignedFrameAction: SignerStateInstance["signFrameAction"] =
       body: {
         untrustedData: {
           url: url,
-          // timestamp: message.data.timestamp,
+          timestamp: getFarcasterTime()._unsafeUnwrap(),
           network: 1,
           buttonIndex: buttonIndex,
           castId: {
@@ -195,6 +196,7 @@ export function useFrame<
     }
     if (!signerState.hasSigner && !dangerousSkipSigning) {
       signerState.onSignerlessFramePress();
+      // don't continue, let the app handle
       return;
     }
     const target = frameButton.target ?? currentFrame.postUrl ?? homeframeUrl;
