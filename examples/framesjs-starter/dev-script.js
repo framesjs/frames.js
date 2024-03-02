@@ -1,7 +1,20 @@
+require("dotenv").config();
 const { spawn } = require("child_process");
 
-const scriptName = process.env.FJS_MONOREPO ? "dev:monorepo" : "dev:starter";
-const child = spawn("npm", ["run", scriptName], { stdio: "inherit" });
+let command = "npm";
+let args = ["run", "dev:monorepo"];
+
+if (!process.env.FJS_MONOREPO) {
+  command = "concurrently";
+  args = [
+    "--kill-others",
+    '"next dev"',
+    `"frames --url ${process.env.NEXT_PUBLIC_HOST}"`,
+  ];
+}
+
+// Spawn the child process
+const child = spawn(command, args, { stdio: "inherit", shell: true });
 
 child.on("error", (error) => {
   console.error(`spawn error: ${error}`);
