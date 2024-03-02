@@ -51,9 +51,17 @@ export default async function Home({ searchParams }: NextServerPageProps) {
     <div className="p-4">
       frames.js starter kit. The Template Frame is on this page, it&apos;s in
       the html meta tags (inspect source).{" "}
-      <Link href={process.env.HUB_HTTP_URL ?? "#"} className="underline">
-        Debug
-      </Link>
+      {process.env.HUB_HTTP_URL ? (
+        <Link href={process.env.HUB_HTTP_URL} className="underline">
+          Debug
+        </Link>
+      ) : (
+        <div>
+          <code>HUB_HTTP_URL</code> env variable not found. Set it to{" "}
+          <code>HUB_HTTP_URL=&quot;http://localhost:3010/hub&quot;</code> to use
+          the frames.js debugger.
+        </div>
+      )}
       <FrameContainer
         postUrl="/frames"
         pathname="/"
