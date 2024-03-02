@@ -90,8 +90,8 @@ export default function Page({
             </form>
           </div>
           <LoginWindow
-            farcasterUser={signerState.signer}
-            loading={signerState.isLoading}
+            farcasterUser={signerState.signer ?? null}
+            loading={signerState.isLoading ?? false}
             startFarcasterSignerProcess={signerState.onSignerlessFramePress}
             impersonateUser={signerState.impersonateUser}
             logout={signerState.logout}
