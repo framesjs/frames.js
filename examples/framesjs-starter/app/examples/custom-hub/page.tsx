@@ -1,3 +1,4 @@
+import { getTokenUrl } from "frames.js";
 import {
   FrameButton,
   FrameContainer,
@@ -5,14 +6,11 @@ import {
   FrameInput,
   FrameReducer,
   NextServerPageProps,
+  getFrameMessage,
   getPreviousFrame,
   useFramesReducer,
-  getFrameMessage,
 } from "frames.js/next/server";
 import Link from "next/link";
-import { getTokenUrl } from "frames.js";
-import { createDebugUrl } from "../../debug";
-import { currentURL } from "../../utils";
 
 type State = {
   active: string;
@@ -32,7 +30,6 @@ const reducer: FrameReducer<State> = (state, action) => {
 
 // This is a react server component only
 export default async function Home({ searchParams }: NextServerPageProps) {
-  const url = currentURL("/examples/custom-hub");
   const previousFrame = getPreviousFrame<State>(searchParams);
 
   const frameMessage = await getFrameMessage(previousFrame.postBody, {
@@ -77,7 +74,7 @@ export default async function Home({ searchParams }: NextServerPageProps) {
   return (
     <div className="p-4">
       frames.js starter kit.{" "}
-      <Link href={createDebugUrl(url)} className="underline">
+      <Link href={process.env.HUB_HTTP_URL ?? "#"} className="underline">
         Debug
       </Link>
       <FrameContainer
