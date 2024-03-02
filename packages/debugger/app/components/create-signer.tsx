@@ -14,7 +14,7 @@ const LoginWindow = ({
   loading: boolean;
   startFarcasterSignerProcess: () => void;
   impersonateUser: (opts: { fid: number }) => void;
-  logout: () => void;
+  logout?: () => void;
 }) => {
   return (
     <div>
