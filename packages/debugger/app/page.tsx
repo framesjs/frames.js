@@ -2,7 +2,8 @@
 /** requires client because signer is stored in local storage */
 
 import { useState, useEffect } from "react";
-import { FrameUI, useFrame, fallbackFrameContext } from "frames.js/render";
+import { FrameUI, fallbackFrameContext } from "frames.js/render";
+import { useFrame } from "frames.js/render/use-frame";
 import { FrameImageNext } from "frames.js/render/next";
 import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
 import { FrameDebugger } from "./components/frame-debugger";
