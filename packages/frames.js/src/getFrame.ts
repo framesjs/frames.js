@@ -2,6 +2,7 @@ import * as cheerio from "cheerio";
 import {
   getByteLength,
   isFrameButtonLink,
+  isFrameButtonTx,
   isFrameButtonMint,
   isValidVersion,
 } from "./utils";
@@ -12,6 +13,10 @@ import type {
   Frame,
   ImageAspectRatio,
 } from "./types";
+
+/**
+ * Todo, this function should be refactored to just use zod.
+ */
 
 /**
  * @returns a { frame: Frame | null, errors: null | ErrorMessages } object, extracting the frame metadata from the given htmlString.
@@ -116,6 +121,15 @@ export function getFrame({
       .toArray()
   );
 
+  const buttonPostUrls = [1, 2, 3, 4].flatMap((el) =>
+    $(
+      `meta[property='fc:frame:button:${el}:post_url'], meta[name='fc:frame:button:${el}:post_url']`
+    )
+      .map((i, elem) => parseButtonElement(elem))
+      .filter((i, elem) => elem !== null)
+      .toArray()
+  );
+
   let buttonsValidation = [false, false, false, false];
   const buttonsWithActions = buttonLabels
     .map((button): FrameButton & { buttonIndex: number } => {
@@ -123,6 +137,9 @@ export function getFrame({
         (action) => action?.buttonIndex === button?.buttonIndex
       );
       const buttonTarget = buttonTargets.find(
+        (action) => action?.buttonIndex === button?.buttonIndex
+      );
+      const buttonPostUrl = buttonPostUrls.find(
         (action) => action?.buttonIndex === button?.buttonIndex
       );
       if (buttonsValidation[button.buttonIndex - 1]) {
@@ -142,10 +159,11 @@ export function getFrame({
 
       const action =
         buttonAction?.content !== undefined ? buttonAction?.content : "post";
-      if (action === "link") {
+      if (action === "link" || action === "tx") {
         if (!buttonTarget?.content) {
           addError({
-            message: "No button target, but required for action type link",
+            message:
+              "No button target, but required for action type 'link' and 'tx'",
             key: `fc:frame:button:${button.buttonIndex}`,
           });
         }
@@ -163,7 +181,7 @@ export function getFrame({
         }
       }
 
-      if (!buttonTarget?.content && ["link", "mint"].includes(action)) {
+      if (!buttonTarget?.content && ["link", "mint", "tx"].includes(action)) {
         addError({
           message: `Button target is required for action type ${action}`,
           key: `fc:frame:button:${button.buttonIndex}`,
@@ -172,13 +190,13 @@ export function getFrame({
 
       if (buttonTarget?.content && !buttonAction) {
         addError({
-          message: "Missing button action (should be 'mint' or 'link')",
+          message: "Missing button action (should be 'mint' or 'link' or 'tx')",
           key: `fc:frame:button:${button.buttonIndex}`,
         });
       }
 
       if (
-        !["post_redirect", "post", "mint", "link", undefined].includes(
+        !["post_redirect", "post", "mint", "link", "tx", undefined].includes(
           buttonAction?.content
         )
       ) {
@@ -203,6 +221,7 @@ export function getFrame({
       return {
         buttonIndex: button.buttonIndex,
         label: button.content || "",
+        post_url: buttonPostUrl?.content,
         target: buttonTarget?.content,
         // this is an optional property, falls back to "post"
         action: buttonAction?.content || "post",
@@ -211,16 +230,22 @@ export function getFrame({
     .sort((a, b) => a.buttonIndex - b.buttonIndex)
     .map((button): FrameButton => {
       // type guards are weird sometimes.
-      if (isFrameButtonLink(button) || isFrameButtonMint(button))
+      if (
+        isFrameButtonLink(button) ||
+        isFrameButtonMint(button) ||
+        isFrameButtonTx(button)
+      )
         return {
           label: button.label,
           action: button.action,
+          post_url: button.post_url,
           target: button.target,
         };
 
       return {
         label: button.label,
         action: button.action,
+        post_url: button.post_url,
         target: button.target,
       };
     });
@@ -288,12 +313,6 @@ export function getFrame({
     });
   }
 
-  if (!postUrl) {
-    addError({
-      message: "No post_url in frame",
-      key: "fc:frame:post_url",
-    });
-  }
   if (getByteLength(postUrl) > 256) {
     addError({
       message:

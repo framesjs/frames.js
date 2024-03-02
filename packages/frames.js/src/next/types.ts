@@ -84,20 +84,32 @@ export type FrameButtonProvidedProps =
   | FrameButtonPostRedirectProvidedProps
   | FrameButtonPostProvidedProps
   | FrameButtonMintProvidedProps
-  | FrameButtonLinkProvidedProps;
+  | FrameButtonLinkProvidedProps
+  | FrameButtonTxProvidedProps;
 
 export type FrameButtonPostProvidedProps = {
   /** a label to display on the button */
   children: string | number;
   action?: "post";
+  post_url?: undefined;
   /** an absolute url to post to. If not defined */
   target?: string;
+};
+
+export type FrameButtonTxProvidedProps = {
+  /** a label to display on the button */
+  children: string | number;
+  action: "tx";
+  /** an absolute url to redirect users to */
+  target: string;
+  post_url?: string;
 };
 
 export type FrameButtonLinkProvidedProps = {
   /** a label to display on the button */
   children: string | number;
   action: "link";
+  post_url?: undefined;
   /** an absolute url to redirect users to */
   target?: string;
 };
@@ -106,6 +118,7 @@ export type FrameButtonPostRedirectProvidedProps = {
   /** a label to display on the button */
   children: string | number;
   action: "post_redirect";
+  post_url?: undefined;
   /** an absolute url to redirect users to */
   target?: string;
 };
@@ -114,6 +127,8 @@ export type FrameButtonMintProvidedProps = {
   /** a label to display on the button */
   children: string | number;
   action: "mint";
+  post_url?: undefined;
+
   /** a [CAIP-10](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md) url to an NFT smart contract or token */
   target: string;
 };

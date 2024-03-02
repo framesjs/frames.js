@@ -273,6 +273,8 @@ export function useFrame<
       }
     } else if (frameButton.action === "mint") {
       onMint({ frameButton, target, frame: currentFrame });
+    } else if (frameButton.action === "tx") {
+      onTransaction({ frameButton, target, frame: currentFrame });
     } else if (
       frameButton.action === "post" ||
       frameButton.action === "post_redirect"

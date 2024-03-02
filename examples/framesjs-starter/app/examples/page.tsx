@@ -10,6 +10,11 @@ export default function ExamplesIndexPage() {
           </Link>
         </li>
         <li>
+          <Link className="underline" href="/examples/transaction">
+            Transactions
+          </Link>
+        </li>
+        <li>
           <Link className="underline" href="/examples/custom-hub">
             Custom Hub
           </Link>
