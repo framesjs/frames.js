@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "private": true,
   "scripts": {
-    "dev": "[ -n \"$FJS_MONOREPO\" ] && npm run dev:monorepo || npm run dev:starter",
+    "dev": "node dev-script.js",
     "dev:starter": "concurrently --kill-others \"next dev\" \"frames\"",
     "dev:monorepo": "next dev",
     "build": "next build",
