@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { FarcasterSigner } from "frames.js/render";
 import QRCode from "qrcode.react";
 
@@ -18,8 +20,8 @@ const LoginWindow = ({
 }) => {
   return (
     <div>
-      <div style={{ minWidth: "150px" }} className="mt-4">
-        <div>
+      <div>
+        <div className="border-b pb-2">
           {farcasterUser?.status === "approved" ? (
             farcasterUser.fid ? (
               <div>
@@ -32,9 +34,7 @@ const LoginWindow = ({
           ) : farcasterUser?.status === "impersonating" ? (
             <div>
               Impersonating fid: <b>{farcasterUser?.fid}</b>,{" "}
-              <button className="underline" onClick={logout}>
-                Logout
-              </button>
+              <Button onClick={logout}>Logout</Button>
               <p>
                 <span className=" text-slate-400">
                   *Impersonation only works for testing local frames using
@@ -47,66 +47,45 @@ const LoginWindow = ({
           ) : farcasterUser?.status === "pending_approval" ? (
             "Approve in Warpcast"
           ) : (
-            <h2>Sign in to test buttons</h2>
+            <h2>Sign in use buttons</h2>
           )}
         </div>
         <div>
           {!farcasterUser?.status && (
-            <div>
+            <div className="flex flex-col gap-2 pt-2">
               <form
                 action=""
-                onSubmit={async (e: any) => {
-                  e.preventDefault();
-                  impersonateUser({ fid: 1 });
-                }}
-              >
-                <button
-                  style={{
-                    cursor: loading ? "not-allowed" : "pointer",
-                  }}
-                  className="underline"
-                  type="submit"
-                  disabled={loading}
-                >
-                  Impersonate fid: 1
-                </button>
-              </form>
-              <div>or</div>
-              <form
-                action=""
+                className="flex flex-row"
                 onSubmit={async (e: any) => {
                   e.preventDefault();
                   const { value: fid } = e.target[0] as HTMLInputElement;
                   impersonateUser({ fid: parseInt(fid) });
                 }}
               >
-                <input type="text" placeholder="FID to impersonate" />{" "}
-                <button
+                <Input type="text" placeholder="FID" defaultValue={"1"} />{" "}
+                <Button
                   style={{
                     cursor: loading ? "not-allowed" : "pointer",
                   }}
-                  className="underline"
                   type="submit"
                   disabled={loading}
                 >
-                  Impersonate
-                </button>
+                  Impersonate FID
+                </Button>
               </form>
-
-              <div>or</div>
-
-              <button
+              <div className="mx-auto">or</div>
+              <Button
                 style={{
                   cursor: loading ? "not-allowed" : "pointer",
                 }}
-                className="underline"
                 onClick={startFarcasterSignerProcess}
                 disabled={loading}
               >
-                {loading
-                  ? "Loading..."
-                  : "Sign in with farcaster (costs warps once, works with remote frames and other libs)"}
-              </button>
+                {loading ? "Loading..." : "Sign in with farcaster"}
+              </Button>
+              <div>
+                (costs warps once, works with remote frames and other libs)
+              </div>
             </div>
           )}
           {farcasterUser?.status === "pending_approval" &&

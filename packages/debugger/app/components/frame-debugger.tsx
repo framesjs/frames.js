@@ -1,5 +1,5 @@
 import { getFrameHtmlHead, getFrameFlattened } from "frames.js";
-import { useEffect, useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import React from "react";
 import { FrameState } from "frames.js/render";
 import {
@@ -7,13 +7,49 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "./ui/accordion";
-import { Table, TableBody, TableCell, TableRow } from "./ui/table";
-import { LoaderIcon } from "lucide-react";
+} from "@/components/accordion";
+import { Table, TableBody, TableCell, TableRow } from "@/components/table";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BanIcon,
+  BracesIcon,
+  HomeIcon,
+  ListIcon,
+  LoaderIcon,
+  RefreshCwIcon,
+  RotateCcwIcon,
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { MockHubConfig } from "./mock-hub-config";
+import { MockHubActionContext } from "../utils/mock-hub-utils";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type FrameDebuggerFramePropertiesTableRowsProps = {
   stackItem: FrameState["framesStack"][number];
 };
+
+function paramsToObject(entries: IterableIterator<[string, string]>): object {
+  const result: Record<string, any> = {};
+  for (const [key, value] of entries) {
+    // each 'entry' is a [key, value] tupple
+    if (value.startsWith("{")) {
+      try {
+        result[key] = JSON.parse(value);
+        continue;
+      } catch (err) {}
+    }
+    result[key] = value;
+  }
+  return result;
+}
 
 function FrameDebuggerFramePropertiesTableRow({
   stackItem,
@@ -64,7 +100,9 @@ function FrameDebuggerFramePropertiesTableRow({
           <TableRow key={`${propertyKey}-valid`}>
             <TableCell>🟢</TableCell>
             <TableCell>{propertyKey}</TableCell>
-            <TableCell className="text-slate-500">{value}</TableCell>
+            <TableCell className="text-slate-500">
+              <ShortenedText text={value} maxLength={30} />
+            </TableCell>
           </TableRow>
         );
       })}
@@ -85,14 +123,35 @@ function FrameDebuggerFramePropertiesTableRow({
   );
 }
 
+function ShortenedText({
+  maxLength,
+  text,
+}: {
+  maxLength: number;
+  text: string;
+}) {
+  if (text.length < maxLength) return text;
+
+  return (
+    <HoverCard>
+      <HoverCardTrigger>{text.slice(0, maxLength - 3)}...</HoverCardTrigger>
+      <HoverCardContent className="break-words">{text}</HoverCardContent>
+    </HoverCard>
+  );
+}
+
 export function FrameDebugger({
   children,
   url,
   frameState,
+  mockHubContext,
+  setMockHubContext,
 }: {
   frameState: FrameState;
   children: React.ReactElement<any>;
   url: string;
+  mockHubContext: Partial<MockHubActionContext>;
+  setMockHubContext: Dispatch<SetStateAction<Partial<MockHubActionContext>>>;
 }) {
   const [copySuccess, setCopySuccess] = useState(false);
 
@@ -125,159 +184,343 @@ export function FrameDebugger({
   }, [frameState.isLoading]);
 
   return (
-    <div className="flex flex-col items-start">
-      <div className="p-4 flex flex-col gap-4 w-[500px] min-w-[500px]">
-        <span className="font-bold">Debugging frame at: {url}</span>
-        {children}
-        {frameState.isLoading && !frameState.frame ? "Loading..." : null}
-      </div>
-      <div className="flex flex-row gap-4 w-full">
-        <div className="p-4 h-full min-w-0 w-full">
-          <h3 className="font-bold">Frames</h3>
-          {frameState.isLoading ? (
-            <div
-              className="flex flex-row gap-2 py-2"
-              // className={
-              //   "flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180"
-              // }
-            >
-              <LoaderIcon className="animate-spin" />
-              Fetching frame #{frameState.framesStack.length + 1}...
-            </div>
-          ) : null}
-          <Accordion
-            type="multiple"
-            value={openAccordions}
-            onValueChange={onValueChange}
+    <div className="flex flex-row items-start p-4 gap-4 bg-slate-50 max-w-full w-full h-full">
+      <div className="flex flex-col gap-4 w-[300px] min-w-[300px]">
+        <div className="flex flex-row gap-2">
+          <Button
+            className="flex flex-row gap-3 items-center shadow-sm border"
+            variant={"outline"}
           >
+            <HomeIcon size={20} />
+          </Button>
+          <Button
+            className="flex flex-row gap-3 items-center shadow-sm border"
+            variant={"outline"}
+          >
+            <RefreshCwIcon size={20} />
+          </Button>
+          <Button
+            className="flex flex-row gap-3 items-center shadow-sm border"
+            variant={"outline"}
+          >
+            <ArrowLeft size={20} />
+          </Button>
+          <Button
+            className="flex flex-row gap-3 items-center shadow-sm border"
+            variant={"outline"}
+          >
+            <ArrowRight size={20} />
+          </Button>
+          <Button
+            className="flex flex-row gap-3 items-center shadow-sm border"
+            variant={"outline"}
+            onClick={() => {}}
+          >
+            <RotateCcwIcon size={20} />
+          </Button>
+        </div>
+        <Card className="max-h-[400px] overflow-y-auto">
+          <CardContent className="p-0">
+            {frameState.isLoading ? (
+              <div
+                className={`flex flex-row gap-2 p-3 py-5 text-sm ${frameState.framesStack.length !== 0 ? "border-b" : ""} items-center`}
+                // className={
+                //   "flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180"
+                // }
+              >
+                <LoaderIcon className="animate-spin" size={20} />
+                Fetching frame #{frameState.framesStack.length + 1}...
+              </div>
+            ) : null}
+
             {frameState.framesStack.map((frameStackItem, i) => {
               return (
-                <AccordionItem
-                  value={String(frameStackItem.timestamp.getTime())}
-                  key={String(frameStackItem.timestamp.getTime())}
+                <div
+                  className={`px-4 py-3 flex flex-col gap-2 ${i !== 0 ? "border-t" : ""}`}
+                  key={frameStackItem.timestamp.getTime()}
                 >
-                  <AccordionTrigger className="ml-2">
-                    {!("requestError" in frameStackItem) &&
-                    frameStackItem.isValid
-                      ? "🟢"
-                      : "🔴"}{" "}
-                    Frame #{frameState.framesStack.length - i}{" "}
-                    {i === 0 ? (
-                      <span className="ml-1 bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-red-900 dark:text-red-300">
-                        {" "}
-                        Current Frame
-                      </span>
-                    ) : (
-                      ""
-                    )}
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <Table>
-                      <TableBody>
-                        <TableRow>
-                          <TableCell>
-                            {"requestError" in frameStackItem ? "🔴" : "🟢"}
-                          </TableCell>
-                          <TableCell>frame fetched from</TableCell>
-                          <TableCell className="text-slate-500">
-                            <span className="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-gray-300">
-                              {frameStackItem.timestamp.toLocaleTimeString()}{" "}
-                            </span>
-                            <span className="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-gray-300">
-                              {frameStackItem.method}
-                            </span>{" "}
-                            {frameStackItem.url}
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>
-                            {frameStackItem.speed > 5
-                              ? "🔴"
-                              : frameStackItem.speed > 4
-                                ? "🟠"
-                                : "🟢"}
-                          </TableCell>
-                          <TableCell>frame speed</TableCell>
-                          <TableCell className="text-slate-500">
-                            {frameStackItem.speed > 5
-                              ? `Request took more than 5s (${frameStackItem.speed} seconds). This may be normal: first request will take longer in development (as next.js builds), but in production, clients will timeout requests after 5s`
-                              : frameStackItem.speed > 4
-                                ? `Warning: Request took more than 4s (${frameStackItem.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
-                                : `${frameStackItem.speed} seconds`}
-                          </TableCell>
-                        </TableRow>
-                        <FrameDebuggerFramePropertiesTableRow
-                          stackItem={frameStackItem}
-                        ></FrameDebuggerFramePropertiesTableRow>
-                      </TableBody>
-                    </Table>
-                    <a
-                      target="_blank"
-                      className="underline text-slate-400 mt-2 block"
-                      href="https://docs.farcaster.xyz/learn/what-is-farcaster/frames"
-                    >
-                      ↗ Farcaster Frames Spec
-                    </a>
-                    <div className="bg-slate-100 p-4 flex-1">
-                      <h3 className="font-bold">frames.js Frame object</h3>
-                      <pre
-                        id="json"
-                        className="font-mono text-xs"
-                        style={{
-                          padding: "10px",
-                          borderRadius: "4px",
-                        }}
-                      >
-                        {JSON.stringify(
-                          "frame" in frameStackItem
-                            ? frameStackItem.frame
-                            : undefined,
-                          null,
-                          2
-                        )}
-                      </pre>
-                      {"frame" in frameStackItem ? (
-                        <div className="py-4 flex-1">
-                          <span className="font-bold mr-2">html tags</span>
-                          <button
-                            className="underline"
-                            onClick={() => {
-                              // Copy the text inside the text field
-                              navigator.clipboard.writeText(
-                                getFrameHtmlHead(frameStackItem.frame)
-                              );
-                              setCopySuccess(true);
-                            }}
-                          >
-                            {copySuccess
-                              ? "✔︎ copied to clipboard"
-                              : "copy html tags"}
-                          </button>
+                  <div className="flex flex-row">
+                    <span className="border text-gray-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">
+                      {frameStackItem.method}
+                    </span>
+                    <span className="border text-gray-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">
+                      {new URL(frameStackItem.url).protocol}//
+                      {new URL(frameStackItem.url).hostname}
+                      {new URL(frameStackItem.url).port
+                        ? `:${new URL(frameStackItem.url).port}`
+                        : ""}
+                    </span>
+                    <span className="ml-auto">
+                      {!("requestError" in frameStackItem) &&
+                      frameStackItem.isValid
+                        ? "🟢"
+                        : "🔴"}
+                    </span>
+                  </div>
+                  <div className="flex flex-row">
+                    <div>{new URL(frameStackItem.url).pathname}</div>
+                    {Array.from(
+                      new URL(frameStackItem.url).searchParams.entries()
+                    ).length ? (
+                      <HoverCard>
+                        <HoverCardTrigger>
+                          <span className="border ml-2 text-gray-500 text-xs font-medium me-2 p-1 cursor-pointer rounded dark:bg-gray-700 dark:text-gray-300">
+                            ?params
+                          </span>
+                        </HoverCardTrigger>
+                        <HoverCardContent>
                           <pre
-                            id="html"
-                            className="text-xs"
+                            id="json"
+                            className="font-mono text-xs"
                             style={{
                               padding: "10px",
                               borderRadius: "4px",
                             }}
                           >
-                            {getFrameHtmlHead(frameStackItem.frame)
-                              .split("<meta")
-                              .filter((t) => !!t)
-                              // hacky...
-                              .flatMap((el, i) => [
-                                <span key={i}>{`<meta${el}`}</span>,
-                                <br key={`br_${i}`} />,
-                              ])}
+                            {JSON.stringify(
+                              paramsToObject(
+                                new URL(
+                                  frameStackItem.url
+                                ).searchParams.entries()
+                              ),
+                              null,
+                              2
+                            )}
                           </pre>
-                        </div>
-                      ) : null}
+                        </HoverCardContent>
+                      </HoverCard>
+                    ) : null}
+                    <div className="ml-auto">
+                      {frameStackItem.timestamp.toLocaleTimeString()}
                     </div>
-                  </AccordionContent>
-                </AccordionItem>
+                  </div>
+                </div>
               );
             })}
-          </Accordion>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="px-5">
+            <MockHubConfig
+              hubContext={mockHubContext}
+              setHubContext={setMockHubContext}
+            ></MockHubConfig>
+          </CardContent>
+        </Card>
+        <div className="border rounded-lg shadow-sm bg-white">
+          <a
+            target="_blank"
+            className="px-2 py-3 block"
+            href="https://docs.farcaster.xyz/learn/what-is-farcaster/frames"
+          >
+            <span className="text-slate-400 px-2 w-9 relative text-center inline-block">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="inline mb-1"
+                width="18"
+                height="18"
+                fill="none"
+                viewBox="0 0 1000 1000"
+              >
+                <path
+                  fill="#64748b"
+                  d="M257.778 155.556h484.444v688.889h-71.111V528.889h-.697c-7.86-87.212-81.156-155.556-170.414-155.556-89.258 0-162.554 68.344-170.414 155.556h-.697v315.556h-71.111V155.556z"
+                ></path>
+                <path
+                  fill="#64748b"
+                  d="M128.889 253.333l28.889 97.778h24.444v395.556c-12.273 0-22.222 9.949-22.222 22.222v26.667h-4.444c-12.273 0-22.223 9.949-22.223 22.222v26.667h248.889v-26.667c0-12.273-9.949-22.222-22.222-22.222h-4.444v-26.667c0-12.273-9.95-22.222-22.223-22.222h-26.666V253.333H128.889zM675.556 746.667c-12.273 0-22.223 9.949-22.223 22.222v26.667h-4.444c-12.273 0-22.222 9.949-22.222 22.222v26.667h248.889v-26.667c0-12.273-9.95-22.222-22.223-22.222h-4.444v-26.667c0-12.273-9.949-22.222-22.222-22.222V351.111h24.444L880 253.333H702.222v493.334h-26.666z"
+                ></path>
+              </svg>
+            </span>
+            Farcaster Frames Docs
+          </a>
+          <a
+            target="_blank"
+            className="px-2 py-3 border-t block"
+            href="https://framesjs.org"
+          >
+            <span className="text-slate-400 px-2 w-9 relative text-center inline-block">
+              ↗
+            </span>
+            Frames.js documentation
+          </a>
+          <a
+            target="_blank"
+            className="px-2 py-3 border-t block"
+            href="https://warpcast.com/~/developers/embeds"
+          >
+            <span className="text-slate-400 px-2 w-9 relative text-center inline-block bottom-[1px]">
+              ⬗
+            </span>
+            Warpcast Frame Debugger
+          </a>
+          <a
+            target="_blank"
+            className="px-2 py-3 border-t block"
+            href="https://github.com/davidfurlong/awesome-frames?tab=readme-ov-file"
+          >
+            <span className="text-slate-400 px-2 w-9 relative text-center inline-block bottom-[1px]">
+              <ListIcon className="inline" size={16} />
+            </span>
+            Awesome Frames
+          </a>
+        </div>
+      </div>
+      <div className="flex flex-col gap-4 w-[500px] min-w-[500px]">
+        <div className="w-full flex flex-col gap-1">
+          {children}{" "}
+          {frameState.isLoading && !frameState.frame ? (
+            <div className="flex flex-col space-y-3">
+              <Skeleton className="h-[250px] w-full rounded-xl" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          ) : null}
+          <div className="ml-auto text-sm text-slate-500">{url}</div>
+        </div>
+        {frameState.framesStack.length !== 0 ? (
+          <Tabs defaultValue="state" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="state">Frame</TabsTrigger>
+              <TabsTrigger value="query">Query params</TabsTrigger>
+              <TabsTrigger value="meta">Meta tags</TabsTrigger>
+            </TabsList>
+            <TabsContent value="query">
+              <Card>
+                <CardContent className="px-5 py-2">
+                  {Array.from(
+                    new URL(
+                      frameState.framesStack[0]!.url
+                    ).searchParams.entries()
+                  ).length ? (
+                    <pre
+                      id="json"
+                      className="font-mono text-xs"
+                      style={{
+                        padding: "10px",
+                        borderRadius: "4px",
+                      }}
+                    >
+                      {JSON.stringify(
+                        paramsToObject(
+                          new URL(
+                            frameState.framesStack[0]!.url
+                          ).searchParams.entries()
+                        ),
+                        null,
+                        2
+                      )}
+                    </pre>
+                  ) : (
+                    "None"
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="meta">
+              <Card>
+                <CardContent className="px-5 break-words w-full overflow-x-auto">
+                  {"frame" in frameState.framesStack[0]! ? (
+                    <div className="py-4 flex-1">
+                      <span className="font-bold mr-2">html tags</span>
+                      <button
+                        className="underline"
+                        onClick={() => {
+                          // Copy the text inside the text field
+                          navigator.clipboard.writeText(
+                            getFrameHtmlHead(frameState.framesStack[0]!.frame)
+                          );
+                          setCopySuccess(true);
+                        }}
+                      >
+                        {copySuccess
+                          ? "✔︎ copied to clipboard"
+                          : "copy html tags"}
+                      </button>
+                      <pre
+                        id="html"
+                        className="text-xs"
+                        style={{
+                          padding: "10px",
+                          borderRadius: "4px",
+                        }}
+                      >
+                        {getFrameHtmlHead(frameState.framesStack[0]!.frame)
+                          .split("<meta")
+                          .filter((t) => !!t)
+                          // hacky...
+                          .flatMap((el, i) => [
+                            <span key={i}>{`<meta${el}`}</span>,
+                            <br key={`br_${i}`} />,
+                          ])}
+                      </pre>
+                    </div>
+                  ) : null}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="state">
+              <Card>
+                <CardContent className="px-5 break-words w-full overflow-x-auto">
+                  <pre id="json" className="font-mono text-xs p-2">
+                    {JSON.stringify(
+                      "frame" in frameState.framesStack[0]!
+                        ? frameState.framesStack[0]!.frame
+                        : undefined,
+                      null,
+                      2
+                    )}
+                  </pre>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        ) : null}
+      </div>
+      <div className="flex flex-row gap-4 w-full">
+        <div className="h-full min-w-0 w-full">
+          <Card>
+            <CardContent className="p-0">
+              {frameState.isLoading ? (
+                <div
+                  className="flex flex-row gap-2 p-4"
+                  // className={
+                  //   "flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180"
+                  // }
+                >
+                  <LoaderIcon className="animate-spin" />
+                  Fetching frame #{frameState.framesStack.length + 1}...
+                </div>
+              ) : null}
+              {frameState.framesStack.length !== 0 ? (
+                <div className="px-2">
+                  <Table>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell>
+                          {frameState.framesStack[0]!.speed > 5
+                            ? "🔴"
+                            : frameState.framesStack[0]!.speed > 4
+                              ? "🟠"
+                              : "🟢"}
+                        </TableCell>
+                        <TableCell>frame speed</TableCell>
+                        <TableCell className="text-slate-500">
+                          {frameState.framesStack[0]!.speed > 5
+                            ? `Request took more than 5s (${frameState.framesStack[0]!.speed} seconds). This may be normal: first request will take longer in development (as next.js builds), but in production, clients will timeout requests after 5s`
+                            : frameState.framesStack[0]!.speed > 4
+                              ? `Warning: Request took more than 4s (${frameState.framesStack[0]!.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
+                              : `${frameState.framesStack[0]!.speed} seconds`}
+                        </TableCell>
+                      </TableRow>
+                      <FrameDebuggerFramePropertiesTableRow
+                        stackItem={frameState.framesStack[0]!}
+                      ></FrameDebuggerFramePropertiesTableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
