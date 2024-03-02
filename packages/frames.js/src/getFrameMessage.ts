@@ -1,4 +1,4 @@
-import { FrameActionMessage, Message } from "./farcaster";
+import { FrameActionMessage, Message } from "@farcaster/core";
 import {
   FrameActionDataParsed,
   FrameActionHubContext,

@@ -1,5 +1,16 @@
 # frames.js
 
+## 0.6.0
+
+### Minor Changes
+
+- 845b30c: refactor: make frame validation errors arbitraty, remove unnecessary validateFrame function
+- ce1cec6: feat: Breaking change! Adds support for fc:frame:state - no longer stores state in url params.
+
+### Patch Changes
+
+- 845b30c: feat: add frame rendering components
+
 ## 0.5.3
 
 ### Patch Changes

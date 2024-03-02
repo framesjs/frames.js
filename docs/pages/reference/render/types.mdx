@@ -3,7 +3,7 @@
 ## Example usage
 
 ```tsx
-import { AuthStateInstance } from "frames.js/render";
+import { SignerStateInstance } from "frames.js/render";
 ```
 
 ## Reference
@@ -12,16 +12,17 @@ import { AuthStateInstance } from "frames.js/render";
 
 import type { Frame, FrameButton } from "..";
 
-export interface AuthStateInstance<
+export interface SignerStateInstance<
   T = object,
   B extends FrameActionBodyPayload = FrameActionBodyPayload,
 > {
-  user: T | null;
-  isLoggedIn: boolean;
+  signer: T | null;
+  hasSigner: boolean;
   signFrameAction: (actionContext: {
     target?: string;
     frameButton: FrameButton;
     buttonIndex: number;
+    signer: T | null;
     url: string;
     inputText?: string;
     frameContext: FrameContext;
@@ -30,7 +31,7 @@ export interface AuthStateInstance<
     searchParams: URLSearchParams;
   }>;
   isLoading: boolean;
-  promptLogin: () => void;
+  onSignerlessFramePress: () => void;
   logout: () => void;
 }
 

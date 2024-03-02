@@ -1,6 +1,6 @@
 {
   "name": "framesjs-starter",
-  "version": "0.1.12",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -16,7 +16,9 @@
     "@xmtp/frames-validator": "^0.5.0",
     "@vercel/kv": "^1.0.1",
     "class-variance-authority": "^0.7.0",
-    "frames.js": "^0.5.2",
+    "clsx": "^2.1.0",
+    "frames.js": "^0.6.0",
+    "lucide-react": "^0.331.0",
     "next": "14.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

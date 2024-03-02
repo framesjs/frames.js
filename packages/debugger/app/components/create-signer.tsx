@@ -1,7 +1,7 @@
 "use client";
 
+import { FarcasterSigner } from "frames.js/render";
 import QRCode from "qrcode.react";
-import { FarcasterUser } from "../types/farcaster-user";
 
 const LoginWindow = ({
   farcasterUser,
@@ -10,7 +10,7 @@ const LoginWindow = ({
   impersonateUser,
   logout,
 }: {
-  farcasterUser: FarcasterUser | null;
+  farcasterUser: FarcasterSigner | null;
   loading: boolean;
   startFarcasterSignerProcess: () => void;
   impersonateUser: (opts: { fid: number }) => void;

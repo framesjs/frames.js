@@ -37,7 +37,7 @@ export function getFrame({
       errors[key] &&
       Array.isArray(errors[key])
     ) {
-      console.log(`Error: ${key} ${message}`);
+      console.error(`Error: ${key} ${message}`);
       errors[key]!.push(message);
     } else {
       errors[key] = [message];

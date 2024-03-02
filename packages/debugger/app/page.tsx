@@ -39,13 +39,13 @@ export default function Page({
       setUrlInput(url);
     }
   }, [url]);
-  const authState = useFarcasterIdentity();
+  const signerState = useFarcasterIdentity();
   const frameState = useFrame({
     homeframeUrl: url,
-    frameActionRoute: "/frames",
-    frameFetchRoute: "/frames",
+    frameActionProxy: "/frames",
+    frameGetProxy: "/frames",
     frameContext: fallbackFrameContext,
-    authState,
+    signerState,
     extraButtonRequestPayload: { mockData: mockHubContext },
   });
 
@@ -90,11 +90,11 @@ export default function Page({
             </form>
           </div>
           <LoginWindow
-            farcasterUser={authState.user}
-            loading={authState.isLoading}
-            startFarcasterSignerProcess={authState.promptLogin}
-            impersonateUser={authState.impersonateUser}
-            logout={authState.logout}
+            farcasterUser={signerState.signer}
+            loading={signerState.isLoading}
+            startFarcasterSignerProcess={signerState.onSignerlessFramePress}
+            impersonateUser={signerState.impersonateUser}
+            logout={signerState.logout}
           ></LoginWindow>
         </div>
         {url ? (
