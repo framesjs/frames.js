@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import {
   FrameState,
@@ -9,6 +11,7 @@ import {
 } from "./types";
 import type { Frame, FrameButton } from "../types";
 import { getFrame } from "../getFrame";
+import { getFarcasterTime } from "@farcaster/core";
 
 function onMintFallback({ target }: onMintArgs) {
   if (window.confirm("You are about to be redirected to " + target!)) {
@@ -16,12 +19,42 @@ function onMintFallback({ target }: onMintArgs) {
   }
 }
 
-export const fallbackFrameContext: FrameContext = {
-  castId: {
-    fid: 1,
-    hash: "0x0000000000000000000000000000000000000000" as const,
-  },
-};
+export const unsignedFrameAction: SignerStateInstance["signFrameAction"] =
+  async ({
+    buttonIndex,
+    frameContext,
+    frameButton,
+    state,
+    target,
+    inputText,
+    url,
+  }) => {
+    const searchParams = new URLSearchParams({
+      postType: frameButton?.action || "post",
+      postUrl: target ?? "",
+    });
+
+    return {
+      searchParams: searchParams,
+      body: {
+        untrustedData: {
+          url: url,
+          timestamp: getFarcasterTime()._unsafeUnwrap(),
+          network: 1,
+          buttonIndex: buttonIndex,
+          castId: {
+            fid: frameContext.castId.fid,
+            hash: frameContext.castId.hash,
+          },
+          state,
+          inputText,
+        },
+        trustedData: {
+          messageBytes: "0",
+        },
+      },
+    };
+  };
 
 export function useFrame<
   T = object,
@@ -29,6 +62,7 @@ export function useFrame<
 >({
   homeframeUrl,
   frameContext,
+  dangerousSkipSigning,
   onMint = onMintFallback,
   signerState,
   frame,
@@ -38,6 +72,8 @@ export function useFrame<
   frameGetProxy,
   extraButtonRequestPayload,
 }: {
+  /** skip frame signing, for frames that don't verify signatures */
+  dangerousSkipSigning?: boolean;
   /** the route used to POST frame actions. The post_url will be added as a the `url` query parameter */
   frameActionProxy: string;
   /** the route used to GET the initial frame via proxy */
@@ -58,8 +94,23 @@ export function useFrame<
   extraButtonRequestPayload?: Record<string, unknown>;
 }): FrameState {
   const [inputText, setInputText] = useState("");
-  const [framesStack, setFramesStack] = useState<FramesStack>([]);
   const initialFrame = frame ? { frame: frame, errors: null } : undefined;
+
+  const [framesStack, setFramesStack] = useState<FramesStack>(
+    initialFrame
+      ? [
+          {
+            method: "GET",
+            timestamp: new Date(),
+            url: homeframeUrl ?? "",
+            isValid: true,
+            frameValidationErrors: null,
+            speed: 0,
+            ...initialFrame,
+          },
+        ]
+      : []
+  );
   const [isLoading, setIsLoading] = useState(initialFrame ? false : true);
   // Load initial frame if not defined
   useEffect(() => {
@@ -70,7 +121,6 @@ export function useFrame<
       const requestUrl = `${frameGetProxy}?url=${homeframeUrl}`;
 
       let stackItem: FramesStack[number];
-
       try {
         frame = (await (await fetch(requestUrl)).json()) as ReturnType<
           typeof getFrame
@@ -144,8 +194,9 @@ export function useFrame<
       console.error("missing frame");
       return;
     }
-    if (!signerState.hasSigner) {
+    if (!signerState.hasSigner && !dangerousSkipSigning) {
       signerState.onSignerlessFramePress();
+      // don't continue, let the app handle
       return;
     }
     const target = frameButton.target ?? currentFrame.postUrl ?? homeframeUrl;
@@ -164,6 +215,8 @@ export function useFrame<
         await onPostButton({
           frameButton: frameButton,
           target: target,
+          dangerousSkipSigning: dangerousSkipSigning,
+
           buttonIndex: index + 1,
           /** https://docs.farcaster.xyz/reference/frames/spec#handling-clicks
 
@@ -188,6 +241,7 @@ export function useFrame<
     buttonIndex,
     postInputText,
     frameButton,
+    dangerousSkipSigning,
     target,
     state,
   }: {
@@ -195,22 +249,22 @@ export function useFrame<
     buttonIndex: number;
     postInputText: string | undefined;
     state?: string;
+    dangerousSkipSigning?: boolean;
+
     target: string;
   }) => {
     const currentFrame = getCurrentFrame();
 
-    if (
-      !signerState.hasSigner ||
-      !currentFrame ||
-      !homeframeUrl ||
-      !frameButton
-    ) {
-      // todo: error handling
+    if (!dangerousSkipSigning && !signerState.hasSigner) {
+      console.error("missing required auth state");
+      return;
+    }
+    if (!currentFrame || !currentFrame || !homeframeUrl || !frameButton) {
       console.error("missing required value for post");
       return;
     }
 
-    const { searchParams, body } = await signerState.signFrameAction({
+    const frameSignatureContext = {
       inputText: postInputText,
       signer: signerState.signer ?? null,
       frameContext,
@@ -219,7 +273,10 @@ export function useFrame<
       frameButton: frameButton,
       buttonIndex: buttonIndex,
       state,
-    });
+    };
+    const { searchParams, body } = dangerousSkipSigning
+      ? await unsignedFrameAction(frameSignatureContext)
+      : await signerState.signFrameAction(frameSignatureContext);
 
     const requestUrl = `${frameActionProxy}?${searchParams.toString()}`;
     const url = searchParams.get("postUrl") ?? "";

@@ -151,6 +151,16 @@
         "default": "./dist/render/farcaster/index.cjs"
       }
     },
+    "./render/use-frame": {
+      "import": {
+        "types": "./dist/render/use-frame.d.ts",
+        "default": "./dist/render/use-frame.js"
+      },
+      "require": {
+        "types": "./dist/render/use-frame.d.cts",
+        "default": "./dist/render/use-frame.cjs"
+      }
+    },
     "./render": {
       "import": {
         "types": "./dist/render/index.d.ts",
