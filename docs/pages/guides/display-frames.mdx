@@ -33,12 +33,12 @@ export { GET, POST } from "frames.js/render/next";
 import {
   FrameUI,
   fallbackFrameContext,
-  useFrame,
   FrameContext,
 } from "frames.js/render";
 import { signFrameAction, FarcasterSigner } from 'frames.js/render/farcaster'
 import { FrameImageNext } from "frames.js/render/next";
 import { FrameButton } from "frames.js";
+import { useFrame } from "frames.js/render/use-frame";
 
 export default function Page() {
   // TODO: replace with your farcaster signer

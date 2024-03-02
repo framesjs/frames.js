@@ -28,11 +28,11 @@ type Props = {
 import {
   FrameUI,
   fallbackFrameContext,
-  useFrame,
   FrameContext,
 } from "frames.js/render";
 import { FrameImageNext } from "frames.js/render/next";
 import { FrameButton } from "frames.js";
+import { useFrame } from "frames.js/render/use-frame";
 import { mockFarcasterSigner, createFrameActionMessageWithSignerKey } from "frames.js/render/farcaster";
 
 export default function Page() {
