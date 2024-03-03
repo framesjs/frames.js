@@ -28,6 +28,12 @@ const args = yargs(hideBin(process.argv))
     type: "number",
     description: "Port to run the debugger on. Default is 3010.",
     default: 3010,
+  })
+  .option("url", {
+    alias: "u",
+    type: "string",
+    description: "Frame to debug",
+    default: process.env.NEXT_PUBLIC_HOST,
   }).argv;
 
 process.env.FARCASTER_DEVELOPER_MNEMONIC = args["farcaster-developer-mnmonic"];
@@ -71,6 +77,7 @@ const app = next({
 });
 const handle = app.getRequestHandler();
 const url = `http://${hostname}:${port}`;
+const initialUrl = `${url}${args.url ? `?url=${args.url}` : ""}`;
 const hubUrl = `${url}/hub`;
 
 await app.prepare();
@@ -80,7 +87,7 @@ createServer(async (req, res) => {
     // Be sure to pass `true` as the second argument to `url.parse`.
     // This tells it to parse the query portion of the URL.
     const parsedUrl = parse(req.url, true);
-    
+
     await handle(req, res, parsedUrl);
   } catch (err) {
     console.error("Error occurred handling", req.url, err);
@@ -96,6 +103,6 @@ createServer(async (req, res) => {
     console.log(`> Debugger ready on ${url}`);
     console.log(`> Debug HUB URL is ${hubUrl}`);
 
-    console.log("> Opening browser...");
-    await open(url);
+    console.log("> Opening browser...", initialUrl);
+    await open(initialUrl);
   });
