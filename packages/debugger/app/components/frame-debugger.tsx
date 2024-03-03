@@ -2,18 +2,11 @@ import { getFrameHtmlHead, getFrameFlattened } from "frames.js";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import React from "react";
 import { FrameState } from "frames.js/render";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/accordion";
 import { Table, TableBody, TableCell, TableRow } from "@/components/table";
 import {
   ArrowLeft,
   ArrowRight,
   BanIcon,
-  BracesIcon,
   HomeIcon,
   ListIcon,
   LoaderIcon,
@@ -154,7 +147,6 @@ export function FrameDebugger({
   setMockHubContext: Dispatch<SetStateAction<Partial<MockHubActionContext>>>;
 }) {
   const [copySuccess, setCopySuccess] = useState(false);
-
   useEffect(() => {
     if (copySuccess) {
       setTimeout(() => {
@@ -165,9 +157,6 @@ export function FrameDebugger({
 
   const [openAccordions, setOpenAccordions] = useState<string[]>([]);
 
-  function onValueChange(nextValue: string[]) {
-    setOpenAccordions(nextValue);
-  }
   useEffect(() => {
     if (!frameState.isLoading) {
       // make sure the first frame is open
@@ -190,33 +179,50 @@ export function FrameDebugger({
           <Button
             className="flex flex-row gap-3 items-center shadow-sm border"
             variant={"outline"}
+            disabled={!frameState?.homeframeUrl}
+            onClick={() => {
+              if (frameState?.homeframeUrl)
+                // fetch home frame again
+                frameState.fetchFrame({
+                  url: frameState?.homeframeUrl,
+                  method: "GET",
+                  request: {},
+                });
+            }}
           >
             <HomeIcon size={20} />
           </Button>
           <Button
             className="flex flex-row gap-3 items-center shadow-sm border"
             variant={"outline"}
+            disabled={!frameState?.homeframeUrl}
+            onClick={() => {
+              if (frameState?.homeframeUrl) {
+                frameState.clearFrameStack();
+                frameState.fetchFrame({
+                  url: frameState?.homeframeUrl,
+                  method: "GET",
+                  request: {},
+                });
+              }
+            }}
+          >
+            <BanIcon size={20} />
+          </Button>
+          <Button
+            className="flex flex-row gap-3 items-center shadow-sm border"
+            variant={"outline"}
+            onClick={() => {
+              if (frameState?.framesStack[0]) {
+                frameState.fetchFrame({
+                  url: frameState?.framesStack[0].url,
+                  method: "POST",
+                  request: frameState?.framesStack[0].request,
+                });
+              }
+            }}
           >
             <RefreshCwIcon size={20} />
-          </Button>
-          <Button
-            className="flex flex-row gap-3 items-center shadow-sm border"
-            variant={"outline"}
-          >
-            <ArrowLeft size={20} />
-          </Button>
-          <Button
-            className="flex flex-row gap-3 items-center shadow-sm border"
-            variant={"outline"}
-          >
-            <ArrowRight size={20} />
-          </Button>
-          <Button
-            className="flex flex-row gap-3 items-center shadow-sm border"
-            variant={"outline"}
-            onClick={() => {}}
-          >
-            <RotateCcwIcon size={20} />
           </Button>
         </div>
         <Card className="max-h-[400px] overflow-y-auto">
@@ -235,11 +241,20 @@ export function FrameDebugger({
 
             {frameState.framesStack.map((frameStackItem, i) => {
               return (
-                <div
+                <button
                   className={`px-4 py-3 flex flex-col gap-2 ${i !== 0 ? "border-t" : ""}`}
                   key={frameStackItem.timestamp.getTime()}
+                  onClick={() => {
+                    if (frameState?.framesStack[0]) {
+                      frameState.fetchFrame({
+                        url: frameState?.framesStack[0].url,
+                        method: "POST",
+                        request: frameState?.framesStack[0].request,
+                      });
+                    }
+                  }}
                 >
-                  <div className="flex flex-row">
+                  <span className="flex flex-row">
                     <span className="border text-gray-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">
                       {frameStackItem.method}
                     </span>
@@ -256,9 +271,9 @@ export function FrameDebugger({
                         ? "🟢"
                         : "🔴"}
                     </span>
-                  </div>
-                  <div className="flex flex-row">
-                    <div>{new URL(frameStackItem.url).pathname}</div>
+                  </span>
+                  <span className="flex flex-row">
+                    <span>{new URL(frameStackItem.url).pathname}</span>
                     {Array.from(
                       new URL(frameStackItem.url).searchParams.entries()
                     ).length ? (
@@ -290,11 +305,11 @@ export function FrameDebugger({
                         </HoverCardContent>
                       </HoverCard>
                     ) : null}
-                    <div className="ml-auto">
+                    <span className="ml-auto">
                       {frameStackItem.timestamp.toLocaleTimeString()}
-                    </div>
-                  </div>
-                </div>
+                    </span>
+                  </span>
+                </button>
               );
             })}
           </CardContent>
@@ -377,16 +392,17 @@ export function FrameDebugger({
           ) : null}
           <div className="ml-auto text-sm text-slate-500">{url}</div>
         </div>
+
         {frameState.framesStack.length !== 0 ? (
-          <Tabs defaultValue="state" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="state">Frame</TabsTrigger>
-              <TabsTrigger value="query">Query params</TabsTrigger>
-              <TabsTrigger value="meta">Meta tags</TabsTrigger>
-            </TabsList>
-            <TabsContent value="query">
-              <Card>
-                <CardContent className="px-5 py-2">
+          <Card>
+            <CardContent className="px-5 py-5 w-full overflow-x-auto">
+              <Tabs defaultValue="state" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="state">Frame</TabsTrigger>
+                  <TabsTrigger value="query">Query params</TabsTrigger>
+                  <TabsTrigger value="meta">Meta tags</TabsTrigger>
+                </TabsList>
+                <TabsContent value="query">
                   {Array.from(
                     new URL(
                       frameState.framesStack[0]!.url
@@ -413,12 +429,8 @@ export function FrameDebugger({
                   ) : (
                     "None"
                   )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="meta">
-              <Card>
-                <CardContent className="px-5 break-words w-full overflow-x-auto">
+                </TabsContent>
+                <TabsContent value="meta">
                   {"frame" in frameState.framesStack[0]! ? (
                     <div className="py-4 flex-1">
                       <span className="font-bold mr-2">html tags</span>
@@ -455,12 +467,8 @@ export function FrameDebugger({
                       </pre>
                     </div>
                   ) : null}
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="state">
-              <Card>
-                <CardContent className="px-5 break-words w-full overflow-x-auto">
+                </TabsContent>
+                <TabsContent value="state">
                   <pre id="json" className="font-mono text-xs p-2">
                     {JSON.stringify(
                       "frame" in frameState.framesStack[0]!
@@ -470,10 +478,10 @@ export function FrameDebugger({
                       2
                     )}
                   </pre>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
         ) : null}
       </div>
       <div className="flex flex-row gap-4 w-full">

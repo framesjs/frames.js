@@ -38,6 +38,10 @@ export interface SignerStateInstance<
 
 type FrameStackBase = {
   timestamp: Date;
+  request: {
+    body?: object;
+    searchParams?: any;
+  };
   method: "GET" | "POST";
   /** speed in seconds */
   speed: number;

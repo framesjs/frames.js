@@ -101,6 +101,7 @@ export function useFrame<
       ? [
           {
             method: "GET",
+            request: {},
             timestamp: new Date(),
             url: homeframeUrl ?? "",
             isValid: true,
@@ -112,34 +113,40 @@ export function useFrame<
       : []
   );
   const [isLoading, setIsLoading] = useState(initialFrame ? false : true);
-  // Load initial frame if not defined
-  useEffect(() => {
-    async function fetchInitialFrame() {
+
+  async function fetchFrame(request: {
+    method: "GET" | "POST";
+    url: string;
+    request: { body?: object; searchParams?: any };
+  }) {
+    if (request.method === "GET") {
       const tstart = new Date();
       let requestError: unknown | null = null;
-      let frame: ReturnType<typeof getFrame> | null = null;
-      const requestUrl = `${frameGetProxy}?url=${homeframeUrl}`;
+      let newFrame: ReturnType<typeof getFrame> | null = null;
+      const requestUrl = `${frameGetProxy}?url=${request.url}`;
 
       let stackItem: FramesStack[number];
       try {
-        frame = (await (await fetch(requestUrl)).json()) as ReturnType<
+        newFrame = (await (await fetch(requestUrl)).json()) as ReturnType<
           typeof getFrame
         >;
         const tend = new Date();
 
         stackItem = {
-          frame: frame.frame,
-          frameValidationErrors: frame.errors,
+          frame: newFrame.frame,
+          request: {},
+          frameValidationErrors: newFrame.errors,
           method: "GET",
           speed: +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2),
           timestamp: tstart,
           url: homeframeUrl ?? "",
-          isValid: Object.keys(frame.errors ?? {}).length === 0,
+          isValid: Object.keys(newFrame.errors ?? {}).length === 0,
         };
       } catch (err) {
         const tend = new Date();
 
         stackItem = {
+          request: {},
           url: homeframeUrl ?? "",
           method: "GET",
           requestError,
@@ -149,13 +156,84 @@ export function useFrame<
 
         requestError = err;
       }
-
       setFramesStack((v) => [stackItem, ...v]);
 
       setIsLoading(false);
-    }
+    } else {
+      const url = request.request.searchParams.get("postUrl") ?? "";
 
-    if (!initialFrame && homeframeUrl) fetchInitialFrame();
+      let stackItem: FramesStack[number] | undefined;
+      const tstart = new Date();
+
+      try {
+        const response = await fetch(request.url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...extraButtonRequestPayload,
+            ...request.request.body,
+          }),
+        });
+        const dataRes = (await response.json()) as
+          | ReturnType<typeof getFrame>
+          | { location: string };
+        const tend = new Date();
+
+        if ("location" in dataRes) {
+          const location = dataRes.location;
+
+          if (
+            window.confirm("You are about to be redirected to " + location!)
+          ) {
+            window.open(location!, "_blank")?.focus();
+          }
+        } else {
+          stackItem = {
+            method: "POST",
+            request: {
+              searchParams: request.request.searchParams,
+              body: request.request.body,
+            },
+            speed: +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2),
+            timestamp: tstart,
+            url,
+            frame: dataRes.frame,
+            frameValidationErrors: dataRes.errors,
+            isValid: Object.keys(dataRes.errors ?? {}).length === 0,
+          };
+        }
+      } catch (err) {
+        const tend = new Date();
+        stackItem = {
+          url,
+          request: {
+            searchParams: request.request.searchParams,
+            body: request.request.body,
+          },
+          method: "POST",
+          requestError: err,
+          speed: +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2),
+          timestamp: tstart,
+        };
+
+        console.error(err);
+      }
+
+      setFramesStack((v) => (stackItem ? [stackItem, ...v] : v));
+    }
+  }
+
+  // Load initial frame if not defined
+  useEffect(() => {
+    if (!initialFrame && homeframeUrl) {
+      fetchFrame({
+        url: homeframeUrl,
+        method: "GET",
+        request: {},
+      });
+    }
   }, [initialFrame, homeframeUrl]);
 
   function getCurrentFrame() {
@@ -279,65 +357,24 @@ export function useFrame<
       : await signerState.signFrameAction(frameSignatureContext);
 
     const requestUrl = `${frameActionProxy}?${searchParams.toString()}`;
-    const url = searchParams.get("postUrl") ?? "";
 
-    let stackItem: FramesStack[number] | undefined;
-    const tstart = new Date();
-
-    try {
-      const response = await fetch(requestUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...extraButtonRequestPayload,
-          ...body,
-        }),
-      });
-      const dataRes = (await response.json()) as
-        | ReturnType<typeof getFrame>
-        | { location: string };
-      const tend = new Date();
-
-      if ("location" in dataRes) {
-        const location = dataRes.location;
-
-        if (window.confirm("You are about to be redirected to " + location!)) {
-          window.open(location!, "_blank")?.focus();
-        }
-      } else {
-        stackItem = {
-          method: "POST",
-          speed: +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2),
-          timestamp: tstart,
-          url,
-          frame: dataRes.frame,
-          frameValidationErrors: dataRes.errors,
-          isValid: Object.keys(dataRes.errors ?? {}).length === 0,
-        };
-      }
-    } catch (err) {
-      const tend = new Date();
-      stackItem = {
-        url,
-        method: "POST",
-        requestError: err,
-        speed: +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2),
-        timestamp: tstart,
-      };
-
-      console.error(err);
-    }
-
-    setFramesStack((v) => (stackItem ? [stackItem, ...v] : v));
+    await fetchFrame({
+      url: requestUrl,
+      method: "POST",
+      request: {
+        searchParams,
+        body,
+      },
+    });
   };
 
   return {
     isLoading: isLoading,
     inputText,
     setInputText,
+    clearFrameStack: () => setFramesStack([]),
     onButtonPress,
+    fetchFrame,
     homeframeUrl,
     framesStack: framesStack,
     frame: getCurrentFrame() ?? null,

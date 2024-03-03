@@ -26,13 +26,17 @@ export interface SignerStateInstance<
   logout?: () => void;
 }
 
-type FrameStackBase = {
+export interface FrameStackBase {
   timestamp: Date;
   method: "GET" | "POST";
+  request: {
+    body?: object;
+    searchParams?: any;
+  };
   /** speed in seconds */
   speed: number;
   url: string;
-};
+}
 
 export type FramesStack = Array<
   | (FrameStackBase & {
@@ -46,6 +50,12 @@ export type FramesStack = Array<
 >;
 
 export type FrameState = {
+  fetchFrame: (request: {
+    method: "GET" | "POST";
+    url: string;
+    request: { body?: object; searchParams?: any };
+  }) => void;
+  clearFrameStack: () => void;
   /** The frame at the top of the stack (at index 0) */
   frame: Frame | null;
   /** A stack of frames with additional context, with the most recent frame at index 0 */
