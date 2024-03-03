@@ -1,5 +1,17 @@
 # frames.js
 
+## 0.7.0
+
+### Minor Changes
+
+- 01fc5fe: Changes the rendering library APIs
+
+### Patch Changes
+
+- 60c6e56: fix: SSL proxy version error by using `NEXT_PUBLIC_HOST` for redirects in `next/server`
+- e335829: chore: remove unnecessary logs
+- eee74a9: Change types around rendering
+
 ## 0.6.0
 
 ### Minor Changes
