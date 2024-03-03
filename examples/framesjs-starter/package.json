@@ -1,9 +1,9 @@
 {
   "name": "framesjs-starter",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "scripts": {
-    "dev": "node dev-script.js",
+    "dev": "node ./scripts/dev-script.js",
     "dev:starter": "concurrently --kill-others \"next dev\" \"frames\"",
     "dev:monorepo": "next dev",
     "build": "next build",
@@ -19,7 +19,7 @@
     "@xmtp/frames-validator": "^0.5.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
-    "frames.js": "^0.6.0",
+    "frames.js": "^0.7.1",
     "lucide-react": "^0.331.0",
     "next": "14.1.0",
     "react": "^18.2.0",
@@ -30,11 +30,13 @@
     "node": ">=18.17.0"
   },
   "devDependencies": {
+    "@frames.js/debugger": "^0.1.0",
     "@types/node": "^18.17.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "autoprefixer": "^10.0.1",
     "concurrently": "^8.2.2",
+    "dotenv": "^16.4.5",
     "eslint": "^8.56.0",
     "eslint-config-next": "14.1.0",
     "postcss": "^8",
