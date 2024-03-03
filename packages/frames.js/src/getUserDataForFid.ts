@@ -1,5 +1,5 @@
 import { DEFAULT_HUB_API_KEY, DEFAULT_HUB_API_URL } from "./default";
-import { MessageType, UserDataType, Message } from "./farcaster";
+import { MessageType, UserDataType, Message } from "@farcaster/core";
 import { HubHttpUrlOptions, UserDataReturnType } from "./types";
 
 /**

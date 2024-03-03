@@ -1,26 +1,29 @@
 import type { Frame, FrameButton } from "..";
+import { FarcasterFrameContext } from "./farcaster";
 
-export interface AuthStateInstance<
+export interface SignerStateInstance<
   T = object,
   B extends FrameActionBodyPayload = FrameActionBodyPayload,
 > {
-  user: T | null;
-  isLoggedIn: boolean;
+  signer?: T | null;
+  hasSigner: boolean;
   signFrameAction: (actionContext: {
     target?: string;
     frameButton: FrameButton;
     buttonIndex: number;
     url: string;
     inputText?: string;
+    signer: T | null;
     state?: string;
     frameContext: FrameContext;
   }) => Promise<{
     body: B;
     searchParams: URLSearchParams;
   }>;
-  isLoading: boolean;
-  promptLogin: () => void;
-  logout: () => void;
+  isLoading?: boolean;
+  /** A function called when a frame button is clicked without a signer */
+  onSignerlessFramePress: () => void;
+  logout?: () => void;
 }
 
 type FrameStackBase = {
@@ -77,9 +80,4 @@ export type FrameTheme = Partial<Record<(typeof themeParams)[number], string>>;
 
 export interface FrameActionBodyPayload {}
 
-export interface FarcasterFrameActionBodyPayload
-  extends FrameActionBodyPayload {}
-
-export type FrameContext = {
-  castId: { hash: `0x${string}`; fid: number };
-};
+export type FrameContext = FarcasterFrameContext;

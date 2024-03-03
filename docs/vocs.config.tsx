@@ -6,6 +6,16 @@ const sidebar = [
     link: "/",
   },
   {
+    text: "Guides",
+    collapsed: false,
+    items: [
+      {
+        text: "Display Frames",
+        link: "/guides/display-frames",
+      },
+    ],
+  },
+  {
     text: "Reference",
     // link: "/reference",
     collapsed: false,

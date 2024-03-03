@@ -1,8 +1,8 @@
 import { getFrameMessage } from "frames.js";
 import { NextRequest, NextResponse } from "next/server";
-import { DEBUG_HUB_OPTIONS } from "../../../debug/constants";
 import { kv } from "@vercel/kv";
 import { RandomNumberRequestStateValue } from "./types";
+import { DEFAULT_DEBUGGER_HUB_URL } from "../../../debug";
 
 const MAXIMUM_KV_RESULT_LIFETIME_IN_SECONDS = 2 * 60; // 2 minutes
 
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
   // verify independently
   const frameMessage = await getFrameMessage(body.postBody, {
-    ...DEBUG_HUB_OPTIONS,
+    hubHttpUrl: DEFAULT_DEBUGGER_HUB_URL,
   });
 
   const uniqueId = `fid:${frameMessage.requesterFid}`;

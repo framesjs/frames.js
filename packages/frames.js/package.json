@@ -141,6 +141,26 @@
         "default": "./dist/render/next/index.cjs"
       }
     },
+    "./render/farcaster": {
+      "import": {
+        "types": "./dist/render/farcaster/index.d.ts",
+        "default": "./dist/render/farcaster/index.js"
+      },
+      "require": {
+        "types": "./dist/render/farcaster/index.d.cts",
+        "default": "./dist/render/farcaster/index.cjs"
+      }
+    },
+    "./render/use-frame": {
+      "import": {
+        "types": "./dist/render/use-frame.d.ts",
+        "default": "./dist/render/use-frame.js"
+      },
+      "require": {
+        "types": "./dist/render/use-frame.d.cts",
+        "default": "./dist/render/use-frame.cjs"
+      }
+    },
     "./render": {
       "import": {
         "types": "./dist/render/index.d.ts",
@@ -169,6 +189,7 @@
     "react-dom": "^18.2.0"
   },
   "dependencies": {
+    "@farcaster/core": "^0.14.4",
     "@vercel/og": "^0.6.2",
     "cheerio": "^1.0.0-rc.12",
     "protobufjs": "^7.2.6",

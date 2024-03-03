@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "turbo build",
-    "dev": "turbo dev --filter=framesjs-starter...",
+    "dev": "FJS_MONOREPO=true turbo dev --filter=framesjs-starter... --filter=debugger...",
     "dev:custom-redirects": "turbo dev --filter=custom-redirects...",
     "dev:utils-starter": "turbo dev --filter=utils-starter...",
     "dev:all": "turbo dev",
@@ -11,7 +11,6 @@
     "publish-packages": "turbo run build lint && changeset version && changeset publish && git push --follow-tags origin main",
     "publish-canary": "turbo run build lint && cd ./packages/frames.js && yarn publish --tag canary && git push --follow-tags origin main",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "update:proto": "curl https://raw.githubusercontent.com/farcasterxyz/hub-monorepo/main/packages/core/src/protobufs/generated/message.ts -o packages/frames.js/src/farcaster/generated/message.ts",
     "test": "jest --watch"
   },
   "devDependencies": {
@@ -35,6 +34,5 @@
     "examples/*",
     "packages/*"
   ],
-  "dependencies": {},
   "version": "0.3.0-canary.0"
 }
