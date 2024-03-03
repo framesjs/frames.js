@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.7.1
+
+### Patch Changes
+
+- fix redirects
+
 ## 0.7.0
 
 ### Minor Changes
