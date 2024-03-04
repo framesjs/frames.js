@@ -1,17 +1,17 @@
 import { getFrameHtmlHead, getFrameFlattened } from "frames.js";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import React from "react";
-import { FrameState } from "frames.js/render";
+import { FrameState, FrameRequest, FrameStackSuccess } from "frames.js/render";
 import { Table, TableBody, TableCell, TableRow } from "@/components/table";
 import {
-  ArrowLeft,
-  ArrowRight,
+  AlertTriangle,
   BanIcon,
+  CheckCircle2,
   HomeIcon,
   ListIcon,
   LoaderIcon,
   RefreshCwIcon,
-  RotateCcwIcon,
+  XCircle,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { MockHubConfig } from "./mock-hub-config";
@@ -91,7 +91,9 @@ function FrameDebuggerFramePropertiesTableRow({
       {properties.validProperties.map(([propertyKey, value]) => {
         return (
           <TableRow key={`${propertyKey}-valid`}>
-            <TableCell>🟢</TableCell>
+            <TableCell>
+              <CheckCircle2 size={20} color="green" />
+            </TableCell>
             <TableCell>{propertyKey}</TableCell>
             <TableCell className="text-slate-500">
               <ShortenedText text={value} maxLength={30} />
@@ -102,7 +104,9 @@ function FrameDebuggerFramePropertiesTableRow({
       {properties.invalidProperties.map(([propertyKey, errorMessages]) => {
         return (
           <TableRow key={`${propertyKey}-invalid`}>
-            <TableCell>🔴</TableCell>
+            <TableCell>
+              <XCircle size={20} color="red" />
+            </TableCell>
             <TableCell>{propertyKey}</TableCell>
             <TableCell className="text-slate-500">
               <p className="font-bold text-red-800">
@@ -218,7 +222,7 @@ export function FrameDebugger({
                   url: frameState?.framesStack[0].url,
                   method: frameState?.framesStack[0].method,
                   request: frameState.framesStack[0].request,
-                });
+                } as FrameRequest);
               }
             }}
           >
@@ -240,7 +244,7 @@ export function FrameDebugger({
                       url: frameStackItem.url,
                       method: frameStackItem.method,
                       request: frameStackItem.request,
-                    });
+                    } as FrameRequest);
                   }}
                 >
                   <span className="flex flex-row w-full">
@@ -255,11 +259,17 @@ export function FrameDebugger({
                         : ""}
                     </span>
                     <span className="ml-auto">
-                      <LoaderIcon className="animate-spin" size={20} />
-                      {!("requestError" in frameStackItem) &&
-                      frameStackItem.isValid
-                        ? "🟢"
-                        : "🔴"}
+                      {"responseStatus" in frameStackItem ? (
+                        !("requestError" in frameStackItem) &&
+                        "isValid" in frameStackItem &&
+                        frameStackItem.isValid ? (
+                          <CheckCircle2 size={20} color="green" />
+                        ) : (
+                          <XCircle size={20} color="red" />
+                        )
+                      ) : (
+                        <LoaderIcon className="animate-spin" size={20} />
+                      )}
                     </span>
                   </span>
                   <span className="flex flex-row w-full">
@@ -295,7 +305,7 @@ export function FrameDebugger({
                         </HoverCardContent>
                       </HoverCard>
                     ) : null}
-                    <span className="ml-auto">
+                    <span className="ml-auto" suppressHydrationWarning>
                       {frameStackItem.timestamp.toLocaleTimeString()}
                     </span>
                   </span>
@@ -373,13 +383,19 @@ export function FrameDebugger({
       </div>
       <div className="flex flex-col gap-4 w-[500px] min-w-[500px]">
         <div className="w-full flex flex-col gap-1">
-          {children}{" "}
           {frameState.isLoading && !frameState.frame ? (
-            <div className="flex flex-col space-y-3">
-              <Skeleton className="h-[250px] w-full rounded-xl" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          ) : null}
+            <Card>
+              <CardContent className="p-0 pb-2">
+                <div className="flex flex-col space-y-2">
+                  <Skeleton className="h-[260px] w-full rounded-xl rounded-b-none" />
+                  <Skeleton className="h-[38px] mx-2" />
+                  <Skeleton className="h-[38px] mx-2" />
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            children
+          )}
           <div className="ml-auto text-sm text-slate-500">{url}</div>
         </div>
 
@@ -421,7 +437,8 @@ export function FrameDebugger({
                   )}
                 </TabsContent>
                 <TabsContent value="meta">
-                  {"frame" in frameState.framesStack[0]! ? (
+                  {frameState.framesStack[0] &&
+                  "frame" in frameState.framesStack[0] ? (
                     <div className="py-4 flex-1">
                       <span className="font-bold mr-2">html tags</span>
                       <button
@@ -429,7 +446,10 @@ export function FrameDebugger({
                         onClick={() => {
                           // Copy the text inside the text field
                           navigator.clipboard.writeText(
-                            getFrameHtmlHead(frameState.framesStack[0]!.frame)
+                            getFrameHtmlHead(
+                              (frameState.framesStack[0] as FrameStackSuccess)
+                                .frame
+                            )
                           );
                           setCopySuccess(true);
                         }}
@@ -476,30 +496,21 @@ export function FrameDebugger({
       </div>
       <div className="flex flex-row gap-4 w-full">
         <div className="h-full min-w-0 w-full">
-          <Card>
-            <CardContent className="p-0">
-              {frameState.isLoading ? (
-                <div
-                  className="flex flex-row gap-2 p-4"
-                  // className={
-                  //   "flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180"
-                  // }
-                >
-                  <LoaderIcon className="animate-spin" />
-                  Fetching frame #{frameState.framesStack.length + 1}...
-                </div>
-              ) : null}
-              {frameState.framesStack.length !== 0 ? (
+          {frameState.isLoading ? null : frameState.framesStack.length !== 0 ? (
+            <Card>
+              <CardContent className="p-0">
                 <div className="px-2">
                   <Table>
                     <TableBody>
                       <TableRow>
                         <TableCell>
-                          {frameState.framesStack[0]!.speed > 5
-                            ? "🔴"
-                            : frameState.framesStack[0]!.speed > 4
-                              ? "🟠"
-                              : "🟢"}
+                          {frameState.framesStack[0]!.speed > 5 ? (
+                            <XCircle size={20} color="red" />
+                          ) : frameState.framesStack[0]!.speed > 4 ? (
+                            <AlertTriangle size={20} color="orange" />
+                          ) : (
+                            <CheckCircle2 size={20} color="green" />
+                          )}
                         </TableCell>
                         <TableCell>frame speed</TableCell>
                         <TableCell className="text-slate-500">
@@ -516,9 +527,9 @@ export function FrameDebugger({
                     </TableBody>
                   </Table>
                 </div>
-              ) : null}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ) : null}
         </div>
       </div>
     </div>

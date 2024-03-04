@@ -9,6 +9,7 @@ import {
   FrameActionBodyPayload,
   FramesStack,
   FrameStackPending,
+  FrameRequest,
 } from "./types";
 import type { Frame, FrameButton } from "../types";
 import { getFrame } from "../getFrame";
@@ -114,23 +115,14 @@ export function useFrame<
         ]
       : []
   );
-  const [isLoading, setIsLoading] = useState<FrameStackPending | null>(null);
+  const [isLoading, setIsLoading] = useState<FrameStackPending | null>({
+    request: {},
+    method: "GET" as const,
+    timestamp: new Date(),
+    url: homeframeUrl ?? "",
+  });
 
-  async function fetchFrame({
-    method,
-    url,
-    request,
-  }:
-    | {
-        method: "GET";
-        url: string;
-        request: {};
-      }
-    | {
-        method: "POST";
-        url: string;
-        request: { body: object; searchParams: URLSearchParams };
-      }) {
+  async function fetchFrame({ method, url, request }: FrameRequest) {
     if (method === "GET") {
       const tstart = new Date();
 
@@ -219,7 +211,6 @@ export function useFrame<
           stackItem = {
             ...frameStackBase,
             responseStatus: response.status,
-
             speed: +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2),
             frame: dataRes.frame,
             frameValidationErrors: dataRes.errors,

@@ -83,7 +83,7 @@ export function FrameUI({ frameState, theme, FrameImage }: FrameUIProps) {
           (frameButton: FrameButton, index: number) => (
             <button
               type="button"
-              disabled={frameState.isLoading}
+              disabled={!!frameState.isLoading}
               className={`p-2 ${
                 frameState.isLoading ? "bg-gray-100" : ""
               } border text-sm text-gray-800 rounded`}

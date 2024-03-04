@@ -11,11 +11,6 @@ import { useRouter } from "next/navigation";
 
 import dynamic from "next/dynamic";
 import { MockHubActionContext } from "./utils/mock-hub-utils";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 const LoginWindow = dynamic(() => import("./components/create-signer"), {
@@ -110,32 +105,14 @@ export default function Page({
             />
             <Button className="rounded-l-none">Debug</Button>
           </form>
-          <Popover>
-            <PopoverTrigger>
-              <Button
-                variant={
-                  !signerState.signer && !signerState.isLoading
-                    ? "destructive"
-                    : "outline"
-                }
-              >
-                {signerState.signer?.status === "impersonating"
-                  ? `Impersonating fid ${signerState.signer.fid}`
-                  : signerState.signer?.status === "approved"
-                    ? `Authed as fid ${signerState.signer.fid}`
-                    : "⚠️ Not signed in"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent>
-              <LoginWindow
-                farcasterUser={signerState.signer ?? null}
-                loading={signerState.isLoading ?? false}
-                startFarcasterSignerProcess={signerState.onSignerlessFramePress}
-                impersonateUser={signerState.impersonateUser}
-                logout={signerState.logout}
-              ></LoginWindow>
-            </PopoverContent>
-          </Popover>
+
+          <LoginWindow
+            farcasterUser={signerState.signer ?? null}
+            loading={!!signerState.isLoading ?? false}
+            startFarcasterSignerProcess={signerState.onSignerlessFramePress}
+            impersonateUser={signerState.impersonateUser}
+            logout={signerState.logout}
+          ></LoginWindow>
         </div>
       </div>
       {url ? (

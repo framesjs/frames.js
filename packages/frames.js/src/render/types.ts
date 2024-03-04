@@ -26,39 +26,45 @@ export interface SignerStateInstance<
   logout?: () => void;
 }
 
-export interface FrameStackPending {
-  timestamp: Date;
-  method: "GET" | "POST";
-  request: {
-    body?: object;
-    searchParams?: any;
-  };
-  url: string;
-}
+export type FrameRequest =
+  | {
+      method: "GET";
+      request: {};
+      url: string;
+    }
+  | {
+      method: "POST";
+      request: {
+        body: object;
+        searchParams: URLSearchParams;
+      };
+      url: string;
+    };
 
-export interface FrameStackBase extends FrameStackPending {
+export type FrameStackPending = {
+  timestamp: Date;
+} & FrameRequest;
+
+export type FrameStackBase = FrameStackPending & {
   /** speed in seconds */
   speed: number;
   responseStatus: number;
-}
+};
 
-export type FramesStack = Array<
-  | (FrameStackBase & {
-      frame: Frame;
-      frameValidationErrors: null | Record<string, string[]>;
-      isValid: boolean;
-    })
-  | (FrameStackBase & {
-      requestError: unknown;
-    })
->;
+export type FrameStackSuccess = FrameStackBase & {
+  frame: Frame;
+  frameValidationErrors: null | Record<string, string[]>;
+  isValid: boolean;
+};
+
+export type FrameStackError = FrameStackBase & {
+  requestError: unknown;
+};
+
+export type FramesStack = Array<FrameStackSuccess | FrameStackError>;
 
 export type FrameState = {
-  fetchFrame: (request: {
-    method: "GET" | "POST";
-    url: string;
-    request: { body?: object; searchParams?: any };
-  }) => void;
+  fetchFrame: (request: FrameRequest) => void;
   clearFrameStack: () => void;
   /** The frame at the top of the stack (at index 0) */
   frame: Frame | null;
