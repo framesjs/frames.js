@@ -168,7 +168,7 @@ export function useFarcasterIdentity(): FarcasterSignerState & {
     try {
       const keypair = await createKeypair();
       const keypairString = convertKeypairToHex(keypair);
-      const authorizationResponse = await fetch(`/embed/signer`, {
+      const authorizationResponse = await fetch(`/signer`, {
         method: "POST",
         body: JSON.stringify({
           publicKey: keypairString.publicKey,
@@ -215,6 +215,8 @@ export function useFarcasterIdentity(): FarcasterSignerState & {
           JSON.stringify(signer)
         );
         setFarcasterSigner(signer);
+      } else if (authorizationBody.code === 1) {
+        window.alert(authorizationBody.message);
       }
     } catch (error) {
       console.error("frames.js: API Call failed", error);
