@@ -1,4 +1,5 @@
-const DEFAULT_DEBUGGER_URL = "http://localhost:3010/";
+const DEFAULT_DEBUGGER_URL =
+  process.env.DEBUGGER_URL ?? "http://localhost:3010/";
 
 export const DEFAULT_DEBUGGER_HUB_URL = new URL(
   "/hub",

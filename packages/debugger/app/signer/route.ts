@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { mnemonicToAccount } from "viem/accounts";
 
-if (
-  !process.env.FARCASTER_DEVELOPER_MNEMONIC ||
-  !process.env.FARCASTER_DEVELOPER_FID
-) {
-  console.warn(
-    "define the FARCASTER_DEVELOPER_MNEMONIC and FARCASTER_DEVELOPER_FID environment variables"
-  );
-}
-
 const SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN = {
   name: "Farcaster SignedKeyRequestValidator",
   version: "1",
@@ -24,6 +15,22 @@ const SIGNED_KEY_REQUEST_TYPE = [
 ] as const;
 
 export async function POST(req: NextRequest, res: NextResponse) {
+  if (
+    !process.env.FARCASTER_DEVELOPER_MNEMONIC ||
+    !process.env.FARCASTER_DEVELOPER_FID
+  ) {
+    console.error(
+      "define the FARCASTER_DEVELOPER_MNEMONIC and FARCASTER_DEVELOPER_FID environment variables to create a signer"
+    );
+    return NextResponse.json(
+      {
+        code: 1,
+        message:
+          "define the FARCASTER_DEVELOPER_MNEMONIC and FARCASTER_DEVELOPER_FID environment variables to create a signer",
+      },
+      { status: 400 }
+    );
+  }
   try {
     const { publicKey } = await req.json();
 
