@@ -213,11 +213,11 @@ export function FrameDebugger({
             className="flex flex-row gap-3 items-center shadow-sm border"
             variant={"outline"}
             onClick={() => {
-              if (frameState?.framesStack[0]) {
+              if (frameState?.framesStack[0]?.request) {
                 frameState.fetchFrame({
                   url: frameState?.framesStack[0].url,
-                  method: "POST",
-                  request: frameState?.framesStack[0].request,
+                  method: frameState?.framesStack[0].method,
+                  request: frameState.framesStack[0].request,
                 });
               }
             }}
@@ -227,34 +227,23 @@ export function FrameDebugger({
         </div>
         <Card className="max-h-[400px] overflow-y-auto">
           <CardContent className="p-0">
-            {frameState.isLoading ? (
-              <div
-                className={`flex flex-row gap-2 p-3 py-5 text-sm ${frameState.framesStack.length !== 0 ? "border-b" : ""} items-center`}
-                // className={
-                //   "flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180"
-                // }
-              >
-                <LoaderIcon className="animate-spin" size={20} />
-                Fetching frame #{frameState.framesStack.length + 1}...
-              </div>
-            ) : null}
-
-            {frameState.framesStack.map((frameStackItem, i) => {
+            {[
+              ...(frameState.isLoading ? [frameState.isLoading] : []),
+              ...frameState.framesStack,
+            ].map((frameStackItem, i) => {
               return (
                 <button
-                  className={`px-4 py-3 flex flex-col gap-2 ${i !== 0 ? "border-t" : ""}`}
+                  className={`px-4 py-3 flex flex-col gap-2 ${i !== 0 ? "border-t" : "bg-slate-50"} hover:bg-slate-50 w-full`}
                   key={frameStackItem.timestamp.getTime()}
                   onClick={() => {
-                    if (frameState?.framesStack[0]) {
-                      frameState.fetchFrame({
-                        url: frameState?.framesStack[0].url,
-                        method: "POST",
-                        request: frameState?.framesStack[0].request,
-                      });
-                    }
+                    frameState.fetchFrame({
+                      url: frameStackItem.url,
+                      method: frameStackItem.method,
+                      request: frameStackItem.request,
+                    });
                   }}
                 >
-                  <span className="flex flex-row">
+                  <span className="flex flex-row w-full">
                     <span className="border text-gray-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">
                       {frameStackItem.method}
                     </span>
@@ -266,13 +255,14 @@ export function FrameDebugger({
                         : ""}
                     </span>
                     <span className="ml-auto">
+                      <LoaderIcon className="animate-spin" size={20} />
                       {!("requestError" in frameStackItem) &&
                       frameStackItem.isValid
                         ? "🟢"
                         : "🔴"}
                     </span>
                   </span>
-                  <span className="flex flex-row">
+                  <span className="flex flex-row w-full">
                     <span>{new URL(frameStackItem.url).pathname}</span>
                     {Array.from(
                       new URL(frameStackItem.url).searchParams.entries()

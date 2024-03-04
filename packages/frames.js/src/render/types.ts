@@ -20,22 +20,26 @@ export interface SignerStateInstance<
     body: B;
     searchParams: URLSearchParams;
   }>;
-  isLoading?: boolean;
+  isLoading?: null | FrameStackPending;
   /** A function called when a frame button is clicked without a signer */
   onSignerlessFramePress: () => void;
   logout?: () => void;
 }
 
-export interface FrameStackBase {
+export interface FrameStackPending {
   timestamp: Date;
   method: "GET" | "POST";
   request: {
     body?: object;
     searchParams?: any;
   };
+  url: string;
+}
+
+export interface FrameStackBase extends FrameStackPending {
   /** speed in seconds */
   speed: number;
-  url: string;
+  responseStatus: number;
 }
 
 export type FramesStack = Array<
@@ -60,7 +64,7 @@ export type FrameState = {
   frame: Frame | null;
   /** A stack of frames with additional context, with the most recent frame at index 0 */
   framesStack: FramesStack;
-  isLoading: boolean;
+  isLoading: FrameStackPending | null;
   inputText: string;
   setInputText: (s: string) => void;
   onButtonPress: (frameButton: FrameButton, index: number) => void;

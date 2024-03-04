@@ -8,6 +8,7 @@ import {
   SignerStateInstance,
   FrameActionBodyPayload,
   FramesStack,
+  FrameStackPending,
 } from "./types";
 import type { Frame, FrameButton } from "../types";
 import { getFrame } from "../getFrame";
@@ -102,6 +103,7 @@ export function useFrame<
           {
             method: "GET",
             request: {},
+            responseStatus: 200,
             timestamp: new Date(),
             url: homeframeUrl ?? "",
             isValid: true,
@@ -112,68 +114,92 @@ export function useFrame<
         ]
       : []
   );
-  const [isLoading, setIsLoading] = useState(initialFrame ? false : true);
+  const [isLoading, setIsLoading] = useState<FrameStackPending | null>(null);
 
-  async function fetchFrame(request: {
-    method: "GET" | "POST";
-    url: string;
-    request: { body?: object; searchParams?: any };
-  }) {
-    if (request.method === "GET") {
+  async function fetchFrame({
+    method,
+    url,
+    request,
+  }:
+    | {
+        method: "GET";
+        url: string;
+        request: {};
+      }
+    | {
+        method: "POST";
+        url: string;
+        request: { body: object; searchParams: URLSearchParams };
+      }) {
+    if (method === "GET") {
       const tstart = new Date();
+
+      const frameStackBase = {
+        request: {},
+        method: "GET" as const,
+        timestamp: tstart,
+        url: url ?? "",
+      };
+      setIsLoading(frameStackBase);
+
       let requestError: unknown | null = null;
       let newFrame: ReturnType<typeof getFrame> | null = null;
-      const requestUrl = `${frameGetProxy}?url=${request.url}`;
+      const proxiedUrl = `${frameGetProxy}?url=${url}`;
 
       let stackItem: FramesStack[number];
+      let response;
       try {
-        newFrame = (await (await fetch(requestUrl)).json()) as ReturnType<
-          typeof getFrame
-        >;
+        response = await fetch(proxiedUrl);
+        newFrame = (await response.json()) as ReturnType<typeof getFrame>;
         const tend = new Date();
 
         stackItem = {
+          ...frameStackBase,
           frame: newFrame.frame,
-          request: {},
           frameValidationErrors: newFrame.errors,
-          method: "GET",
           speed: +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2),
-          timestamp: tstart,
-          url: homeframeUrl ?? "",
+          responseStatus: response.status,
           isValid: Object.keys(newFrame.errors ?? {}).length === 0,
         };
       } catch (err) {
         const tend = new Date();
 
         stackItem = {
-          request: {},
-          url: homeframeUrl ?? "",
-          method: "GET",
+          ...frameStackBase,
+          url: url ?? "",
+          responseStatus: response?.status ?? 500,
           requestError,
           speed: +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2),
-          timestamp: tstart,
         };
 
         requestError = err;
       }
       setFramesStack((v) => [stackItem, ...v]);
-
-      setIsLoading(false);
     } else {
-      const url = request.request.searchParams.get("postUrl") ?? "";
-
-      let stackItem: FramesStack[number] | undefined;
       const tstart = new Date();
+      const frameStackBase = {
+        method: "POST" as const,
+        request: {
+          searchParams: request.searchParams,
+          body: request.body,
+        },
+        timestamp: tstart,
+        url: url,
+      };
+      setIsLoading(frameStackBase);
+      let stackItem: FramesStack[number] | undefined;
+      const proxiedUrl = `${frameActionProxy}?${request.searchParams.toString()}`;
 
+      let response;
       try {
-        const response = await fetch(request.url, {
+        response = await fetch(proxiedUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
             ...extraButtonRequestPayload,
-            ...request.request.body,
+            ...request.body,
           }),
         });
         const dataRes = (await response.json()) as
@@ -191,14 +217,10 @@ export function useFrame<
           }
         } else {
           stackItem = {
-            method: "POST",
-            request: {
-              searchParams: request.request.searchParams,
-              body: request.request.body,
-            },
+            ...frameStackBase,
+            responseStatus: response.status,
+
             speed: +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2),
-            timestamp: tstart,
-            url,
             frame: dataRes.frame,
             frameValidationErrors: dataRes.errors,
             isValid: Object.keys(dataRes.errors ?? {}).length === 0,
@@ -207,15 +229,10 @@ export function useFrame<
       } catch (err) {
         const tend = new Date();
         stackItem = {
-          url,
-          request: {
-            searchParams: request.request.searchParams,
-            body: request.request.body,
-          },
-          method: "POST",
+          ...frameStackBase,
+          responseStatus: response?.status ?? 500,
           requestError: err,
           speed: +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2),
-          timestamp: tstart,
         };
 
         console.error(err);
@@ -223,6 +240,7 @@ export function useFrame<
 
       setFramesStack((v) => (stackItem ? [stackItem, ...v] : v));
     }
+    setIsLoading(null);
   }
 
   // Load initial frame if not defined
@@ -288,7 +306,6 @@ export function useFrame<
       frameButton.action === "post" ||
       frameButton.action === "post_redirect"
     ) {
-      setIsLoading(true);
       try {
         await onPostButton({
           frameButton: frameButton,
@@ -311,7 +328,6 @@ export function useFrame<
         alert("error: check the console");
         console.error(err);
       }
-      setIsLoading(false);
     }
   };
 
@@ -356,10 +372,9 @@ export function useFrame<
       ? await unsignedFrameAction(frameSignatureContext)
       : await signerState.signFrameAction(frameSignatureContext);
 
-    const requestUrl = `${frameActionProxy}?${searchParams.toString()}`;
-
     await fetchFrame({
-      url: requestUrl,
+      // post_url stuff
+      url: searchParams.get("postUrl") ?? "/",
       method: "POST",
       request: {
         searchParams,
