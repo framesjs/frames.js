@@ -464,7 +464,13 @@ export function FrameContainer<T extends FrameState = FrameState>({
               }
 
               // we don't use createURLForPostHandler here as it would send our state, etc to target
-              target = new URL(props.target);
+              if (props.target.startsWith("/")) {
+                target = new URL(
+                  `${previousFrame.headers.urlWithoutPathname}${props.target}`
+                );
+              } else {
+                target = new URL(props.target);
+              }
               break;
             }
             case "post_redirect": {

@@ -1,4 +1,4 @@
-import type { Frame, FrameButton } from "..";
+import type { Frame, FrameButton, TransactionTargetResponse } from "..";
 import { FarcasterFrameContext } from "./farcaster";
 
 export type UseFrameReturn<
@@ -19,6 +19,8 @@ export type UseFrameReturn<
   frame?: Frame;
   /** a function to handle mint buttons */
   onMint?: (t: onMintArgs) => void;
+  /** a function to handle transaction buttons */
+  onTransaction?: (t: onTransactionArgs) => void;
   /** the context of this frame, used for generating Frame Action payloads */
   frameContext: FrameContext;
   /**
@@ -109,6 +111,12 @@ export type FrameState = {
 
 export type onMintArgs = {
   target: string;
+  frameButton: FrameButton;
+  frame: Frame;
+};
+
+export type onTransactionArgs = {
+  transactionData: TransactionTargetResponse;
   frameButton: FrameButton;
   frame: Frame;
 };

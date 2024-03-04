@@ -78,7 +78,7 @@ export interface FrameButtonLink {
 export interface FrameButtonTx {
   action: "tx";
   target: string;
-  post_url?: string;
+  post_url?: undefined;
   /** A 256-byte string which is label of the button */
   label: string;
 }
@@ -135,6 +135,23 @@ export type AddressReturnType<
 export type AddressWithType = {
   address: `0x${string}`;
   type: "verified" | "custody";
+};
+
+export type EthSendTransactionParams = {
+  /** JSON ABI. This must include the encoded function type and should include any potential error types. */
+  abi: JSON | [];
+  /** transaction to address */
+  to: `0x${string}`;
+  /** value of ether to send with the transaction in wei */
+  value: string;
+  /** optional transaction call data */
+  data?: `0x${string}`;
+};
+
+export type TransactionTargetResponse = {
+  chainId: string;
+  method: "eth_sendTransaction";
+  params: EthSendTransactionParams;
 };
 
 export type UserDataReturnType = {
