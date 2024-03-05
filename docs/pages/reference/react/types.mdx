@@ -47,7 +47,7 @@ export type FrameState = AnyJson;
  * A Map from buttonIndex to href url, used to represent the previous Frames redirection state, in order to handle redirect requests.
  * Keys that start with an underscore are unspecified hrefs that must be handled in the POST router
  */
-export type RedirectMap = Record<number | `_${number}`, string>;
+export type RedirectMap = Record<number | `_${number}`, string | null>;
 
 /**
  * A representation of the previous frame, used in order to enable state transitions and redirects.
@@ -91,39 +91,62 @@ export type FrameButtonAutomatedProps = {
  */
 export type Dispatch = (actionIndex: ActionIndex) => any;
 
-export type FrameButtonProvidedProps = (
+export type FrameButtonProvidedProps =
   | FrameButtonPostRedirectProvidedProps
   | FrameButtonPostProvidedProps
-) & {
-  /** defaults to false */
-  redirect?: boolean;
-};
+  | FrameButtonMintProvidedProps
+  | FrameButtonLinkProvidedProps
+  | FrameButtonTxProvidedProps;
 
 export type FrameButtonPostProvidedProps = {
   /** a label to display on the button */
   children: string | number;
-  /** does nothing at the moment */
-  onClick: Dispatch;
+  action?: "post";
+  post_url?: undefined;
+  /** an absolute url to post to. If not defined */
+  target?: string;
+};
+
+export type FrameButtonTxProvidedProps = {
+  /** a label to display on the button */
+  children: string | number;
+  action: "tx";
+  /** an absolute url to redirect users to */
+  target: string;
+  post_url?: string;
+};
+
+export type FrameButtonLinkProvidedProps = {
+  /** a label to display on the button */
+  children: string | number;
+  action: "link";
+  post_url?: undefined;
+  /** an absolute url to redirect users to */
+  target?: string;
 };
 
 export type FrameButtonPostRedirectProvidedProps = {
-  /** an absolute url to redirect users to. If not defined, specify prop redirect, and you must handle the POST redirects yourself, or provide a second argument to the `POST` function exported for nextjs */
-  href?: string;
   /** a label to display on the button */
   children: string | number;
+  action: "post_redirect";
+  post_url?: undefined;
+  /** an absolute url to redirect users to */
+  target?: string;
 };
 
 export type FrameButtonMintProvidedProps = {
   /** a label to display on the button */
   children: string | number;
-  action?: "mint";
+  action: "mint";
+  post_url?: undefined;
+
   /** a [CAIP-10](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md) url to an NFT smart contract or token */
-  mint: string;
+  target: string;
 };
 
 /** See https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional */
 export type NextServerPageProps = {
-  params: { };
+  params: {};
   searchParams?: { [key: string]: string | string[] | undefined };
 };
 ```
