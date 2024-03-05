@@ -1,5 +1,33 @@
-import type { Frame, FrameButton } from "..";
+import type { Frame, FrameButton, TransactionTargetResponse } from "..";
 import { FarcasterFrameContext } from "./farcaster";
+
+export type UseFrameReturn<
+  T = object,
+  B extends FrameActionBodyPayload = FrameActionBodyPayload,
+> = {
+  /** skip frame signing, for frames that don't verify signatures */
+  dangerousSkipSigning?: boolean;
+  /** the route used to POST frame actions. The post_url will be added as a the `url` query parameter */
+  frameActionProxy: string;
+  /** the route used to GET the initial frame via proxy */
+  frameGetProxy: string;
+  /** an signer state object used to determine what actions are possible */
+  signerState: SignerStateInstance<T, B>;
+  /** the url of the homeframe, if null won't load a frame */
+  homeframeUrl: string | null;
+  /** the initial frame. if not specified will fetch it from the url prop */
+  frame?: Frame;
+  /** a function to handle mint buttons */
+  onMint?: (t: onMintArgs) => void;
+  /** a function to handle transaction buttons */
+  onTransaction?: (t: onTransactionArgs) => void;
+  /** the context of this frame, used for generating Frame Action payloads */
+  frameContext: FrameContext;
+  /**
+   * Extra data appended to the frame action payload
+   */
+  extraButtonRequestPayload?: Record<string, unknown>;
+};
 
 export interface SignerStateInstance<
   T = object,
@@ -20,37 +48,57 @@ export interface SignerStateInstance<
     body: B;
     searchParams: URLSearchParams;
   }>;
-  isLoading?: boolean;
+  isLoading?: null | FrameStackPending;
   /** A function called when a frame button is clicked without a signer */
   onSignerlessFramePress: () => void;
   logout?: () => void;
 }
 
-type FrameStackBase = {
+export type FrameRequest =
+  | {
+      method: "GET";
+      request: {};
+      url: string;
+    }
+  | {
+      method: "POST";
+      request: {
+        body: object;
+        searchParams: URLSearchParams;
+      };
+      url: string;
+    };
+
+export type FrameStackPending = {
   timestamp: Date;
-  method: "GET" | "POST";
+} & FrameRequest;
+
+export type FrameStackBase = FrameStackPending & {
   /** speed in seconds */
   speed: number;
-  url: string;
+  responseStatus: number;
 };
 
-export type FramesStack = Array<
-  | (FrameStackBase & {
-      frame: Frame;
-      frameValidationErrors: null | Record<string, string[]>;
-      isValid: boolean;
-    })
-  | (FrameStackBase & {
-      requestError: unknown;
-    })
->;
+export type FrameStackSuccess = FrameStackBase & {
+  frame: Frame;
+  frameValidationErrors: null | Record<string, string[]>;
+  isValid: boolean;
+};
+
+export type FrameStackError = FrameStackBase & {
+  requestError: unknown;
+};
+
+export type FramesStack = Array<FrameStackSuccess | FrameStackError>;
 
 export type FrameState = {
+  fetchFrame: (request: FrameRequest) => void;
+  clearFrameStack: () => void;
   /** The frame at the top of the stack (at index 0) */
   frame: Frame | null;
   /** A stack of frames with additional context, with the most recent frame at index 0 */
   framesStack: FramesStack;
-  isLoading: boolean;
+  isLoading: FrameStackPending | null;
   inputText: string;
   setInputText: (s: string) => void;
   onButtonPress: (frameButton: FrameButton, index: number) => void;
@@ -63,6 +111,12 @@ export type FrameState = {
 
 export type onMintArgs = {
   target: string;
+  frameButton: FrameButton;
+  frame: Frame;
+};
+
+export type onTransactionArgs = {
+  transactionData: TransactionTargetResponse;
   frameButton: FrameButton;
   frame: Frame;
 };

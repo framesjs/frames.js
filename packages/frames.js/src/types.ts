@@ -37,7 +37,8 @@ type FrameOptionalActionButtonTypeKeys =
   `fc:frame:button:${1 | 2 | 3 | 4}:action`;
 type FrameOptionalButtonStringKeys =
   | `fc:frame:button:${1 | 2 | 3 | 4}`
-  | `fc:frame:button:${1 | 2 | 3 | 4}:target`;
+  | `fc:frame:button:${1 | 2 | 3 | 4}:target`
+  | `fc:frame:button:${1 | 2 | 3 | 4}:post_url`;
 type FrameKeys =
   | FrameOptionalStringKeys
   | FrameOptionalActionButtonTypeKeys
@@ -64,23 +65,35 @@ export type FrameFlattened = FrameRequiredProperties & {
     | FrameOptionalButtonStringKeys]?: MapFrameOptionalKeyToValueType<K>;
 };
 
-export type FrameButtonLink = {
+export interface FrameButtonLink {
   action: "link";
   /** required for action type 'link' */
   target: string;
+  post_url?: undefined;
+
   /** A 256-byte string which is label of the button */
   label: string;
-};
+}
 
-export type FrameButtonMint = {
+export interface FrameButtonTx {
+  action: "tx";
+  target: string;
+  post_url?: undefined;
+  /** A 256-byte string which is label of the button */
+  label: string;
+}
+
+export interface FrameButtonMint {
   action: "mint";
   /** The target  property MUST be a valid [CAIP-10](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md) address, plus an optional token_id . */
   target: string;
+  post_url?: undefined;
+
   /** A 256-byte string which is label of the button */
   label: string;
-};
+}
 
-export type FrameButtonPost = {
+export interface FrameButtonPost {
   /** Must be post or post_redirect. Defaults to post if no value was specified.
    * If set to post, app must make the POST request and frame server must respond with a 200 OK, which may contain another frame.
    * If set to post_redirect, app must make the POST request, and the frame server must respond with a 302 OK with a location property set on the header. */
@@ -90,16 +103,18 @@ export type FrameButtonPost = {
    * POST the packet to fc:frame:post_url if target was not present.
    */
   target?: string;
+  post_url?: undefined;
   /** A 256-byte string which is label of the button */
   label: string;
-};
+}
 export type FrameButtonPostRedirect = FrameButtonPost;
 
 export type FrameButton =
   | FrameButtonPost
   | FrameButtonLink
   | FrameButtonPostRedirect
-  | FrameButtonMint;
+  | FrameButtonMint
+  | FrameButtonTx;
 
 /** The permitted types of `buttonIndex` in a Frame POST payload response */
 export type ActionIndex = 1 | 2 | 3 | 4;
@@ -120,6 +135,23 @@ export type AddressReturnType<
 export type AddressWithType = {
   address: `0x${string}`;
   type: "verified" | "custody";
+};
+
+export type EthSendTransactionParams = {
+  /** JSON ABI. This must include the encoded function type and should include any potential error types. */
+  abi: JSON | [];
+  /** transaction to address */
+  to: `0x${string}`;
+  /** value of ether to send with the transaction in wei */
+  value: string;
+  /** optional transaction call data */
+  data?: `0x${string}`;
+};
+
+export type TransactionTargetResponse = {
+  chainId: string;
+  method: "eth_sendTransaction";
+  params: EthSendTransactionParams;
 };
 
 export type UserDataReturnType = {

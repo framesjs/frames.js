@@ -454,6 +454,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
           let target: URL | undefined;
 
           switch (props.action) {
+            case "tx":
             case "link":
             case "mint": {
               if (!props.target) {
@@ -463,7 +464,13 @@ export function FrameContainer<T extends FrameState = FrameState>({
               }
 
               // we don't use createURLForPostHandler here as it would send our state, etc to target
-              target = new URL(props.target);
+              if (props.target.startsWith("/")) {
+                target = new URL(
+                  `${previousFrame.headers.urlWithoutPathname}${props.target}`
+                );
+              } else {
+                target = new URL(props.target);
+              }
               break;
             }
             case "post_redirect": {
@@ -573,6 +580,7 @@ function FFrameButtonShim({
   actionIndex,
   target,
   action = "post",
+  post_url,
   children,
 }: FrameButtonProvidedProps & FrameButtonAutomatedProps) {
   return (
@@ -584,6 +592,12 @@ function FFrameButtonShim({
       <meta name={`fc:frame:button:${actionIndex}:action`} content={action} />
       {target ? (
         <meta name={`fc:frame:button:${actionIndex}:target`} content={target} />
+      ) : null}
+      {post_url ? (
+        <meta
+          name={`fc:frame:button:${actionIndex}:post_url`}
+          content={post_url}
+        />
       ) : null}
     </>
   );
