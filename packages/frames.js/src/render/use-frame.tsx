@@ -11,8 +11,9 @@ import {
   FrameStackPending,
   FrameRequest,
   UseFrameReturn,
+  onTransactionArgs,
 } from "./types";
-import type { Frame, FrameButton } from "../types";
+import type { Frame, FrameButton, TransactionTargetResponse } from "../types";
 import { getFrame } from "../getFrame";
 import { getFarcasterTime } from "@farcaster/core";
 
@@ -58,6 +59,18 @@ export const unsignedFrameAction: SignerStateInstance["signFrameAction"] =
       },
     };
   };
+function onTransactionFallback({ transactionData }: onTransactionArgs) {
+  window.alert(
+    `Requesting a transaction on chain with ID ${transactionData.chainId} with the following params: ${JSON.stringify(transactionData.params, null, 2)}`
+  );
+}
+
+export const fallbackFrameContext: FrameContext = {
+  castId: {
+    fid: 1,
+    hash: "0x0000000000000000000000000000000000000000" as const,
+  },
+};
 
 export function useFrame<
   T = object,
@@ -67,6 +80,7 @@ export function useFrame<
   frameContext,
   dangerousSkipSigning,
   onMint = onMintFallback,
+  onTransaction = onTransactionFallback,
   signerState,
   frame,
   /** Ex: /frames */
@@ -273,6 +287,21 @@ export function useFrame<
       }
     } else if (frameButton.action === "mint") {
       onMint({ frameButton, target, frame: currentFrame });
+    } else if (frameButton.action === "tx") {
+      const transactionData = await onTransactionRequest({
+        frameButton: frameButton,
+        target: target,
+        buttonIndex: index + 1,
+        postInputText:
+          currentFrame.inputText !== undefined ? inputText : undefined,
+        state: currentFrame.state,
+      });
+      if (transactionData)
+        onTransaction({
+          frame: currentFrame,
+          frameButton: frameButton,
+          transactionData,
+        });
     } else if (
       frameButton.action === "post" ||
       frameButton.action === "post_redirect"
@@ -321,11 +350,11 @@ export function useFrame<
     const currentFrame = getCurrentFrame();
 
     if (!dangerousSkipSigning && !signerState.hasSigner) {
-      console.error("missing required auth state");
+      console.error("frames.js: missing required auth state");
       return;
     }
     if (!currentFrame || !currentFrame || !homeframeUrl || !frameButton) {
-      console.error("missing required value for post");
+      console.error("frames.js: missing required value for post");
       return;
     }
 
@@ -352,6 +381,66 @@ export function useFrame<
         body,
       },
     });
+  };
+
+  const onTransactionRequest = async ({
+    buttonIndex,
+    postInputText,
+    frameButton,
+    target,
+    state,
+  }: {
+    frameButton: FrameButton;
+    buttonIndex: number;
+    postInputText: string | undefined;
+    state?: string;
+    target: string;
+  }) => {
+    // Send post request to get calldata
+    const currentFrame = getCurrentFrame();
+
+    if (!dangerousSkipSigning && !signerState.hasSigner) {
+      console.error("frames.js: missing required auth state");
+      return;
+    }
+    if (!currentFrame || !currentFrame || !homeframeUrl || !frameButton) {
+      console.error("frames.js: missing required value for post");
+      return;
+    }
+
+    const { searchParams, body } = await signerState.signFrameAction({
+      inputText: postInputText,
+      signer: signerState.signer ?? null,
+      frameContext,
+      url: homeframeUrl,
+      target,
+      frameButton: frameButton,
+      buttonIndex: buttonIndex,
+      state,
+    });
+    searchParams.append("postType", "tx");
+
+    const requestUrl = `${frameActionProxy}?${searchParams.toString()}`;
+
+    try {
+      const response = await fetch(requestUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...extraButtonRequestPayload,
+          ...body,
+        }),
+      });
+      const transactionResponse =
+        (await response.json()) as TransactionTargetResponse;
+      return transactionResponse;
+    } catch {
+      throw new Error(
+        `frames.js: Could not fetch transaction data from "${searchParams.get("postUrl")}"`
+      );
+    }
   };
 
   return {

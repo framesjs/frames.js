@@ -60,6 +60,9 @@ export function getFrameHtmlHead(frame: Frame): string {
       button.target
         ? `<meta name="fc:frame:button:${index + 1}:target" content="${button.target}"/>`
         : "",
+      button.post_url
+        ? `<meta name="fc:frame:button:${index + 1}:post_url" content="${button.post_url}"/>`
+        : "",
     ]) ?? []),
     ...(frame.accepts?.map(
       ({ id, version }) =>

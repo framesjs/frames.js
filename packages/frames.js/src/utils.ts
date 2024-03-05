@@ -4,12 +4,19 @@ import {
   FrameButton,
   FrameButtonLink,
   FrameButtonMint,
+  FrameButtonTx,
 } from "./types";
 
 export function isFrameButtonLink(
   frameButton: FrameButton
 ): frameButton is FrameButtonLink {
   return frameButton.action === "link";
+}
+
+export function isFrameButtonTx(
+  frameButton: FrameButton
+): frameButton is FrameButtonTx {
+  return frameButton.action === "tx";
 }
 
 export function isFrameButtonMint(

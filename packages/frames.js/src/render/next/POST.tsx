@@ -6,6 +6,8 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const isPostRedirect =
     req.nextUrl.searchParams.get("postType") === "post_redirect";
+  const isTransactionRequest =
+    req.nextUrl.searchParams.get("postType") === "tx";
   const postUrl = req.nextUrl.searchParams.get("postUrl")!;
 
   try {
@@ -26,6 +28,11 @@ export async function POST(req: NextRequest) {
         },
         { status: 302 }
       );
+    }
+
+    if (isTransactionRequest) {
+      const transaction = await r.json();
+      return Response.json(transaction);
     }
 
     const htmlString = await r.text();

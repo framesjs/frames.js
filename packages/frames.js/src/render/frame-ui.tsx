@@ -98,6 +98,10 @@ export function FrameUI({ frameState, theme, FrameImage }: FrameUIProps) {
               onClick={() => frameState.onButtonPress(frameButton, index)}
               key={index}
             >
+              {frameButton.action === "tx"
+                ? // todo: replace with canonical
+                  "⟐ "
+                : ""}
               {frameButton.action === "mint" ? `⬗ ` : ""}
               {frameButton.label}
               {frameButton.action === "post_redirect" ||
