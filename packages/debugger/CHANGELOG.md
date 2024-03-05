@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.1.2
+
+### Patch Changes
+
+- rename env var
+
 ## 0.1.1
 
 ### Patch Changes
