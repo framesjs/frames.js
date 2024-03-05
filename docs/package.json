@@ -13,6 +13,6 @@
     "next": "^14.1.0",
     "react": "latest",
     "react-dom": "latest",
-    "vocs": "latest"
+    "vocs": "1.0.0-alpha.42"
   }
 }

@@ -1818,6 +1818,38 @@
     "@noble/hashes" "~1.3.0"
     "@scure/base" "~1.1.0"
 
+"@shikijs/core@1.1.7":
+  version "1.1.7"
+  resolved "https://registry.yarnpkg.com/@shikijs/core/-/core-1.1.7.tgz#560de8d503ace894e36934f1e680762ed51ea394"
+  integrity sha512-gTYLUIuD1UbZp/11qozD3fWpUTuMqPSf3svDMMrL0UmlGU7D9dPw/V1FonwAorCUJBltaaESxq90jrSjQyGixg==
+
+"@shikijs/rehype@^1.1.2":
+  version "1.1.7"
+  resolved "https://registry.yarnpkg.com/@shikijs/rehype/-/rehype-1.1.7.tgz#8b29dde1113b0effbcc8bca5a916c68a517e812f"
+  integrity sha512-gNNmzQjcosjCAoUBrW6DzCmp6XdUQk4RNmyLsqMaDVpGWQsQCkjMBnBLQ7xWnjq6lwQAlq+m1/19kImsUJnpkg==
+  dependencies:
+    "@shikijs/transformers" "1.1.7"
+    "@types/hast" "^3.0.4"
+    hast-util-to-string "^3.0.0"
+    shiki "1.1.7"
+    unified "^11.0.4"
+    unist-util-visit "^5.0.0"
+
+"@shikijs/transformers@1.1.7", "@shikijs/transformers@^1.1.2":
+  version "1.1.7"
+  resolved "https://registry.yarnpkg.com/@shikijs/transformers/-/transformers-1.1.7.tgz#aee9df395aed77ff94fa95e02297aa0e5267802d"
+  integrity sha512-lXz011ao4+rvweps/9h3CchBfzb1U5OtP5D51Tqc9lQYdLblWMIxQxH6Ybe1GeGINcEVM4goMyPrI0JvlIp4UQ==
+  dependencies:
+    shiki "1.1.7"
+
+"@shikijs/twoslash@^1.1.2":
+  version "1.1.7"
+  resolved "https://registry.yarnpkg.com/@shikijs/twoslash/-/twoslash-1.1.7.tgz#228117e4fabd54ba03f580af5381e7e2aa2eb55c"
+  integrity sha512-WH/Ee67eixqDWjsAUXIJQUgRzPDApsz7Bci65Yobc7SWHNc8T2sY1UBa+MCV2mAj0D6VCYBwWlNxMDTfhN7K0Q==
+  dependencies:
+    "@shikijs/core" "1.1.7"
+    twoslash "^0.2.4"
+
 "@shuding/opentype.js@1.4.0-beta.0":
   version "1.4.0-beta.0"
   resolved "https://registry.yarnpkg.com/@shuding/opentype.js/-/opentype.js-1.4.0-beta.0.tgz#5d1e7e9e056f546aad41df1c5043f8f85d39e24b"
@@ -1926,7 +1958,7 @@
   dependencies:
     "@types/node" "*"
 
-"@types/hast@^3.0.0", "@types/hast@^3.0.3":
+"@types/hast@^3.0.0", "@types/hast@^3.0.4":
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/@types/hast/-/hast-3.0.4.tgz#1d6b39993b82cea6ad783945b0508c25903e15aa"
   integrity sha512-WPs+bbQw5aCj+x6laNGWLH3wviHtoCv/P3+otBhbOhJgG8qtpdAMlTCxLtsTWA7LH1Oh/bFCHsBn0TPS5m30EQ==
@@ -3241,10 +3273,10 @@ create-jest@^29.7.0:
     jest-util "^29.7.0"
     prompts "^2.0.1"
 
-create-vocs@^1.0.0-alpha.3:
-  version "1.0.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/create-vocs/-/create-vocs-1.0.0-alpha.3.tgz#7b02425f38485e9e52202293713bd344401ece57"
-  integrity sha512-jP+KC26XcWVAFRbDt311V4fsHakTDxJ9cDyMSKmUpiqbp3mDs0WDeckiSzhf3qgpiHHHzcbuTmm4yDZgoFkddA==
+create-vocs@^1.0.0-alpha.4:
+  version "1.0.0-alpha.5"
+  resolved "https://registry.yarnpkg.com/create-vocs/-/create-vocs-1.0.0-alpha.5.tgz#fd1c1767ac4c6a0660fcf969e748ad876c13e02b"
+  integrity sha512-/Nr9taHX1SxL5t72DLFPYujqD8d5PDk0T8bJ9Fb/m7ck1lP20PBxHzF5IYnHI0BeTpIuGk/MQoLfT6JKpY6xnw==
   dependencies:
     "@clack/prompts" "^0.7.0"
     cac "^6.7.14"
@@ -4680,32 +4712,6 @@ hast-util-classnames@^3.0.0:
   dependencies:
     "@types/hast" "^3.0.0"
     space-separated-tokens "^2.0.0"
-
-hast-util-from-html@^2.0.0:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/hast-util-from-html/-/hast-util-from-html-2.0.1.tgz#9cd38ee81bf40b2607368b92a04b0905fa987488"
-  integrity sha512-RXQBLMl9kjKVNkJTIO6bZyb2n+cUH8LFaSSzo82jiLT6Tfc+Pt7VQCS+/h3YwG4jaNE2TA2sdJisGWR+aJrp0g==
-  dependencies:
-    "@types/hast" "^3.0.0"
-    devlop "^1.1.0"
-    hast-util-from-parse5 "^8.0.0"
-    parse5 "^7.0.0"
-    vfile "^6.0.0"
-    vfile-message "^4.0.0"
-
-hast-util-from-parse5@^8.0.0:
-  version "8.0.1"
-  resolved "https://registry.yarnpkg.com/hast-util-from-parse5/-/hast-util-from-parse5-8.0.1.tgz#654a5676a41211e14ee80d1b1758c399a0327651"
-  integrity sha512-Er/Iixbc7IEa7r/XLtuG52zoqn/b3Xng/w6aZQ0xGVxzhw5xUFxcRqdPzP6yFi/4HBYRaifaI5fQ1RH8n0ZeOQ==
-  dependencies:
-    "@types/hast" "^3.0.0"
-    "@types/unist" "^3.0.0"
-    devlop "^1.0.0"
-    hastscript "^8.0.0"
-    property-information "^6.0.0"
-    vfile "^6.0.0"
-    vfile-location "^5.0.0"
-    web-namespaces "^2.0.0"
 
 hast-util-has-property@^3.0.0:
   version "3.0.0"
@@ -7146,11 +7152,6 @@ parse-json@^5.0.0, parse-json@^5.2.0:
     json-parse-even-better-errors "^2.3.0"
     lines-and-columns "^1.1.6"
 
-parse-numeric-range@^1.3.0:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/parse-numeric-range/-/parse-numeric-range-1.3.0.tgz#7c63b61190d61e4d53a1197f0c83c47bb670ffa3"
-  integrity sha512-twN+njEipszzlMJd4ONUYgSfZPDxgHhT9Ahed5uTigpQn90FggW4SA/AIPq/6a149fTbE9qBEcSwE3FAEp6wQQ==
-
 parse5-htmlparser2-tree-adapter@^7.0.0:
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/parse5-htmlparser2-tree-adapter/-/parse5-htmlparser2-tree-adapter-7.0.0.tgz#23c2cc233bcf09bb7beba8b8a69d46b08c62c2f1"
@@ -7666,27 +7667,6 @@ rehype-class-names@^1.0.14:
     hast-util-select "^6.0.0"
     unified "^10.1.2"
 
-rehype-parse@^9.0.0:
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/rehype-parse/-/rehype-parse-9.0.0.tgz#3949faeec6f466ec57774215661e0d75469195d9"
-  integrity sha512-WG7nfvmWWkCR++KEkZevZb/uw41E8TsH4DsY9UxsTbIXCVGbAs4S+r8FrQ+OtH5EEQAs+5UxKC42VinkmpA1Yw==
-  dependencies:
-    "@types/hast" "^3.0.0"
-    hast-util-from-html "^2.0.0"
-    unified "^11.0.0"
-
-rehype-pretty-code@~0.12.2:
-  version "0.12.6"
-  resolved "https://registry.yarnpkg.com/rehype-pretty-code/-/rehype-pretty-code-0.12.6.tgz#02ba6630523d877b464852647475a599f58d30b2"
-  integrity sha512-AW18s4eXwnb4PGwL0Y8BoUzBJr23epWNXndCKaZ52S4kl/4tsgM+406oCp5NdtPZsB0ItpaY+hCMv3kw58DLrA==
-  dependencies:
-    "@types/hast" "^3.0.3"
-    hast-util-to-string "^3.0.0"
-    parse-numeric-range "^1.3.0"
-    rehype-parse "^9.0.0"
-    unified "^11.0.4"
-    unist-util-visit "^5.0.0"
-
 rehype-slug@^6.0.0:
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/rehype-slug/-/rehype-slug-6.0.0.tgz#1d21cf7fc8a83ef874d873c15e6adaee6344eaf1"
@@ -8078,32 +8058,12 @@ shell-quote@^1.8.1:
   resolved "https://registry.yarnpkg.com/shell-quote/-/shell-quote-1.8.1.tgz#6dbf4db75515ad5bac63b4f1894c3a154c766680"
   integrity sha512-6j1W9l1iAs/4xYBI1SYOVZyFcCis9b4KCLQ8fgAGG07QvzaRLVVRQvAy85yNmmZSjYjg4MWh4gNvlPujU/5LpA==
 
-shikiji-core@0.10.2:
-  version "0.10.2"
-  resolved "https://registry.yarnpkg.com/shikiji-core/-/shikiji-core-0.10.2.tgz#19c5cba664c12a80e726bd627a0e08313a67bd5f"
-  integrity sha512-9Of8HMlF96usXJHmCL3Gd0Fcf0EcyJUF9m8EoAKKd98mHXi0La2AZl1h6PegSFGtiYcBDK/fLuKbDa1l16r1fA==
-
-shikiji-transformers@~0.10.0:
-  version "0.10.2"
-  resolved "https://registry.yarnpkg.com/shikiji-transformers/-/shikiji-transformers-0.10.2.tgz#fda6551a53b32b7e1a3b16917eddb0836ae47f87"
-  integrity sha512-7IVTwl1af205ywYEq5bOAYOTOFW4V1dVX1EablP0nWKErqZeD1o93VMytxmtJomqS+YwbB8doY8SE3MFMn0aPQ==
+shiki@1.1.7, shiki@^1.1.2:
+  version "1.1.7"
+  resolved "https://registry.yarnpkg.com/shiki/-/shiki-1.1.7.tgz#270f7830b4d08bdf6b63eb97ef93e06c7af604de"
+  integrity sha512-9kUTMjZtcPH3i7vHunA6EraTPpPOITYTdA5uMrvsJRexktqP0s7P3s9HVK80b4pP42FRVe03D7fT3NmJv2yYhw==
   dependencies:
-    shikiji "0.10.2"
-
-shikiji-twoslash@~0.10.0:
-  version "0.10.2"
-  resolved "https://registry.yarnpkg.com/shikiji-twoslash/-/shikiji-twoslash-0.10.2.tgz#ee8ff40f9ad79d923b8dcc9f77d5317f6fb76097"
-  integrity sha512-BeIo3TsuWMh07dn0RjPvmAxJh6zeZu0kbPW1m6R0kvKOgh/jSa9+Mu75evHfPabNJumtMELT5osnzlv66x87wg==
-  dependencies:
-    shikiji-core "0.10.2"
-    twoslash "^0.1.0"
-
-shikiji@0.10.2, shikiji@~0.10.0:
-  version "0.10.2"
-  resolved "https://registry.yarnpkg.com/shikiji/-/shikiji-0.10.2.tgz#178391422225c50c0499f4d841baaa9568a79769"
-  integrity sha512-wtZg3T0vtYV2PnqusWQs3mDaJBdCPWxFDrBM/SE5LfrX92gjUvfEMlc+vJnoKY6Z/S44OWaCRzNIsdBRWcTAiw==
-  dependencies:
-    shikiji-core "0.10.2"
+    "@shikijs/core" "1.1.7"
 
 side-channel@^1.0.4:
   version "1.0.4"
@@ -8760,12 +8720,18 @@ turbo@^1.12.2:
     turbo-windows-64 "1.12.2"
     turbo-windows-arm64 "1.12.2"
 
-twoslash@^0.1.0, twoslash@~0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/twoslash/-/twoslash-0.1.0.tgz#4508ca2450f42905e3f7c4a6d970798108e238d8"
-  integrity sha512-zvDn23/FwNdi/i2xMTTDcn7xnX4iKlp6tJt68aD86zRqesQrb/HOnMBtaUu6+vme4gtlX9ScEfKYog1+7IPKSw==
+twoslash-protocol@0.2.4:
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/twoslash-protocol/-/twoslash-protocol-0.2.4.tgz#52b9955545d533a5952f011eec81887711730eae"
+  integrity sha512-AEGTJj4mFGfvQc/M6qi0+s82Zq+mxLcjWZU+EUHGG8LQElyHDs+uDR+/3+m1l+WP7WL+QmWrVzFXgFX+hBg+bg==
+
+twoslash@^0.2.4, twoslash@~0.2.2:
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/twoslash/-/twoslash-0.2.4.tgz#e419c4a3e8dd49b1a589fd03bdfdbc352048d5e6"
+  integrity sha512-hc3y11BjLHP4kV37TR6lUKksxpZp0LQi9kCy95ka6qobye/gV49PqXZIuWlRaRVGNvp4AJBMg8aiwkp0M8x/nQ==
   dependencies:
     "@typescript/vfs" "1.5.0"
+    twoslash-protocol "0.2.4"
 
 type-check@^0.4.0, type-check@~0.4.0:
   version "0.4.0"
@@ -9041,14 +9007,6 @@ vary@~1.1.2:
   resolved "https://registry.yarnpkg.com/vary/-/vary-1.1.2.tgz#2299f02c6ded30d4a5961b0b9f74524a18f634fc"
   integrity sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==
 
-vfile-location@^5.0.0:
-  version "5.0.2"
-  resolved "https://registry.yarnpkg.com/vfile-location/-/vfile-location-5.0.2.tgz#220d9ca1ab6f8b2504a4db398f7ebc149f9cb464"
-  integrity sha512-NXPYyxyBSH7zB5U6+3uDdd6Nybz6o6/od9rk8bp9H8GR3L+cm/fC0uUTbqBmUTnMCUDslAGBOIKNfvvb+gGlDg==
-  dependencies:
-    "@types/unist" "^3.0.0"
-    vfile "^6.0.0"
-
 vfile-message@^3.0.0:
   version "3.1.4"
   resolved "https://registry.yarnpkg.com/vfile-message/-/vfile-message-3.1.4.tgz#15a50816ae7d7c2d1fa87090a7f9f96612b59dea"
@@ -9162,10 +9120,10 @@ vite@^5.0.0, vite@^5.0.11, vite@^5.0.2:
   optionalDependencies:
     fsevents "~2.3.3"
 
-vocs@latest:
-  version "1.0.0-alpha.30"
-  resolved "https://registry.yarnpkg.com/vocs/-/vocs-1.0.0-alpha.30.tgz#6d7eab4398aee32ecbf3ca076947e8ac033b016b"
-  integrity sha512-5TMlJtrR2Qw4Km3xpCpSk3zyt3X8LpIg8q3thBnrn5CzuFnW2XzwSJHqQidD2ai3IGv3v6nQaHkcBXjWX5uLXQ==
+vocs@1.0.0-alpha.42:
+  version "1.0.0-alpha.42"
+  resolved "https://registry.yarnpkg.com/vocs/-/vocs-1.0.0-alpha.42.tgz#92a594cdeee41e39d4250adefed10323ff587d3d"
+  integrity sha512-6ZAbN6dE9wb6N5Jw8Lt/p4Sn1YPN6RBuM5LHCdPQvfsMB+eA5Lh45mU3cc5Ho56W1jS94aJwvUfvHjRZyVB5FQ==
   dependencies:
     "@floating-ui/react" "^0.26.6"
     "@hono/node-server" "^1.2.3"
@@ -9180,6 +9138,9 @@ vocs@latest:
     "@radix-ui/react-navigation-menu" "^1.1.4"
     "@radix-ui/react-popover" "^1.0.7"
     "@radix-ui/react-tabs" "^1.0.4"
+    "@shikijs/rehype" "^1.1.2"
+    "@shikijs/transformers" "^1.1.2"
+    "@shikijs/twoslash" "^1.1.2"
     "@vanilla-extract/css" "^1.14.0"
     "@vanilla-extract/dynamic" "^2.1.0"
     "@vanilla-extract/vite-plugin" "^3.9.4"
@@ -9189,7 +9150,7 @@ vocs@latest:
     chroma-js "^2.4.2"
     clsx "^2.0.0"
     compression "^1.7.4"
-    create-vocs "^1.0.0-alpha.3"
+    create-vocs "^1.0.0-alpha.4"
     cross-spawn "^7.0.3"
     fs-extra "^11.1.1"
     globby "^13.2.2"
@@ -9209,7 +9170,6 @@ vocs@latest:
     react-router-dom "^6.20.0"
     rehype-autolink-headings "^7.1.0"
     rehype-class-names "^1.0.14"
-    rehype-pretty-code "~0.12.2"
     rehype-slug "^6.0.0"
     remark-directive "^3.0.0"
     remark-frontmatter "^5.0.0"
@@ -9217,12 +9177,10 @@ vocs@latest:
     remark-mdx-frontmatter "^4.0.0"
     remark-parse "^11.0.0"
     serve-static "^1.15.0"
-    shikiji "~0.10.0"
-    shikiji-transformers "~0.10.0"
-    shikiji-twoslash "~0.10.0"
+    shiki "^1.1.2"
     tailwindcss "^3.3.3"
     toml "^3.0.0"
-    twoslash "~0.1.0"
+    twoslash "~0.2.2"
     ua-parser-js "^1.0.36"
     unified "^11.0.4"
     unist-util-visit "^5.0.0"
@@ -9241,11 +9199,6 @@ wcwidth@^1.0.1:
   integrity sha512-XHPEwS0q6TaxcvG85+8EYkbiCux2XtWG2mkc47Ng2A77BQu9+DqIOJldST4HgPkuea7dvKSj5VgX3P1d4rW8Tg==
   dependencies:
     defaults "^1.0.3"
-
-web-namespaces@^2.0.0:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/web-namespaces/-/web-namespaces-2.0.1.tgz#1010ff7c650eccb2592cebeeaf9a1b253fd40692"
-  integrity sha512-bKr1DkiNa2krS7qxNtdrtHAmzuYGFQLiQ13TsorsdT6ULTkPLKuu5+GsFpDlg6JFjUTwX2DyhMPG2be8uPrqsQ==
 
 webidl-conversions@^4.0.2:
   version "4.0.2"
