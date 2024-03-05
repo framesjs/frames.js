@@ -13,7 +13,7 @@ import {
   UseFrameReturn,
   onTransactionArgs,
 } from "./types";
-import type { Frame, FrameButton, TransactionTargetResponse } from "../types";
+import type { FrameButton, TransactionTargetResponse } from "../types";
 import { getFrame } from "../getFrame";
 import { getFarcasterTime } from "@farcaster/core";
 
@@ -109,12 +109,16 @@ export function useFrame<
         ]
       : []
   );
-  const [isLoading, setIsLoading] = useState<FrameStackPending | null>({
-    request: {},
-    method: "GET" as const,
-    timestamp: new Date(),
-    url: homeframeUrl ?? "",
-  });
+  const [isLoading, setIsLoading] = useState<FrameStackPending | null>(
+    homeframeUrl
+      ? {
+          request: {},
+          method: "GET" as const,
+          timestamp: new Date(),
+          url: homeframeUrl ?? "",
+        }
+      : null
+  );
 
   async function fetchFrame({ method, url, request }: FrameRequest) {
     if (method === "GET") {

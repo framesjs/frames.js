@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.1.4
+
+### Patch Changes
+
+- fix styles
+
 ## 0.1.3
 
 ### Patch Changes

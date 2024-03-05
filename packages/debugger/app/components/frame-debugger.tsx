@@ -115,7 +115,6 @@ function FrameDebuggerFramePropertiesTableRow({
               ) : (
                 <CheckCircle2 size={20} color="green" />
               )}
-              <CheckCircle2 size={20} color="green" />
             </TableCell>
             <TableCell>{propertyKey}</TableCell>
             <TableCell className="text-slate-500">
