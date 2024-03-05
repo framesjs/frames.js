@@ -1,6 +1,32 @@
 import type { Frame, FrameButton } from "..";
 import { FarcasterFrameContext } from "./farcaster";
 
+export type UseFrameReturn<
+  T = object,
+  B extends FrameActionBodyPayload = FrameActionBodyPayload,
+> = {
+  /** skip frame signing, for frames that don't verify signatures */
+  dangerousSkipSigning?: boolean;
+  /** the route used to POST frame actions. The post_url will be added as a the `url` query parameter */
+  frameActionProxy: string;
+  /** the route used to GET the initial frame via proxy */
+  frameGetProxy: string;
+  /** an signer state object used to determine what actions are possible */
+  signerState: SignerStateInstance<T, B>;
+  /** the url of the homeframe, if null won't load a frame */
+  homeframeUrl: string | null;
+  /** the initial frame. if not specified will fetch it from the url prop */
+  frame?: Frame;
+  /** a function to handle mint buttons */
+  onMint?: (t: onMintArgs) => void;
+  /** the context of this frame, used for generating Frame Action payloads */
+  frameContext: FrameContext;
+  /**
+   * Extra data appended to the frame action payload
+   */
+  extraButtonRequestPayload?: Record<string, unknown>;
+};
+
 export interface SignerStateInstance<
   T = object,
   B extends FrameActionBodyPayload = FrameActionBodyPayload,

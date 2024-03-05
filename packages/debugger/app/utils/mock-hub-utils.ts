@@ -117,16 +117,16 @@ export async function persistMockResponsesForDebugHubRequests(req: Request) {
     enabled: mockData.enabled,
     requests: {
       [requesterFollowsCaster]: {
-        ok: mockData.requesterFollowsCaster,
+        ok: mockData.enabled && mockData.requesterFollowsCaster,
       },
       [casterFollowsRequester]: {
-        ok: mockData.casterFollowsRequester,
+        ok: mockData.enabled && mockData.casterFollowsRequester,
       },
       [likedCast]: {
-        ok: mockData.likedCast,
+        ok: mockData.enabled && mockData.likedCast,
       },
       [recastedCast]: {
-        ok: mockData.recastedCast,
+        ok: mockData.enabled && mockData.recastedCast,
       },
     },
   };
