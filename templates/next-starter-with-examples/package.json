@@ -1,0 +1,42 @@
+{
+  "name": "template-next-starter-with-examples",
+  "version": "0.2.2",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --kill-others \"next dev\" \"frames --url http://localhost:3000\"",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@farcaster/core": "^0.14.3",
+    "@noble/ed25519": "^2.0.0",
+    "@vercel/kv": "^1.0.1",
+    "@xmtp/frames-validator": "^0.5.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.0",
+    "frames.js": "^0.9.1",
+    "lucide-react": "^0.331.0",
+    "next": "14.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "devDependencies": {
+    "@frames.js/debugger": "^0.1.8",
+    "@types/node": "^18.17.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "autoprefixer": "^10.0.1",
+    "concurrently": "^8.2.2",
+    "dotenv": "^16.4.5",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "14.1.0",
+    "postcss": "^8",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5.3.3"
+  }
+}

@@ -2,7 +2,7 @@
   "name": "framesjs-monorepo",
   "private": true,
   "scripts": {
-    "build": "turbo build",
+    "build": "turbo build && node ./.scripts/prepare-create-frames.js",
     "build:ci": "turbo build --filter=!debugger --filter=!framesjs-starter --filter=!utils-starter --filter=!docs",
     "dev": "FJS_MONOREPO=true turbo dev --filter=framesjs-starter... --filter=debugger...",
     "dev:custom-redirects": "turbo dev --filter=custom-redirects...",
@@ -23,9 +23,11 @@
     "@framesjs/typescript-config": "*",
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.11",
+    "fast-glob": "^3.3.2",
     "jest": "^29.7.0",
     "nock": "beta",
     "prettier": "^3.1.1",
+    "rimraf": "^5.0.5",
     "turbo": "^1.12.2"
   },
   "engines": {
@@ -35,7 +37,8 @@
   "workspaces": [
     "docs",
     "examples/*",
-    "packages/*"
+    "packages/*",
+    "templates/*"
   ],
   "version": "0.3.0-canary.0"
 }

@@ -7,11 +7,17 @@ import { HomePage } from "vocs/components";
 
 <HomePage.Root>
   <h1 className="vocs_HomePage_title">frames.js</h1>
-  <HomePage.InstallPackage name="frames.js" type="install" />
+  <HomePage.InstallPackage name="frames" type="init" />
   <HomePage.Description>
     **frames.js** is the fastest way to make Frames.
   </HomePage.Description>
   <HomePage.Buttons>
+    <HomePage.Button href="#quickstart" variant="accent">
+      Quickstart
+    </HomePage.Button>
+    <HomePage.Button href="https://github.com/framesjs/frames.js">
+      GitHub
+    </HomePage.Button>
     <HomePage.Button href="#quickstart" variant="accent">
       Quickstart
     </HomePage.Button>
@@ -31,15 +37,27 @@ import { HomePage } from "vocs/components";
 
 # Quickstart
 
-## 1. Clone the frames.js starter template (with local debugger)
+## Bootstrap the project from template using the CLI tool
 
-Run to clone the starter into a new folder called `framesjs-starter`
+Run one of the commands below based on your preferred package manager and then follow the steps in the terminal.
 
-```bash
-npx degit github:framesjs/frames.js/examples/framesjs-starter#main framesjs-starter
+### Using npm
+
+```sh
+npm init frames
 ```
 
-or [clone from github](https://github.com/framesjs/frames.js/tree/main/examples/framesjs-starter)
+### Using yarn
+
+```sh
+yarn create frames
+```
+
+### Using pnpm
+
+```sh
+pnpm create frames
+```
 
 ## Alternatively, add frames.js to your existing project manually
 
