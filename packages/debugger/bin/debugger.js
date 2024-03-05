@@ -12,16 +12,16 @@ import open from "open";
 
 const args = yargs(hideBin(process.argv))
   .usage("Usage: $0 [args]")
-  .option("farcaster-developer-mnmonic", {
+  .option("farcaster-developer-mnemonic", {
     alias: "fdm",
     type: "string",
     description:
       "Needed for the debugger to create a real Farcaster signer. Get this by exporting your seed phrase from the Warpcast app. Don't share that seed phrase with anyone.",
   })
-  .option("farcaster-developer-id", {
+  .option("farcaster-developer-fid", {
     alias: "fid",
     type: "number",
-    description: `Only needed for the debugger to create a real Farcaster signer. Get this by visiting your Warpccast profile, pressing the kebab (three dots) menu and then "About" and then your fid should be there.`,
+    description: `Only needed for the debugger to create a real Farcaster signer. Get this by visiting your Warpcast profile, pressing the kebab (three dots) menu and then "About" and then your fid should be there.`,
   })
   .option("port", {
     alias: "p",
@@ -36,8 +36,8 @@ const args = yargs(hideBin(process.argv))
     default: process.env.NEXT_PUBLIC_HOST,
   }).argv;
 
-process.env.FARCASTER_DEVELOPER_MNEMONIC = args["farcaster-developer-mnmonic"];
-process.env.FARCASTER_DEVELOPER_ID = args["farcaster-developer-id"];
+process.env.FARCASTER_DEVELOPER_MNEMONIC = args["farcaster-developer-mnemonic"];
+process.env.FARCASTER_DEVELOPER_ID = args["farcaster-developer-fid"];
 
 const dev = false;
 const hostname = "localhost";
