@@ -27,7 +27,12 @@ const LoginWindow = ({
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          variant={!farcasterUser && !loading ? "destructive" : "outline"}
+          variant={
+            (!farcasterUser || farcasterUser.status === "pending_approval") &&
+            !loading
+              ? "destructive"
+              : "outline"
+          }
         >
           {farcasterUser?.status === "impersonating"
             ? `Impersonating fid ${farcasterUser.fid}`
@@ -108,9 +113,12 @@ const LoginWindow = ({
               )}
               {farcasterUser?.status === "pending_approval" &&
                 farcasterUser?.signerApprovalUrl && (
-                  <div className="signer-approval-container mr-4">
+                  <div className="signer-approval-container mr-4 flex flex-col gap-2">
                     Scan with your camera app
-                    <QRCode value={farcasterUser.signerApprovalUrl} size={64} />
+                    <QRCode
+                      value={farcasterUser.signerApprovalUrl}
+                      size={128}
+                    />
                     <div className="or-divider">OR</div>
                     <a
                       href={farcasterUser.signerApprovalUrl}
@@ -118,8 +126,12 @@ const LoginWindow = ({
                       className="underline"
                       rel="noopener noreferrer"
                     >
-                      <button>open url</button>
+                      <Button>open url</Button>
                     </a>
+                    <hr />
+                    <Button onClick={logout} variant={"secondary"}>
+                      Impersonate instead
+                    </Button>
                   </div>
                 )}
             </div>
