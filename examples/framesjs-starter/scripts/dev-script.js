@@ -9,7 +9,7 @@ if (!process.env.FJS_MONOREPO) {
   args = [
     "--kill-others",
     '"next dev"',
-    `"${process.env.FARCASTER_DEVELOPER_MNEMONIC ? `FARCASTER_DEVELOPER_MNEMONIC=${process.env.FARCASTER_DEVELOPER_MNEMONIC}` : ""} ${process.env.FARCASTER_DEVELOPER_FID ? `FARCASTER_DEVELOPER_FID=${process.env.FARCASTER_DEVELOPER_FID}` : ""} frames ${process.env.NEXT_PUBLIC_HOST ? "--url ${process.env.NEXT_PUBLIC_HOST}" : ""}  "`,
+    `"${process.env.FARCASTER_DEVELOPER_MNEMONIC ? `FARCASTER_DEVELOPER_MNEMONIC=${process.env.FARCASTER_DEVELOPER_MNEMONIC}` : ""} ${process.env.FARCASTER_DEVELOPER_FID ? `FARCASTER_DEVELOPER_FID=${process.env.FARCASTER_DEVELOPER_FID}` : ""} frames ${process.env.NEXT_PUBLIC_HOST ? `--url ${process.env.NEXT_PUBLIC_HOST}` : ""}  "`,
   ];
 }
 

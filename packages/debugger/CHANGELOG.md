@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.1.1
+
+### Patch Changes
+
+- 7aa36f9: Fix signer flow
+
 ## 0.1.0
 
 ### Minor Changes
