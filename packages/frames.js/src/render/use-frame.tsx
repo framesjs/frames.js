@@ -8,6 +8,9 @@ import {
   SignerStateInstance,
   FrameActionBodyPayload,
   FramesStack,
+  FrameStackPending,
+  FrameRequest,
+  UseFrameReturn,
 } from "./types";
 import type { Frame, FrameButton } from "../types";
 import { getFrame } from "../getFrame";
@@ -71,28 +74,7 @@ export function useFrame<
   /** Ex: /frames */
   frameGetProxy,
   extraButtonRequestPayload,
-}: {
-  /** skip frame signing, for frames that don't verify signatures */
-  dangerousSkipSigning?: boolean;
-  /** the route used to POST frame actions. The post_url will be added as a the `url` query parameter */
-  frameActionProxy: string;
-  /** the route used to GET the initial frame via proxy */
-  frameGetProxy: string;
-  /** an signer state object used to determine what actions are possible */
-  signerState: SignerStateInstance<T, B>;
-  /** the url of the homeframe, if null won't load a frame */
-  homeframeUrl: string | null;
-  /** the initial frame. if not specified will fetch it from the url prop */
-  frame?: Frame;
-  /** a function to handle mint buttons */
-  onMint?: (t: onMintArgs) => void;
-  /** the context of this frame, used for generating Frame Action payloads */
-  frameContext: FrameContext;
-  /**
-   * Extra data appended to the frame action payload
-   */
-  extraButtonRequestPayload?: Record<string, unknown>;
-}): FrameState {
+}: UseFrameReturn<T, B>): FrameState {
   const [inputText, setInputText] = useState("");
   const initialFrame = frame ? { frame: frame, errors: null } : undefined;
 
@@ -101,6 +83,8 @@ export function useFrame<
       ? [
           {
             method: "GET",
+            request: {},
+            responseStatus: 200,
             timestamp: new Date(),
             url: homeframeUrl ?? "",
             isValid: true,
@@ -111,51 +95,134 @@ export function useFrame<
         ]
       : []
   );
-  const [isLoading, setIsLoading] = useState(initialFrame ? false : true);
-  // Load initial frame if not defined
-  useEffect(() => {
-    async function fetchInitialFrame() {
+  const [isLoading, setIsLoading] = useState<FrameStackPending | null>({
+    request: {},
+    method: "GET" as const,
+    timestamp: new Date(),
+    url: homeframeUrl ?? "",
+  });
+
+  async function fetchFrame({ method, url, request }: FrameRequest) {
+    if (method === "GET") {
       const tstart = new Date();
+
+      const frameStackBase = {
+        request: {},
+        method: "GET" as const,
+        timestamp: tstart,
+        url: url ?? "",
+      };
+      setIsLoading(frameStackBase);
+
       let requestError: unknown | null = null;
-      let frame: ReturnType<typeof getFrame> | null = null;
-      const requestUrl = `${frameGetProxy}?url=${homeframeUrl}`;
+      let newFrame: ReturnType<typeof getFrame> | null = null;
+      const proxiedUrl = `${frameGetProxy}?url=${url}`;
 
       let stackItem: FramesStack[number];
+      let response;
       try {
-        frame = (await (await fetch(requestUrl)).json()) as ReturnType<
-          typeof getFrame
-        >;
+        response = await fetch(proxiedUrl);
+        newFrame = (await response.json()) as ReturnType<typeof getFrame>;
         const tend = new Date();
 
         stackItem = {
-          frame: frame.frame,
-          frameValidationErrors: frame.errors,
-          method: "GET",
+          ...frameStackBase,
+          frame: newFrame.frame,
+          frameValidationErrors: newFrame.errors,
           speed: +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2),
-          timestamp: tstart,
-          url: homeframeUrl ?? "",
-          isValid: Object.keys(frame.errors ?? {}).length === 0,
+          responseStatus: response.status,
+          isValid: Object.keys(newFrame.errors ?? {}).length === 0,
         };
       } catch (err) {
         const tend = new Date();
 
         stackItem = {
-          url: homeframeUrl ?? "",
-          method: "GET",
+          ...frameStackBase,
+          url: url ?? "",
+          responseStatus: response?.status ?? 500,
           requestError,
           speed: +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2),
-          timestamp: tstart,
         };
 
         requestError = err;
       }
-
       setFramesStack((v) => [stackItem, ...v]);
+    } else {
+      const tstart = new Date();
+      const frameStackBase = {
+        method: "POST" as const,
+        request: {
+          searchParams: request.searchParams,
+          body: request.body,
+        },
+        timestamp: tstart,
+        url: url,
+      };
+      setIsLoading(frameStackBase);
+      let stackItem: FramesStack[number] | undefined;
+      const proxiedUrl = `${frameActionProxy}?${request.searchParams.toString()}`;
 
-      setIsLoading(false);
+      let response;
+      try {
+        response = await fetch(proxiedUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...extraButtonRequestPayload,
+            ...request.body,
+          }),
+        });
+        const dataRes = (await response.json()) as
+          | ReturnType<typeof getFrame>
+          | { location: string };
+        const tend = new Date();
+
+        if ("location" in dataRes) {
+          const location = dataRes.location;
+
+          if (
+            window.confirm("You are about to be redirected to " + location!)
+          ) {
+            window.open(location!, "_blank")?.focus();
+          }
+        } else {
+          stackItem = {
+            ...frameStackBase,
+            responseStatus: response.status,
+            speed: +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2),
+            frame: dataRes.frame,
+            frameValidationErrors: dataRes.errors,
+            isValid: Object.keys(dataRes.errors ?? {}).length === 0,
+          };
+        }
+      } catch (err) {
+        const tend = new Date();
+        stackItem = {
+          ...frameStackBase,
+          responseStatus: response?.status ?? 500,
+          requestError: err,
+          speed: +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2),
+        };
+
+        console.error(err);
+      }
+
+      setFramesStack((v) => (stackItem ? [stackItem, ...v] : v));
     }
+    setIsLoading(null);
+  }
 
-    if (!initialFrame && homeframeUrl) fetchInitialFrame();
+  // Load initial frame if not defined
+  useEffect(() => {
+    if (!initialFrame && homeframeUrl) {
+      fetchFrame({
+        url: homeframeUrl,
+        method: "GET",
+        request: {},
+      });
+    }
   }, [initialFrame, homeframeUrl]);
 
   function getCurrentFrame() {
@@ -210,7 +277,6 @@ export function useFrame<
       frameButton.action === "post" ||
       frameButton.action === "post_redirect"
     ) {
-      setIsLoading(true);
       try {
         await onPostButton({
           frameButton: frameButton,
@@ -233,7 +299,6 @@ export function useFrame<
         alert("error: check the console");
         console.error(err);
       }
-      setIsLoading(false);
     }
   };
 
@@ -278,66 +343,24 @@ export function useFrame<
       ? await unsignedFrameAction(frameSignatureContext)
       : await signerState.signFrameAction(frameSignatureContext);
 
-    const requestUrl = `${frameActionProxy}?${searchParams.toString()}`;
-    const url = searchParams.get("postUrl") ?? "";
-
-    let stackItem: FramesStack[number] | undefined;
-    const tstart = new Date();
-
-    try {
-      const response = await fetch(requestUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...extraButtonRequestPayload,
-          ...body,
-        }),
-      });
-      const dataRes = (await response.json()) as
-        | ReturnType<typeof getFrame>
-        | { location: string };
-      const tend = new Date();
-
-      if ("location" in dataRes) {
-        const location = dataRes.location;
-
-        if (window.confirm("You are about to be redirected to " + location!)) {
-          window.open(location!, "_blank")?.focus();
-        }
-      } else {
-        stackItem = {
-          method: "POST",
-          speed: +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2),
-          timestamp: tstart,
-          url,
-          frame: dataRes.frame,
-          frameValidationErrors: dataRes.errors,
-          isValid: Object.keys(dataRes.errors ?? {}).length === 0,
-        };
-      }
-    } catch (err) {
-      const tend = new Date();
-      stackItem = {
-        url,
-        method: "POST",
-        requestError: err,
-        speed: +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2),
-        timestamp: tstart,
-      };
-
-      console.error(err);
-    }
-
-    setFramesStack((v) => (stackItem ? [stackItem, ...v] : v));
+    await fetchFrame({
+      // post_url stuff
+      url: searchParams.get("postUrl") ?? "/",
+      method: "POST",
+      request: {
+        searchParams,
+        body,
+      },
+    });
   };
 
   return {
     isLoading: isLoading,
     inputText,
     setInputText,
+    clearFrameStack: () => setFramesStack([]),
     onButtonPress,
+    fetchFrame,
     homeframeUrl,
     framesStack: framesStack,
     frame: getCurrentFrame() ?? null,

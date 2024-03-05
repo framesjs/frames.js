@@ -1,5 +1,7 @@
-import React from "react";
+import React, { FormEvent, FormEventHandler } from "react";
 import { type MockHubActionContext } from "../utils/mock-hub-utils";
+import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export function MockHubConfig({
   hubContext,
@@ -10,65 +12,49 @@ export function MockHubConfig({
     React.SetStateAction<Partial<MockHubActionContext>>
   >;
 }) {
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const target = e.target as HTMLInputElement; // Adjusting the type here for broad compatibility
-    const value = target.type === "checkbox" ? target.checked : target.value;
-    const name = target.name;
-
-    if (target.type === "checkbox") {
-      setHubContext((prev) => ({ ...prev, [name]: value }));
-    }
+  const handleInputChange = (name: string) => (checked: boolean) => {
+    setHubContext((prev) => ({ ...prev, [name]: checked }));
   };
 
   return (
-    <div className={"text-gray-500"}>
+    <div>
       <div className="flex flex-col gap-2">
-        <label className="flex items-center gap-2">
-          <input
-            name="enabled"
-            type="checkbox"
-            checked={hubContext.enabled}
-            onChange={handleInputChange}
-          />{" "}
+        <label className="flex items-center gap-2 pt-4">
           Mock Hub
+          <Switch
+            id="enabled"
+            className="ml-auto"
+            checked={hubContext.enabled}
+            onCheckedChange={handleInputChange("enabled")}
+          />
         </label>
         {hubContext.enabled && (
           <>
             <label className="flex items-center gap-2">
-              <input
-                name="requesterFollowsCaster"
-                type="checkbox"
+              <Checkbox
                 checked={hubContext.requesterFollowsCaster}
-                onChange={handleInputChange}
+                onCheckedChange={handleInputChange("requesterFollowsCaster")}
               />{" "}
               Requester follows caster
             </label>
             <label className="flex items-center gap-2">
-              <input
-                name="casterFollowsRequester"
-                type="checkbox"
+              <Checkbox
                 checked={hubContext.casterFollowsRequester}
-                onChange={handleInputChange}
+                onCheckedChange={handleInputChange("casterFollowsRequester")}
               />{" "}
               Caster follows requester
             </label>
             <label className="flex items-center gap-2">
-              <input
-                name="likedCast"
-                type="checkbox"
+              <Checkbox
                 checked={hubContext.likedCast}
-                onChange={handleInputChange}
+                onCheckedChange={handleInputChange("likedCast")}
               />{" "}
               Requester liked cast
             </label>
             <label className="flex items-center gap-2">
-              <input
-                name="recastedCast"
-                type="checkbox"
+              <Checkbox
                 checked={hubContext.recastedCast}
-                onChange={handleInputChange}
+                onCheckedChange={handleInputChange("recastedCast")}
               />{" "}
               Requester recasted cast
             </label>
