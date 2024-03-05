@@ -46,6 +46,15 @@ function paramsToObject(entries: IterableIterator<[string, string]>): object {
   return result;
 }
 
+function isPropertyExperimental([key, value]: [string, string]) {
+  // tx is experimental
+  return (
+    key.startsWith("fc:frame:button:") &&
+    key.endsWith(":action") &&
+    value === "tx"
+  );
+}
+
 function FrameDebuggerFramePropertiesTableRow({
   stackItem,
 }: FrameDebuggerFramePropertiesTableRowsProps) {
@@ -72,7 +81,11 @@ function FrameDebuggerFramePropertiesTableRow({
 
     const flattenedFrame = getFrameFlattened(stackItem.frame);
 
+    let hasExperimentalProperties = false;
+
     for (const [key, value] of Object.entries(flattenedFrame)) {
+      hasExperimentalProperties =
+        hasExperimentalProperties || isPropertyExperimental([key, value ?? ""]);
       // skip if the key is already set as invalid or value is undefined / null
       if (visitedInvalidProperties.includes(key) || value == null) {
         continue;
@@ -85,6 +98,7 @@ function FrameDebuggerFramePropertiesTableRow({
       validProperties,
       invalidProperties,
       isValid: invalidProperties.length === 0,
+      hasExperimentalProperties,
     };
   }, [stackItem]);
 
@@ -94,6 +108,13 @@ function FrameDebuggerFramePropertiesTableRow({
         return (
           <TableRow key={`${propertyKey}-valid`}>
             <TableCell>
+              {isPropertyExperimental([propertyKey, value]) ? (
+                <span>
+                  <CheckCircle2 size={20} color="orange" /> *
+                </span>
+              ) : (
+                <CheckCircle2 size={20} color="green" />
+              )}
               <CheckCircle2 size={20} color="green" />
             </TableCell>
             <TableCell>{propertyKey}</TableCell>
@@ -118,6 +139,14 @@ function FrameDebuggerFramePropertiesTableRow({
           </TableRow>
         );
       })}
+      {properties.hasExperimentalProperties && (
+        <TableRow>
+          <TableCell colSpan={3} className="text-slate-500">
+            *This property is experimental and may not have been adopted in
+            clients yet
+          </TableCell>
+        </TableRow>
+      )}
     </>
   );
 }
