@@ -1,5 +1,15 @@
 # frames.js
 
+## 0.8.0
+
+### Minor Changes
+
+- 7ccc562: update debugger ui
+
+### Patch Changes
+
+- 72e6617: feat: tx support
+
 ## 0.7.1
 
 ### Patch Changes

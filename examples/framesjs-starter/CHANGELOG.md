@@ -1,5 +1,14 @@
 # framesjs-starter
 
+## 0.2.2
+
+### Patch Changes
+
+- 72e6617: feat: tx support
+- Updated dependencies [72e6617]
+- Updated dependencies [7ccc562]
+  - frames.js@0.8.0
+
 ## 0.2.1
 
 ### Patch Changes
