@@ -1,0 +1,27 @@
+# getDscvrFrameMessage
+
+Returns a `DscvrFrameMessageReturnType` object from the message payload. Throws an error if the message is invalid. Requires the `@dscvr/frames-validator` peer dependency to be installed.
+
+## Usage
+
+```ts
+yarn add @dscvr/frames-adapter
+```
+
+```ts
+import { getDscvrFrameMessage } from 'frames.js/dscvr';
+
+const frameMessage = await getDscvrFrameMessage(frameActionPayload);
+console.log(frameMessage);
+/**
+{
+  frameUrl: 'https://example.com',
+  timestamp: 1234567890,
+  buttonIndex: 1,
+  inputText: '...',
+  state: '...',
+  uid: '...',
+  contentId: '...',
+}
+**/
+```

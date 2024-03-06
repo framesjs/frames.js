@@ -131,6 +131,16 @@
         "default": "./dist/xmtp/index.cjs"
       }
     },
+    "./dscvr": {
+      "import": {
+        "types": "./dist/dscvr/index.d.ts",
+        "default": "./dist/dscvr/index.js"
+      },
+      "require": {
+        "types": "./dist/dscvr/index.d.cts",
+        "default": "./dist/dscvr/index.cjs"
+      }
+    },
     "./render/next": {
       "import": {
         "types": "./dist/render/next/index.d.ts",
@@ -189,6 +199,7 @@
     "react-dom": "^18.2.0"
   },
   "dependencies": {
+    "@dscvr-one/frames-adapter": "^1.0.0-alpha1",
     "@farcaster/core": "^0.14.4",
     "@vercel/og": "^0.6.2",
     "cheerio": "^1.0.0-rc.12",
