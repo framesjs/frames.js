@@ -105,8 +105,11 @@ function FrameDebuggerFramePropertiesTableRow({
           <TableRow key={`${propertyKey}-valid`}>
             <TableCell>
               {isPropertyExperimental([propertyKey, value]) ? (
-                <span>
-                  <CheckCircle2 size={20} color="orange" /> *
+                <span className="whitespace-nowrap flex">
+                  <div className="inline">
+                    <CheckCircle2 size={20} color="orange" />
+                  </div>
+                  <div className="inline text-slate-500">*</div>
                 </span>
               ) : (
                 <CheckCircle2 size={20} color="green" />
