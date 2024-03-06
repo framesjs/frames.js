@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.1.5
+
+### Patch Changes
+
+- daec663: fix fallback to env variables
+
 ## 0.1.4
 
 ### Patch Changes
