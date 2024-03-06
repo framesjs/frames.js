@@ -60,10 +60,11 @@ export const unsignedFrameAction: SignerStateInstance["signFrameAction"] =
       },
     };
   };
-function onTransactionFallback({ transactionData }: onTransactionArgs) {
+async function onTransactionFallback({ transactionData }: onTransactionArgs) {
   window.alert(
     `Requesting a transaction on chain with ID ${transactionData.chainId} with the following params: ${JSON.stringify(transactionData.params, null, 2)}`
   );
+  return null;
 }
 
 export const fallbackFrameContext: FrameContext = {
@@ -305,12 +306,24 @@ export function useFrame<
           currentFrame.inputText !== undefined ? inputText : undefined,
         state: currentFrame.state,
       });
-      if (transactionData)
-        onTransaction({
+      if (transactionData) {
+        const transactionId = await onTransaction({
           frame: currentFrame,
           frameButton: frameButton,
           transactionData,
         });
+        if (transactionId) {
+          onTransactionSubmitted({
+            frameButton: frameButton,
+            target: target,
+            buttonIndex: index + 1,
+            postInputText:
+              currentFrame.inputText !== undefined ? inputText : undefined,
+            state: currentFrame.state,
+            transactionId,
+          });
+        }
+      }
     } else if (
       frameButton.action === "post" ||
       frameButton.action === "post_redirect"
@@ -433,6 +446,68 @@ export function useFrame<
       state,
     });
     searchParams.append("postType", "tx");
+
+    const requestUrl = `${frameActionProxy}?${searchParams.toString()}`;
+
+    try {
+      const response = await fetch(requestUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...extraButtonRequestPayload,
+          ...body,
+        }),
+      });
+      const transactionResponse =
+        (await response.json()) as TransactionTargetResponse;
+      return transactionResponse;
+    } catch {
+      throw new Error(
+        `frames.js: Could not fetch transaction data from "${searchParams.get("postUrl")}"`
+      );
+    }
+  };
+
+  const onTransactionSubmitted = async ({
+    buttonIndex,
+    postInputText,
+    frameButton,
+    target,
+    state,
+    transactionId,
+  }: {
+    frameButton: FrameButton;
+    buttonIndex: number;
+    postInputText: string | undefined;
+    state?: string;
+    target: string;
+    transactionId: `0x${string}`;
+  }) => {
+    // Send post request to get calldata
+    const currentFrame = getCurrentFrame();
+
+    if (!dangerousSkipSigning && !signerState.hasSigner) {
+      console.error("frames.js: missing required auth state");
+      return;
+    }
+    if (!currentFrame || !currentFrame || !homeframeUrl || !frameButton) {
+      console.error("frames.js: missing required value for post");
+      return;
+    }
+
+    const { searchParams, body } = await signerState.signFrameAction({
+      inputText: postInputText,
+      signer: signerState.signer ?? null,
+      frameContext,
+      url: homeframeUrl,
+      target,
+      frameButton: frameButton,
+      buttonIndex: buttonIndex,
+      state,
+      transactionId,
+    });
 
     const requestUrl = `${frameActionProxy}?${searchParams.toString()}`;
 
