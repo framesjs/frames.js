@@ -17,11 +17,13 @@ const args = yargs(hideBin(process.argv))
     type: "string",
     description:
       "Needed for the debugger to create a real Farcaster signer. Get this by exporting your seed phrase from the Warpcast app. Don't share that seed phrase with anyone.",
+    default: process.env.FARCASTER_DEVELOPER_MNEMONIC,
   })
   .option("farcaster-developer-fid", {
     alias: "fid",
     type: "number",
     description: `Only needed for the debugger to create a real Farcaster signer. Get this by visiting your Warpcast profile, pressing the kebab (three dots) menu and then "About" and then your fid should be there.`,
+    default: process.env.FARCASTER_DEVELOPER_ID,
   })
   .option("port", {
     alias: "p",
