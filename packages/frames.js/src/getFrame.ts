@@ -279,11 +279,19 @@ export function getFrame({
         image?.startsWith("data:image/gif;base64,")
       )
     ) {
-      addError({
-        message:
-          "Image has an unrecognized format. Only jpg, png and gif images are supported",
-        key: "fc:frame:image",
-      });
+      if (image.startsWith("data:")) {
+        addError({
+          message:
+            "Image has an unrecognized format. Only jpg, png and gif images are supported.",
+          key: "fc:frame:image",
+        });
+      } else {
+        addError({
+          message:
+            "Image is invalid. Images must start with `https://`, `http://` or `data:image/`",
+          key: "fc:frame:image",
+        });
+      }
     }
 
     // validate data url is less than 256kb (warpcast)
