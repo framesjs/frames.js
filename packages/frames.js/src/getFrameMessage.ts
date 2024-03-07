@@ -1,8 +1,9 @@
 import { FrameActionMessage, Message } from "@farcaster/core";
+import { bytesToHex } from "viem";
 import {
   FrameActionDataParsed,
-  FrameActionHubContext,
   FrameActionDataParsedAndHubContext,
+  FrameActionHubContext,
   FrameActionPayload,
   HubHttpUrlOptions,
   getAddressesForFid,
@@ -45,11 +46,13 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
     buttonIndex,
     inputText: inputTextBytes,
     state: stateBytes,
+    transactionId: transactionIdBytes,
   } = (decodedMessage.data
     .frameActionBody as typeof decodedMessage.data.frameActionBody) || {};
   const inputText = inputTextBytes
     ? Buffer.from(inputTextBytes).toString("utf-8")
     : undefined;
+  const transactionId = bytesToHex(transactionIdBytes);
 
   const requesterFid = decodedMessage.data.fid;
   const castId = decodedMessage.data.frameActionBody.castId
@@ -72,6 +75,7 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
     requesterFid,
     state,
     connectedAddress,
+    transactionId,
   };
 
   if (fetchHubContext) {

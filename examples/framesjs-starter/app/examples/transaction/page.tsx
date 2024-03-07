@@ -4,6 +4,7 @@ import {
   FrameImage,
   FrameReducer,
   NextServerPageProps,
+  getFrameMessage,
   getPreviousFrame,
   useFramesReducer,
 } from "frames.js/next/server";
@@ -27,7 +28,32 @@ const reducer: FrameReducer<State> = (state, action) => {
 export default async function Home({ searchParams }: NextServerPageProps) {
   const url = currentURL("/examples/transaction");
   const previousFrame = getPreviousFrame<State>(searchParams);
+
   const [state] = useFramesReducer<State>(reducer, initialState, previousFrame);
+  const frameMessage = await getFrameMessage(previousFrame.postBody);
+
+  if (frameMessage?.transactionId) {
+    return (
+      <FrameContainer
+        pathname="/examples/transaction"
+        postUrl="/examples/transaction/frames"
+        state={state}
+        previousFrame={previousFrame}
+      >
+        <FrameImage aspectRatio="1:1">
+          <div tw="bg-purple-800 text-white w-full h-full justify-center items-center flex">
+            Transaction submitted! {frameMessage.transactionId}
+          </div>
+        </FrameImage>
+        <FrameButton
+          action="link"
+          target={`https://optimistic.etherscan.io/tx/${frameMessage.transactionId}`}
+        >
+          View on block explorer
+        </FrameButton>
+      </FrameContainer>
+    );
+  }
 
   // then, when done, return next frame
   return (
