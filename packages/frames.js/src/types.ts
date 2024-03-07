@@ -229,6 +229,7 @@ export type FrameActionDataParsed = {
   state?: string;
   /** address of the user's connected wallet, only present in transaction data requests */
   connectedAddress?: string;
+  transactionId?: `0x${string}`;
 };
 
 /** Additional context for a frame message which requires communication with a Hub */

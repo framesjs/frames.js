@@ -79,6 +79,8 @@ export default function App({
         });
       }
 
+      console.log("hello world");
+
       try {
         // Send the transaction
         const transactionId = await sendTransaction(config, {
@@ -86,8 +88,10 @@ export default function App({
           data: params.data,
           value: BigInt(params.value),
         });
+        console.log({ transactionId });
         return transactionId;
       } catch (error) {
+        console.error(error);
         return null;
       }
     },

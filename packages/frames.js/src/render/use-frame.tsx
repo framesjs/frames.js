@@ -313,6 +313,7 @@ export function useFrame<
           transactionData,
         });
         if (transactionId) {
+          // FIXME: This isn't being called
           onTransactionSubmitted({
             frameButton: frameButton,
             target: target,
@@ -497,7 +498,7 @@ export function useFrame<
       return;
     }
 
-    const { searchParams, body } = await signerState.signFrameAction({
+    const frameSignatureContext = {
       inputText: postInputText,
       signer: signerState.signer ?? null,
       frameContext,
@@ -507,24 +508,21 @@ export function useFrame<
       buttonIndex: buttonIndex,
       state,
       transactionId,
-    });
-
-    const requestUrl = `${frameActionProxy}?${searchParams.toString()}`;
+    };
+    const { searchParams, body } = dangerousSkipSigning
+      ? await unsignedFrameAction(frameSignatureContext)
+      : await signerState.signFrameAction(frameSignatureContext);
 
     try {
-      const response = await fetch(requestUrl, {
+      await fetchFrame({
+        // post_url stuff
+        url: currentFrame.postUrl,
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+        request: {
+          searchParams,
+          body,
         },
-        body: JSON.stringify({
-          ...extraButtonRequestPayload,
-          ...body,
-        }),
       });
-      const transactionResponse =
-        (await response.json()) as TransactionTargetResponse;
-      return transactionResponse;
     } catch {
       throw new Error(
         `frames.js: Could not fetch transaction data from "${searchParams.get("postUrl")}"`
