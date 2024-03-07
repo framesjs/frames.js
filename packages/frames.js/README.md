@@ -87,7 +87,7 @@ export { POST } from "frames.js/next/server";
 
 ![](/debugging.png)
 
-Or use the [hosted Frames debugger](https://debugger.framesjs.org/debug). Running locally has the benefits of it working with localhost.
+Or use the [hosted Frames debugger](https://debugger.framesjs.org/). Running locally has the benefits of it working with localhost.
 
 ## Prefer to not use JSX?
 
