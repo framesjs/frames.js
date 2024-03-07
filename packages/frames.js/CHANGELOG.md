@@ -1,5 +1,12 @@
 # frames.js
 
+## 0.8.1
+
+### Patch Changes
+
+- 3afb70a: fix: add transaction_id property to post body
+- 9c1adcb: improve image type error message
+
 ## 0.8.0
 
 ### Minor Changes
