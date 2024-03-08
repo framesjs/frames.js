@@ -48,11 +48,7 @@ function paramsToObject(entries: IterableIterator<[string, string]>): object {
 
 function isPropertyExperimental([key, value]: [string, string]) {
   // tx is experimental
-  return (
-    key.startsWith("fc:frame:button:") &&
-    key.endsWith(":action") &&
-    value === "tx"
-  );
+  return false;
 }
 
 function FrameDebuggerFramePropertiesTableRow({
