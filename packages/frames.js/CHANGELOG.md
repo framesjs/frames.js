@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.8.2
+
+### Patch Changes
+
+- dea6f14: fix type
+
 ## 0.8.1
 
 ### Patch Changes
