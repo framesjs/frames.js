@@ -199,7 +199,7 @@ export type FrameActionPayload = {
     /** Frame servers may set this value and apps must sign and include it in the Frame Signature Packet. May be up to 4kb */
     state?: string;
     /** an optional transaction id property. For Ethereum, this must be the transaction hash. For other chains, this is not yet specified.  */
-    transaction_id?: string;
+    transactionId?: string;
   };
   /** Open Frames spec: the identifier and version of the client protocol that sent the request e.g. farcaster@vNext */
   clientProtocol?: string;
