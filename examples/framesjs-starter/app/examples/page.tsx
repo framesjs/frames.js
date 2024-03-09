@@ -35,6 +35,11 @@ export default function ExamplesIndexPage() {
           </Link>
         </li>
         <li>
+          <Link className="underline" href="/examples/simplified-api">
+            Simplified api
+          </Link>
+        </li>
+        <li>
           <Link className="underline" href="/examples/slow-request">
             Slow request
           </Link>
