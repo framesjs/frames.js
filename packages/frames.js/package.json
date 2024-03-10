@@ -1,6 +1,6 @@
 {
   "name": "frames.js",
-  "version": "0.8.2",
+  "version": "0.8.2-beta4",
   "type": "module",
   "main": "./dist/index.cjs",
   "types": "index.d.cts",
@@ -199,7 +199,7 @@
     "react-dom": "^18.2.0"
   },
   "dependencies": {
-    "@dscvr-one/frames-adapter": "^1.0.0-alpha1",
+    "@dscvr-one/frames-adapter": "^1.0.0",
     "@farcaster/core": "^0.14.4",
     "@vercel/og": "^0.6.2",
     "cheerio": "^1.0.0-rc.12",
