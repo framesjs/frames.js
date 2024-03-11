@@ -81,7 +81,7 @@ export const signFrameAction = async ({
 
   const searchParams = new URLSearchParams({
     postType: transactionId ? "post" : frameButton?.action || "post",
-    postUrl: transactionId ? url : target ?? "", // transactionId is posted to post_url
+    postUrl: target ?? "",
   });
 
   return {

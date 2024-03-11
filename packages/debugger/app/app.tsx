@@ -1,6 +1,10 @@
 "use client";
 /** requires client because signer is stored in local storage */
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { sendTransaction, switchChain } from "@wagmi/core";
 import {
   FrameUI,
   fallbackFrameContext,
@@ -8,19 +12,12 @@ import {
 } from "frames.js/render";
 import { FrameImageNext } from "frames.js/render/next";
 import { useFrame } from "frames.js/render/use-frame";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { useChainId, useConfig } from "wagmi";
 import { FrameDebugger } from "./components/frame-debugger";
 import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { sendTransaction, switchChain } from "@wagmi/core";
-import dynamic from "next/dynamic";
-import { http } from "viem";
-import * as chains from "viem/chains";
-import { createConfig, useChainId, useConfig, useConnectors } from "wagmi";
 import { MockHubActionContext } from "./utils/mock-hub-utils";
 const LoginWindow = dynamic(() => import("./components/create-signer"), {
   ssr: false,
@@ -58,28 +55,18 @@ export default function App({
   const onTransaction: onTransactionFunc = useCallback(
     async ({ transactionData }) => {
       const { params, chainId, method } = transactionData;
-      console.log({ transactionData });
       if (!chainId.startsWith("eip155:")) {
         alert(`debugger: Unrecognized chainId ${chainId}`);
       }
 
       const requestedChainId = parseInt(chainId.split("eip155:")[1]!);
-      const chain = Object.values(chains).find(
-        (c) => c.id === requestedChainId
-      );
-
-      if (!chain) {
-        throw new Error(`debugger: unrecognized chainId: ${requestedChainId}`);
-      }
 
       const config = globalConfig;
       if (currentChainId !== requestedChainId) {
         await switchChain(config, {
-          chainId: requestedChainId as any,
+          chainId: requestedChainId,
         });
       }
-
-      console.log("hello world");
 
       try {
         // Send the transaction
@@ -88,7 +75,6 @@ export default function App({
           data: params.data,
           value: BigInt(params.value),
         });
-        console.log({ transactionId });
         return transactionId;
       } catch (error) {
         console.error(error);
@@ -170,6 +156,7 @@ export default function App({
             impersonateUser={signerState.impersonateUser}
             logout={signerState.logout}
           ></LoginWindow>
+
           <div className="ml-auto">
             <ConnectButton></ConnectButton>
           </div>

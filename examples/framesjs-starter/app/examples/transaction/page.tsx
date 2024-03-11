@@ -10,7 +10,7 @@ import {
 } from "frames.js/next/server";
 import Link from "next/link";
 import { currentURL } from "../../utils";
-import { createDebugUrl } from "../../debug";
+import { DEFAULT_DEBUGGER_HUB_URL, createDebugUrl } from "../../debug";
 
 type State = {
   pageIndex: number;
@@ -30,7 +30,10 @@ export default async function Home({ searchParams }: NextServerPageProps) {
   const previousFrame = getPreviousFrame<State>(searchParams);
 
   const [state] = useFramesReducer<State>(reducer, initialState, previousFrame);
-  const frameMessage = await getFrameMessage(previousFrame.postBody);
+
+  const frameMessage = await getFrameMessage(previousFrame.postBody, {
+    hubHttpUrl: DEFAULT_DEBUGGER_HUB_URL,
+  });
 
   if (frameMessage?.transactionId) {
     return (
@@ -71,6 +74,7 @@ export default async function Home({ searchParams }: NextServerPageProps) {
             Rent farcaster storage
           </div>
         </FrameImage>
+        <FrameButton>Test</FrameButton>
         <FrameButton action="tx" target="/examples/transaction/txdata">
           Buy a unit
         </FrameButton>

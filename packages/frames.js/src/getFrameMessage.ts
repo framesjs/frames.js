@@ -52,8 +52,8 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
   const inputText = inputTextBytes
     ? Buffer.from(inputTextBytes).toString("utf-8")
     : undefined;
-  const transactionId = bytesToHex(transactionIdBytes);
-
+  const transactionId =
+    transactionIdBytes.length > 0 ? bytesToHex(transactionIdBytes) : undefined;
   const requesterFid = decodedMessage.data.fid;
   const castId = decodedMessage.data.frameActionBody.castId
     ? normalizeCastId(decodedMessage.data.frameActionBody.castId)
