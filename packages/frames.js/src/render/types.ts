@@ -1,7 +1,7 @@
 import type { Frame, FrameButton, TransactionTargetResponse } from "..";
 import { FarcasterFrameContext } from "./farcaster";
 
-export type onTransactionFunc = (
+export type OnTransactionFunc = (
   t: onTransactionArgs
 ) => Promise<`0x${string}` | null>;
 
@@ -24,7 +24,7 @@ export type UseFrameReturn<
   /** a function to handle mint buttons */
   onMint?: (t: onMintArgs) => void;
   /** a function to handle transaction buttons, returns the transaction hash or null */
-  onTransaction?: onTransactionFunc;
+  onTransaction?: OnTransactionFunc;
   /** the context of this frame, used for generating Frame Action payloads */
   frameContext: FrameContext;
   /**
