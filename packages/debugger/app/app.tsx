@@ -8,7 +8,7 @@ import { sendTransaction, switchChain } from "@wagmi/core";
 import {
   FrameUI,
   fallbackFrameContext,
-  onTransactionFunc,
+  OnTransactionFunc,
 } from "frames.js/render";
 import { FrameImageNext } from "frames.js/render/next";
 import { useFrame } from "frames.js/render/use-frame";
@@ -52,7 +52,7 @@ export default function App({
   const signerState = useFarcasterIdentity();
   const globalConfig = useConfig();
 
-  const onTransaction: onTransactionFunc = useCallback(
+  const onTransaction: OnTransactionFunc = useCallback(
     async ({ transactionData }) => {
       const { params, chainId, method } = transactionData;
       if (!chainId.startsWith("eip155:")) {

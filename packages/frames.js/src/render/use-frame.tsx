@@ -389,9 +389,9 @@ export function useFrame<
         castId: frameContext.castId,
       },
       url: homeframeUrl,
-      target: target,
-      frameButton: frameButton,
-      buttonIndex: buttonIndex,
+      target,
+      frameButton,
+      buttonIndex,
       state,
       transactionId,
     };
