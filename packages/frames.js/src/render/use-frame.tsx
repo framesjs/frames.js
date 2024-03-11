@@ -313,10 +313,9 @@ export function useFrame<
           transactionData,
         });
         if (transactionId) {
-          // FIXME: This isn't being called
-          onTransactionSubmitted({
+          await onPostButton({
             frameButton: frameButton,
-            target: target,
+            target: currentFrame.postUrl, // transaction_ids must be posted to post_url
             buttonIndex: index + 1,
             postInputText:
               currentFrame.inputText !== undefined ? inputText : undefined,
@@ -361,12 +360,14 @@ export function useFrame<
     dangerousSkipSigning,
     target,
     state,
+    transactionId,
   }: {
     frameButton: FrameButton;
     buttonIndex: number;
     postInputText: string | undefined;
     state?: string;
     dangerousSkipSigning?: boolean;
+    transactionId?: `0x${string}`;
 
     target: string;
   }) => {
@@ -388,10 +389,11 @@ export function useFrame<
         castId: frameContext.castId,
       },
       url: homeframeUrl,
-      target,
+      target: target,
       frameButton: frameButton,
       buttonIndex: buttonIndex,
       state,
+      transactionId,
     };
     const { searchParams, body } = dangerousSkipSigning
       ? await unsignedFrameAction(frameSignatureContext)
@@ -464,65 +466,6 @@ export function useFrame<
       const transactionResponse =
         (await response.json()) as TransactionTargetResponse;
       return transactionResponse;
-    } catch {
-      throw new Error(
-        `frames.js: Could not fetch transaction data from "${searchParams.get("postUrl")}"`
-      );
-    }
-  };
-
-  const onTransactionSubmitted = async ({
-    buttonIndex,
-    postInputText,
-    frameButton,
-    target,
-    state,
-    transactionId,
-  }: {
-    frameButton: FrameButton;
-    buttonIndex: number;
-    postInputText: string | undefined;
-    state?: string;
-    target: string;
-    transactionId: `0x${string}`;
-  }) => {
-    // Send post request to get calldata
-    const currentFrame = getCurrentFrame();
-
-    if (!dangerousSkipSigning && !signerState.hasSigner) {
-      console.error("frames.js: missing required auth state");
-      return;
-    }
-    if (!currentFrame || !currentFrame || !homeframeUrl || !frameButton) {
-      console.error("frames.js: missing required value for post");
-      return;
-    }
-
-    const frameSignatureContext = {
-      inputText: postInputText,
-      signer: signerState.signer ?? null,
-      frameContext,
-      url: homeframeUrl,
-      target,
-      frameButton: frameButton,
-      buttonIndex: buttonIndex,
-      state,
-      transactionId,
-    };
-    const { searchParams, body } = dangerousSkipSigning
-      ? await unsignedFrameAction(frameSignatureContext)
-      : await signerState.signFrameAction(frameSignatureContext);
-
-    try {
-      await fetchFrame({
-        // post_url stuff
-        url: currentFrame.postUrl,
-        method: "POST",
-        request: {
-          searchParams,
-          body,
-        },
-      });
     } catch {
       throw new Error(
         `frames.js: Could not fetch transaction data from "${searchParams.get("postUrl")}"`
