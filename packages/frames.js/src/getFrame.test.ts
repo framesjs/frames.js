@@ -233,4 +233,21 @@ describe("getFrame", () => {
       { id: "lens", version: "1.5" },
     ]);
   });
+
+  it("should parse open frames tags", () => {
+    const html = `
+    <meta name="of:version" content="vNext" />
+    <meta name="of:image" content="http:/example.com/image.png" />
+    <meta name="of:button:1" content="Green" />
+    <meta name="of:button:2" content="Purple" />
+    <meta name="of:button:3" content="Red" />
+    <meta name="of:button:4" content="Blue" />
+    <meta name="of:post_url" content="https://example.com" />
+    <meta name="of:input:text" content="Enter a message" />
+  `;
+
+    const frame = getFrame({ htmlString: html, url: "https://example.com" });
+
+    expect(frame.frame).toEqual(sampleFrame);
+  });
 });

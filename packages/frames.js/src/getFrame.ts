@@ -49,6 +49,13 @@ export function getFrame({
     }
   }
 
+  function getMetaContent(key: string) {
+    const selector = `meta[property='${key}'], meta[name='${key}']`;
+    const content = $(selector).attr("content");
+    if (content) return content;
+    return undefined;
+  }
+
   const pageTitle = $("title").text();
   if (pageTitle === undefined) {
     // This should probably be a warning instead of an error. would help
@@ -58,19 +65,13 @@ export function getFrame({
     });
   }
 
-  const version = $("meta[property='fc:frame'], meta[name='fc:frame']").attr(
-    "content"
-  );
-  const image = $(
-    "meta[property='fc:frame:image'], meta[name='fc:frame:image']"
-  ).attr("content");
-  const imageAspectRatio = $(
-    "meta[property='fc:frame:image:aspect_ratio'], meta[name='fc:frame:image:aspect_ratio']"
-  ).attr("content");
+  const version = getMetaContent("of:version") || getMetaContent("fc:frame");
+  const image = getMetaContent("of:image") || getMetaContent("fc:frame:image");
+  const imageAspectRatio =
+    getMetaContent("of:image:aspect_ratio") ||
+    getMetaContent("fc:frame:image:aspect_ratio");
 
-  const state = $(
-    "meta[property='fc:frame:state'], meta[name='fc:frame:state']"
-  ).attr("content");
+  const state = getMetaContent("of:state") || getMetaContent("fc:frame:state");
 
   const accepts = $("meta")
     .filter((i, el) => {
@@ -87,17 +88,14 @@ export function getFrame({
     .toArray();
 
   const postUrl =
-    $(
-      "meta[property='fc:frame:post_url'], meta[name='fc:frame:post_url']"
-    ).attr("content") || url;
+    getMetaContent("of:post_url") || getMetaContent("fc:frame:post_url") || url;
 
-  const inputText = $(
-    "meta[property='fc:frame:input:text'], meta[name='fc:frame:input:text']"
-  ).attr("content");
+  const inputText =
+    getMetaContent("of:input:text") || getMetaContent("fc:frame:input:text");
 
   const buttonLabels = [1, 2, 3, 4].flatMap((el) =>
     $(
-      `meta[property='fc:frame:button:${el}'], meta[name='fc:frame:button:${el}']`
+      `meta[property='fc:frame:button:${el}'], meta[name='fc:frame:button:${el}'], meta[property='of:button:${el}'], meta[name='of:button:${el}']`
     )
       .map((i, elem) => parseButtonElement(elem))
       .filter((i, elem) => elem !== null)
@@ -105,7 +103,7 @@ export function getFrame({
   );
   const buttonActions = [1, 2, 3, 4].flatMap((el) =>
     $(
-      `meta[property='fc:frame:button:${el}:action'], meta[name='fc:frame:button:${el}:action']`
+      `meta[property='fc:frame:button:${el}:action'], meta[name='fc:frame:button:${el}:action'], meta[property='of:button:${el}:action'], meta[name='of:button:${el}:action']`
     )
       .map((i, elem) => parseButtonElement(elem))
       .filter((i, elem) => elem !== null)
@@ -114,7 +112,7 @@ export function getFrame({
 
   const buttonTargets = [1, 2, 3, 4].flatMap((el) =>
     $(
-      `meta[property='fc:frame:button:${el}:target'], meta[name='fc:frame:button:${el}:target']`
+      `meta[property='fc:frame:button:${el}:target'], meta[name='fc:frame:button:${el}:target'], meta[property='of:button:${el}:target'], meta[name='of:button:${el}:target']`
     )
       .map((i, elem) => parseButtonElement(elem))
       .filter((i, elem) => elem !== null)
@@ -123,7 +121,7 @@ export function getFrame({
 
   const buttonPostUrls = [1, 2, 3, 4].flatMap((el) =>
     $(
-      `meta[property='fc:frame:button:${el}:post_url'], meta[name='fc:frame:button:${el}:post_url']`
+      `meta[property='fc:frame:button:${el}:post_url'], meta[name='fc:frame:button:${el}:post_url'], meta[property='of:button:${el}:post_url'], meta[name='of:button:${el}:post_url']`
     )
       .map((i, elem) => parseButtonElement(elem))
       .filter((i, elem) => elem !== null)
