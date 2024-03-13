@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.8.3
+
+### Patch Changes
+
+- 40e99b3: fix: render frame url params fetching
+
 ## 0.8.2
 
 ### Patch Changes

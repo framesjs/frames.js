@@ -1,5 +1,13 @@
 # framesjs-starter
 
+## 0.2.3
+
+### Patch Changes
+
+- 2b57a1c: feat: only followers can mint example
+- Updated dependencies [40e99b3]
+  - frames.js@0.8.3
+
 ## 0.2.2
 
 ### Patch Changes
