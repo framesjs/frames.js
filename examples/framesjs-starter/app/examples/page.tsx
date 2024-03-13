@@ -35,6 +35,11 @@ export default function ExamplesIndexPage() {
           </Link>
         </li>
         <li>
+          <Link className="underline" href="/examples/only-followers-can-mint">
+            Only followers can mint
+          </Link>
+        </li>
+        <li>
           <Link className="underline" href="/examples/slow-request">
             Slow request
           </Link>
