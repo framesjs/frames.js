@@ -134,7 +134,8 @@ export function useFrame<
 
       let requestError: unknown | null = null;
       let newFrame: ReturnType<typeof getFrame> | null = null;
-      const proxiedUrl = `${frameGetProxy}?url=${url}`;
+      const searchParams = new URLSearchParams({ url });
+      const proxiedUrl = `${frameGetProxy}?${searchParams.toString()}`;
 
       let stackItem: FramesStack[number];
       let response;
