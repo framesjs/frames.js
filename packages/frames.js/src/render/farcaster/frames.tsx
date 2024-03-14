@@ -10,11 +10,14 @@ import {
 import { FrameButton } from "../../types";
 import { FrameActionBodyPayload, FrameContext } from "../types";
 import { FarcasterSignerState } from "./signers";
+import { hexToBytes } from "viem";
 
 export interface FarcasterFrameActionBodyPayload
   extends FrameActionBodyPayload {}
 
 export type FarcasterFrameContext = {
+  /** Connected address of user, only sent with transaction data request */
+  address?: string;
   castId: { hash: `0x${string}`; fid: number };
 };
 
@@ -55,14 +58,16 @@ export const signFrameAction = async ({
       buttonIndex,
       castId: {
         fid: frameContext.castId.fid,
-        hash: new Uint8Array(
-          Buffer.from(frameContext.castId.hash.slice(2), "hex")
-        ),
+        hash: hexToBytes(frameContext.castId.hash),
       },
       state: state !== undefined ? Buffer.from(state) : undefined,
       url: Buffer.from(url),
       // it seems the message in hubs actually requires a value here.
       inputText: inputText !== undefined ? Buffer.from(inputText) : undefined,
+      address:
+        frameContext.address !== undefined
+          ? hexToBytes(frameContext.address as `0x${string}`)
+          : undefined,
     }
   );
 
@@ -90,6 +95,7 @@ export const signFrameAction = async ({
           hash: frameContext.castId.hash,
         },
         inputText,
+        address: frameContext.address,
       },
       trustedData: {
         messageBytes: trustedBytes,
@@ -107,6 +113,7 @@ export async function createFrameActionMessageWithSignerKey(
     castId,
     inputText,
     state,
+    address,
   }: {
     fid: number;
     url: Uint8Array;
@@ -114,6 +121,7 @@ export async function createFrameActionMessageWithSignerKey(
     inputText: Uint8Array | undefined;
     castId: CastId;
     state: Uint8Array | undefined;
+    address: Uint8Array | undefined;
   }
 ): Promise<
   | {
@@ -139,6 +147,7 @@ export async function createFrameActionMessageWithSignerKey(
       castId,
       state,
       inputText: inputText !== undefined ? Buffer.from(inputText) : undefined,
+      address,
     }),
     messageDataOptions,
     signer

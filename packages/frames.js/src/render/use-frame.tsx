@@ -52,6 +52,7 @@ export const unsignedFrameAction: SignerStateInstance["signFrameAction"] =
           },
           state,
           inputText,
+          address: frameContext.address,
         },
         trustedData: {
           messageBytes: "0",
@@ -70,6 +71,7 @@ export const fallbackFrameContext: FrameContext = {
     fid: 1,
     hash: "0x0000000000000000000000000000000000000000" as const,
   },
+  address: "0x0000000000000000000000000000000000000001",
 };
 
 export function useFrame<
@@ -366,7 +368,9 @@ export function useFrame<
     const frameSignatureContext = {
       inputText: postInputText,
       signer: signerState.signer ?? null,
-      frameContext,
+      frameContext: {
+        castId: frameContext.castId,
+      },
       url: homeframeUrl,
       target,
       frameButton: frameButton,
@@ -416,7 +420,10 @@ export function useFrame<
     const { searchParams, body } = await signerState.signFrameAction({
       inputText: postInputText,
       signer: signerState.signer ?? null,
-      frameContext,
+      frameContext: {
+        castId: frameContext.castId,
+        address: frameContext.address,
+      },
       url: homeframeUrl,
       target,
       frameButton: frameButton,
