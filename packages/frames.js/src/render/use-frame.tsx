@@ -52,7 +52,7 @@ export const unsignedFrameAction: SignerStateInstance["signFrameAction"] =
           },
           state,
           inputText,
-          address: frameContext.address,
+          address: frameContext.connectedAddress,
         },
         trustedData: {
           messageBytes: "0",
@@ -71,7 +71,7 @@ export const fallbackFrameContext: FrameContext = {
     fid: 1,
     hash: "0x0000000000000000000000000000000000000000" as const,
   },
-  address: "0x0000000000000000000000000000000000000001",
+  connectedAddress: "0x0000000000000000000000000000000000000001",
 };
 
 export function useFrame<
@@ -422,7 +422,7 @@ export function useFrame<
       signer: signerState.signer ?? null,
       frameContext: {
         castId: frameContext.castId,
-        address: frameContext.address,
+        connectedAddress: frameContext.connectedAddress,
       },
       url: homeframeUrl,
       target,

@@ -17,7 +17,7 @@ export interface FarcasterFrameActionBodyPayload
 
 export type FarcasterFrameContext = {
   /** Connected address of user, only sent with transaction data request */
-  address?: string;
+  connectedAddress?: string;
   castId: { hash: `0x${string}`; fid: number };
 };
 
@@ -65,8 +65,8 @@ export const signFrameAction = async ({
       // it seems the message in hubs actually requires a value here.
       inputText: inputText !== undefined ? Buffer.from(inputText) : undefined,
       address:
-        frameContext.address !== undefined
-          ? hexToBytes(frameContext.address as `0x${string}`)
+        frameContext.connectedAddress !== undefined
+          ? hexToBytes(frameContext.connectedAddress as `0x${string}`)
           : undefined,
     }
   );
@@ -95,7 +95,7 @@ export const signFrameAction = async ({
           hash: frameContext.castId.hash,
         },
         inputText,
-        address: frameContext.address,
+        address: frameContext.connectedAddress,
       },
       trustedData: {
         messageBytes: trustedBytes,
