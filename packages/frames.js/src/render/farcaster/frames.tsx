@@ -17,7 +17,7 @@ export interface FarcasterFrameActionBodyPayload
 
 export type FarcasterFrameContext = {
   /** Connected address of user, only sent with transaction data request */
-  connectedAddress?: string;
+  connectedAddress?: `0x${string}`;
   castId: { hash: `0x${string}`; fid: number };
 };
 
@@ -66,7 +66,7 @@ export const signFrameAction = async ({
       inputText: inputText !== undefined ? Buffer.from(inputText) : undefined,
       address:
         frameContext.connectedAddress !== undefined
-          ? hexToBytes(frameContext.connectedAddress as `0x${string}`)
+          ? hexToBytes(frameContext.connectedAddress)
           : undefined,
     }
   );
