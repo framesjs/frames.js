@@ -11,6 +11,7 @@ import {
   validateFrameMessage,
 } from ".";
 import { DEFAULT_HUB_API_KEY, DEFAULT_HUB_API_URL } from "./default";
+import { bytesToHex } from "viem";
 
 export type GetFrameMessageOptions = {
   fetchHubContext?: boolean;
@@ -55,6 +56,11 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
     ? normalizeCastId(decodedMessage.data.frameActionBody.castId)
     : undefined;
 
+  const connectedAddress =
+    decodedMessage.data.frameActionBody.address.length > 0
+      ? bytesToHex(decodedMessage.data.frameActionBody.address)
+      : undefined;
+
   const state = stateBytes
     ? Buffer.from(stateBytes).toString("utf-8")
     : undefined;
@@ -65,6 +71,7 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
     inputText,
     requesterFid,
     state,
+    connectedAddress,
   };
 
   if (fetchHubContext) {
