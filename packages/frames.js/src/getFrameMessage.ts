@@ -12,7 +12,6 @@ import {
   validateFrameMessage,
 } from ".";
 import { DEFAULT_HUB_API_KEY, DEFAULT_HUB_API_URL } from "./default";
-import { bytesToHex } from "viem";
 
 export type GetFrameMessageOptions = {
   fetchHubContext?: boolean;
