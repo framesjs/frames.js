@@ -108,7 +108,7 @@ export default function Page({
 
           <LoginWindow
             farcasterUser={signerState.signer ?? null}
-            loading={!!signerState.isLoading ?? false}
+            loading={!!signerState.isLoadingSigner ?? false}
             startFarcasterSignerProcess={signerState.onSignerlessFramePress}
             impersonateUser={signerState.impersonateUser}
             logout={signerState.logout}

@@ -111,8 +111,10 @@ export function useFrame<
         ]
       : []
   );
+
   const [isLoading, setIsLoading] = useState<FrameStackPending | null>(
-    homeframeUrl
+    // prevent flash of empty if will shortly set this in first rerender
+    homeframeUrl && !initialFrame
       ? {
           request: {},
           method: "GET" as const,
