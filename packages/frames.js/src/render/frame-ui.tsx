@@ -66,6 +66,7 @@ export function FrameUI({ frameState, theme, FrameImage }: FrameUIProps) {
             borderRadius: `${resolvedTheme.buttonRadius}px`,
             borderColor: `${resolvedTheme.buttonBorderColor}`,
           }}
+          value={frameState.inputText}
           type="text"
           placeholder={frameState.frame.inputText}
           onChange={(e) => frameState.setInputText(e.target.value)}
