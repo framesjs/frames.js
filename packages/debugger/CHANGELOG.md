@@ -1,5 +1,17 @@
 # @frames.js/debugger
 
+## 0.1.6
+
+### Patch Changes
+
+- 4fc8fef: define signer loading state
+- 6c9b09d: feat: include user's connected address in frame transaction data request
+- Updated dependencies [4fc8fef]
+- Updated dependencies [6c9b09d]
+- Updated dependencies [faa44a5]
+- Updated dependencies [5a609e3]
+  - frames.js@0.8.4
+
 ## 0.1.5
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # frames.js
 
+## 0.8.4
+
+### Patch Changes
+
+- 4fc8fef: define signer loading state
+- 6c9b09d: feat: include user's connected address in frame transaction data request
+- faa44a5: feat: parse open frames tags
+- 5a609e3: fix: clear FrameUI input after submitting
+
 ## 0.8.3
 
 ### Patch Changes

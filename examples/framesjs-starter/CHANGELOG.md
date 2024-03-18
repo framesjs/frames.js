@@ -1,5 +1,16 @@
 # framesjs-starter
 
+## 0.2.4
+
+### Patch Changes
+
+- 0faa11e: fix: only use mock hub url in development
+- Updated dependencies [4fc8fef]
+- Updated dependencies [6c9b09d]
+- Updated dependencies [faa44a5]
+- Updated dependencies [5a609e3]
+  - frames.js@0.8.4
+
 ## 0.2.3
 
 ### Patch Changes
