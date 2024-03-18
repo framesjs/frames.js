@@ -52,6 +52,7 @@ export const unsignedFrameAction: SignerStateInstance["signFrameAction"] =
           },
           state,
           inputText,
+          address: frameContext.connectedAddress,
         },
         trustedData: {
           messageBytes: "0",
@@ -70,6 +71,7 @@ export const fallbackFrameContext: FrameContext = {
     fid: 1,
     hash: "0x0000000000000000000000000000000000000000" as const,
   },
+  connectedAddress: "0x0000000000000000000000000000000000000001",
 };
 
 export function useFrame<
@@ -109,8 +111,10 @@ export function useFrame<
         ]
       : []
   );
+
   const [isLoading, setIsLoading] = useState<FrameStackPending | null>(
-    homeframeUrl
+    // prevent flash of empty if will shortly set this in first rerender
+    homeframeUrl && !initialFrame
       ? {
           request: {},
           method: "GET" as const,
@@ -366,7 +370,9 @@ export function useFrame<
     const frameSignatureContext = {
       inputText: postInputText,
       signer: signerState.signer ?? null,
-      frameContext,
+      frameContext: {
+        castId: frameContext.castId,
+      },
       url: homeframeUrl,
       target,
       frameButton: frameButton,
@@ -416,7 +422,10 @@ export function useFrame<
     const { searchParams, body } = await signerState.signFrameAction({
       inputText: postInputText,
       signer: signerState.signer ?? null,
-      frameContext,
+      frameContext: {
+        castId: frameContext.castId,
+        connectedAddress: frameContext.connectedAddress,
+      },
       url: homeframeUrl,
       target,
       frameButton: frameButton,

@@ -57,7 +57,10 @@ export interface SignerStateInstance<
     body: B;
     searchParams: URLSearchParams;
   }>;
+  /** isLoading frame */
   isLoading?: null | FrameStackPending;
+  /** is loading the signer */
+  isLoadingSigner?: boolean;
   /** A function called when a frame button is clicked without a signer */
   onSignerlessFramePress: () => void;
   logout?: () => void;
@@ -107,7 +110,8 @@ export type FrameState = {
   frame: Frame | null;
   /** A stack of frames with additional context, with the most recent frame at index 0 */
   framesStack: FramesStack;
-  isLoading: FrameStackPending | null;
+  /** isLoading frame */
+  isLoading?: null | FrameStackPending;
   inputText: string;
   setInputText: (s: string) => void;
   onButtonPress: (frameButton: FrameButton, index: number) => void;

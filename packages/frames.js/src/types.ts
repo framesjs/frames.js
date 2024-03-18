@@ -198,6 +198,8 @@ export type FrameActionPayload = {
     inputText?: string;
     /** Frame servers may set this value and apps must sign and include it in the Frame Signature Packet. May be up to 4kb */
     state?: string;
+    /** address of the user's connected wallet, only present in transaction data requests */
+    address?: string;
     /** an optional transaction id property. For Ethereum, this must be the transaction hash. For other chains, this is not yet specified.  */
     transactionId?: string;
   };
@@ -225,6 +227,8 @@ export type FrameActionDataParsed = {
   };
   inputText?: string;
   state?: string;
+  /** address of the user's connected wallet, only present in transaction data requests */
+  connectedAddress?: string;
 };
 
 /** Additional context for a frame message which requires communication with a Hub */

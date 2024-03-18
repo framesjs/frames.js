@@ -189,7 +189,7 @@
     "react-dom": "^18.2.0"
   },
   "dependencies": {
-    "@farcaster/core": "^0.14.4",
+    "@farcaster/core": "^0.14.7",
     "@vercel/og": "^0.6.2",
     "cheerio": "^1.0.0-rc.12",
     "protobufjs": "^7.2.6",

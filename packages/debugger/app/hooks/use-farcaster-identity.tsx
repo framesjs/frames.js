@@ -174,14 +174,23 @@ export function useFarcasterIdentity(): FarcasterSignerState & {
           publicKey: keypairString.publicKey,
         }),
       });
-      const authorizationBody: {
-        signature: string;
-        requestFid: string;
-        deadline: number;
-        requestSigner: string;
-      } = await authorizationResponse.json();
-      const { signature, requestFid, deadline } = authorizationBody;
+      const authorizationBody:
+        | {
+            signature: string;
+            requestFid: string;
+            deadline: number;
+            requestSigner: string;
+          }
+        | { code: number; message: string } =
+        await authorizationResponse.json();
       if (authorizationResponse.status === 200) {
+        const { signature, requestFid, deadline } = authorizationBody as {
+          signature: string;
+          requestFid: string;
+          deadline: number;
+          requestSigner: string;
+        };
+
         const {
           result: { signedKeyRequest },
         } = (await (
@@ -215,8 +224,12 @@ export function useFarcasterIdentity(): FarcasterSignerState & {
           JSON.stringify(signer)
         );
         setFarcasterSigner(signer);
-      } else if (authorizationBody.code === 1) {
-        window.alert(authorizationBody.message);
+      } else if (
+        (authorizationBody as { code: number; message: string }).code === 1
+      ) {
+        window.alert(
+          (authorizationBody as { code: number; message: string }).message
+        );
       }
     } catch (error) {
       console.error("frames.js: API Call failed", error);
@@ -227,7 +240,8 @@ export function useFarcasterIdentity(): FarcasterSignerState & {
     signer: farcasterUser,
     hasSigner: !!farcasterUser?.fid && !!farcasterUser.privateKey,
     signFrameAction: signFrameAction,
-    isLoading,
+    isLoading: null,
+    isLoadingSigner: isLoading,
     impersonateUser,
     onSignerlessFramePress,
     logout,
