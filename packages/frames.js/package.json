@@ -14,7 +14,8 @@
   "scripts": {
     "lint": "eslint \"./src/**/*.ts*\"",
     "build": "tsup `find ./src -type f \\( -regex '.*\\.tsx*' -a -not -regex '.*\\.test\\.tsx*' \\)` --format cjs,esm --dts",
-    "dev": "npm run build -- --watch"
+    "dev": "npm run build -- --watch",
+    "test:watch": "jest --watch"
   },
   "repository": {
     "type": "git",
