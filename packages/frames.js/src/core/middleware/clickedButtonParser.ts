@@ -1,5 +1,5 @@
 import { FramesMiddleware, JsonValue } from "../types";
-import { parseButtonInformationFromTargetURL } from "../utils";
+import { isFrameRedirect, parseButtonInformationFromTargetURL } from "../utils";
 
 type ClickedButtonMiddlewareContext = {
   /**
@@ -23,6 +23,28 @@ export function clickedButtonParser(): FramesMiddleware<ClickedButtonMiddlewareC
     const clickedButton = parseButtonInformationFromTargetURL(
       context.currentURL
     );
+
+    const result = await next({ clickedButton });
+
+    if (clickedButton?.action === "post_redirect") {
+      // check if the response is redirect, if not, warn
+      if (
+        (result instanceof Response &&
+          (result.status < 300 || result.status > 399)) ||
+        !isFrameRedirect(result)
+      ) {
+        console.warn(
+          "The clicked button action was post_redirect, but the response was not a redirect"
+        );
+      }
+    } else if (clickedButton?.action === "post") {
+      // we support only frame definition as result for post button
+      if (result instanceof Response || isFrameRedirect(result)) {
+        console.warn(
+          "The clicked button action was post, but the response was not a frame definition"
+        );
+      }
+    }
 
     return next({ clickedButton });
   };

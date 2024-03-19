@@ -1,4 +1,4 @@
-import { JsonValue } from "./types";
+import { FrameRedirect, JsonValue } from "./types";
 
 const buttonActionToCode = {
   post: "p",
@@ -109,7 +109,9 @@ export function parseButtonInformationFromTargetURL(
   if (buttonState) {
     try {
       state = JSON.parse(buttonState);
-    } catch {}
+    } catch {
+      console.warn("Failed to parse button state from URL");
+    }
   }
 
   return {
@@ -117,4 +119,8 @@ export function parseButtonInformationFromTargetURL(
     index,
     state,
   };
+}
+
+export function isFrameRedirect(value: any): value is FrameRedirect {
+  return value && typeof value === "object" && value.kind === "redirect";
 }

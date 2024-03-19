@@ -1,16 +1,8 @@
 import { ImageResponse } from "@vercel/og";
 import { type Frame, getFrameFlattened, getFrameHtmlHead } from "../..";
 import type { ButtonProps } from "../components";
-import type {
-  FrameDefinition,
-  FrameRedirect,
-  FramesMiddleware,
-} from "../types";
-import { generatePostButtonTargetURL } from "../utils";
-
-function isFrameRedirect(value: any): value is FrameRedirect {
-  return value && typeof value === "object" && value.kind === "redirect";
-}
+import type { FrameDefinition, FramesMiddleware } from "../types";
+import { generatePostButtonTargetURL, isFrameRedirect } from "../utils";
 
 /**
  * This middleware is responsible for rendering the response
