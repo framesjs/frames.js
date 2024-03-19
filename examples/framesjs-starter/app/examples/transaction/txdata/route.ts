@@ -5,7 +5,7 @@ export function POST(
   req: NextRequest
 ): NextResponse<TransactionTargetResponse> {
   return NextResponse.json({
-    chainId: "eip155:31337", // OP Mainnet 10
+    chainId: "eip155:10", // OP Mainnet 10
     method: "eth_sendTransaction",
     params: {
       abi: [], // "function rent(uint256 fid, uint256 units) payable"
