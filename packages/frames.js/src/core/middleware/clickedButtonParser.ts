@@ -19,6 +19,11 @@ type ClickedButtonMiddlewareContext = {
  */
 export function clickedButtonParser(): FramesMiddleware<ClickedButtonMiddlewareContext> {
   return async (context, next) => {
+    // clicked button always issues a POST request
+    if (context.request.method !== "POST") {
+      return next();
+    }
+
     // parse clicked buttom from URL
     const clickedButton = parseButtonInformationFromTargetURL(
       context.currentURL

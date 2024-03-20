@@ -97,7 +97,7 @@ export type FrameRedirect = {
 
 export type FramesHandlerFunctionReturnType = FrameDefinition | FrameRedirect;
 
-type FrameMiddlewareNextFunction<
+type FramesMiddlewareNextFunction<
   TReturnedContext extends AllowedFramesContextShape,
 > = (context?: TReturnedContext) => FramesMiddlewareReturnType;
 
@@ -109,7 +109,7 @@ export type FramesMiddleware<
   TReturnedContext extends AllowedFramesContextShape,
 > = (
   context: FramesContext,
-  next: FrameMiddlewareNextFunction<TReturnedContext>
+  next: FramesMiddlewareNextFunction<TReturnedContext>
 ) => FramesMiddlewareReturnType;
 
 export type FrameHandlerFunction<

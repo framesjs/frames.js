@@ -1,5 +1,5 @@
 import { redirect } from "../redirect";
-import { FramesContext } from "../types";
+import type { FramesContext } from "../types";
 import { generatePostButtonTargetURL } from "../utils";
 import { clickedButtonParser } from "./clickedButtonParser";
 
@@ -7,6 +7,7 @@ describe("clickedButtonParser middleware", () => {
   it("does not provide clickedButton to context if no supported button is detetcted", async () => {
     const context: FramesContext = {
       currentURL: new URL("https://example.com"),
+      request: new Request("https://example.com", { method: "POST" }),
     } as any;
     const next = jest.fn();
     const middleware = clickedButtonParser();
@@ -27,6 +28,7 @@ describe("clickedButtonParser middleware", () => {
     });
     const context: FramesContext = {
       currentURL: new URL(url),
+      request: new Request(url, { method: "POST" }),
     } as any;
     const next = jest.fn();
     const middleware = clickedButtonParser();
@@ -49,8 +51,9 @@ describe("clickedButtonParser middleware", () => {
     });
     const context: FramesContext = {
       currentURL: new URL(url),
+      request: new Request(url, { method: "POST" }),
     } as any;
-    const next = jest.fn(() => redirect("http://test.com"));
+    const next = jest.fn(() => Promise.resolve(redirect("http://test.com")));
     const middleware = clickedButtonParser();
 
     await middleware(context, next);
@@ -72,8 +75,11 @@ describe("clickedButtonParser middleware", () => {
     });
     const context: FramesContext = {
       currentURL: new URL(url),
+      request: new Request(url, { method: "POST" }),
     } as any;
-    const next = jest.fn(() => new Response(null, { status: 404 }));
+    const next = jest.fn(() =>
+      Promise.resolve(new Response(null, { status: 404 }))
+    );
     const middleware = clickedButtonParser();
 
     await middleware(context, next);
@@ -95,8 +101,9 @@ describe("clickedButtonParser middleware", () => {
     });
     const context: FramesContext = {
       currentURL: new URL(url),
+      request: new Request(url, { method: "POST" }),
     } as any;
-    const next = jest.fn(() => redirect("http://test.com"));
+    const next = jest.fn(() => Promise.resolve(redirect("http://test.com")));
     const middleware = clickedButtonParser();
 
     await middleware(context, next);
@@ -118,8 +125,11 @@ describe("clickedButtonParser middleware", () => {
     });
     const context: FramesContext = {
       currentURL: new URL(url),
+      request: new Request(url, { method: "POST" }),
     } as any;
-    const next = jest.fn(() => new Response(null, { status: 200 }));
+    const next = jest.fn(() =>
+      Promise.resolve(new Response(null, { status: 200 }))
+    );
     const middleware = clickedButtonParser();
 
     await middleware(context, next);
@@ -127,5 +137,26 @@ describe("clickedButtonParser middleware", () => {
     expect(console.warn).toHaveBeenCalledWith(
       "The clicked button action was post, but the response was not a frame definition"
     );
+  });
+
+  it('does nothing if the request method is not "POST"', async () => {
+    const url = generatePostButtonTargetURL({
+      buttonAction: "post",
+      buttonIndex: 1,
+      basePath: "/",
+      request: new Request("https://example.com"),
+      state: { test: true },
+      target: "/test",
+    });
+    const context: FramesContext = {
+      currentURL: new URL(url),
+      request: new Request(url),
+    } as any;
+    const next = jest.fn();
+    const middleware = clickedButtonParser();
+
+    await middleware(context, next);
+
+    expect(next).toHaveBeenCalledWith();
   });
 });
