@@ -6,10 +6,21 @@ import * as vercelOg from "@vercel/og";
 
 jest.mock("@vercel/og", () => {
   const arrayBufferMock = jest.fn(() => new ArrayBuffer(10));
+  const constructorMock = jest.fn(
+    () =>
+      new (class {
+        arrayBuffer = arrayBufferMock;
+      })()
+  );
 
   return {
     arrayBufferMock,
+    constructorMock,
     ImageResponse: class {
+      constructor(...args: any[]) {
+        // @ts-expect-error
+        return constructorMock(...args);
+      }
       arrayBuffer = arrayBufferMock;
     },
   };
@@ -17,6 +28,7 @@ jest.mock("@vercel/og", () => {
 
 describe("renderResponse middleware", () => {
   let arrayBufferMock: jest.Mock = (vercelOg as any).arrayBufferMock;
+  let constructorMock: jest.Mock = (vercelOg as any).constructorMock;
   const render = renderResponse();
   const context: FramesContext = {
     basePath: "/",
@@ -25,6 +37,8 @@ describe("renderResponse middleware", () => {
   };
 
   beforeEach(() => {
+    arrayBufferMock.mockClear();
+    constructorMock.mockClear();
     context.request = new Request("https://example.com");
     context.currentURL = new URL("https://example.com");
   });
@@ -223,5 +237,56 @@ describe("renderResponse middleware", () => {
     await expect((result as Response).text()).resolves.toBe(
       "Invalid button provided"
     );
+  });
+
+  it("correctly renders image wich conditional content", async () => {
+    const newContext = context;
+
+    let result = await render(newContext, async () => {
+      return {
+        image: (
+          <span>
+            {"something" in newContext
+              ? "Something is there"
+              : "Something is not there"}
+          </span>
+        ),
+      };
+    });
+
+    expect(result).toBeInstanceOf(Response);
+    expect((result as Response).status).toBe(200);
+
+    expect(constructorMock).toHaveBeenCalledTimes(1);
+    expect(constructorMock).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.any(Object)
+    );
+    expect(constructorMock.mock.calls[0][0]).toMatchSnapshot();
+
+    // @ts-expect-error
+    newContext.something = "true";
+
+    result = await render(newContext, async () => {
+      return {
+        image: (
+          <span>
+            {"something" in newContext
+              ? "Something is there"
+              : "Something is not there"}
+          </span>
+        ),
+      };
+    });
+
+    expect(result).toBeInstanceOf(Response);
+    expect((result as Response).status).toBe(200);
+
+    expect(constructorMock).toHaveBeenCalledTimes(2);
+    expect(constructorMock).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.any(Object)
+    );
+    expect(constructorMock.mock.calls[1][0]).toMatchSnapshot();
   });
 });
