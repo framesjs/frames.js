@@ -2,18 +2,21 @@ import { Button } from "../components";
 import { redirect } from "../redirect";
 import type { FramesContext } from "../types";
 import { renderResponse } from "./renderResponse";
+import * as vercelOg from "@vercel/og";
 
 jest.mock("@vercel/og", () => {
+  const arrayBufferMock = jest.fn(() => new ArrayBuffer(10));
+
   return {
+    arrayBufferMock,
     ImageResponse: class {
-      arrayBuffer() {
-        return new ArrayBuffer(10);
-      }
+      arrayBuffer = arrayBufferMock;
     },
   };
 });
 
 describe("renderResponse middleware", () => {
+  let arrayBufferMock: jest.Mock = (vercelOg as any).arrayBufferMock;
   const render = renderResponse();
   const context: FramesContext = {
     basePath: "/",
@@ -143,5 +146,81 @@ describe("renderResponse middleware", () => {
     expect(result).toBeInstanceOf(Response);
     expect((result as Response).status).toBe(200);
     await expect((result as Response).text()).resolves.toMatchSnapshot();
+  });
+
+  it("returns error 500 if image rendering fails", async () => {
+    arrayBufferMock.mockRejectedValueOnce(
+      new Error("Something failed during render")
+    );
+    const result = await render(context, async () => {
+      return {
+        image: <div>My image</div>,
+      };
+    });
+
+    expect(result).toBeInstanceOf(Response);
+    expect((result as Response).status).toBe(500);
+    await expect((result as Response).text()).resolves.toBe(
+      "Could not render image"
+    );
+  });
+
+  it("returns 500 if invalid number of buttons is provided", async () => {
+    // @ts-expect-error
+    const result = await render(context, async () => {
+      return {
+        image: <div>My image</div>,
+        buttons: [
+          <Button action="post">Click me 1</Button>,
+          <Button action="post">Click me 2</Button>,
+          <Button action="post">Click me 3</Button>,
+          <Button action="post">Click me 4</Button>,
+          <Button action="post">Click me 5</Button>,
+        ],
+      };
+    });
+
+    expect(result).toBeInstanceOf(Response);
+    expect((result as Response).status).toBe(500);
+    await expect((result as Response).text()).resolves.toBe(
+      "Only 4 buttons are allowed"
+    );
+  });
+
+  it("returns 500 if unrecognized button action is provided", async () => {
+    const result = await render(context, async () => {
+      return {
+        image: <div>My image</div>,
+        buttons: [
+          // @ts-expect-error
+          <Button action="invalid">Click me 1</Button>,
+        ],
+      };
+    });
+
+    expect(result).toBeInstanceOf(Response);
+    expect((result as Response).status).toBe(500);
+    await expect((result as Response).text()).resolves.toBe(
+      "Unrecognized button action"
+    );
+  });
+
+  it("returns 500 if invalid button shape is provided", async () => {
+    // @ts-expect-error
+    const result = await render(context, async () => {
+      return {
+        image: <div>My image</div>,
+        buttons: [
+          // this is not a proper object created by React.createElement()
+          { action: "link", props: "invalid" },
+        ],
+      };
+    });
+
+    expect(result).toBeInstanceOf(Response);
+    expect((result as Response).status).toBe(500);
+    await expect((result as Response).text()).resolves.toBe(
+      "Invalid button provided"
+    );
   });
 });

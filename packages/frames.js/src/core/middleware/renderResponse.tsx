@@ -4,6 +4,14 @@ import type { ButtonProps } from "../components";
 import type { FrameDefinition, FramesMiddleware } from "../types";
 import { generatePostButtonTargetURL, isFrameRedirect } from "../utils";
 
+class InvalidButtonShapeError extends Error {}
+
+class InvalidButtonCountError extends Error {}
+
+class UnrecognizedButtonActionError extends Error {}
+
+class ImageRenderError extends Error {}
+
 /**
  * This middleware is responsible for rendering the response
  *
@@ -31,81 +39,110 @@ export function renderResponse(): FramesMiddleware<{}> {
       });
     }
 
-    const frame: Frame = {
-      version: "vNext",
-      postUrl: "",
-      state: result.state ? JSON.stringify(result.state) : undefined,
-      // @todo rendering image could be moved to its own middleware instead so users can use something different if they want to?
-      // but that would mean that we need to specify middleware manually in any app since importing it here in default middleware
-      // and disabling it, has no effect on final bundle size of app
-      image:
-        typeof result.image === "string"
-          ? result.image
-          : await renderImage(result.image, result.imageOptions),
-      buttons: result.buttons?.map(
-        (button, i): NonNullable<Frame["buttons"]>[number] => {
-          if (!("type" in button && "props" in button)) {
-            throw new Error("Invalid button provided");
-          }
+    try {
+      const frame: Frame = {
+        version: "vNext",
+        postUrl: "",
+        state: result.state ? JSON.stringify(result.state) : undefined,
+        // @todo rendering image could be moved to its own middleware instead so users can use something different if they want to?
+        // but that would mean that we need to specify middleware manually in any app since importing it here in default middleware
+        // and disabling it, has no effect on final bundle size of app
+        image:
+          typeof result.image === "string"
+            ? result.image
+            : await renderImage(result.image, result.imageOptions).catch(
+                (e) => {
+                  console.error(e);
 
-          if (i > 3) {
-            throw new Error("Only 4 buttons are allowed");
-          }
+                  throw new ImageRenderError("Could not render image");
+                }
+              ),
+        buttons: result.buttons?.map(
+          (button, i): NonNullable<Frame["buttons"]>[number] => {
+            if (!("type" in button && "props" in button)) {
+              throw new InvalidButtonShapeError("Invalid button provided");
+            }
 
-          const props = button.props as ButtonProps;
+            if (i > 3) {
+              throw new InvalidButtonCountError("Only 4 buttons are allowed");
+            }
 
-          switch (props.action) {
-            case "link":
-            case "mint":
-              return {
-                action: props.action,
-                label: props.children,
-                target: props.target,
-              };
-            case "post":
-            case "post_redirect":
-              return {
-                action: props.action,
-                label: props.children,
-                target: generatePostButtonTargetURL({
-                  buttonIndex: (i + 1) as 1 | 2 | 3 | 4,
-                  buttonAction: props.action,
+            const props = button.props as ButtonProps;
+
+            switch (props.action) {
+              case "link":
+              case "mint":
+                return {
+                  action: props.action,
+                  label: props.children,
                   target: props.target,
-                  currentURL: context.currentURL,
-                  basePath: context.basePath,
-                  state: props.state,
-                }),
-              };
-            default:
-              throw new Error("Unrecognized button action");
+                };
+              case "post":
+              case "post_redirect":
+                return {
+                  action: props.action,
+                  label: props.children,
+                  target: generatePostButtonTargetURL({
+                    buttonIndex: (i + 1) as 1 | 2 | 3 | 4,
+                    buttonAction: props.action,
+                    target: props.target,
+                    currentURL: context.currentURL,
+                    basePath: context.basePath,
+                    state: props.state,
+                  }),
+                };
+              default:
+                throw new UnrecognizedButtonActionError(
+                  "Unrecognized button action"
+                );
+            }
           }
-        }
-      ) as Frame["buttons"],
-      inputText: result.textInput,
-      imageAspectRatio: result.imageOptions?.aspectRatio ?? "1.91:1",
-    };
+        ) as Frame["buttons"],
+        inputText: result.textInput,
+        imageAspectRatio: result.imageOptions?.aspectRatio ?? "1.91:1",
+      };
 
-    if (wantsJSON) {
-      const flattened = getFrameFlattened(frame);
+      if (wantsJSON) {
+        const flattened = getFrameFlattened(frame);
 
-      return new Response(JSON.stringify(flattened), {
+        return new Response(JSON.stringify(flattened), {
+          status: result.status ?? 200,
+          statusText: result.statusText ?? "OK",
+          headers: {
+            ...result.headers,
+            "content-type": "application/json",
+          },
+        });
+      }
+
+      return new Response(getFrameHtmlHead(frame), {
         status: result.status ?? 200,
         statusText: result.statusText ?? "OK",
         headers: {
           ...result.headers,
-          "content-type": "application/json",
+          "content-type": "text/html",
         },
       });
-    }
+    } catch (e) {
+      let message: string = "Internal Server Error";
 
-    return new Response(getFrameHtmlHead(frame), {
-      status: result.status ?? 200,
-      statusText: result.statusText ?? "OK",
-      headers: {
-        ...result.headers,
-        "content-type": "text/html",
-      },
-    });
+      // do not expose any unrecognized errors in response, use console.error instead
+      if (
+        e instanceof ImageRenderError ||
+        e instanceof UnrecognizedButtonActionError ||
+        e instanceof InvalidButtonCountError ||
+        e instanceof InvalidButtonShapeError
+      ) {
+        message = e.message;
+      } else {
+        console.error(e);
+      }
+
+      return new Response(message, {
+        status: 500,
+        headers: { "Cache-Control": "no-store" },
+      });
+    }
   };
 }
 
