@@ -1,17 +1,56 @@
+import { STORAGE_REGISTRY_ADDRESS, storageRegistryABI } from "@farcaster/core";
 import { TransactionTargetResponse } from "frames.js";
+import { getFrameMessage } from "frames.js/next/server";
 import { NextRequest, NextResponse } from "next/server";
+import {
+  createPublicClient,
+  encodeFunctionData,
+  getContract,
+  http,
+} from "viem";
+import { optimism } from "viem/chains";
 
-export function POST(
+export async function POST(
   req: NextRequest
-): NextResponse<TransactionTargetResponse> {
+): Promise<NextResponse<TransactionTargetResponse>> {
+  const json = await req.json();
+
+  const frameMessage = await getFrameMessage(json);
+
+  if (!frameMessage) {
+    throw new Error("No frame message");
+  }
+
+  // Get current storage price
+  const units = 1n;
+
+  const calldata = encodeFunctionData({
+    abi: storageRegistryABI,
+    functionName: "rent",
+    args: [BigInt(frameMessage.requesterFid), units],
+  });
+
+  const publicClient = createPublicClient({
+    chain: optimism,
+    transport: http(),
+  });
+
+  const storageRegistry = getContract({
+    address: STORAGE_REGISTRY_ADDRESS,
+    abi: storageRegistryABI,
+    publicClient,
+  });
+
+  const unitPrice = await storageRegistry.read.price([units]);
+
   return NextResponse.json({
     chainId: "eip155:10", // OP Mainnet 10
     method: "eth_sendTransaction",
     params: {
-      abi: [], // "function rent(uint256 fid, uint256 units) payable"
-      to: "0x00000000fcCe7f938e7aE6D3c335bD6a1a7c593D",
-      data: "0x783a112b0000000000000000000000000000000000000000000000000000000000000e250000000000000000000000000000000000000000000000000000000000000001",
-      value: "984316556204476",
+      abi: storageRegistryABI as any,
+      to: STORAGE_REGISTRY_ADDRESS,
+      data: calldata,
+      value: unitPrice.toString(),
     },
   });
 }
