@@ -49,6 +49,11 @@ export default function ExamplesIndexPage() {
             User data
           </Link>
         </li>
+        <li>
+          <Link className="underline" href="/examples/new-api">
+            New Api
+          </Link>
+        </li>
       </ul>
     </div>
   );
