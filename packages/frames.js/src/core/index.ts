@@ -1,5 +1,5 @@
 export { createFrames } from "./createFrames";
-export { parallelizeMiddleware } from "./middleware/parallelizeMiddleware";
+export { concurrentMiddleware } from "./middleware/concurrentMiddleware";
 export { composeMiddleware } from "./composeMiddleware";
 export { Button } from "./components";
 export { redirect } from "./redirect";

@@ -1,5 +1,5 @@
 import { createFrames } from "./createFrames";
-import { parallelizeMiddleware } from "./middleware/parallelizeMiddleware";
+import { concurrentMiddleware } from "./middleware/concurrentMiddleware";
 import { redirect } from "./redirect";
 import { FramesMiddleware } from "./types";
 
@@ -106,7 +106,7 @@ describe("createFrames", () => {
     const handler = createFrames({
       middleware: [
         middleware0,
-        parallelizeMiddleware(middleware1, middleware2),
+        concurrentMiddleware(middleware1, middleware2),
         middleware3,
       ],
     });
