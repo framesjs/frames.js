@@ -40,6 +40,8 @@ export function renderResponse(): FramesMiddleware<{}> {
     }
 
     try {
+      // @todo validate frame so it is according to spec and throw a ValidationError in case it isn't
+      // and handle that error in catch block
       const frame: Frame = {
         version: "vNext",
         postUrl: "",

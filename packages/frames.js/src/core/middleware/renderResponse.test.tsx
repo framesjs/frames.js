@@ -26,6 +26,7 @@ describe("renderResponse middleware", () => {
 
   beforeEach(() => {
     context.request = new Request("https://example.com");
+    context.currentURL = new URL("https://example.com");
   });
 
   it("returns redirect Response if redirect is returned from handler", async () => {

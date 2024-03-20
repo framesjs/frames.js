@@ -9,8 +9,13 @@ import type {
 import { composeMiddleware } from "./composeMiddleware";
 import { renderResponse } from "./middleware/renderResponse";
 import { clickedButtonParser } from "./middleware/clickedButtonParser";
+import { parseFramesMessage } from "./middleware/parseFramesMessage";
 
-const defaultMiddleware = [renderResponse(), clickedButtonParser()] as const;
+const defaultMiddleware = [
+  renderResponse(),
+  clickedButtonParser(),
+  parseFramesMessage(),
+] as const;
 
 type FramesOptions<
   TFrameMiddleware extends FramesMiddleware<any>[] | undefined,
