@@ -96,6 +96,7 @@ export function parseFramesMessage(): FramesMiddleware<FramesMessageContext> {
         console.warn(
           "Failed to parse state from frame message, are you sure that the state was constructed by frames.js?"
         );
+        message.state = undefined;
       }
     }
 
