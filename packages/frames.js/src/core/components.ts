@@ -47,11 +47,22 @@ type LinkButtonProps = {
   target: string;
 };
 
+type TxButtonProps = {
+  /** A 256-byte string which is label of the button */
+  children: string;
+  action: "tx";
+  /** URL which points to a valid Frame Transaction URL, which returns tx calldata */
+  target: string;
+  /** Overrides the top level frame post_url */
+  post_url?: string;
+};
+
 export type ButtonProps =
   | PostButtonProps
   | PostRedirectButton
   | MintButtonProps
-  | LinkButtonProps;
+  | LinkButtonProps
+  | TxButtonProps;
 
 export const Button: React.FunctionComponent<ButtonProps> = () => {
   return null;
