@@ -4,6 +4,7 @@ import { type Frame, getFrameFlattened, getFrameHtmlHead } from "../..";
 import type { ButtonProps } from "../components";
 import type { FrameDefinition, FramesMiddleware } from "../types";
 import { generatePostButtonTargetURL, isFrameRedirect } from "../utils";
+import { FRAMES_META_TAGS_HEADER } from "..";
 
 class InvalidButtonShapeError extends Error {}
 
@@ -22,7 +23,7 @@ class ImageRenderError extends Error {}
 export function renderResponse(): FramesMiddleware<{}> {
   return async (context, next) => {
     const wantsJSON =
-      context.request.headers.get("accept") === "application/json";
+      context.request.headers.get("accept") === FRAMES_META_TAGS_HEADER;
 
     const result = await next(context);
 

@@ -1,3 +1,4 @@
+import { FRAMES_META_TAGS_HEADER } from "..";
 import { Button } from "../components";
 import { redirect } from "../redirect";
 import type { FramesContext } from "../types";
@@ -110,7 +111,7 @@ describe("renderResponse middleware", () => {
   it("allows to render a frame as json if Accept header is used", async () => {
     context.request = new Request("https://example.com", {
       headers: {
-        Accept: "application/json",
+        Accept: FRAMES_META_TAGS_HEADER,
       },
     });
     const result = await render(context, async () => {
