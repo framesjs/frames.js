@@ -36,9 +36,7 @@ export function concurrentMiddleware<
     let finalCtx = ctx;
 
     for (const newCtx of newContexts) {
-      if (newCtx) {
-        finalCtx = { ...finalCtx, ...newCtx };
-      }
+      finalCtx = { ...finalCtx, ...newCtx };
     }
 
     // @ts-expect-error this is correct but type is hard to infer
