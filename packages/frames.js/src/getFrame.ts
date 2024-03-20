@@ -358,7 +358,11 @@ export function getFrame({
 
 export function parseButtonElement(elem: cheerio.Element) {
   const nameAttr = elem.attribs["name"] || elem.attribs["property"];
-  const buttonIndex = nameAttr?.split(":")[3];
+  const buttonSegments = nameAttr?.split(":");
+
+  // Handles both cases of fc:frame:button:N and of:button:N
+  const buttonIndex =
+    buttonSegments?.[0] === "fc" ? buttonSegments?.[3] : buttonSegments?.[2];
   try {
     return {
       buttonIndex: parseInt(buttonIndex || ""),
