@@ -81,6 +81,29 @@ export function renderResponse(): FramesMiddleware<{}> {
                   label: props.children,
                   target: props.target,
                 };
+              case "tx":
+                return {
+                  action: props.action,
+                  label: props.children,
+                  target: generatePostButtonTargetURL({
+                    buttonIndex: (i + 1) as 1 | 2 | 3 | 4,
+                    buttonAction: "post",
+                    target: props.target,
+                    currentURL: context.currentURL,
+                    basePath: context.basePath,
+                    state: props.state,
+                  }),
+                  post_url: props.post_url
+                    ? generatePostButtonTargetURL({
+                        buttonIndex: (i + 1) as 1 | 2 | 3 | 4,
+                        buttonAction: "post",
+                        target: props.post_url,
+                        currentURL: context.currentURL,
+                        basePath: context.basePath,
+                        state: props.state,
+                      })
+                    : undefined,
+                };
               case "post":
               case "post_redirect":
                 return {

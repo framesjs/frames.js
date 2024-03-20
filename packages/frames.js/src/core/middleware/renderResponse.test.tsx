@@ -134,8 +134,8 @@ describe("renderResponse middleware", () => {
   });
 
   it("properly resolves against basePath", async () => {
-    context.basePath = "/prefixed";
-    const result = await render(context, async () => {
+    const newContext = { ...context, basePath: "/prefixed" };
+    const result = await render(newContext, async () => {
       return {
         image: <div>My image</div>,
         buttons: [
@@ -289,5 +289,34 @@ describe("renderResponse middleware", () => {
       expect.any(Object)
     );
     expect(constructorMock.mock.calls[1][0]).toMatchSnapshot();
+  });
+
+  it("correctly renders tx button", async () => {
+    context.request = new Request("https://example.com", {
+      headers: {
+        Accept: FRAMES_META_TAGS_HEADER,
+      },
+    });
+    const result = await render(context, async () => {
+      return {
+        image: <div>My image</div>,
+        buttons: [
+          <Button action="tx" target="/tx" post_url="/txid">
+            Tx button
+          </Button>,
+        ],
+      };
+    });
+
+    const json = await (result as Response).json();
+
+    expect(json["fc:frame:button:1"]).toBe("Tx button");
+    expect(json["fc:frame:button:1:action"]).toBe("tx");
+    expect(json["fc:frame:button:1:target"]).toBe(
+      "https://example.com/tx?__bi=1%3Ap"
+    );
+    expect(json["fc:frame:button:1:post_url"]).toBe(
+      "https://example.com/txid?__bi=1%3Ap"
+    );
   });
 });
