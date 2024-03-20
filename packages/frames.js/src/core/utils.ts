@@ -31,14 +31,14 @@ function isValidButtonAction(action: any): action is "post" | "post_redirect" {
 export function generatePostButtonTargetURL({
   buttonIndex,
   buttonAction,
+  currentURL,
   target,
-  request,
   basePath,
   state,
 }: {
   buttonIndex: 1 | 2 | 3 | 4;
   buttonAction: "post" | "post_redirect";
-  request: Request;
+  currentURL: URL;
   basePath: string;
   target: string | undefined;
   /**
@@ -46,16 +46,16 @@ export function generatePostButtonTargetURL({
    */
   state: JsonValue | undefined;
 }): string {
-  let url = new URL(request.url);
+  let url = new URL(currentURL);
 
   if (target) {
     // resolve target relatively to basePath
-    const baseUrl = new URL(basePath, request.url);
+    const baseUrl = new URL(basePath, currentURL);
     const preformatted = baseUrl.pathname + "/" + target;
     const parts = preformatted.split("/").filter(Boolean);
     const finalPathname = parts.join("/");
 
-    url = new URL(finalPathname, request.url);
+    url = new URL(finalPathname, currentURL);
   }
 
   // store what button has been clicked in the URL

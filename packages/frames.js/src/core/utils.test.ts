@@ -14,7 +14,7 @@ describe("generatePostButtonTargetURL", () => {
         basePath: "/",
         buttonAction: "post",
         buttonIndex: 1,
-        request: new Request("http://test.com/test"),
+        currentURL: new URL("http://test.com/test"),
         state: undefined,
       })
     ).toBe(expected.toString());
@@ -31,7 +31,7 @@ describe("generatePostButtonTargetURL", () => {
         basePath: "/",
         buttonAction: "post",
         buttonIndex: 1,
-        request: new Request("http://test.com/test"),
+        currentURL: new URL("http://test.com/test"),
         state: { test: "test" },
       })
     ).toBe(expected.toString());
@@ -47,7 +47,7 @@ describe("generatePostButtonTargetURL", () => {
         basePath: "/",
         buttonAction: "post",
         buttonIndex: 1,
-        request: new Request("http://test.com"),
+        currentURL: new URL("http://test.com"),
         state: undefined,
       })
     ).toBe(expected.toString());
@@ -64,7 +64,7 @@ describe("generatePostButtonTargetURL", () => {
         basePath: "/",
         buttonAction: "post",
         buttonIndex: 1,
-        request: new Request("http://test.com"),
+        currentURL: new URL("http://test.com"),
         state: { test: "test" },
       })
     ).toBe(expected.toString());
@@ -80,7 +80,7 @@ describe("generatePostButtonTargetURL", () => {
         basePath: "/prefixed",
         buttonAction: "post",
         buttonIndex: 1,
-        request: new Request("http://test.com/test"),
+        currentURL: new URL("http://test.com/test"),
         state: undefined,
       })
     ).toBe(expected.toString());
@@ -96,7 +96,7 @@ describe("generatePostButtonTargetURL", () => {
         basePath: "/",
         buttonAction: "post_redirect",
         buttonIndex: 1,
-        request: new Request("http://test.com/test"),
+        currentURL: new URL("http://test.com/test"),
         state: undefined,
       })
     ).toBe(expected.toString());

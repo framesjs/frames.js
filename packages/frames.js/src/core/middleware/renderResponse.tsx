@@ -71,7 +71,7 @@ export function renderResponse(): FramesMiddleware<{}> {
                   buttonIndex: (i + 1) as 1 | 2 | 3 | 4,
                   buttonAction: props.action,
                   target: props.target,
-                  request: context.request,
+                  currentURL: context.currentURL,
                   basePath: context.basePath,
                   state: props.state,
                 }),

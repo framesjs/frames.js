@@ -22,7 +22,7 @@ describe("clickedButtonParser middleware", () => {
       buttonAction: "post",
       buttonIndex: 1,
       basePath: "/",
-      request: new Request("https://example.com"),
+      currentURL: new URL("https://example.com"),
       state: { test: true },
       target: "/test",
     });
@@ -45,7 +45,7 @@ describe("clickedButtonParser middleware", () => {
       buttonAction: "post_redirect",
       buttonIndex: 1,
       basePath: "/",
-      request: new Request("https://example.com"),
+      currentURL: new URL("https://example.com"),
       state: undefined,
       target: "/test",
     });
@@ -69,7 +69,7 @@ describe("clickedButtonParser middleware", () => {
       buttonAction: "post_redirect",
       buttonIndex: 1,
       basePath: "/",
-      request: new Request("https://example.com"),
+      currentURL: new URL("https://example.com"),
       state: undefined,
       target: "/test",
     });
@@ -95,7 +95,7 @@ describe("clickedButtonParser middleware", () => {
       buttonAction: "post",
       buttonIndex: 1,
       basePath: "/",
-      request: new Request("https://example.com"),
+      currentURL: new URL("https://example.com"),
       state: { test: true },
       target: "/test",
     });
@@ -119,7 +119,7 @@ describe("clickedButtonParser middleware", () => {
       buttonAction: "post",
       buttonIndex: 1,
       basePath: "/",
-      request: new Request("https://example.com"),
+      currentURL: new URL("https://example.com"),
       state: { test: true },
       target: "/test",
     });
@@ -144,7 +144,7 @@ describe("clickedButtonParser middleware", () => {
       buttonAction: "post",
       buttonIndex: 1,
       basePath: "/",
-      request: new Request("https://example.com"),
+      currentURL: new URL("https://example.com"),
       state: { test: true },
       target: "/test",
     });
