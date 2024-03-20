@@ -4,12 +4,17 @@ import {
   fetchMetaData,
   metaDataToMetaTags,
 } from "@frames.js/next/pages-router";
+import Link from "next/link";
+import { createDebugUrl } from "../../app/debug";
 
 export const getServerSideProps = async function getServerSideProps() {
   return {
     props: {
       metadata: await fetchMetaData(
-        new URL("/api", process.env.VERCEL_URL || "http://localhost:3000")
+        new URL(
+          "/api/frames",
+          process.env.VERCEL_URL || "http://localhost:3000"
+        )
       ),
     },
   };
@@ -27,7 +32,15 @@ export default function Page({
         {metaDataToMetaTags(metadata)}
       </Head>
 
-      <h1>Frames.js Starter</h1>
+      <div>
+        Next.js Page Router example{" "}
+        <Link
+          href={createDebugUrl("http://localhost:3000/page-router")}
+          className="underline"
+        >
+          Debug
+        </Link>
+      </div>
     </>
   );
 }

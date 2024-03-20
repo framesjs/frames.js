@@ -2,7 +2,7 @@
 import { createFrames, Button } from "@frames.js/next/pages-router";
 
 const frames = createFrames({
-  basePath: "/api",
+  basePath: "/api/frames",
 });
 const handleRequest = frames(async ({ clickedButton, message }) => {
   return {

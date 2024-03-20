@@ -54,6 +54,11 @@ export default function ExamplesIndexPage() {
             New Api
           </Link>
         </li>
+        <li>
+          <Link className="underline" href="/page-router">
+            Page router
+          </Link>
+        </li>
       </ul>
     </div>
   );
