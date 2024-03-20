@@ -14,11 +14,11 @@ import { useFrame } from "frames.js/render/use-frame";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { useChainId, useConfig } from "wagmi";
+import { useChainId, useConfig, useAccount } from "wagmi";
 import { FrameDebugger } from "./components/frame-debugger";
 import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
 import { MockHubActionContext } from "./utils/mock-hub-utils";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 const LoginWindow = dynamic(() => import("./components/create-signer"), {
   ssr: false,
 });
@@ -43,6 +43,9 @@ export default function App({
     recastedCast: false,
   });
   const currentChainId = useChainId();
+  const config = useConfig();
+  const account = useAccount();
+  const { openConnectModal } = useConnectModal();
 
   useEffect(() => {
     if (url !== urlInput && url) {
@@ -50,19 +53,25 @@ export default function App({
     }
   }, [url]);
   const signerState = useFarcasterIdentity();
-  const globalConfig = useConfig();
 
   const onTransaction: OnTransactionFunc = useCallback(
     async ({ transactionData }) => {
       const { params, chainId, method } = transactionData;
       if (!chainId.startsWith("eip155:")) {
         alert(`debugger: Unrecognized chainId ${chainId}`);
+        return null;
+      }
+
+      if (!account.address) {
+        console.log("No connected wallet");
+        openConnectModal?.();
+        return null;
       }
 
       const requestedChainId = parseInt(chainId.split("eip155:")[1]!);
 
-      const config = globalConfig;
       if (currentChainId !== requestedChainId) {
+        console.log("switching chain");
         await switchChain(config, {
           chainId: requestedChainId,
         });
@@ -70,6 +79,7 @@ export default function App({
 
       try {
         // Send the transaction
+        console.log("sending tx");
         const transactionId = await sendTransaction(config, {
           to: params.to,
           data: params.data,
@@ -88,7 +98,10 @@ export default function App({
     homeframeUrl: url,
     frameActionProxy: "/frames",
     frameGetProxy: "/frames",
-    frameContext: fallbackFrameContext,
+    frameContext: {
+      ...fallbackFrameContext,
+      ...(account.address ? { connectedAddress: account.address } : undefined),
+    },
     signerState,
     extraButtonRequestPayload: { mockData: mockHubContext },
     onTransaction,
