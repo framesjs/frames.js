@@ -55,7 +55,7 @@ export function generatePostButtonTargetURL({
     const parts = preformatted.split("/").filter(Boolean);
     const finalPathname = parts.join("/");
 
-    url = new URL(finalPathname, currentURL);
+    url = new URL(`/${finalPathname}`, currentURL);
   }
 
   // store what button has been clicked in the URL

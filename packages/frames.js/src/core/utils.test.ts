@@ -70,21 +70,24 @@ describe("generatePostButtonTargetURL", () => {
     ).toBe(expected.toString());
   });
 
-  it("resolves target relatively to basePath", () => {
-    const expected = new URL("/prefixed/my-target", "http://test.com");
-    expected.searchParams.set("__bi", "1:p");
+  it.each(["/", "/test", "/test/test"])(
+    "resolves target relatively to basePath and current path %s",
+    (currentPath) => {
+      const expected = new URL("/prefixed/test/my-target", "http://test.com");
+      expected.searchParams.set("__bi", "1:p");
 
-    expect(
-      generatePostButtonTargetURL({
-        target: "/my-target",
-        basePath: "/prefixed",
-        buttonAction: "post",
-        buttonIndex: 1,
-        currentURL: new URL("http://test.com/test"),
-        state: undefined,
-      })
-    ).toBe(expected.toString());
-  });
+      expect(
+        generatePostButtonTargetURL({
+          target: "/my-target",
+          basePath: "/prefixed/test",
+          buttonAction: "post",
+          buttonIndex: 1,
+          currentURL: new URL(currentPath, "http://test.com/"),
+          state: undefined,
+        })
+      ).toBe(expected.toString());
+    }
+  );
 
   it("also supports post_redirect button", () => {
     const expected = new URL("/test", "http://test.com");
