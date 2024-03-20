@@ -171,6 +171,16 @@
         "types": "./dist/render/index.d.cts",
         "default": "./dist/render/index.cjs"
       }
+    },
+    "./core": {
+      "import": {
+        "types": "./dist/core/index.d.ts",
+        "default": "./dist/core/index.js"
+      },
+      "require": {
+        "types": "./dist/core/index.d.cts",
+        "default": "./dist/core/index.cjs"
+      }
     }
   },
   "files": [
