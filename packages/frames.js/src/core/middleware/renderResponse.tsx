@@ -35,6 +35,9 @@ export function renderResponse(): FramesMiddleware<{}> {
       version: "vNext",
       postUrl: "",
       state: result.state ? JSON.stringify(result.state) : undefined,
+      // @todo rendering image could be moved to its own middleware instead so users can use something different if they want to?
+      // but that would mean that we need to specify middleware manually in any app since importing it here in default middleware
+      // and disabling it, has no effect on final bundle size of app
       image:
         typeof result.image === "string"
           ? result.image
