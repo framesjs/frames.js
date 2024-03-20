@@ -47,13 +47,21 @@ type LinkButtonProps = {
   target: string;
 };
 
-type TxButtonProps = {
+type TxButtonProps = Pick<PostButtonProps, "state"> & {
   /** A 256-byte string which is label of the button */
   children: string;
   action: "tx";
-  /** URL which points to a valid Frame Transaction URL, which returns tx calldata */
+  /**
+   * URL which points to a valid Frame Transaction URL, which returns tx calldata.
+   *
+   * Either full URL or relative path that will be resolved against current url and basePath
+   * if omitted it will send use current url and path
+   */
   target: string;
-  /** Overrides the top level frame post_url */
+  /**
+   * URL where a frame message containing the transaction ID will be posted if the transaction succeeds.
+   * Overrides the top level frame post_url.
+   */
   post_url?: string;
 };
 

@@ -228,11 +228,15 @@ export function getFrame({
     .sort((a, b) => a.buttonIndex - b.buttonIndex)
     .map((button): FrameButton => {
       // type guards are weird sometimes.
-      if (
-        isFrameButtonLink(button) ||
-        isFrameButtonMint(button) ||
-        isFrameButtonTx(button)
-      )
+      if (isFrameButtonLink(button) || isFrameButtonMint(button))
+        return {
+          label: button.label,
+          action: button.action,
+          post_url: button.post_url,
+          target: button.target,
+        };
+
+      if (isFrameButtonTx(button))
         return {
           label: button.label,
           action: button.action,

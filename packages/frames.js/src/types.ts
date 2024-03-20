@@ -78,7 +78,7 @@ export interface FrameButtonLink {
 export interface FrameButtonTx {
   action: "tx";
   target: string;
-  post_url?: undefined;
+  post_url?: string;
   /** A 256-byte string which is label of the button */
   label: string;
 }
