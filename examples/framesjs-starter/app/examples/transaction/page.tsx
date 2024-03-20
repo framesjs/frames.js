@@ -74,7 +74,6 @@ export default async function Home({ searchParams }: NextServerPageProps) {
             Rent farcaster storage
           </div>
         </FrameImage>
-        <FrameButton>Test</FrameButton>
         <FrameButton action="tx" target="/examples/transaction/txdata">
           Buy a unit
         </FrameButton>
