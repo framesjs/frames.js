@@ -1,16 +1,16 @@
 import { redirect } from "../redirect";
 import type { FramesContext } from "../types";
 import { generatePostButtonTargetURL } from "../utils";
-import { pressedButtonParser } from "./pressedButtonParser";
+import { framesjsMiddleware } from "./framesjsMiddleware";
 
-describe("pressedButtonParser middleware", () => {
+describe("framesjsMiddleware middleware", () => {
   it("does not provide pressedButton to context if no supported button is detetcted", async () => {
     const context: FramesContext = {
       currentURL: new URL("https://example.com"),
       request: new Request("https://example.com", { method: "POST" }),
     } as any;
     const next = jest.fn();
-    const middleware = pressedButtonParser();
+    const middleware = framesjsMiddleware();
 
     await middleware(context, next);
 
@@ -31,7 +31,7 @@ describe("pressedButtonParser middleware", () => {
       request: new Request(url, { method: "POST" }),
     } as any;
     const next = jest.fn();
-    const middleware = pressedButtonParser();
+    const middleware = framesjsMiddleware();
 
     await middleware(context, next);
 
@@ -54,7 +54,7 @@ describe("pressedButtonParser middleware", () => {
       request: new Request(url, { method: "POST" }),
     } as any;
     const next = jest.fn(() => Promise.resolve(redirect("http://test.com")));
-    const middleware = pressedButtonParser();
+    const middleware = framesjsMiddleware();
 
     await middleware(context, next);
 
@@ -80,7 +80,7 @@ describe("pressedButtonParser middleware", () => {
     const next = jest.fn(() =>
       Promise.resolve(new Response(null, { status: 404 }))
     );
-    const middleware = pressedButtonParser();
+    const middleware = framesjsMiddleware();
 
     await middleware(context, next);
 
@@ -104,7 +104,7 @@ describe("pressedButtonParser middleware", () => {
       request: new Request(url, { method: "POST" }),
     } as any;
     const next = jest.fn(() => Promise.resolve(redirect("http://test.com")));
-    const middleware = pressedButtonParser();
+    const middleware = framesjsMiddleware();
 
     await middleware(context, next);
 
@@ -130,7 +130,7 @@ describe("pressedButtonParser middleware", () => {
     const next = jest.fn(() =>
       Promise.resolve(new Response(null, { status: 200 }))
     );
-    const middleware = pressedButtonParser();
+    const middleware = framesjsMiddleware();
 
     await middleware(context, next);
 
@@ -153,7 +153,7 @@ describe("pressedButtonParser middleware", () => {
       request: new Request(url),
     } as any;
     const next = jest.fn();
-    const middleware = pressedButtonParser();
+    const middleware = framesjsMiddleware();
 
     await middleware(context, next);
 

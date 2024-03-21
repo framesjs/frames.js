@@ -1,7 +1,7 @@
 import { FramesMiddleware, JsonValue } from "../types";
 import { isFrameRedirect, parseButtonInformationFromTargetURL } from "../utils";
 
-type PressedButtonMiddlewareContext = {
+type FramesjsMiddlewareContext = {
   /**
    * Button that was clicked on previous frame
    */
@@ -12,16 +12,18 @@ type PressedButtonMiddlewareContext = {
         state?: JsonValue;
       }
     | undefined;
+  /** is the initialState for the first frame, and the  */
+  state?: JsonValue | undefined;
 };
 
 /**
  * Creates middleware responsible to detect and parse clicked button, it provides pressedButton to context.
  */
-export function pressedButtonParser(): FramesMiddleware<PressedButtonMiddlewareContext> {
+export function framesjsMiddleware(): FramesMiddleware<FramesjsMiddlewareContext> {
   return async (context, next) => {
     // clicked button always issues a POST request
     if (context.request.method !== "POST") {
-      return next();
+      return next({ state: context.initialState });
     }
 
     // parse clicked buttom from URL
@@ -29,7 +31,7 @@ export function pressedButtonParser(): FramesMiddleware<PressedButtonMiddlewareC
       context.currentURL
     );
 
-    const result = await next({ pressedButton });
+    const result = await next({ pressedButton, state: pressedButton?.state });
 
     if (pressedButton?.action === "post_redirect") {
       // check if the response is redirect, if not, warn
@@ -51,6 +53,6 @@ export function pressedButtonParser(): FramesMiddleware<PressedButtonMiddlewareC
       }
     }
 
-    return next({ pressedButton });
+    return result;
   };
 }
