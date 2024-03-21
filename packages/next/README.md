@@ -87,8 +87,7 @@ const framesRouteHandler = frames(async (ctx) => {
   };
 });
 
-export const GET = framesRouteHandler;
-export const POST = framesRouteHandler;
+export default framesRouteHandler;
 ```
 
 #### Rendering Frames meta tags on existing Next.js page using Pages Router
