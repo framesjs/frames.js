@@ -4,7 +4,7 @@ export { Button, type types } from "frames.js/core";
 import type { Writable, Readable } from "node:stream";
 import { Stream } from "node:stream";
 
-export { fetchMetaData } from "./fetchMetaData";
+export { fetchMetadata } from "./fetchMetadata";
 
 export const createFrames: typeof coreCreateFrames =
   function createFramesForNextJSPagesRouter(options: any) {
@@ -25,15 +25,15 @@ export const createFrames: typeof coreCreateFrames =
   } as unknown as typeof coreCreateFrames;
 
 /**
- * Converts metadata returned from fetchMetaData() call to Next.js <Head /> compatible components.
+ * Converts metadata returned from fetchMetadata() call to Next.js <Head /> compatible components.
  *
  * @example
- * import { fetchMetaData, metaDataToMetaTags } from "@frames.js/next/pages-router";
+ * import { fetchMetadata, metadataToMetaTags } from "@frames.js/next/pages-router";
  *
  * export const getServerSideProps = async function getServerSideProps() {
  *  return {
  *   props: {
- *    metadata: await fetchMetaData(
+ *    metadata: await fetchMetadata(
  *     new URL("/api", process.env.VERCEL_URL || "http://localhost:3000")
  *    ),
  *  },
@@ -46,13 +46,13 @@ export const createFrames: typeof coreCreateFrames =
  *    <>
  *      <Head>
  *        <title>Frames.js app</title>
- *        {metaDataToMetaTags(metadata)}
+ *        {metadataToMetaTags(metadata)}
  *      </Head>
  *    </>
  *  );
  * }
  */
-export function metaDataToMetaTags(metadata: NonNullable<Metadata["other"]>) {
+export function metadataToMetaTags(metadata: NonNullable<Metadata["other"]>) {
   return (
     <>
       {Object.entries(metadata).map(([key, value]) => {
