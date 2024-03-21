@@ -9,10 +9,13 @@ export type XmtpFrameMessageReturnType = frames.FrameActionBody & {
 };
 
 export function isXmtpFrameActionPayload(
-  frameActionPayload: any
+  frameActionPayload: unknown
 ): frameActionPayload is XmtpOpenFramesRequest {
   return (
-    !!frameActionPayload.clientProtocol &&
+    typeof frameActionPayload === "object" &&
+    frameActionPayload !== null &&
+    "clientProtocol" in frameActionPayload &&
+    typeof frameActionPayload.clientProtocol === "string" &&
     frameActionPayload.clientProtocol.startsWith("xmtp@")
   );
 }
