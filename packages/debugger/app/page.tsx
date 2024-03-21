@@ -63,7 +63,6 @@ export default function App({
       }
 
       if (!account.address) {
-        console.log("No connected wallet");
         openConnectModal?.();
         return null;
       }
