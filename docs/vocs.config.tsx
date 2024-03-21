@@ -37,7 +37,7 @@ const sidebar = [
         link: "/reference/remix",
       },
       {
-        text: "frames.js/core",
+        text: "@frames.js/core",
         collapsed: false,
         items: [
           {

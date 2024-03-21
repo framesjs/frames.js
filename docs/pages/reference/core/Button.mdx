@@ -5,7 +5,9 @@ In order to render buttons you should use our `<Button>` component. Frames.js su
 ## Post Button
 
 ```tsx
-<Button action="post">Click me</Button>
+import { Button } from "@frames.js/core";
+
+<Button action="post">Click me</Button>;
 ```
 
 This button sends a request to a URL on which it was rendered. If you want to navigate to different route in your app, you can use `target` prop which should be set to relative path.
@@ -37,9 +39,11 @@ Post redirect button is a special kind of `post` button that when users clicks t
 It accepts same props as `post` button.
 
 ```tsx
+import { Button } from "@frames.js/core";
+
 <Button action="post_redirect" target="/next-route" state="optional-state">
   Click me
-</Button>
+</Button>;
 ```
 
 ## Link Button
@@ -47,9 +51,11 @@ It accepts same props as `post` button.
 Link button navigates to external URL when clicked.
 
 ```tsx
+import { Button } from "@frames.js/core";
+
 <Button action="link" target="https://google.com">
   Click me
-</Button>
+</Button>;
 ```
 
 ## Mint Button
@@ -57,9 +63,11 @@ Link button navigates to external URL when clicked.
 Mint button creates a new token when clicked.
 
 ```tsx
+import { Button } from "@frames.js/core";
+
 <Button action="mint" target="https://google.com">
   Click me
-</Button>
+</Button>;
 ```
 
 ## Tx Button
