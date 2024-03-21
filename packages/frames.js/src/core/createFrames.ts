@@ -1,10 +1,9 @@
 import type {
-  FrameHandlerFunction,
   FramesContext,
-  FramesContextFromMiddlewares,
   FramesMiddleware,
   FramesMiddlewareReturnType,
-  JsonValue,
+  FramesOptions,
+  FramesRequestHandlerFunction,
 } from "./types";
 import { composeMiddleware } from "./composeMiddleware";
 import { renderResponse } from "./middleware/renderResponse";
@@ -17,42 +16,7 @@ const defaultMiddleware = [
   parseFramesMessage(),
 ] as const;
 
-type FramesOptions<
-  TFrameMiddleware extends FramesMiddleware<any>[] | undefined,
-> = {
-  /**
-   * All frame relative targets will be resolved relative to this
-   * @default '/''
-   */
-  basePath?: string;
-  initialState?: JsonValue;
-  middleware?: TFrameMiddleware extends undefined
-    ? FramesMiddleware<any>[]
-    : TFrameMiddleware;
-};
-
-type FramesRequestHandlerFunctionOptions<
-  TPerRouteFrameMiddlewares extends FramesMiddleware<any>[] | undefined,
-> = {
-  middleware?: TPerRouteFrameMiddlewares;
-};
-
-type FramesRequestHandlerFunction<
-  TFrameMiddlewares extends FramesMiddleware<any>[] | undefined,
-> = <
-  TPerRouteMiddleware extends FramesMiddleware<any>[] | undefined = undefined,
->(
-  handler: FrameHandlerFunction<
-    FramesContextFromMiddlewares<typeof defaultMiddleware> &
-      (TFrameMiddlewares extends undefined
-        ? {}
-        : FramesContextFromMiddlewares<NonNullable<TFrameMiddlewares>>) &
-      (TPerRouteMiddleware extends undefined
-        ? {}
-        : FramesContextFromMiddlewares<NonNullable<TPerRouteMiddleware>>)
-  >,
-  options?: FramesRequestHandlerFunctionOptions<TPerRouteMiddleware>
-) => (req: Request) => Promise<Response>;
+export type DefaultMiddleware = typeof defaultMiddleware;
 
 export function createFrames<
   TMiddlewares extends FramesMiddleware<any>[] | undefined = undefined,
@@ -60,7 +24,11 @@ export function createFrames<
   basePath = "/",
   initialState,
   middleware,
-}: FramesOptions<TMiddlewares> = {}): FramesRequestHandlerFunction<TMiddlewares> {
+}: FramesOptions<TMiddlewares> = {}): FramesRequestHandlerFunction<
+  typeof defaultMiddleware,
+  TMiddlewares,
+  (req: Request) => Promise<Response>
+> {
   const globalMiddleware: FramesMiddleware<FramesContext>[] = middleware || [];
 
   /**

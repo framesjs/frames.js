@@ -131,3 +131,61 @@ export type FramesContextFromMiddlewares<
       : never;
   }[number]
 >;
+
+export type FramesRequestHandlerFunctionOptions<
+  TPerRouteFrameMiddlewares extends FramesMiddleware<any>[] | undefined,
+> = {
+  middleware?: TPerRouteFrameMiddlewares;
+};
+
+export type FramesRequestHandlerFunction<
+  TDefaultMiddleware extends
+    | ReadonlyArray<FramesMiddleware<any>>
+    | FramesMiddleware<any>[]
+    | undefined,
+  TFrameMiddleware extends FramesMiddleware<any>[] | undefined,
+  TRequestHandlerFunction extends Function,
+> = <
+  TPerRouteMiddleware extends FramesMiddleware<any>[] | undefined = undefined,
+>(
+  handler: FrameHandlerFunction<
+    (TDefaultMiddleware extends undefined
+      ? {}
+      : FramesContextFromMiddlewares<NonNullable<TDefaultMiddleware>>) &
+      (TFrameMiddleware extends undefined
+        ? {}
+        : FramesContextFromMiddlewares<NonNullable<TFrameMiddleware>>) &
+      (TPerRouteMiddleware extends undefined
+        ? {}
+        : FramesContextFromMiddlewares<NonNullable<TPerRouteMiddleware>>)
+  >,
+  options?: FramesRequestHandlerFunctionOptions<TPerRouteMiddleware>
+) => TRequestHandlerFunction;
+
+export type FramesOptions<
+  TFrameMiddleware extends FramesMiddleware<any>[] | undefined,
+> = {
+  /**
+   * All frame relative targets will be resolved relative to this
+   * @default '/''
+   */
+  basePath?: string;
+  initialState?: JsonValue;
+  middleware?: TFrameMiddleware extends undefined
+    ? FramesMiddleware<any>[]
+    : TFrameMiddleware;
+};
+
+export type CreateFramesFunctionDefinition<
+  TDefaultMiddleware extends
+    | ReadonlyArray<FramesMiddleware<any>>
+    | FramesMiddleware<any>[]
+    | undefined,
+  TRequestHandlerFunction extends Function,
+> = <TFrameMiddleware extends FramesMiddleware<any>[] | undefined = undefined>(
+  options: FramesOptions<TFrameMiddleware>
+) => FramesRequestHandlerFunction<
+  TDefaultMiddleware,
+  TFrameMiddleware,
+  TRequestHandlerFunction
+>;
