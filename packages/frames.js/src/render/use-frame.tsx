@@ -60,10 +60,11 @@ export const unsignedFrameAction: SignerStateInstance["signFrameAction"] =
       },
     };
   };
-function onTransactionFallback({ transactionData }: onTransactionArgs) {
+async function onTransactionFallback({ transactionData }: onTransactionArgs) {
   window.alert(
     `Requesting a transaction on chain with ID ${transactionData.chainId} with the following params: ${JSON.stringify(transactionData.params, null, 2)}`
   );
+  return null;
 }
 
 export const fallbackFrameContext: FrameContext = {
@@ -305,12 +306,24 @@ export function useFrame<
           currentFrame.inputText !== undefined ? inputText : undefined,
         state: currentFrame.state,
       });
-      if (transactionData)
-        onTransaction({
+      if (transactionData) {
+        const transactionId = await onTransaction({
           frame: currentFrame,
           frameButton: frameButton,
           transactionData,
         });
+        if (transactionId) {
+          await onPostButton({
+            frameButton: frameButton,
+            target: currentFrame.postUrl, // transaction_ids must be posted to post_url
+            buttonIndex: index + 1,
+            postInputText:
+              currentFrame.inputText !== undefined ? inputText : undefined,
+            state: currentFrame.state,
+            transactionId,
+          });
+        }
+      }
     } else if (
       frameButton.action === "post" ||
       frameButton.action === "post_redirect"
@@ -347,12 +360,14 @@ export function useFrame<
     dangerousSkipSigning,
     target,
     state,
+    transactionId,
   }: {
     frameButton: FrameButton;
     buttonIndex: number;
     postInputText: string | undefined;
     state?: string;
     dangerousSkipSigning?: boolean;
+    transactionId?: `0x${string}`;
 
     target: string;
   }) => {
@@ -375,9 +390,10 @@ export function useFrame<
       },
       url: homeframeUrl,
       target,
-      frameButton: frameButton,
-      buttonIndex: buttonIndex,
+      frameButton,
+      buttonIndex,
       state,
+      transactionId,
     };
     const { searchParams, body } = dangerousSkipSigning
       ? await unsignedFrameAction(frameSignatureContext)

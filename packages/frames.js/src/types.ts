@@ -1,3 +1,5 @@
+import { Abi } from "viem";
+
 export type FrameVersion = "vNext" | `${number}-${number}-${number}`;
 
 export type ImageAspectRatio = "1.91:1" | "1:1";
@@ -139,7 +141,7 @@ export type AddressWithType = {
 
 export type EthSendTransactionParams = {
   /** JSON ABI. This must include the encoded function type and should include any potential error types. */
-  abi: JSON | [];
+  abi: JSON | Abi | [];
   /** transaction to address */
   to: `0x${string}`;
   /** value of ether to send with the transaction in wei */
@@ -229,6 +231,7 @@ export type FrameActionDataParsed = {
   state?: string;
   /** address of the user's connected wallet, only present in transaction data requests */
   connectedAddress?: string;
+  transactionId?: `0x${string}`;
 };
 
 /** Additional context for a frame message which requires communication with a Hub */

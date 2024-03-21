@@ -1,6 +1,10 @@
 import type { Frame, FrameButton, TransactionTargetResponse } from "..";
 import { FarcasterFrameContext } from "./farcaster";
 
+export type OnTransactionFunc = (
+  t: onTransactionArgs
+) => Promise<`0x${string}` | null>;
+
 export type UseFrameReturn<
   T = object,
   B extends FrameActionBodyPayload = FrameActionBodyPayload,
@@ -19,8 +23,8 @@ export type UseFrameReturn<
   frame?: Frame;
   /** a function to handle mint buttons */
   onMint?: (t: onMintArgs) => void;
-  /** a function to handle transaction buttons */
-  onTransaction?: (t: onTransactionArgs) => void;
+  /** a function to handle transaction buttons, returns the transaction hash or null */
+  onTransaction?: OnTransactionFunc;
   /** the context of this frame, used for generating Frame Action payloads */
   frameContext: FrameContext;
   /**
@@ -43,6 +47,7 @@ export interface SignerStateInstance<
     inputText?: string;
     signer: T | null;
     state?: string;
+    transactionId?: `0x${string}`;
     frameContext: FrameContext;
   }) => Promise<{
     body: B;

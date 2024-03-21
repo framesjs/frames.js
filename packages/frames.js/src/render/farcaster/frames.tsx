@@ -30,6 +30,7 @@ export const signFrameAction = async ({
   target,
   inputText,
   state,
+  transactionId,
   url,
 }: {
   target?: string;
@@ -39,6 +40,7 @@ export const signFrameAction = async ({
   signer: FarcasterSignerState["signer"];
   inputText?: string;
   state?: string;
+  transactionId?: `0x${string}`;
   frameContext: FrameContext;
 }): Promise<{
   body: object;
@@ -68,6 +70,8 @@ export const signFrameAction = async ({
         frameContext.connectedAddress !== undefined
           ? hexToBytes(frameContext.connectedAddress)
           : undefined,
+      transactionId:
+        transactionId !== undefined ? hexToBytes(transactionId) : undefined,
     }
   );
 
@@ -76,7 +80,7 @@ export const signFrameAction = async ({
   }
 
   const searchParams = new URLSearchParams({
-    postType: frameButton?.action || "post",
+    postType: transactionId ? "post" : frameButton?.action || "post",
     postUrl: target ?? "",
   });
 
@@ -96,6 +100,7 @@ export const signFrameAction = async ({
         },
         inputText,
         address: frameContext.connectedAddress,
+        transactionId,
       },
       trustedData: {
         messageBytes: trustedBytes,
@@ -114,6 +119,7 @@ export async function createFrameActionMessageWithSignerKey(
     inputText,
     state,
     address,
+    transactionId,
   }: {
     fid: number;
     url: Uint8Array;
@@ -122,6 +128,7 @@ export async function createFrameActionMessageWithSignerKey(
     castId: CastId;
     state: Uint8Array | undefined;
     address: Uint8Array | undefined;
+    transactionId: Uint8Array | undefined;
   }
 ): Promise<
   | {
@@ -148,6 +155,7 @@ export async function createFrameActionMessageWithSignerKey(
       state,
       inputText: inputText !== undefined ? Buffer.from(inputText) : undefined,
       address,
+      transactionId,
     }),
     messageDataOptions,
     signer
