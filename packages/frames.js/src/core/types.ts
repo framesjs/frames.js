@@ -1,4 +1,5 @@
 import { ImageResponse } from "@vercel/og";
+import { ClientProtocolId } from "..";
 import { Button } from "./components";
 
 export type JsonObject = { [Key in string]: JsonValue } & {
@@ -85,6 +86,10 @@ export type FrameDefinition = {
    * Global app state that will be available on next frame
    */
   state?: JsonValue;
+  /**
+   * Open Frames spec: The minimum client protocol version accepted for the given protocol identifier. For example VNext, or 1.5 . At least one $protocol_identifier must be specified.
+   */
+  accepts?: ClientProtocolId[];
 } & ResponseInit;
 
 /**

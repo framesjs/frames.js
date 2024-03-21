@@ -1,37 +1,39 @@
 import { FramesMiddleware, JsonValue } from "../types";
 import { isFrameRedirect, parseButtonInformationFromTargetURL } from "../utils";
 
-type ClickedButtonMiddlewareContext = {
+type FramesjsMiddlewareContext = {
   /**
    * Button that was clicked on previous frame
    */
-  clickedButton?:
+  pressedButton?:
     | {
         action: "post" | "post_redirect";
         index: 1 | 2 | 3 | 4;
         state?: JsonValue;
       }
     | undefined;
+  /** is the initialState for the first frame, and the  */
+  state?: JsonValue | undefined;
 };
 
 /**
- * Creates middleware responsible to detect and parse clicked button, it provides clickedButton to context.
+ * Creates middleware responsible to detect and parse clicked button, it provides pressedButton to context.
  */
-export function clickedButtonParser(): FramesMiddleware<ClickedButtonMiddlewareContext> {
+export function framesjsMiddleware(): FramesMiddleware<FramesjsMiddlewareContext> {
   return async (context, next) => {
     // clicked button always issues a POST request
     if (context.request.method !== "POST") {
-      return next();
+      return next({ state: context.initialState });
     }
 
     // parse clicked buttom from URL
-    const clickedButton = parseButtonInformationFromTargetURL(
+    const pressedButton = parseButtonInformationFromTargetURL(
       context.currentURL
     );
 
-    const result = await next({ clickedButton });
+    const result = await next({ pressedButton, state: pressedButton?.state });
 
-    if (clickedButton?.action === "post_redirect") {
+    if (pressedButton?.action === "post_redirect") {
       // check if the response is redirect, if not, warn
       if (
         (result instanceof Response &&
@@ -42,7 +44,7 @@ export function clickedButtonParser(): FramesMiddleware<ClickedButtonMiddlewareC
           "The clicked button action was post_redirect, but the response was not a redirect"
         );
       }
-    } else if (clickedButton?.action === "post") {
+    } else if (pressedButton?.action === "post") {
       // we support only frame definition as result for post button
       if (result instanceof Response || isFrameRedirect(result)) {
         console.warn(
@@ -51,6 +53,6 @@ export function clickedButtonParser(): FramesMiddleware<ClickedButtonMiddlewareC
       }
     }
 
-    return next({ clickedButton });
+    return result;
   };
 }
