@@ -40,7 +40,7 @@ export async function POST(
   const storageRegistry = getContract({
     address: STORAGE_REGISTRY_ADDRESS,
     abi: storageRegistryABI,
-    publicClient,
+    client: publicClient,
   });
 
   const unitPrice = await storageRegistry.read.price([units]);
