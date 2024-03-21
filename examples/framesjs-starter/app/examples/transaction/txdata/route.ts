@@ -1,14 +1,16 @@
-import { STORAGE_REGISTRY_ADDRESS, storageRegistryABI } from "@farcaster/core";
+import { STORAGE_REGISTRY_ADDRESS } from "@farcaster/core";
 import { TransactionTargetResponse } from "frames.js";
 import { getFrameMessage } from "frames.js/next/server";
 import { NextRequest, NextResponse } from "next/server";
 import {
+  Abi,
   createPublicClient,
   encodeFunctionData,
   getContract,
   http,
 } from "viem";
 import { optimism } from "viem/chains";
+import { storageRegistryABI } from "./contracts/storage-registry";
 
 export async function POST(
   req: NextRequest
@@ -47,7 +49,7 @@ export async function POST(
     chainId: "eip155:10", // OP Mainnet 10
     method: "eth_sendTransaction",
     params: {
-      abi: storageRegistryABI as any,
+      abi: storageRegistryABI as Abi,
       to: STORAGE_REGISTRY_ADDRESS,
       data: calldata,
       value: unitPrice.toString(),
