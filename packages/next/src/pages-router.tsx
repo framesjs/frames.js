@@ -69,7 +69,7 @@ export function metadataToMetaTags(metadata: NonNullable<Metadata["other"]>) {
 function createRequest(req: NextApiRequest, res: NextApiResponse): Request {
   // req.hostname doesn't include port information so grab that from
   // `X-Forwarded-Host` or `Host`
-  const xForwardedHost = req.headers["X-Forwarded-Host"];
+  const xForwardedHost = req.headers["x-forwarded-host"];
   const normalizedXForwardedHost = Array.isArray(xForwardedHost)
     ? xForwardedHost[0]
     : xForwardedHost;
@@ -82,8 +82,6 @@ function createRequest(req: NextApiRequest, res: NextApiResponse): Request {
   let url = new URL(
     `${"encrypted" in req.socket && req.socket.encrypted ? "https" : "http"}://${resolvedHost}${req.url}`
   );
-
-  console.log(req.socket);
 
   // Abort action/loaders once we can no longer write a response
   let controller = new AbortController();
