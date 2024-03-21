@@ -3,7 +3,7 @@ import { Button } from "@frames.js/next";
 import { createFrames } from "@frames.js/next";
 
 const frames = createFrames({
-  basePath: "/examples/new-api/frames",
+  basePath: "/examples/new-api-transaction",
 });
 
 const handleRequest = frames(async ({ message }) => {
@@ -38,7 +38,7 @@ const handleRequest = frames(async ({ message }) => {
       aspectRatio: "1:1",
     },
     buttons: [
-      <Button action="tx" target="/examples/new-api-transaction/txdata">
+      <Button action="tx" target="/txdata">
         Buy a unit
       </Button>,
     ],
