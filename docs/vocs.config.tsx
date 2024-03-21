@@ -21,8 +21,29 @@ const sidebar = [
     collapsed: false,
     items: [
       {
-        text: "frames.js",
+        text: "@frames.js/express",
+        link: "/reference/express",
+      },
+      {
+        text: "@frames.js/hono",
+        link: "/reference/hono",
+      },
+      {
+        text: "@frames.js/next",
+        link: "/reference/next",
+      },
+      {
+        text: "@frames.js/remix",
+        link: "/reference/remix",
+      },
+      {
+        text: "frames.js/core",
         collapsed: false,
+        items: [],
+      },
+      {
+        text: "frames.js",
+        collapsed: true,
         items: [
           {
             text: "types",
@@ -78,7 +99,7 @@ const sidebar = [
       },
       {
         text: "frames.js/next/server",
-        collapsed: false,
+        collapsed: true,
         items: [
           {
             text: "getPreviousFrame",
@@ -92,7 +113,7 @@ const sidebar = [
       },
       {
         text: "frames.js/next/server - [react]",
-        collapsed: false,
+        collapsed: true,
         items: [
           {
             text: "types",
@@ -134,7 +155,7 @@ const sidebar = [
       },
       {
         text: "frames.js/render",
-        collapsed: false,
+        collapsed: true,
         items: [
           {
             text: "useFrame",
@@ -152,7 +173,7 @@ const sidebar = [
       },
       {
         text: "frames.js/render/next",
-        collapsed: false,
+        collapsed: true,
         items: [
           {
             text: "FrameImage",

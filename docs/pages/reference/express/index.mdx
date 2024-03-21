@@ -1,0 +1,28 @@
+# Express.js integration
+
+Frames.js can be easily integrated to [Express.js](https://expressjs.com) server.
+
+## Installation
+
+```bash
+yarn add express @frames/express
+```
+
+## Usage
+
+```tsx
+import express from "express";
+import { createFrames, Button } from "@frames/express";
+
+const app = express();
+const frames = createFrames();
+const handleRequest = frames(async (ctx) => {
+  return {
+    image: <span>My image</span>,
+    buttons: [<Button action="post">Click me</Button>],
+  };
+});
+
+app.get("/", handleRequest);
+app.post("/", handleRequest);
+```

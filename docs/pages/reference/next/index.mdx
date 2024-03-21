@@ -1,0 +1,54 @@
+# Next.js integration
+
+Frames.js can be easily integrated with [Next.js](https://nextjs.org) application.
+
+## Installation
+
+```bash
+yarn add @frames.js/next
+```
+
+## Usage with App Router
+
+### Create Frames handler
+
+Frames handler is responsible for rendering your Frames and also reacts to user interactions with buttons.
+
+```tsx
+// app/frames/routes.tsx
+import { createFrames, Button } from "@frames.js/next";
+
+const frames = createFrames();
+const handleRequest = frames(async () => {
+  return {
+    image: <span>Test</span>,
+    buttons: [<Button action="post">Click me</Button>],
+  };
+});
+
+export const GET = handleRequest;
+export const POST = handleRequest;
+```
+
+### Render initial frame on your existing page
+
+In order to render the initial frame of your Frames app on some of your pages, you need to render frame metadata. That can be achieved using [`generateMetadata() API`](https://nextjs.org/docs/app/api-reference/functions/generate-metadata).
+
+```tsx
+// app/page.tsx
+import { fetchMetadata } from "@frames.js/next";
+
+export async function generateMetadata() {
+  return {
+    title: "My page",
+    // provide full URL to your /frames endpoint
+    ...(await fetchMetadata(
+      new URL("/frames", process.env.VERCEL_URL || "http://localhost:3000")
+    )),
+  };
+}
+
+export default function Page() {
+  return <span>My existing page</span>;
+}
+```
