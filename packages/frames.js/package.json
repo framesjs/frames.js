@@ -188,13 +188,16 @@
     "src"
   ],
   "devDependencies": {
-    "@xmtp/frames-validator": "^0.5.1",
+    "@open-frames/types": "^0.0.6",
+    "@xmtp/frames-client": "^0.4.3",
+    "@xmtp/frames-validator": "^0.5.2",
+    "@xmtp/xmtp-js": "^11.5.0",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3"
   },
   "license": "MIT",
   "peerDependencies": {
-    "@xmtp/frames-validator": "^0.5.1",
+    "@xmtp/frames-validator": "^0.5.2",
     "next": "14.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
@@ -204,6 +207,6 @@
     "@vercel/og": "^0.6.2",
     "cheerio": "^1.0.0-rc.12",
     "protobufjs": "^7.2.6",
-    "viem": "^2.7.1"
+    "viem": "^2.7.8"
   }
 }
