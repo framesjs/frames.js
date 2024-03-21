@@ -5,7 +5,7 @@ In order to render buttons you should use our `<Button>` component. Frames.js su
 ## Post Button
 
 ```tsx
-import { Button } from "@frames.js/core";
+import { Button } from "frames.js/core";
 
 <Button action="post">Click me</Button>;
 ```
@@ -39,7 +39,7 @@ Post redirect button is a special kind of `post` button that when users clicks t
 It accepts same props as `post` button.
 
 ```tsx
-import { Button } from "@frames.js/core";
+import { Button } from "frames.js/core";
 
 <Button action="post_redirect" target="/next-route" state="optional-state">
   Click me
@@ -51,7 +51,7 @@ import { Button } from "@frames.js/core";
 Link button navigates to external URL when clicked.
 
 ```tsx
-import { Button } from "@frames.js/core";
+import { Button } from "frames.js/core";
 
 <Button action="link" target="https://google.com">
   Click me
@@ -63,7 +63,7 @@ import { Button } from "@frames.js/core";
 Mint button creates a new token when clicked.
 
 ```tsx
-import { Button } from "@frames.js/core";
+import { Button } from "frames.js/core";
 import { getTokenUrl } from "frames.js";
 
 <Button
@@ -83,7 +83,7 @@ import { getTokenUrl } from "frames.js";
 Tx button requests transaction data from `target` when clicked, and send the transaction ID to the frame's `post_url` or the button's `post_url` if it is set.
 
 ```tsx
-import { Button } from "@frames.js/core";
+import { Button } from "frames.js/core";
 
 <Button action="tx" target="/txdata" post_url="/tx-success">
   Buy storage
@@ -118,8 +118,8 @@ If the transaction is successful, the frame will send a POST request to the URL 
 
 ```tsx
 // /route.tsx
-import { Button } from "@frames.js/next";
-import { createFrames } from "@frames.js/next";
+import { Button } from "frames.js/next";
+import { createFrames } from "frames.js/next";
 
 const export frames = createFrames()
 

@@ -46,13 +46,13 @@ or [clone from github](https://github.com/framesjs/frames.js/tree/main/examples/
 ### Start with frames.js in Next.js in three steps
 
 ```bash
-yarn add @frames.js/next
+yarn add frames.js
 ```
 
 ```tsx filename="// ./app/page.tsx"
 // ./app/page.tsx
 
-import { fetchMetadata } from "@frames.js/next";
+import { fetchMetadata } from "frames.js/next";
 
 export async function generateMetadata() {
   return {
@@ -70,7 +70,7 @@ export default function Home(props) {
 
 ```ts filename="./app/frames/route.tsx"
 // ./app/frames/route.tsx
-import { createFrames, Button } from '@frames.js/next';
+import { createFrames, Button } from 'frames.js/next';
 
 const frames = createFrames();
 const handleRequest = frames(async ({ message }) => {

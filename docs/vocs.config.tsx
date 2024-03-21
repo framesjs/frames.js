@@ -21,23 +21,7 @@ const sidebar = [
     collapsed: false,
     items: [
       {
-        text: "@frames.js/express",
-        link: "/reference/express",
-      },
-      {
-        text: "@frames.js/hono",
-        link: "/reference/hono",
-      },
-      {
-        text: "@frames.js/next",
-        link: "/reference/next",
-      },
-      {
-        text: "@frames.js/remix",
-        link: "/reference/remix",
-      },
-      {
-        text: "@frames.js/core",
+        text: "frames.js/core",
         collapsed: false,
         items: [
           {
@@ -51,6 +35,22 @@ const sidebar = [
           {
             text: "redirect",
             link: "/reference/core/redirect",
+          },
+          {
+            text: "frames.js/express",
+            link: "/reference/core/express",
+          },
+          {
+            text: "frames.js/hono",
+            link: "/reference/core/hono",
+          },
+          {
+            text: "frames.js/next",
+            link: "/reference/core/next",
+          },
+          {
+            text: "frames.js/remix",
+            link: "/reference/core/remix",
           },
         ],
       },

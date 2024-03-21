@@ -2,12 +2,6 @@
 
 Frames.js can be easily integrated with [Remix](https://remix.run) applications.
 
-## Installation
-
-```bash
-yarn add @frames.js/remix
-```
-
 ## Usage
 
 ### Create Frames handler
@@ -16,7 +10,7 @@ Frames handler is responsible for rendering your Frames and also reacts to user 
 
 ```tsx
 // app/routes/frames.tsx
-import { createFrames, Button } from "@frames.js/remix";
+import { createFrames, Button } from "frames.js/remix";
 
 const frames = createFrames();
 const handleRequest = frames(async (ctx) => {
@@ -34,7 +28,7 @@ export const loader = handleRequest;
 
 ```tsx
 // app/routes/_index.tsx
-import { fetchMetadata } from "@frames.js/remix";
+import { fetchMetadata } from "frames.js/remix";
 
 export async function loader({ request }) {
   return {

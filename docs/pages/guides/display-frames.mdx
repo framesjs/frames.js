@@ -15,7 +15,7 @@ This guide shows you how to add frames rendering to your next.js + tailwind app 
 
 `cd my-project`
 
-`yarn add @farcaster/core frames.js @frames.js/next`
+`yarn add @farcaster/core frames.js`
 
 `yarn install`
 
@@ -23,7 +23,7 @@ This guide shows you how to add frames rendering to your next.js + tailwind app 
 
 ```tsx filename="// ./app/frames/route.tsx"
 // ./app/frames/route.tsx
-import { createFrames, Button } from "@frames.js/next";
+import { createFrames, Button } from "frames.js/next";
 
 const frames = createFrames();
 const handleRequest = frames(async ({ clickedButton }) => {
@@ -54,7 +54,7 @@ export const POST = handleRequest;
 
 ```tsx filename="// ./app/page.tsx"
 // ./app/page.tsx
-import { fetchMetadata } from "@frames.js/next";
+import { fetchMetadata } from "frames.js/next";
 
 export async function generateMetadata() {
   return {
