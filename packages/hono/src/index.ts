@@ -11,8 +11,31 @@ type CreateFramesForHono = types.CreateFramesFunctionDefinition<
   Handler
 >;
 
+/**
+ * Creates Frames instance to use with you Hono server
+ *
+ * @example
+ * import { createFrames, Button } from '@frames.js/hono';
+ * import { Honoe } from 'hono';
+ *
+ * const frames = createFrames();
+ * const honoHandler = frames(async ({ request }) => {
+ *  return {
+ *   image: <span>Test</span>,
+ *    buttons: [
+ *    <Button action="post">
+ *      Click me
+ *    </Button>,
+ *    ],
+ *  };
+ * });
+ *
+ * const app = new Hono();
+ *
+ * app.on(['GET', 'POST'], '/', honoHandler);
+ */
 export const createFrames: CreateFramesForHono = function createFramesForHono(
-  options: types.FramesOptions<any>
+  options?: types.FramesOptions<any>
 ) {
   const frames = coreCreateFrames(options);
 

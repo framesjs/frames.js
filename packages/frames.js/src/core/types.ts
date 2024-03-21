@@ -183,7 +183,7 @@ export type CreateFramesFunctionDefinition<
     | undefined,
   TRequestHandlerFunction extends Function,
 > = <TFrameMiddleware extends FramesMiddleware<any>[] | undefined = undefined>(
-  options: FramesOptions<TFrameMiddleware>
+  options?: FramesOptions<TFrameMiddleware>
 ) => FramesRequestHandlerFunction<
   TDefaultMiddleware,
   TFrameMiddleware,

@@ -1,12 +1,22 @@
-import { createFrames as coreCreateFrames } from "frames.js/core";
+import {
+  DefaultMiddleware,
+  createFrames as coreCreateFrames,
+  types,
+} from "frames.js/core";
 export { Button, type types } from "frames.js/core";
 import type {
   Request as ExpressRequest,
   Response as ExpressResponse,
+  Handler as ExpressHandler,
 } from "express";
 import type { IncomingHttpHeaders } from "node:http";
 import type { Writable, Readable } from "node:stream";
 import { Stream } from "node:stream";
+
+type CreateFramesForExpress = types.CreateFramesFunctionDefinition<
+  DefaultMiddleware,
+  ExpressHandler
+>;
 
 /**
  * Creates Frames instance to use with you Express.js server
@@ -19,7 +29,7 @@ import { Stream } from "node:stream";
  * const frames = createFrames();
  * const expressHandler = frames(async ({ request }) => {
  *  return {
- *   image: <span>Nehehe</span>,
+ *   image: <span>Test</span>,
  *    buttons: [
  *    <Button action="post">
  *      Click me
@@ -29,12 +39,16 @@ import { Stream } from "node:stream";
  *
  * app.use("/", expressHandler);
  */
-export const createFrames: typeof coreCreateFrames =
-  function createFramesForExpress(options: any) {
+export const createFrames: CreateFramesForExpress =
+  function createFramesForExpress(options?: types.FramesOptions<any>) {
     const frames = coreCreateFrames(options);
 
-    // @ts-expect-error
-    return function expressFramesHandler(handler, handlerOptions) {
+    return function expressFramesHandler<
+      TPerRouteMiddleware extends types.FramesMiddleware<any>[],
+    >(
+      handler: types.FrameHandlerFunction<any>,
+      handlerOptions?: types.FramesRequestHandlerFunctionOptions<TPerRouteMiddleware>
+    ) {
       const framesHandler = frames(handler, handlerOptions);
 
       return async function handleExpressRequest(
@@ -48,7 +62,7 @@ export const createFrames: typeof coreCreateFrames =
         sendResponse(res, response);
       };
     };
-  } as unknown as typeof coreCreateFrames;
+  };
 
 function createRequest(req: ExpressRequest, res: ExpressResponse): Request {
   // req.hostname doesn't include port information so grab that from
