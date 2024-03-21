@@ -319,4 +319,52 @@ describe("renderResponse middleware", () => {
       "https://example.com/txid?__bi=1%3Ap"
     );
   });
+
+  it("does not return a state on initial request (method GET)", async () => {
+    console.warn = jest.fn();
+    context.request = new Request("https://example.com", {
+      method: "GET",
+      headers: {
+        Accept: FRAMES_META_TAGS_HEADER,
+      },
+    });
+
+    expect(console.warn).not.toHaveBeenCalled();
+
+    const result = await render(context, async () => {
+      return {
+        image: <div>My image</div>,
+        state: { test: true },
+      };
+    });
+
+    expect(console.warn).toHaveBeenCalledTimes(1);
+
+    const json = await (result as Response).json();
+
+    expect(json["state"]).toBeUndefined();
+  });
+
+  it("returns a state on POST requests (these are not initial since those are always reactions to clicks)", async () => {
+    console.warn = jest.fn();
+    context.request = new Request("https://example.com", {
+      method: "POST",
+      headers: {
+        Accept: FRAMES_META_TAGS_HEADER,
+      },
+    });
+    const result = await render(context, async () => {
+      return {
+        image: <div>My image</div>,
+        state: { test: true },
+      };
+    });
+
+    expect(console.warn).not.toHaveBeenCalled();
+
+    const json = await (result as Response).json();
+
+    expect(console.warn).not.toHaveBeenCalled();
+    expect(json["fc:frame:state"]).toEqual(JSON.stringify({ test: true }));
+  });
 });

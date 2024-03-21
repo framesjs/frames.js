@@ -41,13 +41,26 @@ export function renderResponse(): FramesMiddleware<{}> {
       });
     }
 
+    let state: string | undefined;
+
+    // state is supported only in reactions to button clicks (POST requests)
+    if (result.state) {
+      if (context.request.method === "POST") {
+        state = JSON.stringify(result.state);
+      } else {
+        console.warn(
+          "State is not supported on initial request (the one initialized when Frames are rendered for first time, that uses GET request) and will be ignored"
+        );
+      }
+    }
+
     try {
       // @todo validate frame so it is according to spec and throw a ValidationError in case it isn't
       // and handle that error in catch block
       const frame: Frame = {
         version: "vNext",
         postUrl: "",
-        state: result.state ? JSON.stringify(result.state) : undefined,
+        state,
         // @todo rendering image could be moved to its own middleware instead so users can use something different if they want to?
         // but that would mean that we need to specify middleware manually in any app since importing it here in default middleware
         // and disabling it, has no effect on final bundle size of app
