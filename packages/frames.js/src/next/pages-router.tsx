@@ -1,13 +1,11 @@
-import { createFrames as coreCreateFrames } from "../core";
 import { Metadata, NextApiRequest, NextApiResponse } from "next";
-export { Button, type types } from "../core";
-import type { Writable, Readable } from "node:stream";
-import { Stream } from "node:stream";
+import { createFrames as coreCreateFrames } from "../core";
 import {
-  StreamPump,
   createReadableStreamFromReadable,
   writeReadableStreamToWritable,
 } from "../lib/stream-pump";
+export { Button, type types } from "../core";
+import React from "react";
 
 export { fetchMetadata } from "./fetchMetadata";
 
@@ -82,7 +80,7 @@ function createRequest(req: NextApiRequest, res: NextApiResponse): Request {
   let [, hostPort] = req.headers["host"]?.split(":") ?? [];
   let port = hostnamePort || hostPort;
   // Use req.hostname here as it respects the "trust proxy" setting
-  let resolvedHost = `${req.headers["host"]}${port ? `:${port}` : ""}`;
+  let resolvedHost = `${req.headers["host"]}${!hostPort ? `:${port}` : ""}`;
   // Use `req.url` so NextJS is aware of the full path
   let url = new URL(
     `${"encrypted" in req.socket && req.socket.encrypted ? "https" : "http"}://${resolvedHost}${req.url}`

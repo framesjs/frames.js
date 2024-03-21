@@ -12,7 +12,11 @@ const handleRequest = frames(async ({ pressedButton, message }) => {
         {message?.inputText ? `, Typed: ${message?.inputText}` : ""}
       </span>
     ),
-    buttons: [<Button action="post">Click me</Button>],
+    buttons: [
+      <Button action="post" target="/">
+        Click me
+      </Button>,
+    ],
     textInput: "Type something!",
   };
 });
