@@ -46,11 +46,11 @@ If you use Next.js App Router and [metadata](https://nextjs.org/docs/app/buildin
 
 ```jsx
 // app/page.jsx
-import { fetchMetaData } from "@frames.js/next";
+import { fetchMetadata } from "@frames.js/next";
 
 export async function generateMetadata() {
   // you must provide full URL to your Frames app so we can fetch meta tags
-  const framesMetaTags = await fetchMetaData(
+  const framesMetaTags = await fetchMetadata(
     new URL("/api", process.env.VERCEL_URL || "http://localhost:3000")
   );
 
@@ -92,19 +92,19 @@ export default framesRouteHandler;
 
 #### Rendering Frames meta tags on existing Next.js page using Pages Router
 
-If you use Next.js Pages Router you can include your Frames meta tags using `fetchMetaData()` and `metaDataToMetaTags()` functions.
+If you use Next.js Pages Router you can include your Frames meta tags using `fetchMetadata()` and `metadataToMetaTags()` functions.
 
 ```jsx
 // pages/index.jsx
 import {
-  fetchmMetaData,
-  metaDataToMetaTags,
+  fetchmMetadata,
+  metadataToMetaTags,
 } from "@frames.js/next/pages-router";
 import Head from "next/head";
 
 export async function getServerSideProps() {
   // you must provide full URL to your Frames app so we can fetch meta tags
-  const framesMetaTags = await fetchMetaData(
+  const framesMetaTags = await fetchMetadata(
     new URL("/api", process.env.VERCEL_URL || "http://localhost:3000")
   );
 
@@ -120,7 +120,7 @@ export default function Home({ framesMetaTags }) {
     <div>
       <Head>
         <title>My Frames</title>
-        {metaDataToMetaTags(framesMetaTags)}
+        {metadataToMetaTags(framesMetaTags)}
       </Head>
       <h1>My page</h1>
     </div>

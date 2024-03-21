@@ -1,8 +1,8 @@
 import nock from "nock";
-import { fetchMetaData } from "./fetchMetaData";
+import { fetchMetadata } from "./fetchMetadata";
 import type { FrameFlattened } from "frames.js";
 
-describe("fetchMetaData", () => {
+describe("fetchMetadata", () => {
   beforeAll(() => {
     nock.disableNetConnect();
   });
@@ -21,7 +21,7 @@ describe("fetchMetaData", () => {
       } satisfies FrameFlattened);
 
     await expect(
-      fetchMetaData(new URL("/frames", "http://localhost:3000"))
+      fetchMetadata(new URL("/frames", "http://localhost:3000"))
     ).resolves.toEqual({
       "fc:frame": "vNext",
       "fc:frame:image": "imageUrl",
@@ -33,7 +33,7 @@ describe("fetchMetaData", () => {
     nock("http://localhost:3000").get("/frames").reply(404);
 
     await expect(
-      fetchMetaData(new URL("/frames", "http://localhost:3000"))
+      fetchMetadata(new URL("/frames", "http://localhost:3000"))
     ).rejects.toThrow(
       "Failed to fetch frames metadata from http://localhost:3000/frames. The server returned 404 Not Found response."
     );

@@ -1,7 +1,7 @@
 import { createFrames as coreCreateFrames } from "frames.js/core";
 export { Button, type types } from "frames.js/core";
 
-export { fetchMetaData } from "./fetchMetaData";
+export { fetchMetadata } from "./fetchMetadata";
 
 export const createFrames: typeof coreCreateFrames =
   function createFramesForNextJS(options: any) {

@@ -1,8 +1,8 @@
 import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
 import Head from "next/head";
 import {
-  fetchMetaData,
-  metaDataToMetaTags,
+  fetchMetadata,
+  metadataToMetaTags,
 } from "@frames.js/next/pages-router";
 import Link from "next/link";
 import { createDebugUrl } from "../../app/debug";
@@ -10,7 +10,7 @@ import { createDebugUrl } from "../../app/debug";
 export const getServerSideProps = async function getServerSideProps() {
   return {
     props: {
-      metadata: await fetchMetaData(
+      metadata: await fetchMetadata(
         new URL(
           "/api/frames",
           process.env.VERCEL_URL || "http://localhost:3000"
@@ -19,7 +19,7 @@ export const getServerSideProps = async function getServerSideProps() {
     },
   };
 } satisfies GetServerSideProps<{
-  metadata: Awaited<ReturnType<typeof fetchMetaData>>;
+  metadata: Awaited<ReturnType<typeof fetchMetadata>>;
 }>;
 
 export default function Page({
@@ -29,7 +29,7 @@ export default function Page({
     <>
       <Head>
         <title>Frames.js app</title>
-        {metaDataToMetaTags(metadata)}
+        {metadataToMetaTags(metadata)}
       </Head>
 
       <div>
