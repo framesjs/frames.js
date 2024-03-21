@@ -198,6 +198,7 @@ describe("renderResponse middleware", () => {
 
     expect(result).toBeInstanceOf(Response);
     expect((result as Response).status).toBe(500);
+    expect((result as Response).headers.get("Content-Type")).toBe("text/plain");
     await expect((result as Response).text()).resolves.toBe(
       "Only 4 buttons are allowed"
     );
@@ -366,5 +367,39 @@ describe("renderResponse middleware", () => {
 
     expect(console.warn).not.toHaveBeenCalled();
     expect(json["fc:frame:state"]).toEqual(JSON.stringify({ test: true }));
+  });
+
+  it("properly handles error from next middleware and returns response 500", async () => {
+    const result = await render(context, async () => {
+      throw new Error("Something went wrong");
+    });
+
+    expect(result).toBeInstanceOf(Response);
+    expect((result as Response).headers.get("Content-Type")).toBe("text/plain");
+    expect((result as Response).status).toBe(500);
+    await expect((result as Response).text()).resolves.toBe(
+      "Internal Server Error"
+    );
+  });
+
+  it("properly handles error from next middleware and returns response 500 and JSON", async () => {
+    context.request = new Request("https://example.com", {
+      method: "POST",
+      headers: {
+        Accept: FRAMES_META_TAGS_HEADER,
+      },
+    });
+    const result = await render(context, async () => {
+      throw new Error("Something went wrong");
+    });
+
+    expect(result).toBeInstanceOf(Response);
+    expect((result as Response).headers.get("Content-Type")).toBe(
+      "application/json"
+    );
+    expect((result as Response).status).toBe(500);
+    await expect((result as Response).text()).resolves.toBe(
+      JSON.stringify({ error: "Internal Server Error" })
+    );
   });
 });

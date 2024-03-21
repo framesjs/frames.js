@@ -2,7 +2,11 @@ import React from "react";
 import { ImageResponse } from "@vercel/og";
 import { type Frame, getFrameFlattened, getFrameHtmlHead } from "../..";
 import type { ButtonProps } from "../components";
-import type { FrameDefinition, FramesMiddleware } from "../types";
+import type {
+  FrameDefinition,
+  FramesHandlerFunctionReturnType,
+  FramesMiddleware,
+} from "../types";
 import { generatePostButtonTargetURL, isFrameRedirect } from "../utils";
 import { FRAMES_META_TAGS_HEADER } from "..";
 
@@ -24,8 +28,41 @@ export function renderResponse(): FramesMiddleware<{}> {
   return async (context, next) => {
     const wantsJSON =
       context.request.headers.get("accept") === FRAMES_META_TAGS_HEADER;
+    let result: FramesHandlerFunctionReturnType | Response;
 
-    const result = await next(context);
+    try {
+      result = await next(context);
+    } catch (e) {
+      console.error(e);
+
+      return new Response(
+        wantsJSON
+          ? JSON.stringify({ error: "Internal Server Error" })
+          : "Internal Server Error",
+        {
+          status: 500,
+          headers: {
+            "Cache-Control": "no-store",
+            "Content-Type": wantsJSON ? "application/json" : "text/plain",
+          },
+        }
+      );
+    }
+
+    if (!result) {
+      return new Response(
+        wantsJSON
+          ? JSON.stringify({ error: "Handler did not return a response" })
+          : "Handler did not return a response",
+        {
+          status: 500,
+          headers: {
+            "Cache-Control": "no-store",
+            "Content-Type": wantsJSON ? "application/json" : "text/plain",
+          },
+        }
+      );
+    }
 
     if (result instanceof Response) {
       return result;
@@ -178,10 +215,16 @@ export function renderResponse(): FramesMiddleware<{}> {
         console.error(e);
       }
 
-      return new Response(message, {
-        status: 500,
-        headers: { "Cache-Control": "no-store" },
-      });
+      return new Response(
+        wantsJSON ? JSON.stringify({ error: message }) : message,
+        {
+          status: 500,
+          headers: {
+            "Cache-Control": "no-store",
+            "Content-Type": wantsJSON ? "application/json" : "text/plain",
+          },
+        }
+      );
     }
   };
 }
