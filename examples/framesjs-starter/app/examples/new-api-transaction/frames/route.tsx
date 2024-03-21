@@ -38,7 +38,7 @@ const handleRequest = frames(async ({ message }) => {
       aspectRatio: "1:1",
     },
     buttons: [
-      <Button action="tx" target="/txdata">
+      <Button action="tx" target="/txdata" post_url="/frames">
         Buy a unit
       </Button>,
     ],
