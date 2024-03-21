@@ -90,7 +90,7 @@ export default function App({
         return null;
       }
     },
-    []
+    [account.address, currentChainId, config, openConnectModal]
   );
 
   const frameState = useFrame({
