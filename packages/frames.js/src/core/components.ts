@@ -10,7 +10,7 @@ type PostButtonProps = {
    */
   target?: string;
   /**
-   * State passed to the next frame, will be available on the context as clickedButton.state
+   * State passed to the next frame, will be available on the context as state
    */
   state?: JsonValue;
 };
@@ -27,7 +27,7 @@ type PostRedirectButton = {
   /**
    * State passed to the next frame
    *
-   * State passed to the next frame, will be available on the context as clickedButton.state
+   * State passed to the next frame, will be available on the context as state
    */
   state?: JsonValue;
 };
