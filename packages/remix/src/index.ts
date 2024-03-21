@@ -1,22 +1,57 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { createFrames as coreCreateFrames } from "frames.js/core";
+import {
+  DefaultMiddleware,
+  createFrames as coreCreateFrames,
+  types,
+} from "frames.js/core";
 export { Button, type types } from "frames.js/core";
 
 export { fetchMetadata } from "./fetchMetadata";
 
-// @todo provide better type that can change returned handler type
-export const createFrames: typeof coreCreateFrames =
-  function createFramesForRemix(options: any) {
-    const frames = coreCreateFrames(options);
+type CreateFramesForRemix = types.CreateFramesFunctionDefinition<
+  DefaultMiddleware,
+  (args: LoaderFunctionArgs | ActionFunctionArgs) => Promise<Response>
+>;
 
-    // @ts-expect-error
-    return function createHandler(handler, handlerOptions) {
-      const requestHandler = frames(handler, handlerOptions);
+/**
+ * Creates Frames instance to use with you Remix server
+ *
+ * @example
+ * import { createFrames, Button } from '@frames.js/remix';
+ * import type { LoaderFunction, ActionFunction } from '@remix-run/node';
+ *
+ * const frames = createFrames();
+ * const remixHandler = frames(async ({ request }) => {
+ *  return {
+ *    image: <span>Test</span>,
+ *    buttons: [
+ *      <Button action="post">
+ *        Click me
+ *      </Button>,
+ *    ],
+ *  };
+ * });
+ *
+ * export const loader: LoaderFunction = remixHandler;
+ * export const action: ActionFunction = remixHandler;
+ */
+export const createFrames: CreateFramesForRemix = function createFramesForRemix(
+  options?: types.FramesOptions<any>
+) {
+  const frames = coreCreateFrames(options);
 
-      return function handleRemixAPIRequest({
-        request,
-      }: LoaderFunctionArgs | ActionFunctionArgs) {
-        return requestHandler(request);
-      };
+  return function createHandler<
+    TPerRouteMiddleware extends types.FramesMiddleware<any>[],
+  >(
+    handler: types.FrameHandlerFunction<any>,
+    handlerOptions?: types.FramesRequestHandlerFunctionOptions<TPerRouteMiddleware>
+  ) {
+    const requestHandler = frames(handler, handlerOptions);
+
+    return function handleRemixAPIRequest({
+      request,
+    }: LoaderFunctionArgs | ActionFunctionArgs) {
+      return requestHandler(request);
     };
-  } as unknown as typeof coreCreateFrames;
+  };
+};

@@ -1,19 +1,52 @@
-import { createFrames as coreCreateFrames } from "frames.js/core";
+import {
+  DefaultMiddleware,
+  createFrames as coreCreateFrames,
+  types,
+} from "frames.js/core";
+import type { NextRequest, NextResponse } from "next/server";
 export { Button, type types } from "frames.js/core";
 
 export { fetchMetadata } from "./fetchMetadata";
 
-export const createFrames: typeof coreCreateFrames =
-  function createFramesForNextJS(options: any) {
+type CreateFramesForNextJS = types.CreateFramesFunctionDefinition<
+  DefaultMiddleware,
+  (req: NextRequest) => Promise<NextResponse>
+>;
+
+/**
+ * Creates Frames instance to use with you Next.js server
+ *
+ * @example
+ * import { createFrames, Button } from '@frames.js/next';
+ * import { NextApiRequest, NextApiResponse } from 'next';
+ *
+ * const frames = createFrames();
+ * const nextHandler = frames(async ({ request }) => {
+ *  return {
+ *    image: <span>Test</span>,
+ *    buttons: [
+ *     <Button action="post">
+ *        Click me
+ *      </Button>,
+ *    ],
+ *  };
+ * });
+ *
+ * export const GET = nextHandler;
+ * export const POST = nextHandler;
+ */
+export const createFrames: CreateFramesForNextJS =
+  function createFramesForNextJS(options?: types.FramesOptions<any>) {
     const frames = coreCreateFrames(options);
 
-    // @ts-expect-error
-    return function createHandler(handler, handlerOptions) {
-      const requestHandler = frames(handler, handlerOptions);
-
-      return function handleNextJSApiRequest(req: Request) {
-        // properly set the url on the request so it is available in context.currentURL
-        return requestHandler(req);
-      };
+    return function createHandler<
+      TPerRouteMiddleware extends types.FramesMiddleware<any>[],
+    >(
+      handler: types.FrameHandlerFunction<any>,
+      handlerOptions?: types.FramesRequestHandlerFunctionOptions<TPerRouteMiddleware>
+    ) {
+      return frames(handler, handlerOptions) as unknown as (
+        req: NextRequest
+      ) => Promise<NextResponse>;
     };
-  } as unknown as typeof coreCreateFrames;
+  };

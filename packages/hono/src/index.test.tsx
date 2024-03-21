@@ -7,7 +7,7 @@ describe("hono adapter", () => {
   });
 
   it("correctly integrates with Hono", async () => {
-    const frames = lib.createFrames({});
+    const frames = lib.createFrames();
     const handler = frames(async (ctx) => {
       expect(ctx.request.url).toBe("http://localhost:3000/");
 
