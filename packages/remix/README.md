@@ -14,10 +14,6 @@ $ pnpm add @frames.js/remix
 
 ### Build your first Frames
 
-### App Router
-
-If you use Appp router you need to define a [route handler](https://nextjs.org/docs/app/building-your-application/routing/route-handlers) which renders your Frames.
-
 ```tsx
 // app/routes/frames.tsx
 import { createFrames, Button } from "@frames.js/remix";
@@ -42,22 +38,22 @@ export const loader = framesRouteHandler;
 
 #### Rendering Frames meta tags on existing Remix page
 
-In order to render metadata on your existing Remix page you can use `fetchMetaData()` function and return these from [meta function](https://remix.run/docs/en/main/route/meta#data).
+In order to render metadata on your existing Remix page you can use `fetchMetadata()` function and return these from [meta function](https://remix.run/docs/en/main/route/meta#data).
 
 ```tsx
 // app/routes/_index.tsx
-import { fetchMetaData } from "@frames.js/next";
+import { fetchMetadata } from "@frames.js/next";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const framesMetaData = await fetchMetaData(new URL("/frames", request.url));
+  const framesMetadata = await fetchMetadata(new URL("/frames", request.url));
 
   return json({
-    metaData: framesMetaData,
+    metadata: framesMetadata,
   });
 }
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return [{ title: "My Page Title" }, ...data.metaData];
+  return [{ title: "My Page Title" }, ...data.metadata];
 };
 
 export default function Page() {

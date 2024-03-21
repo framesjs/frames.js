@@ -1,5 +1,5 @@
 import nock from "nock";
-import { fetchMetaData } from "./fetchMetaData";
+import { fetchMetadata } from "./fetchMetadata";
 import type { FrameFlattened } from "frames.js";
 
 describe("fetchMetaData", () => {
@@ -20,7 +20,7 @@ describe("fetchMetaData", () => {
         "fc:frame:post_url": "",
       } satisfies FrameFlattened);
 
-    const metadata = await fetchMetaData(
+    const metadata = await fetchMetadata(
       new URL("/frames", "http://localhost:3000")
     );
 
@@ -35,7 +35,7 @@ describe("fetchMetaData", () => {
     nock("http://localhost:3000").get("/frames").reply(404);
 
     await expect(
-      fetchMetaData(new URL("/frames", "http://localhost:3000"))
+      fetchMetadata(new URL("/frames", "http://localhost:3000"))
     ).rejects.toThrow(
       "Failed to fetch frames metadata from http://localhost:3000/frames. The server returned 404 Not Found response."
     );

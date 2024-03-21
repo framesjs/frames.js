@@ -8,11 +8,11 @@ type Metadata = ReturnType<MetaFunction>;
  * Fetches meta tags from your Frames app that can be used in Remix meta() function.
  *
  * @example
- * import { fetchMetaData } from "@frames.js/remix";
+ * import { fetchMetadata } from "@frames.js/remix";
  *
  * export async function loader({ request }: LoaderFunctionArgs) {
  *   return {
- *     metaTags: await fetchMetaData(new URL('/frames', request.url)),
+ *     metaTags: await fetchMetadata(new URL('/frames', request.url)),
  *   }
  * }
  *
@@ -25,7 +25,7 @@ type Metadata = ReturnType<MetaFunction>;
  *
  * @param url Full URL of your Frames app
  */
-export async function fetchMetaData(url: URL | string): Promise<Metadata> {
+export async function fetchMetadata(url: URL | string): Promise<Metadata> {
   const response = await fetch(url, {
     method: "GET",
     headers: {
