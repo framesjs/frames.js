@@ -1,6 +1,6 @@
 import nock from "nock";
 import { fetchMetadata } from "./fetchMetadata";
-import type { FrameFlattened } from "frames.js";
+import type { FrameFlattened } from "..";
 
 describe("fetchMetaData", () => {
   beforeAll(() => {

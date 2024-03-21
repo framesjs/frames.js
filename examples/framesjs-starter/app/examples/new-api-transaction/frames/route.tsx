@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-key */
-import { Button } from "@frames.js/next";
-import { createFrames } from "@frames.js/next";
+import { Button } from "frames.js/next";
+import { createFrames } from "frames.js/next";
 
 const frames = createFrames({
   basePath: "/examples/new-api-transaction",

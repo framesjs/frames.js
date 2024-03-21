@@ -1,9 +1,6 @@
 import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
 import Head from "next/head";
-import {
-  fetchMetadata,
-  metadataToMetaTags,
-} from "@frames.js/next/pages-router";
+import { fetchMetadata, metadataToMetaTags } from "frames.js/next/pages-router";
 import Link from "next/link";
 import { createDebugUrl } from "../../app/debug";
 
