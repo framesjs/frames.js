@@ -42,15 +42,15 @@ export const POST = framesRouteHandler;
 
 #### Rendering Frames meta tags on existing Next.js page using App Router
 
-If you use Next.js App Router and [metadata](https://nextjs.org/docs/app/building-your-application/optimizing/metadata#dynamic-metadata) you can include your Frames meta tags using `fetchMetaTags` function.
+If you use Next.js App Router and [metadata](https://nextjs.org/docs/app/building-your-application/optimizing/metadata#dynamic-metadata) you can include your Frames meta tags using `fetchMetaData()` function.
 
 ```jsx
 // app/page.jsx
-import { fetchMetaTags } from "@frames.js/next";
+import { fetchMetaData } from "@frames.js/next";
 
 export async function generateMetadata() {
   // you must provide full URL to your Frames app so we can fetch meta tags
-  const framesMetaTags = await fetchMetaTags(
+  const framesMetaTags = await fetchMetaData(
     new URL("/api", process.env.VERCEL_URL || "http://localhost:3000")
   );
 
@@ -92,19 +92,19 @@ export default framesRouteHandler;
 
 #### Rendering Frames meta tags on existing Next.js page using Pages Router
 
-If you use Next.js Pages Router you can include your Frames meta tags using `fetchMetaTags()` and `metaDataToMetaTags()` functions.
+If you use Next.js Pages Router you can include your Frames meta tags using `fetchMetaData()` and `metaDataToMetaTags()` functions.
 
 ```jsx
 // pages/index.jsx
 import {
-  fetchMetaTags,
+  fetchmMetaData,
   metaDataToMetaTags,
 } from "@frames.js/next/pages-router";
 import Head from "next/head";
 
 export async function getServerSideProps() {
   // you must provide full URL to your Frames app so we can fetch meta tags
-  const framesMetaTags = await fetchMetaTags(
+  const framesMetaTags = await fetchMetaData(
     new URL("/api", process.env.VERCEL_URL || "http://localhost:3000")
   );
 
