@@ -1,0 +1,11 @@
+{
+  "extends": "@framesjs/typescript-config/nextjs.json",
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "dist",
+    "build",
+    "node_modules"
+  ],
+}
