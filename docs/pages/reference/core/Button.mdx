@@ -64,10 +64,103 @@ Mint button creates a new token when clicked.
 
 ```tsx
 import { Button } from "@frames.js/core";
+import { getTokenUrl } from "frames.js";
 
-<Button action="mint" target="https://google.com">
-  Click me
+<Button
+  action="mint"
+  target={getTokenUrl({
+    address: "0x8f5ed2503b71e8492badd21d5aaef75d65ac0042",
+    chain: zora,
+    tokenId: "3",
+  })}
+>
+  Mint
 </Button>;
 ```
 
 ## Tx Button
+
+Tx button requests transaction data from `target` when clicked, and send the transaction ID to the frame's `post_url` or the button's `post_url` if it is set.
+
+```tsx
+import { Button } from "@frames.js/core";
+
+<Button action="tx" target="/txdata" post_url="/tx-success">
+  Buy storage
+</Button>;
+```
+
+### Transaction data
+
+The endpoint specified in `target` should return a JSON object with the following structure:
+
+```ts
+type TransactionTargetResponse {
+  chainId: string;
+  method: "eth_sendTransaction";
+  attribution?: boolean;
+  params: EthSendTransactionParams;
+}
+```
+
+```ts
+type EthSendTransactionParams {
+  abi: Abi | [];
+  to: Hex;
+  value?: string;
+  data?: Hex;
+}
+```
+
+### Transaction Success
+
+If the transaction is successful, the frame will send a POST request to the URL specified in `post_url` or the frame `post_url`. This can be handled by the frame to show a success message or redirect the user to a different page.
+
+```tsx
+// /route.tsx
+import { Button } from "@frames.js/next";
+import { createFrames } from "@frames.js/next";
+
+const export frames = createFrames()
+
+export const GET = frames(async ({ message }) => {
+  return {
+    image: (
+      <div>
+        Execute transaction
+      </div>
+    ),
+    buttons: [
+      <Button action="tx" target="/txdata" post_url="/tx-success">
+        Execute
+      </Button>,
+    ],
+  };
+})
+```
+
+```tsx
+// /tx-success/route.tsx
+
+import { frames } from ../route.tsx";
+
+const handleRequest = frames(async ({ message }) => {
+  if (message?.transactionId) {
+    return {
+      image: (
+        <div tw="flex">
+          Transaction submitted! {message.transactionId}
+        </div>
+      ),
+      buttons: [
+        <Button
+          action="link"
+          target={`https://www.onceupon.gg/tx/${message.transactionId}`}
+        >
+          View on block explorer
+        </Button>,
+      ],
+    };
+  }
+});
+```
