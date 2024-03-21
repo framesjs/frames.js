@@ -20,7 +20,7 @@ const handleRequest = frames(async ({ message }) => {
       buttons: [
         <Button
           action="link"
-          target={`https://www.onceupon.gg//tx/${message.transactionId}`}
+          target={`https://www.onceupon.gg/tx/${message.transactionId}`}
         >
           View on block explorer
         </Button>,
