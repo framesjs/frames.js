@@ -7,12 +7,12 @@ import type {
 } from "./types";
 import { composeMiddleware } from "./composeMiddleware";
 import { renderResponse } from "./middleware/renderResponse";
-import { clickedButtonParser } from "./middleware/clickedButtonParser";
+import { pressedButtonParser } from "./middleware/pressedButtonParser";
 import { parseFramesMessage } from "./middleware/parseFramesMessage";
 
 const defaultMiddleware = [
   renderResponse(),
-  clickedButtonParser(),
+  pressedButtonParser(),
   parseFramesMessage(),
 ] as const;
 

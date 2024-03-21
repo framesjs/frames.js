@@ -24,7 +24,7 @@ import { createFrames, Button } from "@frames.js/next";
 
 const frames = createFrames();
 const framesRouteHandler = frames(async (ctx) => {
-  const didClickButton = !!ctx.clickedButton;
+  const didClickButton = !!ctx.pressedButton;
 
   return {
     image: (
@@ -75,7 +75,7 @@ const frames = createFrames({
   basePath: "/api",
 });
 const framesRouteHandler = frames(async (ctx) => {
-  const didClickButton = !!ctx.clickedButton;
+  const didClickButton = !!ctx.pressedButton;
 
   return {
     image: (

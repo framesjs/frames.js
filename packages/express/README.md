@@ -23,7 +23,7 @@ const app = express();
 
 const frames = createFrames();
 const framesRouteHandler = frames(async (ctx) => {
-  const didClickButton = !!ctx.clickedButton;
+  const didClickButton = !!ctx.pressedButton;
 
   return {
     image: (

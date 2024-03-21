@@ -19,7 +19,7 @@ describe("createFrames", () => {
 
       expect(ctx.basePath).toBe("/");
       expect(ctx.initialState).toBeUndefined();
-      expect(ctx.clickedButton).toBeUndefined();
+      expect(ctx.pressedButton).toBeUndefined();
       expect(ctx.request).toBeInstanceOf(Request);
       return redirect("http://test.com");
     });
