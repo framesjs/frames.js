@@ -1,5 +1,5 @@
-import type { FrameFlattened } from "frames.js";
-import { FRAMES_META_TAGS_HEADER } from "frames.js/core";
+import type { FrameFlattened } from "..";
+import { FRAMES_META_TAGS_HEADER } from "../core";
 import type { MetaFunction } from "@remix-run/node";
 
 type Metadata = ReturnType<MetaFunction>;
@@ -8,7 +8,7 @@ type Metadata = ReturnType<MetaFunction>;
  * Fetches meta tags from your Frames app that can be used in Remix meta() function.
  *
  * @example
- * import { fetchMetadata } from "@frames.js/remix";
+ * import { fetchMetadata } from "frames.js/remix";
  *
  * export async function loader({ request }: LoaderFunctionArgs) {
  *   return {

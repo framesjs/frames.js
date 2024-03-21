@@ -3,8 +3,8 @@ import {
   DefaultMiddleware,
   createFrames as coreCreateFrames,
   types,
-} from "frames.js/core";
-export { Button, type types } from "frames.js/core";
+} from "../core";
+export { Button, type types } from "../core";
 
 export { fetchMetadata } from "./fetchMetadata";
 
@@ -17,7 +17,7 @@ type CreateFramesForRemix = types.CreateFramesFunctionDefinition<
  * Creates Frames instance to use with you Remix server
  *
  * @example
- * import { createFrames, Button } from '@frames.js/remix';
+ * import { createFrames, Button } from 'frames.js/remix';
  * import type { LoaderFunction, ActionFunction } from '@remix-run/node';
  *
  * const frames = createFrames();
@@ -35,6 +35,7 @@ type CreateFramesForRemix = types.CreateFramesFunctionDefinition<
  * export const loader: LoaderFunction = remixHandler;
  * export const action: ActionFunction = remixHandler;
  */
+// @ts-expect-error
 export const createFrames: CreateFramesForRemix = function createFramesForRemix(
   options?: types.FramesOptions<any>
 ) {
