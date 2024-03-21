@@ -1,0 +1,13 @@
+---
+title: "Performance"
+description: ""
+---
+
+# Performance best practices
+
+For the best UX, frames should be fast and snappy. Frame responses also have a 5 second timeout time to be aware of. 
+We recommend the following best practices:
+
+1. Avoid using dynamic images when possible, opting for static ones instead
+2. For slow APIs like LLMs, we recommend responding with a "loading frame" that has a refresh button rather than waiting for the response.
+3. Consider the physical location of the servers you're deploying to - we recommend these be in north america for the time being.

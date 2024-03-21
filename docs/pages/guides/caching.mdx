@@ -1,0 +1,19 @@
+---
+title: "Caching"
+description: ""
+---
+
+You can set the caching policy of your frames by defining the `Cache-Control` headers of your responses
+
+```tsx
+// ...
+const handleRequest = frames(async ({ message }) => {
+  return {
+    // ...
+    headers: {
+      // Max cache age of 5 seconds
+      "Cache-Control": "max-age=5",
+    },
+  };
+});
+```

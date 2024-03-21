@@ -85,7 +85,7 @@ export { POST } from "frames.js/next/server";
 
 ## Local fully interactive Debugger & Frame validation
 
-![](/debugging.png)
+![](/frames/frame2.png)
 
 Or use the [hosted Frames debugger](https://debugger.framesjs.org/). Running locally has the benefits of it working with localhost.
 

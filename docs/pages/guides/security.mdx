@@ -1,0 +1,18 @@
+---
+title: "Security"
+description: ""
+---
+
+# Verifying your frame actions 
+
+The default frames.js middleware verifies Frame Actions against corresponding services; for Frames in Farcaster that is via a Farcaster Hub. XMTP Frames are validated against XMTP Frame validation libraries.
+
+The contents of this verification, including additional context can be accessed via the `message` object
+
+```tsx
+const handleRequest = frames(async ({ message }) => {
+    // message.isValid
+    // message.casterFollowsRequester
+    // ...
+});
+```

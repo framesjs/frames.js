@@ -7,7 +7,7 @@ import { Button, createFrames, redirect } from "frames.js/core";
 
 const frames = createFrames();
 const handleRequest = frames(async (ctx) => {
-  if (ctx.clickedButton?.action === "post_redirect") {
+  if (ctx.pressedButton?.action === "post_redirect") {
     // when post_redirect button is clicked you must return a redirect response
     return redirect("https://example.com");
   }
