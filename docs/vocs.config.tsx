@@ -37,20 +37,26 @@ const sidebar = [
             link: "/reference/core/redirect",
           },
           {
-            text: "frames.js/express",
-            link: "/reference/core/express",
-          },
-          {
-            text: "frames.js/hono",
-            link: "/reference/core/hono",
-          },
-          {
-            text: "frames.js/next",
-            link: "/reference/core/next",
-          },
-          {
-            text: "frames.js/remix",
-            link: "/reference/core/remix",
+            text: "Frameworks",
+            collapsed: false,
+            items: [
+              {
+                text: "Next.js",
+                link: "/reference/core/next",
+              },
+              {
+                text: "Hono",
+                link: "/reference/core/hono",
+              },
+              {
+                text: "Remix",
+                link: "/reference/core/remix",
+              },
+              {
+                text: "express.js",
+                link: "/reference/core/express",
+              },
+            ],
           },
         ],
       },
