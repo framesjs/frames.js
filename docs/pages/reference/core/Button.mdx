@@ -1,0 +1,65 @@
+# Button
+
+In order to render buttons you should use our `<Button>` component. Frames.js supports the following button types:
+
+## Post Button
+
+```tsx
+<Button action="post">Click me</Button>
+```
+
+This button sends a request to a URL on which it was rendered. If you want to navigate to different route in your app, you can use `target` prop which should be set to relative path.
+
+```tsx
+<Button action="post" target="/next-route">
+  Click me
+</Button>
+```
+
+The `target` path will be resolved relatively to current URL.
+
+### Passing state when button is clicked
+
+Optionally you can provide a small state to your target when the button is clicked by using `state` prop which accepts any JSON serializable value.
+
+```tsx
+<Button action="post" target="/next-route" state={{ foo: "bar" }}>
+  Click me
+</Button>
+```
+
+The state will be available in handler `ctx.clickedButton.state`.
+
+## Post Redirect Button
+
+Post redirect button is a special kind of `post` button that when users clicks the button, first a message is sent to frames handler and then it is expected that handler will redirect the user to a different route using [`redirect`](/reference/redirect) call.
+
+It accepts same props as `post` button.
+
+```tsx
+<Button action="post_redirect" target="/next-route" state="optional-state">
+  Click me
+</Button>
+```
+
+## Link Button
+
+Link button navigates to external URL when clicked.
+
+```tsx
+<Button action="link" target="https://google.com">
+  Click me
+</Button>
+```
+
+## Mint Button
+
+Mint button creates a new token when clicked.
+
+```tsx
+<Button action="mint" target="https://google.com">
+  Click me
+</Button>
+```
+
+## Tx Button

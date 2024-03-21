@@ -39,7 +39,20 @@ const sidebar = [
       {
         text: "frames.js/core",
         collapsed: false,
-        items: [],
+        items: [
+          {
+            text: "createFrames",
+            link: "/reference/core/createFrames",
+          },
+          {
+            text: "Button",
+            link: "/reference/core/Button",
+          },
+          {
+            text: "redirect",
+            link: "/reference/core/redirect",
+          },
+        ],
       },
       {
         text: "frames.js",
