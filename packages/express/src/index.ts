@@ -2,8 +2,8 @@ import {
   DefaultMiddleware,
   createFrames as coreCreateFrames,
   types,
-} from "frames.js/core";
-export { Button, type types } from "frames.js/core";
+} from "@frames.js/core";
+export { Button, type types } from "@frames.js/core";
 import type {
   Request as ExpressRequest,
   Response as ExpressResponse,

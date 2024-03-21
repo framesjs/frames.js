@@ -2,9 +2,9 @@ import {
   DefaultMiddleware,
   createFrames as coreCreateFrames,
   types,
-} from "frames.js/core";
+} from "@frames.js/core";
 import type { NextRequest, NextResponse } from "next/server";
-export { Button, type types } from "frames.js/core";
+export { Button, type types } from "@frames.js/core";
 
 export { fetchMetadata } from "./fetchMetadata";
 

@@ -1,8 +1,8 @@
 import {
-  FrameActionPayload,
-  FrameMessageReturnType,
+  type FrameActionPayload,
+  type FrameMessageReturnType,
   getFrameMessage,
-} from "../..";
+} from "frames.js";
 import { FramesMiddleware, JsonValue } from "../types";
 
 class RequestBodyNotJSONError extends Error {

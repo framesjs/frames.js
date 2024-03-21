@@ -1,6 +1,6 @@
-import { createFrames as coreCreateFrames } from "frames.js/core";
+import { createFrames as coreCreateFrames } from "@frames.js/core";
 import { Metadata, NextApiRequest, NextApiResponse } from "next";
-export { Button, type types } from "frames.js/core";
+export { Button, type types } from "@frames.js/core";
 import type { Writable, Readable } from "node:stream";
 import { Stream } from "node:stream";
 

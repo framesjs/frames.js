@@ -1,6 +1,6 @@
 import React from "react";
 import { ImageResponse } from "@vercel/og";
-import { type Frame, getFrameFlattened, getFrameHtmlHead } from "../..";
+import { type Frame, getFrameFlattened, getFrameHtmlHead } from "frames.js";
 import type { ButtonProps } from "../components";
 import type {
   FrameDefinition,

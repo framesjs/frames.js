@@ -1,5 +1,4 @@
-import type { FrameFlattened } from "frames.js";
-import { FRAMES_META_TAGS_HEADER } from "frames.js/core";
+import { FRAMES_META_TAGS_HEADER } from "@frames.js/core";
 import { Metadata } from "next";
 
 /**
@@ -38,7 +37,7 @@ export async function fetchMetadata(
 
   if (response.ok) {
     // process the JSON value to nextjs compatible format
-    const flattenedFrame: FrameFlattened = await response.json();
+    const flattenedFrame: Record<string, string> = await response.json();
 
     return flattenedFrame as NonNullable<Metadata["other"]>;
   }

@@ -1,5 +1,4 @@
-import type { FrameFlattened } from "frames.js";
-import { FRAMES_META_TAGS_HEADER } from "frames.js/core";
+import { FRAMES_META_TAGS_HEADER } from "@frames.js/core";
 import type { MetaFunction } from "@remix-run/node";
 
 type Metadata = ReturnType<MetaFunction>;
@@ -36,7 +35,7 @@ export async function fetchMetadata(url: URL | string): Promise<Metadata> {
 
   if (response.ok) {
     // process the JSON value to nextjs compatible format
-    const flattenedFrame: FrameFlattened = await response.json();
+    const flattenedFrame: Record<string, string> = await response.json();
 
     // convert to remix compatible shape
     return Object.entries(flattenedFrame).map(([key, value]) => {
