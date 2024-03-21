@@ -3,19 +3,11 @@ import {
   FrameMessageReturnType,
   getFrameMessage,
 } from "../..";
+import {
+  InvalidFrameActionPayloadError,
+  RequestBodyNotJSONError,
+} from "../errors";
 import { FramesMiddleware, JsonValue } from "../types";
-
-class RequestBodyNotJSONError extends Error {
-  constructor() {
-    super("Invalid frame action payload");
-  }
-}
-
-class InvalidFrameActionPayloadError extends Error {
-  constructor() {
-    super("Invalid frame action payload");
-  }
-}
 
 function isValidFrameActionPayload(value: any): value is FrameActionPayload {
   return (

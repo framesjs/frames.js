@@ -177,6 +177,7 @@ export function renderResponse(): FramesMiddleware<{}> {
         ) as Frame["buttons"],
         inputText: result.textInput,
         imageAspectRatio: result.imageOptions?.aspectRatio ?? "1.91:1",
+        accepts: result.accepts,
       };
 
       if (wantsJSON) {
