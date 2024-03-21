@@ -5,7 +5,7 @@
     "frames.js",
     "farcaster"
   ],
-  "version": "0.1.6",
+  "version": "0.1.7",
   "bin": {
     "frames": "./bin/debugger.js"
   },
@@ -16,7 +16,6 @@
     "url": "https://github.com/framesjs/frames.js/tree/main/packages/debugger"
   },
   "dependencies": {
-    "@farcaster/core": "^0.14.4",
     "@noble/ed25519": "^2.0.0",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-checkbox": "^1.0.4",
@@ -35,21 +34,25 @@
     "clsx": "^2.1.0",
     "eslint": "^8.56.0",
     "eslint-config-next": "14.1.0",
-    "frames.js": "^0.8.4",
     "is-port-reachable": "^4.0.0",
     "lucide-react": "^0.344.0",
-    "next": "14.1.0",
     "open": "^10.0.3",
     "postcss": "^8",
     "qrcode.react": "^3.1.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
     "tailwind-merge": "^2.2.1",
     "tailwindcss": "^3.3.0",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.3.3",
-    "viem": "^2.7.1",
-    "yargs": "^17.7.2"
+    "yargs": "^17.7.2",
+    "@farcaster/core": "^0.14.7",
+    "@rainbow-me/rainbowkit": "^2.0.2",
+    "@tanstack/react-query": "^5.22.2",
+    "frames.js": "^0.8.5",
+    "next": "^14.1.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "viem": "^2.7.12",
+    "wagmi": "^2.5.7"
   },
   "engines": {
     "node": ">=18.17.0"

@@ -1,23 +1,29 @@
 "use client";
 /** requires client because signer is stored in local storage */
 
-import { useState, useEffect } from "react";
-import { FrameUI, fallbackFrameContext } from "frames.js/render";
-import { useFrame } from "frames.js/render/use-frame";
-import { FrameImageNext } from "frames.js/render/next";
-import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
-import { FrameDebugger } from "./components/frame-debugger";
-import { useRouter } from "next/navigation";
-
-import dynamic from "next/dynamic";
-import { MockHubActionContext } from "./utils/mock-hub-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { sendTransaction, switchChain } from "@wagmi/core";
+import {
+  FrameUI,
+  OnTransactionFunc,
+  fallbackFrameContext,
+} from "frames.js/render";
+import { FrameImageNext } from "frames.js/render/next";
+import { useFrame } from "frames.js/render/use-frame";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { useChainId, useConfig, useAccount } from "wagmi";
+import { FrameDebugger } from "./components/frame-debugger";
+import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
+import { MockHubActionContext } from "./utils/mock-hub-utils";
+import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 const LoginWindow = dynamic(() => import("./components/create-signer"), {
   ssr: false,
 });
 
-export default function Page({
+export default function App({
   searchParams,
 }: {
   searchParams: Record<string, string>;
@@ -36,19 +42,68 @@ export default function Page({
     likedCast: false,
     recastedCast: false,
   });
+  const currentChainId = useChainId();
+  const config = useConfig();
+  const account = useAccount();
+  const { openConnectModal } = useConnectModal();
+
   useEffect(() => {
     if (url !== urlInput && url) {
       setUrlInput(url);
     }
   }, [url]);
   const signerState = useFarcasterIdentity();
+
+  const onTransaction: OnTransactionFunc = useCallback(
+    async ({ transactionData }) => {
+      const { params, chainId, method } = transactionData;
+      if (!chainId.startsWith("eip155:")) {
+        alert(`debugger: Unrecognized chainId ${chainId}`);
+        return null;
+      }
+
+      if (!account.address) {
+        openConnectModal?.();
+        return null;
+      }
+
+      const requestedChainId = parseInt(chainId.split("eip155:")[1]!);
+
+      if (currentChainId !== requestedChainId) {
+        console.log("switching chain");
+        await switchChain(config, {
+          chainId: requestedChainId,
+        });
+      }
+
+      try {
+        // Send the transaction
+        console.log("sending tx");
+        const transactionId = await sendTransaction(config, {
+          to: params.to,
+          data: params.data,
+          value: BigInt(params.value),
+        });
+        return transactionId;
+      } catch (error) {
+        console.error(error);
+        return null;
+      }
+    },
+    [account.address, currentChainId, config, openConnectModal]
+  );
+
   const frameState = useFrame({
     homeframeUrl: url,
     frameActionProxy: "/frames",
     frameGetProxy: "/frames",
-    frameContext: fallbackFrameContext,
+    frameContext: {
+      ...fallbackFrameContext,
+      ...(account.address ? { connectedAddress: account.address } : undefined),
+    },
     signerState,
     extraButtonRequestPayload: { mockData: mockHubContext },
+    onTransaction,
   });
 
   return (
@@ -113,6 +168,10 @@ export default function Page({
             impersonateUser={signerState.impersonateUser}
             logout={signerState.logout}
           ></LoginWindow>
+
+          <div className="ml-auto">
+            <ConnectButton></ConnectButton>
+          </div>
         </div>
       </div>
       {url ? (
