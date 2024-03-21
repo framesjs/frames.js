@@ -1,5 +1,15 @@
 # @frames.js/debugger
 
+## 0.1.7
+
+### Patch Changes
+
+- 5042a38: feat: full tx flow
+- 62482dd: feat: debugger transaction support
+- Updated dependencies [e9589a5]
+- Updated dependencies [c995403]
+  - frames.js@0.8.5
+
 ## 0.1.6
 
 ### Patch Changes

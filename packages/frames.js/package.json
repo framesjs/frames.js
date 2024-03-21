@@ -1,6 +1,6 @@
 {
   "name": "frames.js",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "type": "module",
   "main": "./dist/index.cjs",
   "types": "index.d.cts",

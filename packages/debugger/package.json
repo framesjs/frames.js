@@ -5,7 +5,7 @@
     "frames.js",
     "farcaster"
   ],
-  "version": "0.1.6",
+  "version": "0.1.7",
   "bin": {
     "frames": "./bin/debugger.js"
   },
@@ -47,7 +47,7 @@
     "@farcaster/core": "^0.14.7",
     "@rainbow-me/rainbowkit": "^2.0.2",
     "@tanstack/react-query": "^5.22.2",
-    "frames.js": "^0.8.4",
+    "frames.js": "^0.8.5",
     "next": "^14.1.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

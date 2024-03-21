@@ -1,5 +1,12 @@
 # frames.js
 
+## 0.8.5
+
+### Patch Changes
+
+- e9589a5: fix: add viem Abi type to transaction response ABI type
+- c995403: fix: correctly parse button index of open frames html
+
 ## 0.8.4
 
 ### Patch Changes
