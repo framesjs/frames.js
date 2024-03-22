@@ -4,9 +4,9 @@ import { generatePostButtonTargetURL } from "../utils";
 import { framesjsMiddleware } from "./framesjsMiddleware";
 
 describe("framesjsMiddleware middleware", () => {
-  it("does not provide pressedButton to context if no supported button is detetcted", async () => {
+  it("does not provide pressedButton to context if no supported button is detected", async () => {
     const context: FramesContext = {
-      currentURL: new URL("https://example.com"),
+      url: new URL("https://example.com"),
       request: new Request("https://example.com", { method: "POST" }),
     } as any;
     const next = jest.fn();
@@ -32,7 +32,7 @@ describe("framesjsMiddleware middleware", () => {
       },
     });
     const context: FramesContext = {
-      currentURL: new URL(url),
+      url: new URL(url),
       request: new Request(url, { method: "POST" }),
     } as any;
     const next = jest.fn();
@@ -58,7 +58,7 @@ describe("framesjsMiddleware middleware", () => {
       target: "/test",
     });
     const context: FramesContext = {
-      currentURL: new URL(url),
+      url: new URL(url),
       request: new Request(url, { method: "POST" }),
     } as any;
     const next = jest.fn(() => Promise.resolve(redirect("http://test.com")));
@@ -87,7 +87,7 @@ describe("framesjsMiddleware middleware", () => {
       target: "/test",
     });
     const context: FramesContext = {
-      currentURL: new URL(url),
+      url: new URL(url),
       request: new Request(url, { method: "POST" }),
     } as any;
     const next = jest.fn(() =>
@@ -115,7 +115,7 @@ describe("framesjsMiddleware middleware", () => {
       },
     });
     const context: FramesContext = {
-      currentURL: new URL(url),
+      url: new URL(url),
       request: new Request(url, { method: "POST" }),
     } as any;
     const next = jest.fn(() => Promise.resolve(redirect("http://test.com")));
@@ -141,7 +141,7 @@ describe("framesjsMiddleware middleware", () => {
       },
     });
     const context: FramesContext = {
-      currentURL: new URL(url),
+      url: new URL(url),
       request: new Request(url, { method: "POST" }),
     } as any;
     const next = jest.fn(() =>
@@ -168,7 +168,7 @@ describe("framesjsMiddleware middleware", () => {
       },
     });
     const context: FramesContext = {
-      currentURL: new URL(url),
+      url: new URL(url),
       request: new Request(url),
       searchParams: {},
     } as any;

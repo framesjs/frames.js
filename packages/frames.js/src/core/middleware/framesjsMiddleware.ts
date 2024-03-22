@@ -29,16 +29,14 @@ export function framesjsMiddleware(): FramesMiddleware<
   FramesjsMiddlewareContext
 > {
   return async (context, next) => {
-    const { searchParams } = parseSearchParams(context.currentURL);
+    const { searchParams } = parseSearchParams(context.url);
     // clicked button always issues a POST request
     if (context.request.method !== "POST") {
       return next({ searchParams });
     }
 
     // parse clicked buttom from URL
-    const pressedButton = parseButtonInformationFromTargetURL(
-      context.currentURL
-    );
+    const pressedButton = parseButtonInformationFromTargetURL(context.url);
 
     const result = await next({ pressedButton, searchParams });
 

@@ -14,8 +14,8 @@ describe("createFrames", () => {
     const handler = createFrames();
 
     const routeHandler = handler(async (ctx) => {
-      expect(ctx.currentURL).toBeInstanceOf(URL);
-      expect(ctx.currentURL.href).toBe("http://test.com/");
+      expect(ctx.url).toBeInstanceOf(URL);
+      expect(ctx.url.href).toBe("http://test.com/");
 
       expect(ctx.basePath).toBe("/");
       expect(ctx.initialState).toBeUndefined();

@@ -134,7 +134,7 @@ export function renderResponse(): FramesMiddleware<any, {}> {
                   label: props.children,
                   target: generateTargetURL({
                     target: props.target,
-                    currentURL: context.currentURL,
+                    currentURL: context.url,
                     basePath: context.basePath,
                   }),
                 };
@@ -152,7 +152,7 @@ export function renderResponse(): FramesMiddleware<any, {}> {
                     buttonIndex: (i + 1) as 1 | 2 | 3 | 4,
                     buttonAction: "post",
                     target: props.target,
-                    currentURL: context.currentURL,
+                    currentURL: context.url,
                     basePath: context.basePath,
                   }),
                   post_url: props.post_url
@@ -160,7 +160,7 @@ export function renderResponse(): FramesMiddleware<any, {}> {
                         buttonIndex: (i + 1) as 1 | 2 | 3 | 4,
                         buttonAction: "post",
                         target: props.post_url,
-                        currentURL: context.currentURL,
+                        currentURL: context.url,
                         basePath: context.basePath,
                       })
                     : undefined,
@@ -174,7 +174,7 @@ export function renderResponse(): FramesMiddleware<any, {}> {
                     buttonIndex: (i + 1) as 1 | 2 | 3 | 4,
                     buttonAction: props.action,
                     target: props.target,
-                    currentURL: context.currentURL,
+                    currentURL: context.url,
                     basePath: context.basePath,
                   }),
                 };
