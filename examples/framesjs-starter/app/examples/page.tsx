@@ -20,6 +20,11 @@ export default function ExamplesIndexPage() {
             Multi Page
           </Link>
         </li>
+        <li>
+          <Link className="underline" href="/examples/new-api-mint-button">
+            Mint button
+          </Link>
+        </li>
       </ul>
       <b>Frames.js v0.8 and below</b>
       <ul>
