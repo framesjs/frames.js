@@ -13,7 +13,7 @@
   },
   "scripts": {
     "lint": "eslint \"./src/**/*.ts*\"",
-    "build": "tsup `find ./src -type f \\( -regex '.*\\.tsx*' -a -not -regex '.*\\.test\\.tsx*' \\)` --format cjs,esm --dts",
+    "build": "NODE_OPTIONS='--max-old-space-size=16384' tsup `find ./src -type f \\( -regex '.*\\.tsx*' -a -not -regex '.*\\.test\\.tsx*' \\)` --format cjs,esm --dts",
     "dev": "npm run build -- --watch",
     "test:watch": "jest --watch"
   },
@@ -180,6 +180,16 @@
       "require": {
         "types": "./dist/core/index.d.cts",
         "default": "./dist/core/index.cjs"
+      }
+    },
+    "./middleware": {
+      "import": {
+        "types": "./dist/middleware/index.d.ts",
+        "default": "./dist/middleware/index.js"
+      },
+      "require": {
+        "types": "./dist/middleware/index.d.cts",
+        "default": "./dist/middleware/index.cjs"
       }
     },
     "./hono": {

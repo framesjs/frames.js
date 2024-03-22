@@ -1,5 +1,5 @@
 import { createFrames } from "./createFrames";
-import { concurrentMiddleware } from "./middleware/concurrentMiddleware";
+import { concurrentMiddleware } from "../middleware/concurrentMiddleware";
 import { redirect } from "./redirect";
 import { FramesMiddleware } from "./types";
 

@@ -1,4 +1,4 @@
-import { redirect } from "../redirect";
+import { redirect } from "../core/redirect";
 import { concurrentMiddleware } from "./concurrentMiddleware";
 
 describe("concurrentMiddleware", () => {

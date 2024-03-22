@@ -2,17 +2,19 @@ import {
   FrameActionPayload,
   FrameMessageReturnType,
   getFrameMessage,
-} from "../..";
+} from "..";
 import {
   InvalidFrameActionPayloadError,
   RequestBodyNotJSONError,
-} from "../errors";
-import type { FramesMiddleware } from "../types";
+} from "../core/errors";
+import { FramesMiddleware, JsonValue } from "../core/types";
 
-function isValidFrameActionPayload(value: any): value is FrameActionPayload {
+function isValidFrameActionPayload(
+  value: unknown
+): value is FrameActionPayload {
   return (
-    value &&
     typeof value === "object" &&
+    !!value &&
     "trustedData" in value &&
     "untrustedData" in value
   );
@@ -50,15 +52,15 @@ async function decodeFrameActionPayloadFromRequest(
 }
 
 type FrameMessage = Omit<
-  FrameMessageReturnType<{ fetchHubContext: false }>,
+  FrameMessageReturnType<{ fetchHubContext: true }>,
   "message"
->;
+> & { state?: JsonValue };
 
 type FramesMessageContext = {
   message?: FrameMessage;
 };
 
-export function parseFramesMessage(): FramesMiddleware<
+export function farcasterHubContext(): FramesMiddleware<
   any,
   FramesMessageContext
 > {
@@ -75,10 +77,8 @@ export function parseFramesMessage(): FramesMiddleware<
       return next();
     }
 
-    // We don't fetch hub context here, that should be probably added by some different middleware so
-    // user can decide exactly what they want.
     const message = await getFrameMessage(payload, {
-      fetchHubContext: false,
+      fetchHubContext: true,
     });
 
     return next({

@@ -1,7 +1,7 @@
-import { ClientProtocolId } from "../..";
-import { RequestBodyNotJSONError } from "../errors";
-import { FramesMiddleware, FramesMiddlewareReturnType } from "../types";
-import { isFrameDefinition } from "../utils";
+import { ClientProtocolId } from "..";
+import { RequestBodyNotJSONError } from "../core/errors";
+import { FramesMiddleware, FramesMiddlewareReturnType } from "../core/types";
+import { isFrameDefinition } from "../core/utils";
 
 type OpenFrameMessage = any;
 

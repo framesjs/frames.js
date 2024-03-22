@@ -7,15 +7,15 @@ import type {
   JsonValue,
 } from "./types";
 import { composeMiddleware } from "./composeMiddleware";
-import { renderResponse } from "./middleware/renderResponse";
-import { framesjsMiddleware } from "./middleware/framesjsMiddleware";
-import { parseFramesMessage } from "./middleware/parseFramesMessage";
-import { stateMiddleware } from "./middleware/stateMiddleware";
+import { renderResponse } from "../middleware/renderResponse";
+import { framesjsMiddleware } from "../middleware/framesjsMiddleware";
+import { stateMiddleware } from "../middleware/stateMiddleware";
+import { farcasterHubContext } from "../middleware/farcasterHubContext";
 
-const defaultMiddleware = [
+export const defaultMiddleware = [
   renderResponse(),
   framesjsMiddleware(),
-  parseFramesMessage(),
+  farcasterHubContext(),
 ] as const;
 
 export type DefaultMiddleware = typeof defaultMiddleware;

@@ -1,12 +1,15 @@
-import nock from "nock";
-import { redirect } from "../redirect";
-import { FramesContext } from "../types";
-import { parseFramesMessage } from "./parseFramesMessage";
 import { Message } from "@farcaster/core";
+import nock from "nock";
+import { FrameMessageReturnType } from "../getFrameMessage";
+import { redirect } from "../core/redirect";
+import { FramesContext } from "../core/types";
+import { farcaster } from "./farcaster";
+import { createFrames } from "../core";
 
-describe("parseFramesMessage middleware", () => {
+describe("farcaster middleware", () => {
   beforeEach(() => {
     // make sure we don't introduce unexpected network requests
+    // TODO: Mock hub/onchain calls
     nock.disableNetConnect();
   });
 
@@ -19,7 +22,7 @@ describe("parseFramesMessage middleware", () => {
       request: new Request("https://example.com"),
     } as any;
 
-    const mw = parseFramesMessage();
+    const mw = farcaster();
     const response = redirect("http://test.com");
     const next = jest.fn(() => Promise.resolve(response));
 
@@ -35,7 +38,7 @@ describe("parseFramesMessage middleware", () => {
       }),
     } as any;
 
-    const mw = parseFramesMessage();
+    const mw = farcaster();
     const response = redirect("http://test.com");
     const next = jest.fn(() => Promise.resolve(response));
 
@@ -51,7 +54,7 @@ describe("parseFramesMessage middleware", () => {
       }),
     } as any;
 
-    const mw = parseFramesMessage();
+    const mw = farcaster();
     const response = redirect("http://test.com");
     const next = jest.fn(() => Promise.resolve(response));
 
@@ -89,23 +92,53 @@ describe("parseFramesMessage middleware", () => {
       }),
     } as any;
 
-    const mw = parseFramesMessage();
+    const mw = farcaster();
     const next = jest.fn(() => Promise.resolve(new Response()));
 
+    nock.disableNetConnect();
     await mw(context, next);
+    nock.enableNetConnect();
 
-    expect(next).toHaveBeenCalledWith({
-      message: {
-        buttonIndex: 1,
-        castId: {
-          fid: 456,
-          hash: "0x",
-        },
-        connectedAddress: "0x89",
-        inputText: "hello",
-        requesterFid: 123,
-        state: JSON.stringify({ test: true }),
-      },
+    const {
+      message: calledArg,
+    }: {
+      message: FrameMessageReturnType<{ fetchHubContext: true }>;
+    } = (next.mock.calls[0]! as any)[0];
+
+    expect(calledArg.buttonIndex).toBe(1);
+    expect(calledArg.castId).toEqual({
+      fid: 456,
+      hash: "0x",
     });
+    expect(calledArg.connectedAddress).toBe("0x89");
+    expect(calledArg.inputText).toBe("hello");
+    expect(calledArg.requesterFid).toBe(123);
+    expect(calledArg.state).toEqual(JSON.stringify({ test: true }));
+    expect(calledArg).not.toHaveProperty("requesterUserData");
+  });
+
+  it("supports custom global typed context", async () => {
+    const mw1 = farcaster();
+
+    const handler = createFrames({
+      middleware: [mw1],
+    });
+
+    const routeHandler = handler(async (ctx) => {
+      return {
+        image: `/?fid=${ctx.message?.requesterFid}`,
+      };
+    });
+
+    const response = await routeHandler(
+      new Request("http://test.com", {
+        method: "POST",
+        body: JSON.stringify({}),
+      })
+    );
+    expect(response).toBeInstanceOf(Response);
+
+    const responseText = await response.clone().text();
+    expect(responseText).not.toContain("/?fid=undefined");
   });
 });
