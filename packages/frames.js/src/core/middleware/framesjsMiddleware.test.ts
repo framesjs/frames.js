@@ -23,8 +23,10 @@ describe("framesjsMiddleware middleware", () => {
       buttonIndex: 1,
       basePath: "/",
       currentURL: new URL("https://example.com"),
-      state: { test: true },
-      target: "/test",
+      target: {
+        pathname: "/test",
+        query: { test: true },
+      },
     });
     const context: FramesContext = {
       currentURL: new URL(url),
@@ -36,7 +38,11 @@ describe("framesjsMiddleware middleware", () => {
     await middleware(context, next);
 
     expect(next).toHaveBeenCalledWith({
-      pressedButton: { action: "post", index: 1, state: { test: true } },
+      pressedButton: {
+        action: "post",
+        index: 1,
+        searchParams: { test: "true" },
+      },
     });
   });
 
@@ -46,7 +52,6 @@ describe("framesjsMiddleware middleware", () => {
       buttonIndex: 1,
       basePath: "/",
       currentURL: new URL("https://example.com"),
-      state: undefined,
       target: "/test",
     });
     const context: FramesContext = {
@@ -70,7 +75,6 @@ describe("framesjsMiddleware middleware", () => {
       buttonIndex: 1,
       basePath: "/",
       currentURL: new URL("https://example.com"),
-      state: undefined,
       target: "/test",
     });
     const context: FramesContext = {
@@ -96,8 +100,10 @@ describe("framesjsMiddleware middleware", () => {
       buttonIndex: 1,
       basePath: "/",
       currentURL: new URL("https://example.com"),
-      state: { test: true },
-      target: "/test",
+      target: {
+        pathname: "/test",
+        query: { test: true },
+      },
     });
     const context: FramesContext = {
       currentURL: new URL(url),
@@ -120,8 +126,10 @@ describe("framesjsMiddleware middleware", () => {
       buttonIndex: 1,
       basePath: "/",
       currentURL: new URL("https://example.com"),
-      state: { test: true },
-      target: "/test",
+      target: {
+        pathname: "/test",
+        query: { test: true },
+      },
     });
     const context: FramesContext = {
       currentURL: new URL(url),
@@ -145,8 +153,10 @@ describe("framesjsMiddleware middleware", () => {
       buttonIndex: 1,
       basePath: "/",
       currentURL: new URL("https://example.com"),
-      state: { test: true },
-      target: "/test",
+      target: {
+        pathname: "/test",
+        query: { test: true },
+      },
     });
     const context: FramesContext = {
       currentURL: new URL(url),

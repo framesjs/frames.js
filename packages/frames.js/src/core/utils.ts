@@ -1,4 +1,6 @@
-import { FrameDefinition, FrameRedirect, JsonValue } from "./types";
+import { formatUrl } from "./formatUrl";
+import { FrameDefinition, FrameRedirect } from "./types";
+import type { UrlObject } from "url";
 
 const buttonActionToCode = {
   post: "p",
@@ -6,7 +8,6 @@ const buttonActionToCode = {
 };
 
 const BUTTON_INFORMATION_SEARCH_PARAM_NAME = "__bi";
-const BUTTON_STATE_SEARCH_PARAM_NAME = "__bs";
 
 function isValidButtonIndex(index: any): index is 1 | 2 | 3 | 4 {
   return (
@@ -24,6 +25,46 @@ function isValidButtonAction(action: any): action is "post" | "post_redirect" {
   );
 }
 
+export function generateTargetURL({
+  currentURL,
+  target,
+  basePath,
+}: {
+  currentURL: URL;
+  basePath: string;
+  target: string | UrlObject | undefined;
+}): string {
+  let url = new URL(currentURL);
+
+  if (
+    target &&
+    typeof target == "string" &&
+    (target.startsWith("http://") || target.startsWith("https://"))
+  ) {
+    // handle absolute urls
+    url = new URL(target);
+  } else if (target && typeof target === "string") {
+    // resolve target relatively to basePath
+    const baseUrl = new URL(basePath, currentURL);
+    const preformatted = baseUrl.pathname + "/" + target;
+    const parts = preformatted.split("/").filter(Boolean);
+    const finalPathname = parts.join("/");
+
+    url = new URL(`/${finalPathname}`, currentURL);
+  } else if (target && typeof target === "object") {
+    // resolve target relatively to basePath
+    url = new URL(
+      formatUrl({
+        ...url,
+        ...target,
+        pathname: [basePath ?? "/", target.pathname].filter(Boolean).join("/"),
+      })
+    );
+  }
+
+  return url.toString();
+}
+
 /**
  * This function generates fully qualified URL for post and post_redirect buttons
  * that also encodes the button type and button value so we can use that on next frame.
@@ -34,38 +75,20 @@ export function generatePostButtonTargetURL({
   currentURL,
   target,
   basePath,
-  state,
 }: {
   buttonIndex: 1 | 2 | 3 | 4;
   buttonAction: "post" | "post_redirect";
   currentURL: URL;
   basePath: string;
-  target: string | undefined;
-  /**
-   * Button state
-   */
-  state: JsonValue | undefined;
+  target: string | UrlObject | undefined;
 }): string {
-  let url = new URL(currentURL);
+  const url = new URL(generateTargetURL({ currentURL, basePath, target }));
 
-  if (target) {
-    // resolve target relatively to basePath
-    const baseUrl = new URL(basePath, currentURL);
-    const preformatted = baseUrl.pathname + "/" + target;
-    const parts = preformatted.split("/").filter(Boolean);
-    const finalPathname = parts.join("/");
-
-    url = new URL(`/${finalPathname}`, currentURL);
-  }
-
-  // store what button has been clicked in the URL
+  // Internal param, store what button has been clicked in the URL.
   url.searchParams.set(
     BUTTON_INFORMATION_SEARCH_PARAM_NAME,
     `${buttonIndex}:${buttonActionToCode[buttonAction]}`
   );
-  if (state !== undefined) {
-    url.searchParams.set(BUTTON_STATE_SEARCH_PARAM_NAME, JSON.stringify(state));
-  }
 
   return url.toString();
 }
@@ -73,8 +96,19 @@ export function generatePostButtonTargetURL({
 type ButtonInformation = {
   action: "post" | "post_redirect";
   index: 1 | 2 | 3 | 4;
-  state?: JsonValue;
 };
+
+export function parseSearchParams(url: URL): {
+  searchParams?: {
+    [k: string]: string;
+  };
+} {
+  const searchParams = Object.fromEntries(url.searchParams);
+
+  return {
+    searchParams,
+  };
+}
 
 export function parseButtonInformationFromTargetURL(
   url: URL
@@ -82,7 +116,6 @@ export function parseButtonInformationFromTargetURL(
   const buttonInformation = url.searchParams.get(
     BUTTON_INFORMATION_SEARCH_PARAM_NAME
   );
-  const buttonState = url.searchParams.get(BUTTON_STATE_SEARCH_PARAM_NAME);
 
   // parse state only if button has been identified
   if (!buttonInformation) {
@@ -104,20 +137,9 @@ export function parseButtonInformationFromTargetURL(
     return undefined;
   }
 
-  let state: JsonValue | undefined;
-
-  if (buttonState) {
-    try {
-      state = JSON.parse(buttonState);
-    } catch {
-      console.warn("Failed to parse button state from URL");
-    }
-  }
-
   return {
     action,
     index,
-    state,
   };
 }
 
