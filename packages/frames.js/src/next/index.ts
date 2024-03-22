@@ -37,13 +37,13 @@ type CreateFramesForNextJS = types.CreateFramesFunctionDefinition<
  */
 // @ts-expect-error
 export const createFrames: CreateFramesForNextJS =
-  function createFramesForNextJS(options?: types.FramesOptions<any>) {
+  function createFramesForNextJS(options?: types.FramesOptions<any, any>) {
     const frames = coreCreateFrames(options);
 
     return function createHandler<
-      TPerRouteMiddleware extends types.FramesMiddleware<any>[],
+      TPerRouteMiddleware extends types.FramesMiddleware<any, any>[],
     >(
-      handler: types.FrameHandlerFunction<any>,
+      handler: types.FrameHandlerFunction<any, any>,
       handlerOptions?: types.FramesRequestHandlerFunctionOptions<TPerRouteMiddleware>
     ) {
       return frames(handler, handlerOptions) as unknown as (

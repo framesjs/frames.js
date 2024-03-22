@@ -36,14 +36,14 @@ type CreateFramesForHono = types.CreateFramesFunctionDefinition<
  */
 // @ts-expect-error
 export const createFrames: CreateFramesForHono = function createFramesForHono(
-  options?: types.FramesOptions<any>
+  options?: types.FramesOptions<any, any>
 ) {
   const frames = coreCreateFrames(options);
 
   return function honoFramesHandler<
-    TPerRouteMiddleware extends types.FramesMiddleware<any>[],
+    TPerRouteMiddleware extends types.FramesMiddleware<any, any>[],
   >(
-    handler: types.FrameHandlerFunction<any>,
+    handler: types.FrameHandlerFunction<any, any>,
     handlerOptions?: types.FramesRequestHandlerFunctionOptions<TPerRouteMiddleware>
   ) {
     const framesHandler = frames(handler, handlerOptions);

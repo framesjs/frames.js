@@ -43,7 +43,7 @@ describe("createFrames", () => {
   });
 
   it("supports custom global middleware", async () => {
-    const customMiddleware: FramesMiddleware<{ custom: string }> = async (
+    const customMiddleware: FramesMiddleware<any, { custom: string }> = async (
       ctx,
       next
     ) => {
@@ -65,7 +65,7 @@ describe("createFrames", () => {
   });
 
   it("supports per route middleware", async () => {
-    const customMiddleware: FramesMiddleware<{ custom: string }> = async (
+    const customMiddleware: FramesMiddleware<any, { custom: string }> = async (
       ctx,
       next
     ) => {

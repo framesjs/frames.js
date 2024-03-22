@@ -104,7 +104,7 @@ describe("parseFramesMessage middleware", () => {
         connectedAddress: "0x89",
         inputText: "hello",
         requesterFid: 123,
-        state: { test: true },
+        state: JSON.stringify({ test: true }),
       },
     });
   });

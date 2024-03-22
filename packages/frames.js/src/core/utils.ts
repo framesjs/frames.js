@@ -125,6 +125,6 @@ export function isFrameRedirect(value: any): value is FrameRedirect {
   return value && typeof value === "object" && value.kind === "redirect";
 }
 
-export function isFrameDefinition(value: any): value is FrameDefinition {
+export function isFrameDefinition(value: any): value is FrameDefinition<any> {
   return value && typeof value === "object" && "image" in value;
 }

@@ -37,14 +37,14 @@ type CreateFramesForRemix = types.CreateFramesFunctionDefinition<
  */
 // @ts-expect-error
 export const createFrames: CreateFramesForRemix = function createFramesForRemix(
-  options?: types.FramesOptions<any>
+  options?: types.FramesOptions<any, any>
 ) {
   const frames = coreCreateFrames(options);
 
   return function createHandler<
-    TPerRouteMiddleware extends types.FramesMiddleware<any>[],
+    TPerRouteMiddleware extends types.FramesMiddleware<any, any>[],
   >(
-    handler: types.FrameHandlerFunction<any>,
+    handler: types.FrameHandlerFunction<any, any>,
     handlerOptions?: types.FramesRequestHandlerFunctionOptions<TPerRouteMiddleware>
   ) {
     const requestHandler = frames(handler, handlerOptions);
