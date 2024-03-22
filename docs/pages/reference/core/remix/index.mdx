@@ -1,0 +1,47 @@
+# Remix integration
+
+Frames.js can be easily integrated with [Remix](https://remix.run) applications.
+
+## Usage
+
+### Create Frames handler
+
+Frames handler is responsible for rendering your Frames and also reacts to user interactions with buttons.
+
+```tsx
+// app/routes/frames.tsx
+import { createFrames, Button } from "frames.js/remix";
+
+const frames = createFrames();
+const handleRequest = frames(async (ctx) => {
+  return {
+    image: <span>Test</span>,
+    buttons: [<Button action="post">Click me</Button>],
+  };
+});
+
+export const action = handleRequest;
+export const loader = handleRequest;
+```
+
+### Render initial frame on your existing page
+
+```tsx
+// app/routes/_index.tsx
+import { fetchMetadata } from "frames.js/remix";
+
+export async function loader({ request }) {
+  return {
+    // provide full URL to your /frames route
+    metaTags: await fetchMatadata(new URL("/frames", request.url)),
+  };
+}
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  return [{ title: "My Page" }, ...data.metaTags];
+};
+
+export default function Page() {
+  return <span>My page</span>;
+}
+```

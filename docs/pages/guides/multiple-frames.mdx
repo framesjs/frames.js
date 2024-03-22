@@ -1,0 +1,71 @@
+---
+title: "Multi-Page Frames"
+description: ""
+---
+
+# Multi-Page Frames
+
+You will want to connect multiple frames together. 
+There's two different ways of navigating between frames.
+
+The first way is by defining the `state` prop of a `Button`, and using that state to return a different Frame in the handler. See below
+
+```tsx
+import { Button } from "@frames.js/next";
+import { createFrames } from "@frames.js/next";
+
+const totalPages = 5;
+
+export const frames = createFrames({
+  basePath: "/examples/new-api/frames",
+  initialState: {
+    pageIndex: 0,
+  },
+});
+
+const handleRequest = frames(async (ctx) => {
+  const pageIndex = Number(ctx.searchParams.pageIndex || 0);
+
+  const imageUrl = `https://picsum.photos/seed/frames.js-${pageIndex}/300/200`;
+
+  return {
+    image: (
+      <div tw="flex flex-col">
+        <img width={300} height={200} src={imageUrl} alt="Image" />
+        <div tw="flex">
+          This is slide {pageIndex + 1} / {totalPages}
+        </div>
+      </div>
+    ),
+    buttons: [
+      <Button
+        action="post"
+        target={{
+          query: { pageIndex: (pageIndex - 1) % totalPages },
+        }}
+      >
+        ←
+      </Button>,
+      <Button
+        action="post"
+        target={{
+          query: { pageIndex: (pageIndex + 1) % totalPages },
+        }}
+      >
+        →
+      </Button>,
+    ],
+    textInput: "Type something!",
+  };
+});
+
+export const GET = handleRequest;
+export const POST = handleRequest;
+```
+
+The second way to navigate between frames is by defining a `Button` with `type`, `post`, with a `target` that points at another Frame.
+This can be a Frame on the same domain, or a Frame on another website entirely. In order to link between Frames in the same project, you need to set up a frames.js handler on the `POST` route of the path defined in the target.
+
+{/* 
+TODO: Link to examples
+ */}

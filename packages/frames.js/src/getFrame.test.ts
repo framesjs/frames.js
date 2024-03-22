@@ -16,7 +16,7 @@ describe("getFrame", () => {
 
   const sampleFrame = {
     version: "vNext",
-    image: "http:/example.com/image.png",
+    image: "http://example.com/image.png",
     buttons: [
       {
         label: "Green",
@@ -94,7 +94,7 @@ describe("getFrame", () => {
 
     expect(frame).toEqual({
       version: "vNext",
-      image: "http:/example.com/image.png",
+      image: "http://example.com/image.png",
       buttons: [
         {
           label: "1",
