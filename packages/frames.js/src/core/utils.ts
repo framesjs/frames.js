@@ -114,7 +114,7 @@ type ButtonInformation = {
 };
 
 export function parseSearchParams(url: URL): {
-  searchParams?: {
+  searchParams: {
     [k: string]: string;
   };
 } {

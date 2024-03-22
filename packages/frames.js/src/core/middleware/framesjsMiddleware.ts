@@ -6,7 +6,8 @@ import {
 } from "../utils";
 
 type FramesjsMiddlewareContext = {
-  searchParams?: {
+  /** the search params as an object. Empty will be an empty object */
+  searchParams: {
     [k: string]: string;
   };
   /**
