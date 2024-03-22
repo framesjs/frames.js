@@ -219,7 +219,7 @@ describe("renderResponse middleware", () => {
     expect((result as Response).status).toBe(500);
     expect((result as Response).headers.get("Content-Type")).toBe("text/plain");
     await expect((result as Response).text()).resolves.toBe(
-      "Only 4 buttons are allowed"
+      "Up to 4 buttons are allowed"
     );
   });
 
@@ -456,5 +456,42 @@ describe("renderResponse middleware", () => {
     expect((result as Response).status).toBe(200);
     const json = await (result as Response).json();
     expect(json["fc:frame:button:1:target"]).toBe(expectedUrl.toString());
+  });
+
+  it("ignores null/undefined buttons are correctly assigns indexes", async () => {
+    context.request = new Request("http://example.com", {
+      method: "POST",
+      headers: {
+        Accept: FRAMES_META_TAGS_HEADER,
+      },
+    });
+    const result = await render(context, async () => {
+      return {
+        image: <div>My image</div>,
+        buttons: [
+          <Button
+            action="post"
+            target={{ pathname: "/", query: { value: true } }}
+          >
+            Click me 1
+          </Button>,
+          null,
+          true,
+          <Button action="post" target="/">
+            Click me 2
+          </Button>,
+        ],
+      };
+    });
+
+    expect(result).toBeInstanceOf(Response);
+    expect((result as Response).status).toBe(200);
+    const json = await (result as Response).json();
+    expect(json).toMatchObject({
+      "fc:frame:button:1": "Click me 1",
+      "fc:frame:button:1:target": expect.any(String),
+      "fc:frame:button:2": "Click me 2",
+      "fc:frame:button:2:target": expect.any(String),
+    });
   });
 });
