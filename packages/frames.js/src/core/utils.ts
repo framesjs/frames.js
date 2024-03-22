@@ -57,7 +57,13 @@ export function generateTargetURL({
       formatUrl({
         ...url,
         ...target,
-        pathname: [basePath ?? "/", target.pathname].filter(Boolean).join("/"),
+        pathname:
+          "/" +
+          [basePath ?? "", "/", target.pathname ?? ""]
+            .join("")
+            .split("/")
+            .filter(Boolean)
+            .join("/"),
       })
     );
   }
