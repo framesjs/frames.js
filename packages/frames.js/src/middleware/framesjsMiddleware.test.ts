@@ -45,7 +45,7 @@ describe("framesjsMiddleware middleware", () => {
         action: "post",
         index: 1,
       },
-      searchParams: { test: "true", __bi: "1:p" },
+      searchParams: { test: "true", __bi: "1-p" },
     });
   });
 
@@ -72,7 +72,7 @@ describe("framesjsMiddleware middleware", () => {
         index: 1,
       },
       searchParams: {
-        __bi: "1:pr",
+        __bi: "1-pr",
       },
     });
   });
@@ -178,7 +178,7 @@ describe("framesjsMiddleware middleware", () => {
     await middleware(context, next);
 
     expect(next).toHaveBeenCalledWith({
-      searchParams: { __bi: "1:p", test: "true" },
+      searchParams: { __bi: "1-p", test: "true" },
     });
   });
 });
