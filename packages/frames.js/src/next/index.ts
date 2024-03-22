@@ -1,6 +1,7 @@
 import { createFrames as coreCreateFrames, types } from "../core";
 import type { NextRequest, NextResponse } from "next/server";
 import { CoreMiddleware } from "../middleware";
+import { getCurrentUrl } from "./getCurrentUrl";
 export { Button, type types } from "../core";
 
 export { fetchMetadata } from "./fetchMetadata";
@@ -43,8 +44,12 @@ export const createFrames: CreateFramesForNextJS =
       handler: types.FrameHandlerFunction<any, any>,
       handlerOptions?: types.FramesRequestHandlerFunctionOptions<TPerRouteMiddleware>
     ) {
-      return frames(handler, handlerOptions) as unknown as (
-        req: NextRequest
-      ) => Promise<NextResponse>;
+      const handleRequest = frames(handler, handlerOptions);
+
+      return (req) => {
+        const url = getCurrentUrl(req) ?? req.url;
+
+        return handleRequest(new Request(url, req));
+      };
     };
   };
