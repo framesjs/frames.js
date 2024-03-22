@@ -1,13 +1,17 @@
 /* eslint-disable react/jsx-key */
 import { getTokenUrl } from "frames.js";
+import { farcasterHubContext } from "frames.js/middleware";
+import { Button, createFrames } from "frames.js/next";
 import { zora } from "viem/chains";
-import { Button } from "frames.js/next";
+import { DEFAULT_DEBUGGER_HUB_URL } from "../../../debug";
 
-import { createFrames } from "frames.js/next";
-
-// @todo here is issue with exporting, ts2742, how to fix it?
-export const frames = createFrames({
+const frames = createFrames({
   basePath: "/examples/new-api-only-followers-can-mint/frames",
+  middleware: [
+    farcasterHubContext({
+      hubHttpUrl: DEFAULT_DEBUGGER_HUB_URL,
+    }),
+  ],
 });
 
 const handleRequest = frames(async (ctx) => {
@@ -36,9 +40,6 @@ const handleRequest = frames(async (ctx) => {
       </div>
     ),
     buttons: [
-      <Button action="post" target={{ query: { page: "result" } }}>
-        Check again
-      </Button>,
       ctx.message?.requesterFollowsCaster ? (
         <Button
           action="mint"
@@ -51,7 +52,11 @@ const handleRequest = frames(async (ctx) => {
         >
           Mint
         </Button>
-      ) : null,
+      ) : (
+        <Button action="post" target={{ query: { page: "result" } }}>
+          Check again
+        </Button>
+      ),
     ],
   };
 });
