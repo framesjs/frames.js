@@ -9,7 +9,7 @@ description: "A guide on how to use images inside of frames"
 
 ```tsx
 // ...
-const handleRequest = frames(async ({ message }) => {
+const handleRequest = frames(async (ctx) => {
   return {
     // ...
     image: "https://picsum.photos/seed/frames.js/1146/600",
@@ -25,7 +25,7 @@ Secondly, dynamic images have a size limit of 256kB, which can easily be crossed
 
 ```tsx
 // ...
-const handleRequest = frames(async ({ message }) => {
+const handleRequest = frames(async (ctx) => {
   return {
     // ...
     image: (

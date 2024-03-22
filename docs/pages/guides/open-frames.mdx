@@ -11,7 +11,7 @@ You can define your frame as supporting multiple Open Frames compatible protocol
 
 ```tsx
 // ...
-const handleRequest = frames(async ({ message }) => {
+const handleRequest = frames(async (ctx) => {
   return {
     // ...
     accepts: [{
@@ -29,8 +29,8 @@ and access the protocol used to sign the Frame Message via the `clientProtocol` 
 
 ```tsx
 // ...
-const handleRequest = frames(async ({ clientProtocol }) => {
-  if(clientProtocol === "farcaster"){
+const handleRequest = frames(async (ctx) => {
+  if(ctx.clientProtocol === "farcaster"){
     // ...
   }
 });

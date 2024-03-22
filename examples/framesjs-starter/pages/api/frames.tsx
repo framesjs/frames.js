@@ -4,12 +4,12 @@ import { createFrames, Button } from "frames.js/next/pages-router";
 const frames = createFrames({
   basePath: "/api/frames",
 });
-const handleRequest = frames(async ({ pressedButton, message }) => {
+const handleRequest = frames(async (ctx) => {
   return {
     image: (
       <span>
-        Hello there: {pressedButton ? "✅" : "❌"}
-        {message?.inputText ? `, Typed: ${message?.inputText}` : ""}
+        Hello there: {ctx.pressedButton ? "✅" : "❌"}
+        {ctx.message?.inputText ? `, Typed: ${ctx.message?.inputText}` : ""}
       </span>
     ),
     buttons: [

@@ -7,7 +7,7 @@ You can set the caching policy of your frames by defining the `Cache-Control` he
 
 ```tsx
 // ...
-const handleRequest = frames(async ({ message }) => {
+const handleRequest = frames(async (ctx) => {
   return {
     // ...
     headers: {

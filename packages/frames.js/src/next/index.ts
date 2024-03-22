@@ -21,7 +21,7 @@ type CreateFramesForNextJS = types.CreateFramesFunctionDefinition<
  * import { NextApiRequest, NextApiResponse } from 'next';
  *
  * const frames = createFrames();
- * const nextHandler = frames(async ({ request }) => {
+ * const nextHandler = frames(async (ctx) => {
  *  return {
  *    image: <span>Test</span>,
  *    buttons: [

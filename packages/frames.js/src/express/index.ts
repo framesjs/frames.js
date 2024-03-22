@@ -29,7 +29,7 @@ type CreateFramesForExpress = types.CreateFramesFunctionDefinition<
  *
  * const app = express();
  * const frames = createFrames();
- * const expressHandler = frames(async ({ request }) => {
+ * const expressHandler = frames(async (ctx) => {
  *  return {
  *   image: <span>Test</span>,
  *    buttons: [

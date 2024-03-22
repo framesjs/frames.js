@@ -2,12 +2,12 @@
 import { Button } from "frames.js/next";
 import { frames } from "./frames";
 
-const handleRequest = frames(async ({ pressedButton, message }) => {
+const handleRequest = frames(async (ctx) => {
   return {
     image: (
       <span>
-        Hello there: {pressedButton ? "✅" : "❌"}
-        {message?.inputText ? `, Typed: ${message?.inputText}` : ""}
+        Hello there: {ctx.pressedButton ? "✅" : "❌"}
+        {ctx.message?.inputText ? `, Typed: ${ctx.message?.inputText}` : ""}
       </span>
     ),
     buttons: [

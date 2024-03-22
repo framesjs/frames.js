@@ -21,7 +21,7 @@ type CreateFramesForRemix = types.CreateFramesFunctionDefinition<
  * import type { LoaderFunction, ActionFunction } from '@remix-run/node';
  *
  * const frames = createFrames();
- * const remixHandler = frames(async ({ request }) => {
+ * const remixHandler = frames(async (ctx) => {
  *  return {
  *    image: <span>Test</span>,
  *    buttons: [

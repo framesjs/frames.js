@@ -19,7 +19,7 @@ type CreateFramesForHono = types.CreateFramesFunctionDefinition<
  * import { Honoe } from 'hono';
  *
  * const frames = createFrames();
- * const honoHandler = frames(async ({ request }) => {
+ * const honoHandler = frames(async (ctx) => {
  *  return {
  *   image: <span>Test</span>,
  *    buttons: [

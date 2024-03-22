@@ -1,12 +1,12 @@
 /* eslint-disable react/jsx-key */
-import { Button } from "@frames.js/next";
-import { createFrames } from "@frames.js/next";
+import { Button } from "frames.js/next";
+import { createFrames } from "frames.js/next";
 
 const frames = createFrames({
   basePath: "/examples/new-api-cache-control",
 });
 
-const handleRequest = frames(async ({ message }) => {
+const handleRequest = frames(async (ctx) => {
   return {
     image: (
       <div tw="bg-purple-800 text-white w-full h-full justify-center items-center flex">

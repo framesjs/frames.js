@@ -10,9 +10,9 @@ The default frames.js middleware verifies Frame Actions against corresponding se
 The contents of this verification, including additional context can be accessed via the `message` object
 
 ```tsx
-const handleRequest = frames(async ({ message }) => {
-    // message.isValid
-    // message.casterFollowsRequester
+const handleRequest = frames(async (ctx) => {
+    // ctx.message.isValid
+    // ctx.message.casterFollowsRequester
     // ...
 });
 ```

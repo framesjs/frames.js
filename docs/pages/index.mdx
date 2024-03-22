@@ -73,15 +73,15 @@ export default function Home(props) {
 import { createFrames, Button } from 'frames.js/next';
 
 const frames = createFrames();
-const handleRequest = frames(async ({ message }) => {
+const handleRequest = frames(async (ctx) => {
   return {
     image: <div tw="w-full h-full bg-slate-700 text-white justify-center items-center">
-      {message?.state?.count ?? 0}
+      {ctx.message?.state?.count ?? 0}
     </div>,
     buttons: [
       <Button action="post">Increment counter</Button>
     ],
-    state: { count: (message?.state?.count ?? 0) + 1 }
+    state: { count: (ctx.message?.state?.count ?? 0) + 1 }
   };
 });
 
