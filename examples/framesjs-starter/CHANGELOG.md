@@ -1,5 +1,13 @@
 # framesjs-starter
 
+## 0.2.6
+
+### Patch Changes
+
+- 3ba85c5: fix: multi page example base url
+- Updated dependencies [dad61eb]
+  - frames.js@0.9.3
+
 ## 0.2.5
 
 ### Patch Changes

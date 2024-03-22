@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.9.3
+
+### Patch Changes
+
+- dad61eb: fix: update fetchMetadata tests
+
 ## 0.9.2
 
 ### Patch Changes

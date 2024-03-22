@@ -1,6 +1,6 @@
 {
   "name": "framesjs-starter",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "private": true,
   "scripts": {
     "dev": "node ./scripts/dev-script.js",
@@ -19,7 +19,7 @@
     "@xmtp/frames-validator": "^0.5.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
-    "frames.js": "^0.9.0",
+    "frames.js": "^0.9.3",
     "lucide-react": "^0.331.0",
     "next": "^14.1.0",
     "react": "^18.2.0",
