@@ -20,12 +20,10 @@ This button sends a request to a URL on which it was rendered. If you want to na
 
 The `target` path will be resolved relatively to current URL.
 
-### Passing state when button is clicked
-
-Optionally you can provide a small state to your target when the button is clicked by using `state` prop which accepts any JSON serializable value.
+### Passing state when button is clicked using query parameters
 
 ```tsx
-<Button action="post" target="/next-route" state={{ foo: "bar" }}>
+<Button action="post" target={{ query: { foo: "bar" }, pathname: "/next-route"}}>
   Click me
 </Button>
 ```
@@ -41,7 +39,7 @@ It accepts same props as `post` button.
 ```tsx
 import { Button } from "frames.js/core";
 
-<Button action="post_redirect" target="/next-route" state="optional-state">
+<Button action="post_redirect" target={{ query: { foo: "bar" }, pathname: "/next-route"}}>
   Click me
 </Button>;
 ```

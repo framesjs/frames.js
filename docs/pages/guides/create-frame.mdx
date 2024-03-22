@@ -26,20 +26,20 @@ This guide shows you how to add frames rendering to your next.js + tailwind app 
 import { createFrames, Button } from "frames.js/next";
 
 const frames = createFrames();
-const handleRequest = frames(async ({ pressedButton }) => {
+const handleRequest = frames(async (ctx) => {
   return {
     image: (
       <span>
-        {pressedButton
-          ? `I clicked ${pressedButton.state}`
+        {ctx.pressedButton
+          ? `I clicked ${ctx.searchParams.value}`
           : `Click some button`}
       </span>
     ),
     buttons: [
-      <Button action="post" state="Yes">
+      <Button action="post" target={{ query: { value: "Yes" }}}>
         Say Yes
       </Button>,
-      <Button action="post" state="No">
+      <Button action="post" target={{ query: { value: "No" }}}>
         Say No
       </Button>,
     ],
