@@ -1,5 +1,5 @@
-import type { FrameFlattened } from "frames.js";
-import { FRAMES_META_TAGS_HEADER } from "frames.js/core";
+import type { FrameFlattened } from "..";
+import { FRAMES_META_TAGS_HEADER } from "../core";
 import { Metadata } from "next";
 
 /**
@@ -7,7 +7,7 @@ import { Metadata } from "next";
  *
  * @example
  * import type { Metadata } from "next";
- * import { fetchMetadata } from "@frames.js/next";
+ * import { fetchMetadata } from "frames.js/next";
  *
  * export async function generateMetadata(): Promise<Metadata> {
  *  return {

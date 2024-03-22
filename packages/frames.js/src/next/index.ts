@@ -2,9 +2,9 @@ import {
   DefaultMiddleware,
   createFrames as coreCreateFrames,
   types,
-} from "frames.js/core";
+} from "../core";
 import type { NextRequest, NextResponse } from "next/server";
-export { Button, type types } from "frames.js/core";
+export { Button, type types } from "../core";
 
 export { fetchMetadata } from "./fetchMetadata";
 
@@ -17,7 +17,7 @@ type CreateFramesForNextJS = types.CreateFramesFunctionDefinition<
  * Creates Frames instance to use with you Next.js server
  *
  * @example
- * import { createFrames, Button } from '@frames.js/next';
+ * import { createFrames, Button } from 'frames.js/next';
  * import { NextApiRequest, NextApiResponse } from 'next';
  *
  * const frames = createFrames();
@@ -35,6 +35,7 @@ type CreateFramesForNextJS = types.CreateFramesFunctionDefinition<
  * export const GET = nextHandler;
  * export const POST = nextHandler;
  */
+// @ts-expect-error
 export const createFrames: CreateFramesForNextJS =
   function createFramesForNextJS(options?: types.FramesOptions<any>) {
     const frames = coreCreateFrames(options);

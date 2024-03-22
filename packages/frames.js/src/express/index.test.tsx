@@ -1,7 +1,7 @@
 import express from "express";
 import request from "supertest";
 import * as lib from ".";
-import { FRAMES_META_TAGS_HEADER } from "frames.js/core";
+import { FRAMES_META_TAGS_HEADER } from "../core";
 
 describe("express adapter", () => {
   it.each(["createFrames", "Button"])("exports %s", (exportName) => {

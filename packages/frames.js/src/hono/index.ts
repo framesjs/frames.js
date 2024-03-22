@@ -1,9 +1,9 @@
-export { Button, type types } from "frames.js/core";
+export { Button, type types } from "../core";
 import {
   DefaultMiddleware,
   createFrames as coreCreateFrames,
   types,
-} from "frames.js/core";
+} from "../core";
 import type { Handler } from "hono";
 
 type CreateFramesForHono = types.CreateFramesFunctionDefinition<
@@ -15,7 +15,7 @@ type CreateFramesForHono = types.CreateFramesFunctionDefinition<
  * Creates Frames instance to use with you Hono server
  *
  * @example
- * import { createFrames, Button } from '@frames.js/hono';
+ * import { createFrames, Button } from 'frames.js/hono';
  * import { Honoe } from 'hono';
  *
  * const frames = createFrames();
@@ -34,6 +34,7 @@ type CreateFramesForHono = types.CreateFramesFunctionDefinition<
  *
  * app.on(['GET', 'POST'], '/', honoHandler);
  */
+// @ts-expect-error
 export const createFrames: CreateFramesForHono = function createFramesForHono(
   options?: types.FramesOptions<any>
 ) {
