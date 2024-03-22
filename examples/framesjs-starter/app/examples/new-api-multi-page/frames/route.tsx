@@ -1,6 +1,5 @@
 /* eslint-disable react/jsx-key */
-import { Button } from "@frames.js/next";
-import { createFrames } from "@frames.js/next";
+import { createFrames, Button } from "frames.js/next";
 
 const totalPages = 5;
 
@@ -12,14 +11,14 @@ export const frames = createFrames({
 });
 
 const handleRequest = frames(async ({ clickedButton, message, state }) => {
-  const imageUrl = `https://picsum.photos/seed/frames.js-${state.pageIndex}/1146/600`;
+  const imageUrl = `https://picsum.photos/seed/frames.js-${state.pageIndex}/300/200`;
 
   return {
     image: (
       <div tw="flex flex-col">
-        <img width={573} height={300} src={imageUrl} alt="Image" />
+        <img width={400} height={200} src={imageUrl} alt="Image" />
         <div tw="flex">
-          This is slide {message?.state?.pageIndex + 1} / {totalPages}
+          This is slide {state?.pageIndex + 1} / {totalPages}
         </div>
       </div>
     ),
