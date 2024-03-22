@@ -3,10 +3,18 @@ import { RequestBodyNotJSONError } from "../errors";
 import { FramesMiddleware, FramesMiddlewareReturnType } from "../types";
 import { isFrameDefinition } from "../utils";
 
-type FramesMessageContext = {
-  // TODO: this should extend a base FrameMessage with common fields
-  message?: any;
-  clientProtocol?: string;
+type OpenFrameMessage = any;
+
+export type OpenFramesMessageContext<T = OpenFrameMessage> = {
+  message?: Partial<T>;
+  clientProtocol?: ClientProtocolId;
+};
+
+export type ClientProtocolHandler<T = OpenFrameMessage> = {
+  // eslint-disable-next-line no-unused-vars
+  getFrameMessage: (body: JSON) => Promise<T | undefined> | undefined;
+  // eslint-disable-next-line no-unused-vars
+  isValidPayload: (body: JSON) => boolean;
 };
 
 async function cloneJsonBody(request: Request): Promise<JSON | undefined> {
@@ -31,71 +39,65 @@ async function cloneJsonBody(request: Request): Promise<JSON | undefined> {
   }
 }
 
-async function nextInjectClientProtocols({
+async function nextInjectAcceptedClient({
   nextResult,
-  accepts,
+  clientProtocol,
 }: {
   nextResult: FramesMiddlewareReturnType;
-  accepts: ClientProtocolId[];
+  clientProtocol: ClientProtocolId;
 }) {
   const result = await nextResult;
   if (isFrameDefinition(result)) {
-    return { ...result, accepts };
+    return { ...result, accepts: [...(result.accepts || []), clientProtocol] };
   }
   return result;
 }
 
-export function openframes({
-  clientProtocolHandlers: handlers,
+export function openframes<T = OpenFrameMessage>({
+  clientProtocol: clientProtocolRaw,
+  handler,
 }: {
   /**
-   * Validators and handlers for frame messages from different client protocols.
-   * Key is the client protocol ID (e.g. "id@version")
-   * Value is an object containing a frame message validator and handler
+   * Validator and and handler for frame messages from a supported client protocol.
+   * `clientProtocol` is the ID of the client protocol in the form of a ClientProtocolId object or a string of the shape `"id@version"`
+   * Handler is an object containing a frame message validator and handler
    * The output of the handler is added to the context as `message`
    */
-  clientProtocolHandlers: Record<
-    string,
-    {
-      // TODO: better types
-      getFrameMessage: (body: JSON) => Promise<any | undefined> | undefined;
-      isValidPayload: (body: JSON) => Boolean;
-    }
-  >;
-}): FramesMiddleware<FramesMessageContext> {
+  clientProtocol: ClientProtocolId | `${string}@${string}`;
+  handler: ClientProtocolHandler<T>;
+}): FramesMiddleware<OpenFramesMessageContext<T>> {
   return async (context, next) => {
-    const accepts: ClientProtocolId[] = Object.keys(handlers)
-      .map((clientProtocol) => {
-        const [id, version] = clientProtocol.split("@");
-        if (!id || !version) {
-          return undefined;
-        }
-
-        return { id, version };
-      })
-      .filter(Boolean) as ClientProtocolId[];
+    const clientProtocol: ClientProtocolId =
+      typeof clientProtocolRaw === "string"
+        ? {
+            id: clientProtocolRaw.split("@")[0]!,
+            version: clientProtocolRaw.split("@")[1]!,
+          }
+        : clientProtocolRaw;
 
     // frame message is available only if the request is a POST request
     if (context.request.method !== "POST") {
-      return nextInjectClientProtocols({ nextResult: next(), accepts });
+      return nextInjectAcceptedClient({
+        nextResult: next(),
+        clientProtocol: clientProtocol,
+      });
     }
 
     const json = await cloneJsonBody(context.request);
 
     if (!json) {
-      return nextInjectClientProtocols({ nextResult: next(), accepts });
+      return nextInjectAcceptedClient({
+        nextResult: next(),
+        clientProtocol,
+      });
     }
 
-    // Find first handler with key
-    const clientHandler = Object.entries(handlers).find(([, handler]) => {
-      return handler.isValidPayload(json);
-    });
-
-    if (!clientHandler) {
-      return nextInjectClientProtocols({ nextResult: next(), accepts });
+    if (!handler.isValidPayload(json)) {
+      return nextInjectAcceptedClient({
+        nextResult: next(),
+        clientProtocol,
+      });
     }
-
-    const [clientProtocol, handler] = clientHandler;
 
     const message = await handler.getFrameMessage(json);
 
