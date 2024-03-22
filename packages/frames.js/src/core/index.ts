@@ -1,5 +1,5 @@
-export { createFrames, type DefaultMiddleware } from "./createFrames";
-export { concurrentMiddleware } from "./middleware/concurrentMiddleware";
+export { createFrames } from "./createFrames";
+export { concurrentMiddleware } from "../middleware/concurrentMiddleware";
 export { composeMiddleware } from "./composeMiddleware";
 export { Button } from "./components";
 export { redirect } from "./redirect";

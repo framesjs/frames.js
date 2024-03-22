@@ -1,4 +1,7 @@
-import type { FramesContextFromMiddlewares, FramesMiddleware } from "../types";
+import type {
+  FramesContextFromMiddlewares,
+  FramesMiddleware,
+} from "../core/types";
 
 /**
  * Runs provided middlewares concurrently. Each middleware should be isolated and not depend on some context value that could be provided by some other middleware that can potentially run in parallel.

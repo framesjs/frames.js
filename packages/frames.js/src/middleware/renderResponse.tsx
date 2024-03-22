@@ -1,18 +1,18 @@
 import React from "react";
 import { ImageResponse } from "@vercel/og";
-import { type Frame, getFrameFlattened, getFrameHtmlHead } from "../..";
-import type { ButtonProps } from "../components";
-import type {
+import { type Frame, getFrameFlattened, getFrameHtmlHead } from "..";
+import type { ButtonProps } from "../core/components";
+import {
   FrameDefinition,
   FramesHandlerFunctionReturnType,
   FramesMiddleware,
-} from "../types";
+} from "../core/types";
 import {
   generatePostButtonTargetURL,
   generateTargetURL,
   isFrameRedirect,
-} from "../utils";
-import { FRAMES_META_TAGS_HEADER } from "..";
+} from "../core/utils";
+import { FRAMES_META_TAGS_HEADER } from "../core";
 
 class InvalidButtonShapeError extends Error {}
 

@@ -1,3 +1,6 @@
+import { coreMiddleware } from "../middleware";
+import { stateMiddleware } from "../middleware/stateMiddleware";
+import { composeMiddleware } from "./composeMiddleware";
 import type {
   FramesContext,
   FramesMiddleware,
@@ -6,19 +9,6 @@ import type {
   FramesRequestHandlerFunction,
   JsonValue,
 } from "./types";
-import { composeMiddleware } from "./composeMiddleware";
-import { renderResponse } from "./middleware/renderResponse";
-import { framesjsMiddleware } from "./middleware/framesjsMiddleware";
-import { parseFramesMessage } from "./middleware/parseFramesMessage";
-import { stateMiddleware } from "./middleware/stateMiddleware";
-
-const defaultMiddleware = [
-  renderResponse(),
-  framesjsMiddleware(),
-  parseFramesMessage(),
-] as const;
-
-export type DefaultMiddleware = typeof defaultMiddleware;
 
 export function createFrames<
   TState extends JsonValue | undefined,
@@ -29,7 +19,7 @@ export function createFrames<
   middleware,
 }: FramesOptions<TState, TMiddlewares> = {}): FramesRequestHandlerFunction<
   TState,
-  typeof defaultMiddleware,
+  typeof coreMiddleware,
   TMiddlewares,
   (req: Request) => Promise<Response>
 > {
@@ -47,7 +37,7 @@ export function createFrames<
       FramesContext<TState>,
       FramesMiddlewareReturnType<TState>
     >([
-      ...defaultMiddleware,
+      ...coreMiddleware,
       // @ts-expect-error hard to type internally so skipping for now
       ...globalMiddleware,
       // @ts-expect-error hard to type internally so skipping for now

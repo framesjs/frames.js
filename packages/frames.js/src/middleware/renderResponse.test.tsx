@@ -1,7 +1,7 @@
-import { FRAMES_META_TAGS_HEADER } from "..";
-import { Button } from "../components";
-import { redirect } from "../redirect";
-import type { FramesContext } from "../types";
+import { FRAMES_META_TAGS_HEADER } from "../core";
+import { Button } from "../core/components";
+import { redirect } from "../core/redirect";
+import type { FramesContext } from "../core/types";
 import { renderResponse } from "./renderResponse";
 import * as vercelOg from "@vercel/og";
 

@@ -1,4 +1,4 @@
-import { FramesMiddleware, JsonValue } from "../types";
+import { FramesMiddleware, JsonValue } from "../core/types";
 
 type StateMiddlewareContext<TState extends JsonValue | undefined> = {
   /**

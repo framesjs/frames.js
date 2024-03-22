@@ -1,6 +1,6 @@
-import { redirect } from "../redirect";
-import type { FramesContext } from "../types";
-import { generatePostButtonTargetURL } from "../utils";
+import { redirect } from "../core/redirect";
+import type { FramesContext } from "../core/types";
+import { generatePostButtonTargetURL } from "../core/utils";
 import { framesjsMiddleware } from "./framesjsMiddleware";
 
 describe("framesjsMiddleware middleware", () => {

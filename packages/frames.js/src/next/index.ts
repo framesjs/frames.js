@@ -1,15 +1,12 @@
-import {
-  DefaultMiddleware,
-  createFrames as coreCreateFrames,
-  types,
-} from "../core";
+import { createFrames as coreCreateFrames, types } from "../core";
 import type { NextRequest, NextResponse } from "next/server";
+import { CoreMiddleware } from "../middleware";
 export { Button, type types } from "../core";
 
 export { fetchMetadata } from "./fetchMetadata";
 
 type CreateFramesForNextJS = types.CreateFramesFunctionDefinition<
-  DefaultMiddleware,
+  CoreMiddleware,
   (req: NextRequest) => Promise<NextResponse>
 >;
 

@@ -4,19 +4,16 @@ import type {
   Response as ExpressResponse,
 } from "express";
 import type { IncomingHttpHeaders } from "node:http";
-import {
-  DefaultMiddleware,
-  createFrames as coreCreateFrames,
-  types,
-} from "../core";
+import { createFrames as coreCreateFrames, types } from "../core";
 import {
   createReadableStreamFromReadable,
   writeReadableStreamToWritable,
 } from "../lib/stream-pump";
+import { CoreMiddleware } from "../middleware";
 export { Button, type types } from "../core";
 
 type CreateFramesForExpress = types.CreateFramesFunctionDefinition<
-  DefaultMiddleware,
+  CoreMiddleware,
   ExpressHandler
 >;
 

@@ -1,9 +1,9 @@
-import type { FramesMiddleware } from "../types";
+import { FramesMiddleware } from "../core/types";
 import {
   isFrameRedirect,
   parseButtonInformationFromTargetURL,
   parseSearchParams,
-} from "../utils";
+} from "../core/utils";
 
 type FramesjsMiddlewareContext = {
   /** the search params as an object. Empty will be an empty object */

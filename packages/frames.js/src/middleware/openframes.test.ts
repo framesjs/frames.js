@@ -8,13 +8,17 @@ import {
   XmtpFrameMessageReturnType,
   getXmtpFrameMessage,
   isXmtpFrameActionPayload,
-} from "../../xmtp";
-import { redirect } from "../redirect";
-import { FrameDefinition, FramesContext, FramesMiddleware } from "../types";
-import { isFrameDefinition } from "../utils";
+} from "../xmtp";
+import { redirect } from "../core/redirect";
+import {
+  FrameDefinition,
+  FramesContext,
+  FramesMiddleware,
+} from "../core/types";
+import { isFrameDefinition } from "../core/utils";
 import { OpenFramesMessageContext, openframes } from "./openframes";
 import { renderResponse } from "./renderResponse";
-import { createFrames } from "..";
+import { createFrames } from "../core";
 
 export function convertWalletClientToSigner(
   walletClient: WalletClient
