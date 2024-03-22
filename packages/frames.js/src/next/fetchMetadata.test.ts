@@ -29,13 +29,11 @@ describe("fetchMetadata", () => {
     });
   });
 
-  it("throws on invalid response", async () => {
+  it("returns empty object on failed response", async () => {
     nock("http://localhost:3000").get("/frames").reply(404);
 
     await expect(
       fetchMetadata(new URL("/frames", "http://localhost:3000"))
-    ).rejects.toThrow(
-      "Failed to fetch frames metadata from http://localhost:3000/frames. The server returned 404 Not Found response."
-    );
+    ).resolves.toEqual({});
   });
 });
