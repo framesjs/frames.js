@@ -1,8 +1,6 @@
+/* eslint-disable react/jsx-key */
 import { getTokenUrl } from "frames.js";
 import { zora } from "viem/chains";
-import { DEFAULT_DEBUGGER_HUB_URL, createDebugUrl } from "../../debug";
-import { currentURL } from "../../utils";
-/* eslint-disable react/jsx-key */
 import { Button } from "frames.js/next";
 
 import { createFrames } from "frames.js/next";
@@ -10,11 +8,11 @@ import { createFrames } from "frames.js/next";
 // @todo here is issue with exporting, ts2742, how to fix it?
 export const frames = createFrames({
   basePath: "/examples/new-api-only-followers-can-mint/frames",
-  initialState: { page: "initial" },
 });
 
-const handleRequest = frames(async ({ pressedButton, message, state }) => {
-  if (state.page === "initial")
+const handleRequest = frames(async (ctx) => {
+  const page = ctx.searchParams?.page ?? "initial";
+  if (page === "initial")
     return {
       image: (
         <span>
@@ -24,7 +22,7 @@ const handleRequest = frames(async ({ pressedButton, message, state }) => {
         </span>
       ),
       buttons: [
-        <Button action="post" state={{ page: "result" }}>
+        <Button action="post" target={{ query: { page: "result" } }}>
           Am I?
         </Button>,
       ],
@@ -32,16 +30,16 @@ const handleRequest = frames(async ({ pressedButton, message, state }) => {
   return {
     image: (
       <div style={{ display: "flex", flexDirection: "column" }}>
-        {message?.requesterFollowsCaster
+        {ctx.message?.requesterFollowsCaster
           ? "You are following the caster."
           : "You are not following the caster"}
       </div>
     ),
     buttons: [
-      <Button action="post" state={{ page: "result" }}>
+      <Button action="post" target={{ query: { page: "result" } }}>
         Check again
       </Button>,
-      message?.requesterFollowsCaster ? (
+      ctx.message?.requesterFollowsCaster ? (
         <Button
           action="mint"
           key="mint-button"
