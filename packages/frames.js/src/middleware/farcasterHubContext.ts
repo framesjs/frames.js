@@ -1,4 +1,5 @@
 import {
+  ClientProtocolId,
   FrameActionPayload,
   FrameMessageReturnType,
   HubHttpUrlOptions,
@@ -59,6 +60,7 @@ type FrameMessage = Omit<
 
 type FramesMessageContext = {
   message?: FrameMessage;
+  clientProtocol?: ClientProtocolId;
 };
 
 export function farcasterHubContext(
@@ -84,6 +86,10 @@ export function farcasterHubContext(
 
     return next({
       message,
+      clientProtocol: {
+        id: "farcaster",
+        version: "vNext", // TODO: Pass version in getFrameMessage
+      },
     });
   };
 }

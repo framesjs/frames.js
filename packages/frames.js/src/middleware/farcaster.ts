@@ -1,4 +1,5 @@
 import {
+  ClientProtocolId,
   FrameActionPayload,
   FrameMessageReturnType,
   getFrameMessage,
@@ -58,6 +59,7 @@ type FrameMessage = Omit<
 
 type FramesMessageContext = {
   message?: FrameMessage;
+  clientProtocol?: ClientProtocolId;
 };
 
 export function farcaster(): FramesMiddleware<any, FramesMessageContext> {
@@ -80,6 +82,10 @@ export function farcaster(): FramesMiddleware<any, FramesMessageContext> {
 
     return next({
       message,
+      clientProtocol: {
+        id: "farcaster",
+        version: "vNext",
+      },
     });
   };
 }

@@ -45,7 +45,6 @@ const handleRequest = frames(async (ctx) => {
         Who am I?
       </Button>,
     ],
-    textInput: "Type something!",
   };
 });
 
