@@ -103,7 +103,7 @@ export function generatePostButtonTargetURL({
   // Internal param, store what button has been clicked in the URL.
   url.searchParams.set(
     BUTTON_INFORMATION_SEARCH_PARAM_NAME,
-    `${buttonIndex}:${buttonActionToCode[buttonAction]}`
+    `${buttonIndex}-${buttonActionToCode[buttonAction]}`
   );
 
   return url.toString();
@@ -138,7 +138,7 @@ export function parseButtonInformationFromTargetURL(
     return undefined;
   }
 
-  const [buttonIndex, buttonActionCode] = buttonInformation.split(":");
+  const [buttonIndex, buttonActionCode] = buttonInformation.split("-");
 
   if (!buttonIndex || !buttonActionCode) {
     return undefined;

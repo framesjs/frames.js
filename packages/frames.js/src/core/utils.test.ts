@@ -6,7 +6,7 @@ import {
 describe("generatePostButtonTargetURL", () => {
   it("generates an URL for post button without target and without state", () => {
     const expected = new URL("/test", "http://test.com");
-    expected.searchParams.set("__bi", "1:p");
+    expected.searchParams.set("__bi", "1-p");
 
     expect(
       generatePostButtonTargetURL({
@@ -22,7 +22,7 @@ describe("generatePostButtonTargetURL", () => {
   it("generates an URL for post button without target and with state", () => {
     const expected = new URL("/", "http://test.com");
     expected.searchParams.set("test", "test");
-    expected.searchParams.set("__bi", "1:p");
+    expected.searchParams.set("__bi", "1-p");
 
     expect(
       generatePostButtonTargetURL({
@@ -37,7 +37,7 @@ describe("generatePostButtonTargetURL", () => {
 
   it("generates an URL for post button with target and without state", () => {
     const expected = new URL("/test", "http://test.com");
-    expected.searchParams.set("__bi", "1:p");
+    expected.searchParams.set("__bi", "1-p");
 
     expect(
       generatePostButtonTargetURL({
@@ -53,7 +53,7 @@ describe("generatePostButtonTargetURL", () => {
   it("generates an URL for post button with target and with state", () => {
     const expected = new URL("/test", "http://test.com");
     expected.searchParams.set("test", "test");
-    expected.searchParams.set("__bi", "1:p");
+    expected.searchParams.set("__bi", "1-p");
 
     expect(
       generatePostButtonTargetURL({
@@ -70,7 +70,7 @@ describe("generatePostButtonTargetURL", () => {
     "resolves target relatively to basePath and current path %s",
     (currentPath) => {
       const expected = new URL("/prefixed/test/my-target", "http://test.com");
-      expected.searchParams.set("__bi", "1:p");
+      expected.searchParams.set("__bi", "1-p");
 
       expect(
         generatePostButtonTargetURL({
@@ -86,7 +86,7 @@ describe("generatePostButtonTargetURL", () => {
 
   it("also supports post_redirect button", () => {
     const expected = new URL("/test", "http://test.com");
-    expected.searchParams.set("__bi", "1:pr");
+    expected.searchParams.set("__bi", "1-pr");
 
     expect(
       generatePostButtonTargetURL({
@@ -116,21 +116,21 @@ describe("parseButtonInformationFromTargetURL", () => {
 
   it("returns undefined if button index is not valid", () => {
     const url = new URL("http://test.com");
-    url.searchParams.set("__bi", "5:p");
+    url.searchParams.set("__bi", "5-p");
 
     expect(parseButtonInformationFromTargetURL(url)).toBeUndefined();
   });
 
   it("returns undefined if button action is not valid", () => {
     const url = new URL("http://test.com");
-    url.searchParams.set("__bi", "1:unknown");
+    url.searchParams.set("__bi", "1-unknown");
 
     expect(parseButtonInformationFromTargetURL(url)).toBeUndefined();
   });
 
   it("parses button information from URL for post button", () => {
     const url = new URL("http://test.com");
-    url.searchParams.set("__bi", "1:p");
+    url.searchParams.set("__bi", "1-p");
 
     expect(parseButtonInformationFromTargetURL(url)).toEqual({
       action: "post",
@@ -140,7 +140,7 @@ describe("parseButtonInformationFromTargetURL", () => {
 
   it("parses button information from URL for post_redirect button", () => {
     const url = new URL("http://test.com");
-    url.searchParams.set("__bi", "1:pr");
+    url.searchParams.set("__bi", "1-pr");
 
     expect(parseButtonInformationFromTargetURL(url)).toEqual({
       action: "post_redirect",
@@ -150,7 +150,7 @@ describe("parseButtonInformationFromTargetURL", () => {
 
   it("parses state if button information is valid and state is present and is also valid", () => {
     const url = new URL("http://test.com");
-    url.searchParams.set("__bi", "1:p");
+    url.searchParams.set("__bi", "1-p");
     url.searchParams.set("test", "test");
 
     expect(parseButtonInformationFromTargetURL(url)).toEqual({

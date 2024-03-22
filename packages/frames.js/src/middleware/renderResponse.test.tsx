@@ -333,10 +333,10 @@ describe("renderResponse middleware", () => {
     expect(json["fc:frame:button:1"]).toBe("Tx button");
     expect(json["fc:frame:button:1:action"]).toBe("tx");
     expect(json["fc:frame:button:1:target"]).toBe(
-      "https://example.com/tx?__bi=1%3Ap"
+      "https://example.com/tx?__bi=1-p"
     );
     expect(json["fc:frame:button:1:post_url"]).toBe(
-      "https://example.com/txid?__bi=1%3Ap"
+      "https://example.com/txid?__bi=1-p"
     );
   });
 
@@ -450,7 +450,7 @@ describe("renderResponse middleware", () => {
 
     const expectedUrl = new URL("/test", "https://example.com");
     expectedUrl.searchParams.append("value", "true");
-    expectedUrl.searchParams.append("__bi", "1:p");
+    expectedUrl.searchParams.append("__bi", "1-p");
 
     expect(result).toBeInstanceOf(Response);
     expect((result as Response).status).toBe(200);
