@@ -54,7 +54,8 @@ export type FramesContext<TState extends JsonValue | undefined = JsonValue> = {
 
 type AllowedFramesContextShape = Record<string, any>;
 
-type FrameButtonElement = React.ReactComponentElement<typeof Button>;
+export type FrameButtonElement = React.ReactComponentElement<typeof Button>;
+type AllowedFrameButtonItems = FrameButtonElement | null | undefined | boolean;
 
 /**
  * Frame definition, this is rendered by the frames
@@ -72,14 +73,18 @@ export type FrameDefinition<TState extends JsonValue | undefined> = {
   } & ConstructorParameters<typeof ImageResponse>[1];
   buttons?:
     | []
-    | [FrameButtonElement]
-    | [FrameButtonElement, FrameButtonElement]
-    | [FrameButtonElement, FrameButtonElement, FrameButtonElement]
+    | [AllowedFrameButtonItems]
+    | [AllowedFrameButtonItems, AllowedFrameButtonItems]
     | [
-        FrameButtonElement,
-        FrameButtonElement,
-        FrameButtonElement,
-        FrameButtonElement,
+        AllowedFrameButtonItems,
+        AllowedFrameButtonItems,
+        AllowedFrameButtonItems,
+      ]
+    | [
+        AllowedFrameButtonItems,
+        AllowedFrameButtonItems,
+        AllowedFrameButtonItems,
+        AllowedFrameButtonItems,
       ];
   /**
    * Label for text input, if no value is provided the input is not rendered

@@ -3,6 +3,7 @@ import { ImageResponse } from "@vercel/og";
 import { type Frame, getFrameFlattened, getFrameHtmlHead } from "..";
 import type { ButtonProps } from "../core/components";
 import {
+  FrameButtonElement,
   FrameDefinition,
   FramesHandlerFunctionReturnType,
   FramesMiddleware,
@@ -115,14 +116,18 @@ export function renderResponse(): FramesMiddleware<any, {}> {
                   throw new ImageRenderError("Could not render image");
                 }
               ),
-        buttons: result.buttons?.map(
-          (button, i): NonNullable<Frame["buttons"]>[number] => {
+        buttons: result.buttons
+          ?.slice()
+          .filter(
+            (v: any): v is FrameButtonElement => v && typeof v === "object"
+          )
+          .map((button, i): NonNullable<Frame["buttons"]>[number] => {
             if (!("type" in button && "props" in button)) {
               throw new InvalidButtonShapeError("Invalid button provided");
             }
 
             if (i > 3) {
-              throw new InvalidButtonCountError("Only 4 buttons are allowed");
+              throw new InvalidButtonCountError("Up to 4 buttons are allowed");
             }
 
             const props = button.props as ButtonProps;
@@ -183,8 +188,7 @@ export function renderResponse(): FramesMiddleware<any, {}> {
                   "Unrecognized button action"
                 );
             }
-          }
-        ) as Frame["buttons"],
+          }) as Frame["buttons"],
         inputText: result.textInput,
         imageAspectRatio: result.imageOptions?.aspectRatio ?? "1.91:1",
         accepts: result.accepts,
