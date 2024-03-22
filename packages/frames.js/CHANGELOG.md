@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.9.1
+
+### Patch Changes
+
+- 66a1fe3: fix(nextjs): handle frames being unavailable during build time
+
 ## 0.9.0
 
 ### Minor Changes
