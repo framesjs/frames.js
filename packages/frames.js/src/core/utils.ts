@@ -62,7 +62,8 @@ export function generateTargetURL({
         href: url.href,
         // pathname: url.pathname,
         protocol: url.protocol,
-        search: url.search,
+        // we ignore existing search params and uses only new ones
+        // search: url.search,
         port: url.port,
         // query: url.searchParams,
         ...target,

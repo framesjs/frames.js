@@ -36,7 +36,6 @@ describe("renderResponse middleware", () => {
     initialState: undefined,
     request: new Request("https://example.com"),
     url: new URL("https://example.com"),
-    searchParams: {},
   };
 
   beforeEach(() => {
@@ -421,5 +420,41 @@ describe("renderResponse middleware", () => {
     await expect((result as Response).text()).resolves.toBe(
       JSON.stringify({ error: "Internal Server Error" })
     );
+  });
+
+  it("properly renders button with targer object containing query", async () => {
+    const url = new URL("https://example.com");
+    url.searchParams.set("some_existing_param", "1");
+
+    context.request = new Request(url, {
+      method: "POST",
+      headers: {
+        Accept: FRAMES_META_TAGS_HEADER,
+      },
+    });
+    context.url = url;
+    context.basePath = "/test";
+    const result = await render(context, async () => {
+      return {
+        image: <div>My image</div>,
+        buttons: [
+          <Button
+            action="post"
+            target={{ pathname: "/", query: { value: true } }}
+          >
+            Click me 1
+          </Button>,
+        ],
+      };
+    });
+
+    const expectedUrl = new URL("/test", "https://example.com");
+    expectedUrl.searchParams.append("value", "true");
+    expectedUrl.searchParams.append("__bi", "1:p");
+
+    expect(result).toBeInstanceOf(Response);
+    expect((result as Response).status).toBe(200);
+    const json = await (result as Response).json();
+    expect(json["fc:frame:button:1:target"]).toBe(expectedUrl.toString());
   });
 });
