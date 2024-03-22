@@ -11,6 +11,7 @@ There's two different ways of navigating between frames.
 The first way is by defining the `state` prop of a `Button`, and using that state to return a different Frame in the handler. See below
 
 ```tsx
+/* eslint-disable react/jsx-key */
 import { createFrames, Button } from "frames.js/next";
 
 const totalPages = 5;

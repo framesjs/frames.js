@@ -67,6 +67,7 @@ If you wish to have dynamic content in your frame which is re-rendered on every 
 Here is an example of a frame definition with a `Cache-Control` header set to `max-age=0`. It will always show the current time in the user's feed.
 
 ```tsx
+/* eslint-disable react/jsx-key */
 import { Button } from "frames.js/next";
 import { createFrames } from "frames.js/next";
 
