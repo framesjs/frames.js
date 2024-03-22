@@ -77,23 +77,9 @@ export function parseFramesMessage(): FramesMiddleware<
 
     // We don't fetch hub context here, that should be probably added by some different middleware so
     // user can decide exactly what they want.
-    const { state, ...restOfMessage } = await getFrameMessage(payload, {
+    const message = await getFrameMessage(payload, {
       fetchHubContext: false,
     });
-    const message: FrameMessage = restOfMessage;
-
-    // since we are stringifyng state to JSON in renderResponse middleware, we need to parse decode JSON here
-    // so it is easy to use in middleware chain and frames handler
-    if (state) {
-      try {
-        message.state = JSON.parse(state);
-      } catch (e) {
-        console.warn(
-          "Failed to parse state from frame message, are you sure that the state was constructed by frames.js?"
-        );
-        message.state = undefined;
-      }
-    }
 
     return next({
       message,
