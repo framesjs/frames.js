@@ -129,7 +129,6 @@ export function renderResponse(): FramesMiddleware<{}> {
 
             switch (props.action) {
               case "link":
-              case "mint":
                 return {
                   action: props.action,
                   label: props.children,
@@ -138,6 +137,12 @@ export function renderResponse(): FramesMiddleware<{}> {
                     currentURL: context.currentURL,
                     basePath: context.basePath,
                   }),
+                };
+              case "mint":
+                return {
+                  action: props.action,
+                  label: props.children,
+                  target: props.target,
                 };
               case "tx":
                 return {

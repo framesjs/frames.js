@@ -37,8 +37,8 @@ type MintButtonProps = {
   /** A 256-byte string which is label of the button */
   children: string;
   action: "mint";
-  /** The target  property MUST be a valid [CAIP-10](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md) address, plus an optional token_id. Optionally pass in an object with properties `pathname`, `query`, ... instead. */
-  target: string | UrlObject;
+  /** The target  property MUST be a valid [CAIP-10](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md) address, plus an optional token_id. */
+  target: string;
 };
 
 type LinkButtonProps = {
