@@ -128,7 +128,10 @@ describe("renderResponse middleware", () => {
       return {
         image: <div>My image</div>,
         buttons: [
-          <Button action="post" state="customStateValue1">
+          <Button
+            action="post"
+            target={{ query: { value: "customStateValue1" } }}
+          >
             Click me 1
           </Button>,
         ],
@@ -149,7 +152,13 @@ describe("renderResponse middleware", () => {
       return {
         image: <div>My image</div>,
         buttons: [
-          <Button action="post" state="customStateValue1" target="test">
+          <Button
+            action="post"
+            target={{
+              pathname: "/test",
+              query: { value: "customStateValue1" },
+            }}
+          >
             Click me 1
           </Button>,
         ],

@@ -170,6 +170,7 @@ describe("framesjsMiddleware middleware", () => {
     const context: FramesContext = {
       currentURL: new URL(url),
       request: new Request(url),
+      searchParams: {},
     } as any;
     const next = jest.fn();
     const middleware = framesjsMiddleware();

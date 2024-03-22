@@ -33,7 +33,7 @@ const nfts: {
   },
 ];
 
-export const frames = createFrames({
+const frames = createFrames({
   basePath: "/examples/new-api-mint-button/frames",
 });
 
