@@ -2,7 +2,7 @@ import Link from "next/link";
 import { currentURL } from "../../utils";
 import { createDebugUrl } from "../../debug";
 import type { Metadata } from "next";
-import { fetchMetadata } from "@frames.js/next";
+import { fetchMetadata } from "frames.js/next";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -24,7 +24,7 @@ export default async function Home() {
 
   return (
     <div>
-      Rent farcaster storage example{" "}
+      Cache control example{" "}
       <Link href={createDebugUrl(url)} className="underline">
         Debug
       </Link>
