@@ -1,5 +1,12 @@
 # frames.js
 
+## 0.9.2
+
+### Patch Changes
+
+- 5cef280: feat: allow null/undefined/boolean as button
+- df1073c: fix(nextjs): provide full url to nextjs handler
+
 ## 0.9.1
 
 ### Patch Changes
