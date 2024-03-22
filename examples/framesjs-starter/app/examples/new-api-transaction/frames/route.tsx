@@ -6,12 +6,12 @@ const frames = createFrames({
   basePath: "/examples/new-api-transaction",
 });
 
-const handleRequest = frames(async ({ message }) => {
-  if (message?.transactionId) {
+const handleRequest = frames(async (ctx) => {
+  if (ctx.message?.transactionId) {
     return {
       image: (
         <div tw="bg-purple-800 text-white w-full h-full justify-center items-center flex">
-          Transaction submitted! {message.transactionId}
+          Transaction submitted! {ctx.message.transactionId}
         </div>
       ),
       imageOptions: {
@@ -20,7 +20,7 @@ const handleRequest = frames(async ({ message }) => {
       buttons: [
         <Button
           action="link"
-          target={`https://www.onceupon.gg/tx/${message.transactionId}`}
+          target={`https://www.onceupon.gg/tx/${ctx.message.transactionId}`}
         >
           View on block explorer
         </Button>,

@@ -3,14 +3,14 @@ import { createFrames, Button } from "frames.js/next";
 
 const totalPages = 5;
 
-export const frames = createFrames({
+const frames = createFrames({
   basePath: "/examples/new-api/frames",
   initialState: {
     pageIndex: 0,
   },
 });
 
-const handleRequest = frames(async ({ clickedButton, message, state }) => {
+const handleRequest = frames(async (ctx) => {
   const imageUrl = `https://picsum.photos/seed/frames.js-${state.pageIndex}/300/200`;
 
   return {
@@ -18,20 +18,20 @@ const handleRequest = frames(async ({ clickedButton, message, state }) => {
       <div tw="flex flex-col">
         <img width={300} height={200} src={imageUrl} alt="Image" />
         <div tw="flex">
-          This is slide {state?.pageIndex + 1} / {totalPages}
+          This is slide {ctx.state.pageIndex + 1} / {totalPages}
         </div>
       </div>
     ),
     buttons: [
       <Button
         action="post"
-        state={{ pageIndex: (state?.pageIndex - 1) % totalPages }}
+        state={{ pageIndex: (ctx.state.pageIndex - 1) % totalPages }}
       >
         ←
       </Button>,
       <Button
         action="post"
-        state={{ pageIndex: (state?.pageIndex + 1) % totalPages }}
+        state={{ pageIndex: (ctx.state.pageIndex + 1) % totalPages }}
       >
         →
       </Button>,
