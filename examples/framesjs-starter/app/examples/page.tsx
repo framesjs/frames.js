@@ -25,6 +25,14 @@ export default function ExamplesIndexPage() {
             Mint button
           </Link>
         </li>
+        <li>
+          <Link
+            className="underline"
+            href="/examples/new-api-only-followers-can-mint"
+          >
+            Only followers can mint
+          </Link>
+        </li>
       </ul>
       <b>Frames.js v0.8 and below</b>
       <ul>
