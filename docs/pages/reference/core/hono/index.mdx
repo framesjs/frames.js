@@ -1,0 +1,21 @@
+# Hono integration
+
+Frames.js can be easily integrated to [Hono](https://hono.dev) server.
+
+## Usage
+
+```tsx
+import { createFrames, Button } from "frames.js/hono";
+import { Hono } from "hono";
+
+const app = new Hono();
+const frames = createFrames();
+const handleRequest = frames(async (ctx) => {
+  return {
+    image: <span>My image</span>,
+    buttons: [<Button action="post">Click me</Button>],
+  };
+});
+
+app.on(["GET", "POST"], "/", handleRequest);
+```

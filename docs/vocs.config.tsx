@@ -1,4 +1,5 @@
 import { defineConfig } from "vocs";
+import pkg from "../packages/frames.js/package.json";
 
 const sidebar = [
   {
@@ -10,8 +11,74 @@ const sidebar = [
     collapsed: false,
     items: [
       {
+        text: "Create a Frame",
+        link: "/guides/create-frame",
+      },
+      {
+        text: "Debugging",
+        link: "/guides/debugger",
+      },
+      {
+        text: "Multi-page Frames",
+        link: "/guides/multiple-frames",
+      },
+      {
+        text: "Deploying your Frame",
+        link: "/guides/deployment",
+      },
+      {
+        text: "Image Generation",
+        link: "/guides/image-generation",
+      },
+      {
+        text: "Performance",
+        link: "/guides/performance",
+      },
+      {
+        text: "Verifying Frame Actions",
+        link: "/guides/security",
+      },
+      {
+        text: "Caching",
+        link: "/guides/caching",
+      },
+      {
+        text: "Middleware",
+        link: "/guides/middleware",
+      },
+      {
+        text: "Transactions",
+        link: "/guides/transactions",
+      },
+      {
         text: "Display Frames",
         link: "/guides/display-frames",
+      },
+      {
+        text: "Open Frames",
+        link: "/guides/open-frames",
+      },
+    ],
+  },
+  {
+    text: "Write your frame with",
+    collapsed: false,
+    items: [
+      {
+        text: "Next.js",
+        link: "/reference/core/next",
+      },
+      {
+        text: "Express.js",
+        link: "/reference/core/express",
+      },
+      {
+        text: "Hono",
+        link: "/reference/core/hono",
+      },
+      {
+        text: "Remix",
+        link: "/reference/core/remix",
       },
     ],
   },
@@ -21,8 +88,26 @@ const sidebar = [
     collapsed: false,
     items: [
       {
-        text: "frames.js",
+        text: "frames.js/core",
         collapsed: false,
+        items: [
+          {
+            text: "createFrames",
+            link: "/reference/core/createFrames",
+          },
+          {
+            text: "Button",
+            link: "/reference/core/Button",
+          },
+          {
+            text: "redirect",
+            link: "/reference/core/redirect",
+          },
+        ],
+      },
+      {
+        text: "frames.js",
+        collapsed: true,
         items: [
           {
             text: "types",
@@ -78,7 +163,7 @@ const sidebar = [
       },
       {
         text: "frames.js/next/server",
-        collapsed: false,
+        collapsed: true,
         items: [
           {
             text: "getPreviousFrame",
@@ -92,7 +177,7 @@ const sidebar = [
       },
       {
         text: "frames.js/next/server - [react]",
-        collapsed: false,
+        collapsed: true,
         items: [
           {
             text: "types",
@@ -134,7 +219,7 @@ const sidebar = [
       },
       {
         text: "frames.js/render",
-        collapsed: false,
+        collapsed: true,
         items: [
           {
             text: "useFrame",
@@ -152,7 +237,7 @@ const sidebar = [
       },
       {
         text: "frames.js/render/next",
-        collapsed: false,
+        collapsed: true,
         items: [
           {
             text: "FrameImage",
@@ -212,6 +297,25 @@ export default defineConfig({
   sidebar: sidebar,
   topNav: [
     { text: "Github", link: "https://github.com/framesjs/frames.js" },
+    {
+      text: pkg.version,
+      items: [
+        {
+          text: `Migrating to ${toPatchVersionRange(pkg.version)}`,
+          link: `/guides/migration-guide#_${toPatchVersionRange(
+            pkg.version
+          ).replace(/\./g, "-")}-breaking-changes`,
+        },
+        {
+          text: "Changelog",
+          link: "https://github.com/framesjs/frames.js/blob/main/packages/frames.js/CHANGELOG.md",
+        },
+        {
+          text: "Contributing",
+          link: "https://github.com/framesjs/frames.js/blob/main/.github/CONTRIBUTING.md",
+        },
+      ],
+    },
     // {
     //   text: version,
     //   items: [
@@ -227,3 +331,8 @@ export default defineConfig({
     // },
   ],
 });
+
+function toPatchVersionRange(version: string) {
+  const [major, minor] = version.split(".").slice(0, 2);
+  return `${major}.${minor}.x`;
+}

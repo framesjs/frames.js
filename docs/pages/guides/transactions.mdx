@@ -1,0 +1,21 @@
+---
+title: "Transactions"
+description: ""
+---
+
+# Transaction Frames
+
+Frames can initiate transactions that apps that integrate Frames can complete, calling back your Frame.
+
+An example snippet can be found below.
+
+```tsx
+    // ...
+    buttons: [
+      <Button action="tx" target="/txdata" post_url="/frames">
+        Buy a unit
+      </Button>
+    ]
+```
+
+Use the [Transactions starter](https://github.com/framesjs/frames.js/tree/feat/new-framework-agnostic-api/examples/framesjs-starter/app/examples/new-api-transaction) as a template to build your transaction Frames.

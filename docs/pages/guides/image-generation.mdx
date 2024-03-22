@@ -1,0 +1,41 @@
+---
+title: "Image Generation"
+description: "A guide on how to use images inside of frames"
+---
+
+# Images
+
+## Static Images
+
+```tsx
+// ...
+const handleRequest = frames(async (ctx) => {
+  return {
+    // ...
+    image: "https://picsum.photos/seed/frames.js/1146/600",
+  };
+});
+```
+
+## Dynamic Image generation
+
+You can define a dynamic image by passing in a `JSX` element to `image` property. This uses [@vercel/og](https://vercel.com/docs/functions/og-image-generation) library under the hood, which includes a syntax for writing [tailwind CSS](https://tailwindcss.com/). You can pass in options for `@vercel/og` via the `imageOptions` property.
+There are certain constraints around dynamic images that you should be aware of - firstly, they can be slow, affecting the UX. 
+Secondly, dynamic images have a size limit of 256kB, which can easily be crossed if you use an existing image inside of the dynamic image.
+
+```tsx
+// ...
+const handleRequest = frames(async (ctx) => {
+  return {
+    // ...
+    image: (
+      <div tw="bg-purple-800 text-white w-full h-full justify-center items-center flex">
+        This is rendered as an image
+      </div>
+    ),
+    imageOptions: {
+        // ...
+    }
+  };
+});
+```

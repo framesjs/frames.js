@@ -315,7 +315,7 @@ export function useFrame<
         if (transactionId) {
           await onPostButton({
             frameButton: frameButton,
-            target: currentFrame.postUrl, // transaction_ids must be posted to post_url
+            target: frameButton.post_url || currentFrame.postUrl, // transaction_ids must be posted to post_url or button post_url
             buttonIndex: index + 1,
             postInputText:
               currentFrame.inputText !== undefined ? inputText : undefined,

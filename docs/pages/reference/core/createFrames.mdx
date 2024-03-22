@@ -1,0 +1,103 @@
+# createFrames
+
+`createFrames()` creates a function which accepts your frames handler and returns a request handler.
+
+Usually you shouldn't use this function directly but rather use one of our adapters based on a framework you are using, e.g. [Express.js](/reference/core/express), [Hono](/reference/core/hono), [Next.js](/reference/core/next) or [Remix](/reference/core/remix).
+
+```tsx
+import { createFrames } from "frames.js/core";
+
+const frames = createFrames();
+const handleRequest = frames(async (ctx) => {
+  return {
+    image: <span>Test</span>,
+  };
+});
+```
+
+The function passed to `frames` will be called with the context of a frame action and should return a `FrameDefinition`.
+
+## FrameDefinition
+
+`FrameDefinition` is an object that describes a frame. It has the following properties:
+
+```tsx
+/**
+ * Frame definition, this is rendered by the frames
+ */
+export type FrameDefinition = {
+  /**
+   * If string then it must be a valid URL
+   */
+  image: React.ReactElement | string;
+  imageOptions?: {
+    /**
+     * @default '1.91:1'
+     */
+    aspectRatio?: "1.91:1" | "1:1";
+  } & ConstructorParameters<typeof ImageResponse>[1];
+  buttons?:
+    | []
+    | [FrameButtonElement]
+    | [FrameButtonElement, FrameButtonElement]
+    | [FrameButtonElement, FrameButtonElement, FrameButtonElement]
+    | [
+        FrameButtonElement,
+        FrameButtonElement,
+        FrameButtonElement,
+        FrameButtonElement,
+      ];
+  /**
+   * Label for text input, if no value is provided the input is not rendered
+   */
+  textInput?: string;
+  /**
+   * Global app state that will be available on next frame
+   */
+  state?: JsonValue;
+} & ResponseInit;
+```
+
+The `ResponseInit` properties allow you to specify custom headers such as `Cache-Control`.
+
+### Cache-Control
+
+If you wish to have dynamic content in your frame which is re-rendered on every feed reload, you can specify a low `Cache-Control` `max-age` value.
+
+Here is an example of a frame definition with a `Cache-Control` header set to `max-age=0`. It will always show the current time in the user's feed.
+
+```tsx
+import { Button } from "frames.js/next";
+import { createFrames } from "frames.js/next";
+
+const frames = createFrames();
+
+const handleRequest = frames(async (ctx) => {
+  return {
+    image: (
+      <div tw="bg-purple-800 text-white w-full h-full justify-center items-center flex">
+        The current time is {new Date().toLocaleString()}
+      </div>
+    ),
+    imageOptions: {
+      aspectRatio: "1:1",
+    },
+    buttons: [<Button action="post">Refresh</Button>],
+    headers: {
+      // [!code focus]
+      // Max cache age in seconds // [!code focus]
+      "Cache-Control": "max-age=0", // [!code focus]
+    }, // [!code focus]
+  };
+});
+```
+
+## Request Handler
+
+The resulting `handleRequest` is a function that accepts [Web API `Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) and returns a Promise that resolves to [Web API `Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response).
+
+```tsx
+handleRequest(new Request("/")).then((res) => {
+  return res.text();
+});
+```

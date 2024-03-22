@@ -1,17 +1,21 @@
-/** @type {import('ts-jest').JestConfigWithTsJest} */
+/** @type {import('jest').Config} */
 export default {
-  preset: "ts-jest",
   testEnvironment: "node",
   transform: {
-    // '^.+\\.[tj]sx?$' to process js/ts with `ts-jest`
-    // '^.+\\.m?[tj]sx?$' to process js/ts/mjs/mts with `ts-jest`
-    "^.+\\.ts?$": [
-      "ts-jest",
+    ".*\\.(tsx?|jsx?)$": [
+      "@swc/jest",
       {
-        useESM: true,
+        jsc: {
+          transform: {
+            react: {
+              runtime: "automatic",
+            },
+          },
+        },
       },
     ],
   },
-  transformIgnorePatterns: ["./node_modules/"],
+  moduleFileExtensions: ["ts", "tsx", "js", "jsx"],
+  transformIgnorePatterns: [],
   testPathIgnorePatterns: ["/dist/", "/node_modules/"],
 };

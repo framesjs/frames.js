@@ -13,8 +13,9 @@
   },
   "scripts": {
     "lint": "eslint \"./src/**/*.ts*\"",
-    "build": "tsup `find ./src -type f \\( -regex '.*\\.tsx*' -a -not -regex '.*\\.test\\.tsx*' \\)` --format cjs,esm --dts",
-    "dev": "npm run build -- --watch"
+    "build": "NODE_OPTIONS='--max-old-space-size=16384' tsup `find ./src -type f \\( -regex '.*\\.tsx*' -a -not -regex '.*\\.test\\.tsx*' \\)` --format cjs,esm --dts",
+    "dev": "npm run build -- --watch",
+    "test:watch": "jest --watch"
   },
   "repository": {
     "type": "git",
@@ -170,6 +171,76 @@
         "types": "./dist/render/index.d.cts",
         "default": "./dist/render/index.cjs"
       }
+    },
+    "./core": {
+      "import": {
+        "types": "./dist/core/index.d.ts",
+        "default": "./dist/core/index.js"
+      },
+      "require": {
+        "types": "./dist/core/index.d.cts",
+        "default": "./dist/core/index.cjs"
+      }
+    },
+    "./middleware": {
+      "import": {
+        "types": "./dist/middleware/index.d.ts",
+        "default": "./dist/middleware/index.js"
+      },
+      "require": {
+        "types": "./dist/middleware/index.d.cts",
+        "default": "./dist/middleware/index.cjs"
+      }
+    },
+    "./hono": {
+      "import": {
+        "types": "./dist/hono/index.d.ts",
+        "default": "./dist/hono/index.js"
+      },
+      "require": {
+        "types": "./dist/hono/index.d.cts",
+        "default": "./dist/hono/index.cjs"
+      }
+    },
+    "./remix": {
+      "import": {
+        "types": "./dist/remix/index.d.ts",
+        "default": "./dist/remix/index.js"
+      },
+      "require": {
+        "types": "./dist/remix/index.d.cts",
+        "default": "./dist/remix/index.cjs"
+      }
+    },
+    "./next": {
+      "import": {
+        "types": "./dist/next/index.d.ts",
+        "default": "./dist/next/index.js"
+      },
+      "require": {
+        "types": "./dist/next/index.d.cts",
+        "default": "./dist/next/index.cjs"
+      }
+    },
+    "./next/pages-router": {
+      "import": {
+        "types": "./dist/next/pages-router.d.ts",
+        "default": "./dist/next/pages-router.js"
+      },
+      "require": {
+        "types": "./dist/next/pages-router.d.cts",
+        "default": "./dist/next/pages-router.cjs"
+      }
+    },
+    "./express": {
+      "import": {
+        "types": "./dist/express/index.d.ts",
+        "default": "./dist/express/index.js"
+      },
+      "require": {
+        "types": "./dist/express/index.d.cts",
+        "default": "./dist/express/index.cjs"
+      }
     }
   },
   "files": [
@@ -177,13 +248,21 @@
     "src"
   ],
   "devDependencies": {
-    "@xmtp/frames-validator": "^0.5.1",
+    "@open-frames/types": "^0.0.6",
+    "@remix-run/node": "^2.8.1",
+    "@types/express": "^4.17.21",
+    "@xmtp/frames-client": "^0.4.3",
+    "@xmtp/frames-validator": "^0.5.2",
+    "@xmtp/xmtp-js": "^11.5.0",
+    "express": "^4.19.1",
+    "hono": "^4.1.3",
+    "supertest": "^6.3.4",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3"
   },
   "license": "MIT",
   "peerDependencies": {
-    "@xmtp/frames-validator": "^0.5.1",
+    "@xmtp/frames-validator": "^0.5.2",
     "next": "14.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
@@ -193,6 +272,6 @@
     "@vercel/og": "^0.6.2",
     "cheerio": "^1.0.0-rc.12",
     "protobufjs": "^7.2.6",
-    "viem": "^2.7.1"
+    "viem": "^2.7.8"
   }
 }

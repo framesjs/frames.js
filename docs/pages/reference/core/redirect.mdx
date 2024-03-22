@@ -1,0 +1,19 @@
+# redirect
+
+`redirect()` must be used only in response to `post_redirect` button clicks. It accepts full URL as an argument.
+
+```tsx
+import { Button, createFrames, redirect } from "frames.js/core";
+
+const frames = createFrames();
+const handleRequest = frames(async (ctx) => {
+  if (ctx.pressedButton?.action === "post_redirect") {
+    // when post_redirect button is clicked you must return a redirect response
+    return redirect("https://example.com");
+  }
+
+  return {
+    buttons: [<Button action="post_redirect">Click me</Button>],
+  };
+});
+```

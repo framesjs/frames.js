@@ -1,0 +1,37 @@
+---
+title: "Open Frames"
+description: "A specification for Frames that work across ecosystems"
+---
+
+# Open Frames: make frames that work everywhere
+
+[Open Frames](https://github.com/open-frames/standard) is a standard for Frames that work in multiple ecosystems, including Farcaster, XMTP and others.
+
+You can define your frame as supporting multiple Open Frames compatible protocols by using the `accepts` property.
+
+```tsx
+// ...
+const handleRequest = frames(async (ctx) => {
+  return {
+    // ...
+    accepts: [{
+        id: 'farcaster',
+        version: 'vNext'
+    },{
+        id: 'xmtp',
+        version: 'vNext'
+    }]
+  };
+});
+```
+
+and access the protocol used to sign the Frame Message via the `clientProtocol` property of the context.
+
+```tsx
+// ...
+const handleRequest = frames(async (ctx) => {
+  if(ctx.clientProtocol === "farcaster"){
+    // ...
+  }
+});
+```

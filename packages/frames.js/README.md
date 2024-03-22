@@ -83,15 +83,13 @@ export default async function Home(props) {
 export { POST } from "frames.js/next/server";
 ```
 
-## Local fully interactive Debugger & Frame validation
+![](/frames/frame2.png)
 
-![](/debugging.png)
+[Debugging your Frames locally](/guides/debugger)
 
-Or use the [hosted Frames debugger](https://debugger.framesjs.org/). Running locally has the benefits of it working with localhost.
+## Prefer not to use a Framework?
 
-## Prefer to not use JSX?
-
-### Use frames.js in Next.js using helper functions
+### You can use frames.js library helper functions instead
 
 ```tsx filename="./app/page.tsx"
 // page that renders a frame

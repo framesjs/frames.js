@@ -1,0 +1,23 @@
+---
+title: "Caching"
+description: ""
+---
+
+# Caching
+
+You can set the caching policy of your frames by defining the `Cache-Control` headers of your responses
+
+```tsx
+// ...
+const handleRequest = frames(async (ctx) => {
+  return {
+    // ...
+    headers: {
+      // Max cache age of 5 seconds
+      "Cache-Control": "max-age=5",
+    },
+  };
+});
+```
+
+See an example of how to use the `Cache-Control` header in the [Caching example](https://github.com/framesjs/frames.js/tree/main/examples/framesjs-starter/app/examples/new-api-cache-control).

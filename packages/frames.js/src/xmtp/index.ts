@@ -3,23 +3,25 @@ import {
   XmtpOpenFramesRequest,
 } from "@xmtp/frames-validator";
 import { frames } from "@xmtp/proto";
-import { FrameActionPayload } from "..";
 
 export type XmtpFrameMessageReturnType = frames.FrameActionBody & {
   verifiedWalletAddress: string;
 };
 
 export function isXmtpFrameActionPayload(
-  frameActionPayload: FrameActionPayload
+  frameActionPayload: unknown
 ): frameActionPayload is XmtpOpenFramesRequest {
   return (
-    !!frameActionPayload.clientProtocol &&
+    typeof frameActionPayload === "object" &&
+    frameActionPayload !== null &&
+    "clientProtocol" in frameActionPayload &&
+    typeof frameActionPayload.clientProtocol === "string" &&
     frameActionPayload.clientProtocol.startsWith("xmtp@")
   );
 }
 
 export async function getXmtpFrameMessage(
-  frameActionPayload: FrameActionPayload
+  frameActionPayload: XmtpOpenFramesRequest
 ): Promise<XmtpFrameMessageReturnType> {
   const { actionBody, verifiedWalletAddress } = await validateFramesPost({
     ...frameActionPayload,

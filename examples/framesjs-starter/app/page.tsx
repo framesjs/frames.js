@@ -60,6 +60,10 @@ export default async function Home({ searchParams }: NextServerPageProps) {
       the html meta tags (inspect source).{" "}
       <Link href={createDebugUrl(url)} className="underline">
         Debug
+      </Link>{" "}
+      or see{" "}
+      <Link href="/examples" className="underline">
+        other examples
       </Link>
       <FrameContainer
         postUrl="/frames"

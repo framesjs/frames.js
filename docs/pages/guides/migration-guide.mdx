@@ -1,0 +1,18 @@
+---
+title: "Migrating Guide"
+description: "Update your frames.js version, pain free."
+---
+
+# Migration Guides
+
+## 0.9.x Breaking changes
+
+### Version 0.9 changes many APIs and decouples frames.js to no longer require next.js
+
+- Removes `useReducer` and state handling from computing from previous state to buttons defining the next state directly
+- Removes the need for `useReducer`, instead providing context via the `frames` function and middleware
+- Internal URL query parameters have changed
+- Imports have changed slightly
+- Routes now use JSX, so you may need to rename `route.ts` to `route.tsx`
+- For next.js app router, metadata is done via the `generateMetadata` function instead of rendering meta tags in the body
+- Replacing `<FrameContainer>`, JSX is now done within a `JSON` object return
