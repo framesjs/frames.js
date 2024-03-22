@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { currentURL } from "../../utils";
+import { currentURL, vercelURL } from "../../utils";
 import { createDebugUrl } from "../../debug";
 import type { Metadata } from "next";
 import { fetchMetadata } from "frames.js/next";
@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
       ...(await fetchMetadata(
         new URL(
           "/examples/new-api-multi-page/frames",
-          process.env.VERCEL_URL || "http://localhost:3000"
+          vercelURL() || "http://localhost:3000"
         )
       )),
     },

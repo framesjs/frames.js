@@ -28,29 +28,27 @@ import { Metadata } from "next";
 export async function fetchMetadata(
   url: URL | string
 ): Promise<NonNullable<Metadata["other"]>> {
-  const response = await fetch(url, {
-    method: "GET",
-    headers: {
-      // we use Accept header to get the response in JSON format, this is automatically supported by frames.js renderResponse middleware
-      Accept: FRAMES_META_TAGS_HEADER,
-    },
-  }).catch((error) => {
-    console.error(
-      `Failed to fetch frame metadata from ${url}. The resource might be unavailable during build time.`,
-      error
-    );
-    return null;
-  });
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        // we use Accept header to get the response in JSON format, this is automatically supported by frames.js renderResponse middleware
+        Accept: FRAMES_META_TAGS_HEADER,
+      },
+    });
 
-  if (response?.ok) {
-    // process the JSON value to nextjs compatible format
-    const flattenedFrame: FrameFlattened = await response.json();
+    if (response?.ok) {
+      // process the JSON value to nextjs compatible format
+      const flattenedFrame: FrameFlattened = await response.json();
 
-    return flattenedFrame as NonNullable<Metadata["other"]>;
-  } else if (response?.status) {
-    console.error(
-      `Failed to fetch frame metadata from ${url}. Status code: ${response.status}`
-    );
+      return flattenedFrame as NonNullable<Metadata["other"]>;
+    } else if (response?.status) {
+      console.warn(
+        `Failed to fetch frame metadata from ${url}. Status code: ${response.status}`
+      );
+    }
+  } catch (error) {
+    console.warn(`Failed to fetch frame metadata from ${url}.`, error);
   }
 
   return {};
