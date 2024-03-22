@@ -1,4 +1,4 @@
-import { frames } from "../frames/route";
+import { frames } from "../frames";
 
 export const POST = frames(async (ctx) => {
   return {
