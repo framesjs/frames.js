@@ -16,7 +16,7 @@ const handleRequest = frames(async ({ clickedButton, message, state }) => {
   return {
     image: (
       <div tw="flex flex-col">
-        <img width={400} height={200} src={imageUrl} alt="Image" />
+        <img width={300} height={200} src={imageUrl} alt="Image" />
         <div tw="flex">
           This is slide {state?.pageIndex + 1} / {totalPages}
         </div>
