@@ -7,9 +7,13 @@ export const DEFAULT_DEBUGGER_HUB_URL =
     : undefined;
 
 export function createDebugUrl(frameURL: string | URL): string {
-  const url = new URL("/", DEFAULT_DEBUGGER_URL);
+  try {
+    const url = new URL("/", DEFAULT_DEBUGGER_URL);
 
-  url.searchParams.set("url", frameURL.toString());
+    url.searchParams.set("url", frameURL.toString());
 
-  return url.toString();
+    return url.toString();
+  } catch (error) {
+    return "#";
+  }
 }
