@@ -5,7 +5,7 @@ import { Frame } from "./types";
 describe("getFrame", () => {
   const sampleHtml = `
   <meta property="fc:frame" content="vNext" />
-  <meta property="fc:frame:image" content="http:/example.com/image.png" />
+  <meta property="fc:frame:image" content="http://example.com/image.png" />
   <meta property="fc:frame:button:1" content="Green" />
   <meta property="fc:frame:button:2" content="Purple" />
   <meta property="fc:frame:button:3" content="Red" />
@@ -21,21 +21,25 @@ describe("getFrame", () => {
       {
         label: "Green",
         action: "post",
+        post_url: undefined,
         target: undefined,
       },
       {
         label: "Purple",
         action: "post",
+        post_url: undefined,
         target: undefined,
       },
       {
         label: "Red",
         action: "post",
+        post_url: undefined,
         target: undefined,
       },
       {
         label: "Blue",
         action: "post",
+        post_url: undefined,
         target: undefined,
       },
     ],
@@ -48,7 +52,7 @@ describe("getFrame", () => {
   it("should parse html meta tags", () => {
     const htmlName = `
     <meta name="fc:frame" content="vNext" />
-    <meta name="fc:frame:image" content="http:/example.com/image.png" />
+    <meta name="fc:frame:image" content="http://example.com/image.png" />
     <meta name="fc:frame:button:1" content="Green" />
     <meta name="fc:frame:button:2" content="Purple" />
     <meta name="fc:frame:button:3" content="Red" />
@@ -76,7 +80,7 @@ describe("getFrame", () => {
     const html = `
     <meta name="fc:frame" content="vNext"/>
     <meta name="fc:frame:post_url" content="https://example.com"/>
-    <meta name="fc:frame:image" content="http:/example.com/image.png"/>
+    <meta name="fc:frame:image" content="http://example.com/image.png"/>
     <meta name="fc:frame:button:1" content="1"/>
     <meta name="fc:frame:button:2" content="2"/>
     <meta name="fc:frame:button:2:action" content="post_redirect"/>
@@ -99,21 +103,25 @@ describe("getFrame", () => {
         {
           label: "1",
           action: "post",
+          post_url: undefined,
           target: undefined,
         },
         {
           label: "2",
           action: "post_redirect",
+          post_url: undefined,
           target: undefined,
         },
         {
           label: "3",
           action: "link",
+          post_url: undefined,
           target: "https://example.com",
         },
         {
           label: "Mint",
           action: "mint",
+          post_url: undefined,
           target: "eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df",
         },
       ],
@@ -128,7 +136,7 @@ describe("getFrame", () => {
     const html = `
     <meta name="fc:frame" content="vNext"/>
     <meta name="fc:frame:post_url" content="https://example.com"/>
-    <meta name="fc:frame:image" content="http:/example.com/image.png"/>
+    <meta name="fc:frame:image" content="http://example.com/image.png"/>
     <meta name="fc:frame:image:aspect_ratio" content="1:91"/>
     `;
     const { frame } = getFrame({
@@ -141,7 +149,7 @@ describe("getFrame", () => {
     const html2 = `
     <meta name="fc:frame" content="vNext"/>
     <meta name="fc:frame:post_url" content="https://example.com"/>
-    <meta name="fc:frame:image" content="http:/example.com/image.png"/>
+    <meta name="fc:frame:image" content="http://example.com/image.png"/>
     <meta name="fc:frame:image:aspect_ratio" content="1:1"/>
     `;
 
@@ -173,7 +181,7 @@ describe("getFrame", () => {
   it("should convert a Farcaster Frame HTML into a Frame object", () => {
     const exampleFrame: Frame = {
       version: "vNext",
-      image: "http:/example.com/image.png",
+      image: "http://example.com/image.png",
       buttons: [
         {
           label: "1",
@@ -219,7 +227,7 @@ describe("getFrame", () => {
     const html = `
     <meta name="fc:frame" content="vNext"/>
     <meta name="fc:frame:post_url" content="https://example.com"/>
-    <meta name="fc:frame:image" content="http:/example.com/image.png"/>
+    <meta name="fc:frame:image" content="http://example.com/image.png"/>
     <meta name="of:accepts:xmtp" content="vNext"/>
     <meta name="of:accepts:lens" content="1.5"/>
     `;
@@ -237,7 +245,7 @@ describe("getFrame", () => {
   it("should parse open frames tags", () => {
     const html = `
     <meta name="of:version" content="vNext" />
-    <meta name="of:image" content="http:/example.com/image.png" />
+    <meta name="of:image" content="http://example.com/image.png" />
     <meta name="of:button:1" content="Green" />
     <meta name="of:button:2" content="Purple" />
     <meta name="of:button:3" content="Red" />
