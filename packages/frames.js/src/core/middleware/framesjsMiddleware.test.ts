@@ -14,7 +14,10 @@ describe("framesjsMiddleware middleware", () => {
 
     await middleware(context, next);
 
-    expect(next).toHaveBeenCalledWith({ pressedButton: undefined });
+    expect(next).toHaveBeenCalledWith({
+      pressedButton: undefined,
+      searchParams: {},
+    });
   });
 
   it("provides pressedButton to context if post button is detected", async () => {
@@ -23,8 +26,10 @@ describe("framesjsMiddleware middleware", () => {
       buttonIndex: 1,
       basePath: "/",
       currentURL: new URL("https://example.com"),
-      state: { test: true },
-      target: "/test",
+      target: {
+        pathname: "/test",
+        query: { test: true },
+      },
     });
     const context: FramesContext = {
       currentURL: new URL(url),
@@ -36,7 +41,11 @@ describe("framesjsMiddleware middleware", () => {
     await middleware(context, next);
 
     expect(next).toHaveBeenCalledWith({
-      pressedButton: { action: "post", index: 1, state: { test: true } },
+      pressedButton: {
+        action: "post",
+        index: 1,
+      },
+      searchParams: { test: "true", __bi: "1:p" },
     });
   });
 
@@ -46,7 +55,6 @@ describe("framesjsMiddleware middleware", () => {
       buttonIndex: 1,
       basePath: "/",
       currentURL: new URL("https://example.com"),
-      state: undefined,
       target: "/test",
     });
     const context: FramesContext = {
@@ -59,7 +67,13 @@ describe("framesjsMiddleware middleware", () => {
     await middleware(context, next);
 
     expect(next).toHaveBeenCalledWith({
-      pressedButton: { action: "post_redirect", index: 1 },
+      pressedButton: {
+        action: "post_redirect",
+        index: 1,
+      },
+      searchParams: {
+        __bi: "1:pr",
+      },
     });
   });
 
@@ -70,7 +84,6 @@ describe("framesjsMiddleware middleware", () => {
       buttonIndex: 1,
       basePath: "/",
       currentURL: new URL("https://example.com"),
-      state: undefined,
       target: "/test",
     });
     const context: FramesContext = {
@@ -96,8 +109,10 @@ describe("framesjsMiddleware middleware", () => {
       buttonIndex: 1,
       basePath: "/",
       currentURL: new URL("https://example.com"),
-      state: { test: true },
-      target: "/test",
+      target: {
+        pathname: "/test",
+        query: { test: true },
+      },
     });
     const context: FramesContext = {
       currentURL: new URL(url),
@@ -120,8 +135,10 @@ describe("framesjsMiddleware middleware", () => {
       buttonIndex: 1,
       basePath: "/",
       currentURL: new URL("https://example.com"),
-      state: { test: true },
-      target: "/test",
+      target: {
+        pathname: "/test",
+        query: { test: true },
+      },
     });
     const context: FramesContext = {
       currentURL: new URL(url),
@@ -145,18 +162,23 @@ describe("framesjsMiddleware middleware", () => {
       buttonIndex: 1,
       basePath: "/",
       currentURL: new URL("https://example.com"),
-      state: { test: true },
-      target: "/test",
+      target: {
+        pathname: "/test",
+        query: { test: true },
+      },
     });
     const context: FramesContext = {
       currentURL: new URL(url),
       request: new Request(url),
+      searchParams: {},
     } as any;
     const next = jest.fn();
     const middleware = framesjsMiddleware();
 
     await middleware(context, next);
 
-    expect(next).toHaveBeenCalledWith();
+    expect(next).toHaveBeenCalledWith({
+      searchParams: { __bi: "1:p", test: "true" },
+    });
   });
 });

@@ -7,7 +7,11 @@ import type {
   FramesHandlerFunctionReturnType,
   FramesMiddleware,
 } from "../types";
-import { generatePostButtonTargetURL, isFrameRedirect } from "../utils";
+import {
+  generatePostButtonTargetURL,
+  generateTargetURL,
+  isFrameRedirect,
+} from "../utils";
 import { FRAMES_META_TAGS_HEADER } from "..";
 
 class InvalidButtonShapeError extends Error {}
@@ -125,6 +129,15 @@ export function renderResponse(): FramesMiddleware<any, {}> {
 
             switch (props.action) {
               case "link":
+                return {
+                  action: props.action,
+                  label: props.children,
+                  target: generateTargetURL({
+                    target: props.target,
+                    currentURL: context.currentURL,
+                    basePath: context.basePath,
+                  }),
+                };
               case "mint":
                 return {
                   action: props.action,
@@ -141,7 +154,6 @@ export function renderResponse(): FramesMiddleware<any, {}> {
                     target: props.target,
                     currentURL: context.currentURL,
                     basePath: context.basePath,
-                    state: props.state,
                   }),
                   post_url: props.post_url
                     ? generatePostButtonTargetURL({
@@ -150,7 +162,6 @@ export function renderResponse(): FramesMiddleware<any, {}> {
                         target: props.post_url,
                         currentURL: context.currentURL,
                         basePath: context.basePath,
-                        state: props.state,
                       })
                     : undefined,
                 };
@@ -165,7 +176,6 @@ export function renderResponse(): FramesMiddleware<any, {}> {
                     target: props.target,
                     currentURL: context.currentURL,
                     basePath: context.basePath,
-                    state: props.state,
                   }),
                 };
               default:

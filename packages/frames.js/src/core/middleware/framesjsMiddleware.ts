@@ -1,7 +1,15 @@
 import { FramesMiddleware, JsonValue } from "../types";
-import { isFrameRedirect, parseButtonInformationFromTargetURL } from "../utils";
+import {
+  isFrameRedirect,
+  parseButtonInformationFromTargetURL,
+  parseSearchParams,
+} from "../utils";
 
 type FramesjsMiddlewareContext = {
+  /** the search params as an object. Empty will be an empty object */
+  searchParams: {
+    [k: string]: string;
+  };
   /**
    * Button that was clicked on previous frame
    */
@@ -9,10 +17,6 @@ type FramesjsMiddlewareContext = {
     | {
         action: "post" | "post_redirect";
         index: 1 | 2 | 3 | 4;
-        /**
-         * Value of `state` prop on pressed <Button> component.
-         */
-        state?: JsonValue;
       }
     | undefined;
 };
@@ -25,9 +29,10 @@ export function framesjsMiddleware(): FramesMiddleware<
   FramesjsMiddlewareContext
 > {
   return async (context, next) => {
+    const { searchParams } = parseSearchParams(context.currentURL);
     // clicked button always issues a POST request
     if (context.request.method !== "POST") {
-      return next();
+      return next({ searchParams });
     }
 
     // parse clicked buttom from URL
@@ -35,7 +40,7 @@ export function framesjsMiddleware(): FramesMiddleware<
       context.currentURL
     );
 
-    const result = await next({ pressedButton });
+    const result = await next({ pressedButton, searchParams });
 
     if (pressedButton?.action === "post_redirect") {
       // check if the response is redirect, if not, warn

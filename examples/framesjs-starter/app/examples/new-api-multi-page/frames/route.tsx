@@ -5,33 +5,36 @@ const totalPages = 5;
 
 const frames = createFrames({
   basePath: "/examples/new-api/frames",
-  initialState: {
-    pageIndex: 0,
-  },
 });
 
 const handleRequest = frames(async (ctx) => {
-  const imageUrl = `https://picsum.photos/seed/frames.js-${state.pageIndex}/300/200`;
+  const pageIndex = Number(ctx.searchParams.pageIndex || 0);
+
+  const imageUrl = `https://picsum.photos/seed/frames.js-${pageIndex}/300/200`;
 
   return {
     image: (
       <div tw="flex flex-col">
         <img width={300} height={200} src={imageUrl} alt="Image" />
         <div tw="flex">
-          This is slide {ctx.state.pageIndex + 1} / {totalPages}
+          This is slide {pageIndex + 1} / {totalPages}
         </div>
       </div>
     ),
     buttons: [
       <Button
         action="post"
-        state={{ pageIndex: (ctx.state.pageIndex - 1) % totalPages }}
+        target={{
+          query: { pageIndex: (pageIndex - 1) % totalPages },
+        }}
       >
         ←
       </Button>,
       <Button
         action="post"
-        state={{ pageIndex: (ctx.state.pageIndex + 1) % totalPages }}
+        target={{
+          query: { pageIndex: (pageIndex + 1) % totalPages },
+        }}
       >
         →
       </Button>,

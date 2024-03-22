@@ -35,31 +35,37 @@ const nfts: {
 
 const frames = createFrames({
   basePath: "/examples/new-api-mint-button/frames",
-  initialState: {
-    pageIndex: 0,
-  },
 });
 
 const handleRequest = frames(async (ctx) => {
+  const page = Number(ctx.searchParams?.pageIndex ?? 0);
   return {
-    image: nfts[ctx.state.pageIndex]!.src,
+    image: nfts[page]!.src,
     imageOptions: {
       aspectRatio: "1:1",
     },
     buttons: [
       <Button
         action="post"
-        state={{ pageIndex: (ctx.state.pageIndex - 1) % nfts.length }}
+        target={{
+          query: {
+            pageIndex: String((page - 1) % nfts.length),
+          },
+        }}
       >
         ←
       </Button>,
       <Button
         action="post"
-        state={{ pageIndex: (ctx.state.pageIndex + 1) % nfts.length }}
+        target={{
+          query: {
+            pageIndex: String((page + 1) % nfts.length),
+          },
+        }}
       >
         →
       </Button>,
-      <Button action="mint" target={nfts[ctx.state.pageIndex]!.tokenUrl}>
+      <Button action="mint" target={nfts[page]!.tokenUrl}>
         Mint
       </Button>,
     ],
