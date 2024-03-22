@@ -23,6 +23,7 @@ This guide shows you how to add frames rendering to your next.js + tailwind app 
 
 ```tsx filename="// ./app/frames/route.tsx"
 // ./app/frames/route.tsx
+/* eslint-disable react/jsx-key */
 import { createFrames, Button } from "frames.js/next";
 
 const frames = createFrames();
