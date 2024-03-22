@@ -69,7 +69,6 @@ const handleRequest = frames(async (ctx) => {
         Mint
       </Button>,
     ],
-    textInput: "Type something!",
   };
 });
 
