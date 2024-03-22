@@ -48,7 +48,7 @@ const handleRequest = frames(async (ctx) => {
       case "pending":
         return checkStatusFrame;
       case "success": {
-        if (ctx.currentURL.searchParams.get("reset") === "true") {
+        if (ctx.url.searchParams.get("reset") === "true") {
           // reset to initial state
           await kv.del(uniqueId);
         }
@@ -71,7 +71,7 @@ const handleRequest = frames(async (ctx) => {
         } satisfies types.FrameDefinition<any>;
       }
       case "error": {
-        if (ctx.currentURL.searchParams.get("retry") === "true") {
+        if (ctx.url.searchParams.get("retry") === "true") {
           // reset to initial state
           await kv.del(uniqueId);
 
