@@ -66,19 +66,19 @@ const sidebar = [
     items: [
       {
         text: "Next.js",
-        link: "/reference/next",
+        link: "/reference/core/next",
       },
       {
         text: "Express.js",
-        link: "/reference/express",
+        link: "/reference/core/express",
       },
       {
         text: "Hono",
-        link: "/reference/hono",
+        link: "/reference/core/hono",
       },
       {
         text: "Remix",
-        link: "/reference/remix",
+        link: "/reference/core/remix",
       },
     ],
   },
@@ -102,28 +102,6 @@ const sidebar = [
           {
             text: "redirect",
             link: "/reference/core/redirect",
-          },
-          {
-            text: "Frameworks",
-            collapsed: false,
-            items: [
-              {
-                text: "Next.js",
-                link: "/reference/core/next",
-              },
-              {
-                text: "Hono",
-                link: "/reference/core/hono",
-              },
-              {
-                text: "Remix",
-                link: "/reference/core/remix",
-              },
-              {
-                text: "express.js",
-                link: "/reference/core/express",
-              },
-            ],
           },
         ],
       },
