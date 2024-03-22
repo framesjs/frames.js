@@ -6,10 +6,10 @@ import type { FramesContextFromMiddlewares, FramesMiddleware } from "../types";
  * Also next function passed to each middleware does nothing except modifying the context.
  */
 export function concurrentMiddleware<
-  TFramesMiddleware extends FramesMiddleware<any>[],
+  TFramesMiddleware extends FramesMiddleware<any, any>[],
 >(
   ...middlewares: TFramesMiddleware
-): FramesMiddleware<FramesContextFromMiddlewares<TFramesMiddleware>> {
+): FramesMiddleware<any, FramesContextFromMiddlewares<TFramesMiddleware>> {
   if (middlewares.length === 0) {
     throw new Error("No middlewares provided");
   }

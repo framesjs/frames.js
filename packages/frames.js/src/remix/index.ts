@@ -42,7 +42,7 @@ export const createFrames: CreateFramesForRemix = function createFramesForRemix(
   const frames = coreCreateFrames(options);
 
   return function createHandler<
-    TPerRouteMiddleware extends types.FramesMiddleware<any>[],
+    TPerRouteMiddleware extends types.FramesMiddleware<any, any>[],
   >(
     handler: types.FrameHandlerFunction<any, any>,
     handlerOptions?: types.FramesRequestHandlerFunctionOptions<TPerRouteMiddleware>

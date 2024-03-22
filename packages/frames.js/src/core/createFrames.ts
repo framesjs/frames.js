@@ -21,8 +21,8 @@ const defaultMiddleware = [
 export type DefaultMiddleware = typeof defaultMiddleware;
 
 export function createFrames<
-  TState extends JsonValue,
-  TMiddlewares extends FramesMiddleware<any>[] | undefined = undefined,
+  TState extends JsonValue | undefined,
+  TMiddlewares extends FramesMiddleware<any, any>[] | undefined = undefined,
 >({
   basePath = "/",
   initialState,
@@ -33,26 +33,30 @@ export function createFrames<
   TMiddlewares,
   (req: Request) => Promise<Response>
 > {
-  const globalMiddleware: FramesMiddleware<FramesContext<TState>>[] =
+  const globalMiddleware: FramesMiddleware<TState, FramesContext<TState>>[] =
     middleware || [];
 
   /**
    * This function takes handler function that does the logic with the help of context and returns one of possible results
    */
   return function createFramesRequestHandler(handler, options = {}) {
-    const perRouteMiddleware: FramesMiddleware<FramesContext<TState>>[] =
+    const perRouteMiddleware: FramesMiddleware<any, FramesContext<TState>>[] =
       options && Array.isArray(options.middleware) ? options.middleware : [];
 
     const composedMiddleware = composeMiddleware<
       FramesContext<TState>,
-      FramesMiddlewareReturnType
+      FramesMiddlewareReturnType<TState>
     >([
       ...defaultMiddleware,
+      // @ts-expect-error hard to type internally so skipping for now
       ...globalMiddleware,
+      // @ts-expect-error hard to type internally so skipping for now
       stateMiddleware<TState>(),
+      // @ts-expect-error hard to type internally so skipping for now
       ...perRouteMiddleware,
+      // @ts-expect-error hard to type internally so skipping for now
       async function handlerMiddleware(ctx) {
-        // @ts-expect-error the value is correct just type is difficult to infer
+        // @ts-expect-error hard to type internally so skipping for now
         return handler(ctx);
       },
     ]);

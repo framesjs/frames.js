@@ -58,7 +58,10 @@ type FramesMessageContext = {
   message?: FrameMessage;
 };
 
-export function parseFramesMessage(): FramesMiddleware<FramesMessageContext> {
+export function parseFramesMessage(): FramesMiddleware<
+  any,
+  FramesMessageContext
+> {
   return async (context, next) => {
     // frame message is available only if the request is a POST request
     if (context.request.method !== "POST") {

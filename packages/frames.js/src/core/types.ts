@@ -59,7 +59,7 @@ type FrameButtonElement = React.ReactComponentElement<typeof Button>;
 /**
  * Frame definition, this is rendered by the frames
  */
-export type FrameDefinition = {
+export type FrameDefinition<TState extends JsonValue | undefined> = {
   /**
    * If string then it must be a valid URL
    */
@@ -88,7 +88,7 @@ export type FrameDefinition = {
   /**
    * Global app state that will be available on next frame
    */
-  state?: JsonValue;
+  state?: TState;
   /**
    * Open Frames spec: The minimum client protocol version accepted for the given protocol identifier. For example VNext, or 1.5 . At least one $protocol_identifier must be specified.
    */
@@ -103,37 +103,42 @@ export type FrameRedirect = {
   location: string | URL;
 } & ResponseInit;
 
-export type FramesHandlerFunctionReturnType = FrameDefinition | FrameRedirect;
+export type FramesHandlerFunctionReturnType<
+  TState extends JsonValue | undefined,
+> = FrameDefinition<TState> | FrameRedirect;
 
 type FramesMiddlewareNextFunction<
+  TState extends JsonValue | undefined,
   TReturnedContext extends AllowedFramesContextShape,
-> = (context?: TReturnedContext) => FramesMiddlewareReturnType;
+> = (context?: TReturnedContext) => FramesMiddlewareReturnType<TState>;
 
-export type FramesMiddlewareReturnType = Promise<
-  FramesHandlerFunctionReturnType | Response
->;
+export type FramesMiddlewareReturnType<TState extends JsonValue | undefined> =
+  Promise<FramesHandlerFunctionReturnType<TState> | Response>;
 
 export type FramesMiddleware<
+  TState extends JsonValue | undefined,
   TReturnedContext extends AllowedFramesContextShape,
 > = (
-  context: FramesContext,
-  next: FramesMiddlewareNextFunction<TReturnedContext>
-) => FramesMiddlewareReturnType;
+  context: FramesContext<TState>,
+  next: FramesMiddlewareNextFunction<TState, TReturnedContext>
+) => FramesMiddlewareReturnType<TState>;
 
 export type FrameHandlerFunction<
-  TState extends JsonValue,
+  TState extends JsonValue | undefined,
   TFramesContext extends AllowedFramesContextShape,
 > = (
+  // we pass ctx.state here since it is made available internally by stateMiddleware but the inference would not work
   ctx: FramesContext<TState> & TFramesContext & { state: TState }
-) => Promise<FramesHandlerFunctionReturnType>;
+) => Promise<FramesHandlerFunctionReturnType<TState>>;
 
 export type FramesContextFromMiddlewares<
   TMiddlewares extends
-    | FramesMiddleware<any>[]
-    | ReadonlyArray<FramesMiddleware<any>>,
+    | FramesMiddleware<any, any>[]
+    | ReadonlyArray<FramesMiddleware<any, any>>,
 > = UnionToIntersection<
   {
     [K in keyof TMiddlewares]: TMiddlewares[K] extends FramesMiddleware<
+      any,
       infer Ctx
     >
       ? Ctx
@@ -142,21 +147,23 @@ export type FramesContextFromMiddlewares<
 >;
 
 export type FramesRequestHandlerFunctionOptions<
-  TPerRouteFrameMiddlewares extends FramesMiddleware<any>[] | undefined,
+  TPerRouteFrameMiddlewares extends FramesMiddleware<any, any>[] | undefined,
 > = {
   middleware?: TPerRouteFrameMiddlewares;
 };
 
 export type FramesRequestHandlerFunction<
-  TState extends JsonValue,
+  TState extends JsonValue | undefined,
   TDefaultMiddleware extends
-    | ReadonlyArray<FramesMiddleware<any>>
-    | FramesMiddleware<any>[]
+    | ReadonlyArray<FramesMiddleware<any, any>>
+    | FramesMiddleware<any, any>[]
     | undefined,
-  TFrameMiddleware extends FramesMiddleware<any>[] | undefined,
+  TFrameMiddleware extends FramesMiddleware<any, any>[] | undefined,
   TRequestHandlerFunction extends Function,
 > = <
-  TPerRouteMiddleware extends FramesMiddleware<any>[] | undefined = undefined,
+  TPerRouteMiddleware extends
+    | FramesMiddleware<any, any>[]
+    | undefined = undefined,
 >(
   handler: FrameHandlerFunction<
     TState,
@@ -175,7 +182,7 @@ export type FramesRequestHandlerFunction<
 
 export type FramesOptions<
   TState extends JsonValue | undefined,
-  TFrameMiddleware extends FramesMiddleware<any>[] | undefined,
+  TFrameMiddleware extends FramesMiddleware<any, any>[] | undefined,
 > = {
   /**
    * All frame relative targets will be resolved relative to this
@@ -189,18 +196,18 @@ export type FramesOptions<
    */
   initialState?: TState;
   middleware?: TFrameMiddleware extends undefined
-    ? FramesMiddleware<any>[]
+    ? FramesMiddleware<any, any>[]
     : TFrameMiddleware;
 };
 
 export type CreateFramesFunctionDefinition<
   TDefaultMiddleware extends
-    | ReadonlyArray<FramesMiddleware<any>>
-    | FramesMiddleware<any>[]
+    | ReadonlyArray<FramesMiddleware<any, any>>
+    | FramesMiddleware<any, any>[]
     | undefined,
   TRequestHandlerFunction extends Function,
 > = <
-  TFrameMiddleware extends FramesMiddleware<any>[] | undefined = undefined,
+  TFrameMiddleware extends FramesMiddleware<any, any>[] | undefined = undefined,
   TState extends JsonValue = JsonValue,
 >(
   options?: FramesOptions<TState, TFrameMiddleware>

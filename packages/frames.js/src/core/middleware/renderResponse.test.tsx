@@ -31,8 +31,9 @@ describe("renderResponse middleware", () => {
   let arrayBufferMock: jest.Mock = (vercelOg as any).arrayBufferMock;
   let constructorMock: jest.Mock = (vercelOg as any).constructorMock;
   const render = renderResponse();
-  const context: FramesContext = {
+  const context: FramesContext<undefined> = {
     basePath: "/",
+    initialState: undefined,
     request: new Request("https://example.com"),
     currentURL: new URL("https://example.com"),
   };

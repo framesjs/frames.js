@@ -15,7 +15,7 @@ type StateMiddlewareContext<TState extends JsonValue | undefined> = {
  */
 export function stateMiddleware<
   TState extends JsonValue | undefined,
->(): FramesMiddleware<StateMiddlewareContext<TState>> {
+>(): FramesMiddleware<TState, StateMiddlewareContext<TState>> {
   return async (ctx, next) => {
     if (
       "message" in ctx &&

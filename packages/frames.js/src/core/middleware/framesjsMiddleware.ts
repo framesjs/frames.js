@@ -20,7 +20,10 @@ type FramesjsMiddlewareContext = {
 /**
  * Creates middleware responsible to detect and parse clicked button, it provides pressedButton to context.
  */
-export function framesjsMiddleware(): FramesMiddleware<FramesjsMiddlewareContext> {
+export function framesjsMiddleware(): FramesMiddleware<
+  any,
+  FramesjsMiddlewareContext
+> {
   return async (context, next) => {
     // clicked button always issues a POST request
     if (context.request.method !== "POST") {

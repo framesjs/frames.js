@@ -41,7 +41,7 @@ export const createFrames: CreateFramesForHono = function createFramesForHono(
   const frames = coreCreateFrames(options);
 
   return function honoFramesHandler<
-    TPerRouteMiddleware extends types.FramesMiddleware<any>[],
+    TPerRouteMiddleware extends types.FramesMiddleware<any, any>[],
   >(
     handler: types.FrameHandlerFunction<any, any>,
     handlerOptions?: types.FramesRequestHandlerFunctionOptions<TPerRouteMiddleware>

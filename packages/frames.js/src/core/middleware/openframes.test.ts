@@ -40,6 +40,7 @@ describe("openframes middleware", () => {
   let xmtpValidator: XmtpValidator;
 
   let xmtpMiddleware: FramesMiddleware<
+    any,
     OpenFramesMessageContext<XmtpFrameMessageReturnType>
   >;
 
@@ -136,13 +137,13 @@ describe("openframes middleware", () => {
     const next1 = jest.fn((...args) =>
       Promise.resolve({
         image: "/test.png",
-      } as FrameDefinition)
+      } as FrameDefinition<any>)
     );
 
     const nextResult1 = await mw1(context, next1);
 
     expect(isFrameDefinition(nextResult1)).toBe(true);
-    expect((nextResult1 as FrameDefinition).accepts).toContainEqual({
+    expect((nextResult1 as FrameDefinition<any>).accepts).toContainEqual({
       id: "foo",
       version: "vNext",
     });
@@ -153,11 +154,11 @@ describe("openframes middleware", () => {
     const nextResult2 = await mw2(context, next2);
 
     expect(isFrameDefinition(nextResult2)).toBe(true);
-    expect((nextResult2 as FrameDefinition).accepts).toContainEqual({
+    expect((nextResult2 as FrameDefinition<any>).accepts).toContainEqual({
       id: "foo",
       version: "vNext",
     });
-    expect((nextResult2 as FrameDefinition).accepts).toContainEqual({
+    expect((nextResult2 as FrameDefinition<any>).accepts).toContainEqual({
       id: "bar",
       version: "vNext",
     });
