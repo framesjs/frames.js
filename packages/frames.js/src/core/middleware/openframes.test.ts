@@ -205,7 +205,7 @@ describe("openframes middleware", () => {
   });
 
   it("supports custom global typed context", async () => {
-    const mw1 = openframes<{ test1?: boolean }>({
+    const mw1 = openframes({
       clientProtocol: "foo@vNext",
       handler: {
         isValidPayload: () => false,
@@ -214,8 +214,7 @@ describe("openframes middleware", () => {
         },
       },
     });
-    // TODO: Can this be inferred as a partial?
-    const mw2 = openframes<{ test2?: boolean }>({
+    const mw2 = openframes({
       clientProtocol: "bar@vNext",
       handler: {
         isValidPayload: () => true,
@@ -231,7 +230,7 @@ describe("openframes middleware", () => {
 
     const routeHandler = handler(async (ctx) => {
       return {
-        image: `/?test2=${ctx.message?.test2}`,
+        image: `/?test1=${ctx.message?.test1}&test2=${ctx.message?.test2}`,
       };
     });
 
@@ -244,7 +243,7 @@ describe("openframes middleware", () => {
     expect(response).toBeInstanceOf(Response);
 
     const responseText = await response.clone().text();
-    expect(responseText).toContain("/?test2=true");
+    expect(responseText).toContain("/?test1=undefined&test2=true");
   });
 
   it("moves to next middleware if request is POST with valid JSON but invalid body shape", async () => {

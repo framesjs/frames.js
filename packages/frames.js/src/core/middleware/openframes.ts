@@ -6,7 +6,7 @@ import { isFrameDefinition } from "../utils";
 type OpenFrameMessage = any;
 
 export type OpenFramesMessageContext<T = OpenFrameMessage> = {
-  message?: T;
+  message?: Partial<T>;
   clientProtocol?: ClientProtocolId;
 };
 
