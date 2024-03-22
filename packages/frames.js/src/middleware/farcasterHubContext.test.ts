@@ -140,4 +140,6 @@ describe("farcasterHubContext middleware", () => {
     const responseText = await response.clone().text();
     expect(responseText).not.toContain("/?username=undefined");
   });
+
+  // TODO: Tests for custom hub options
 });

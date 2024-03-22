@@ -1,11 +1,11 @@
-import { farcasterHubContext } from "./farcasterHubContext";
+import { farcaster } from "./farcaster";
 import { framesjsMiddleware } from "./framesjsMiddleware";
 import { renderResponse } from "./renderResponse";
 
-export const defaultMiddleware = [
+export const coreMiddleware = [
   renderResponse(),
   framesjsMiddleware(),
-  farcasterHubContext(),
+  farcaster(),
 ] as const;
 
-export type DefaultMiddleware = typeof defaultMiddleware;
+export type CoreMiddleware = typeof coreMiddleware;

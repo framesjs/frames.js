@@ -1,12 +1,12 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { createFrames as coreCreateFrames, types } from "../core";
-import { DefaultMiddleware } from "../middleware";
+import { CoreMiddleware } from "../middleware";
 export { Button, type types } from "../core";
 
 export { fetchMetadata } from "./fetchMetadata";
 
 type CreateFramesForRemix = types.CreateFramesFunctionDefinition<
-  DefaultMiddleware,
+  CoreMiddleware,
   (args: LoaderFunctionArgs | ActionFunctionArgs) => Promise<Response>
 >;
 

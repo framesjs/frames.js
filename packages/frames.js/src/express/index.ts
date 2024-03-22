@@ -9,11 +9,11 @@ import {
   createReadableStreamFromReadable,
   writeReadableStreamToWritable,
 } from "../lib/stream-pump";
-import { DefaultMiddleware } from "../middleware";
+import { CoreMiddleware } from "../middleware";
 export { Button, type types } from "../core";
 
 type CreateFramesForExpress = types.CreateFramesFunctionDefinition<
-  DefaultMiddleware,
+  CoreMiddleware,
   ExpressHandler
 >;
 

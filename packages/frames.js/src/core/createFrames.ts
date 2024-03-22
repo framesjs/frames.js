@@ -1,4 +1,4 @@
-import { defaultMiddleware } from "../middleware";
+import { coreMiddleware } from "../middleware";
 import { stateMiddleware } from "../middleware/stateMiddleware";
 import { composeMiddleware } from "./composeMiddleware";
 import type {
@@ -19,7 +19,7 @@ export function createFrames<
   middleware,
 }: FramesOptions<TState, TMiddlewares> = {}): FramesRequestHandlerFunction<
   TState,
-  typeof defaultMiddleware,
+  typeof coreMiddleware,
   TMiddlewares,
   (req: Request) => Promise<Response>
 > {
@@ -37,7 +37,7 @@ export function createFrames<
       FramesContext<TState>,
       FramesMiddlewareReturnType<TState>
     >([
-      ...defaultMiddleware,
+      ...coreMiddleware,
       // @ts-expect-error hard to type internally so skipping for now
       ...globalMiddleware,
       // @ts-expect-error hard to type internally so skipping for now

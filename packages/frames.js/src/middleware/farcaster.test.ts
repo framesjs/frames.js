@@ -7,6 +7,37 @@ import { farcaster } from "./farcaster";
 import { createFrames } from "../core";
 
 describe("farcaster middleware", () => {
+  let sampleFrameActionRequest: Request;
+
+  beforeAll(() => {
+    sampleFrameActionRequest = new Request("https://example.com", {
+      method: "POST",
+      body: JSON.stringify({
+        trustedData: {
+          messageBytes: Buffer.from(
+            Message.encode(
+              Message.create({
+                data: {
+                  fid: 123,
+                  frameActionBody: {
+                    castId: {
+                      fid: 456,
+                    },
+                    address: Buffer.from([0x789]),
+                    buttonIndex: 1,
+                    inputText: Buffer.from("hello"),
+                    state: Buffer.from(JSON.stringify({ test: true })),
+                  },
+                },
+              })
+            ).finish()
+          ).toString("hex"),
+        },
+        untrustedData: {},
+      }),
+    });
+  });
+
   beforeEach(() => {
     // make sure we don't introduce unexpected network requests
     // TODO: Mock hub/onchain calls
@@ -64,32 +95,7 @@ describe("farcaster middleware", () => {
 
   it("parses frame message from request body and adds it to context", async () => {
     const context: FramesContext = {
-      request: new Request("https://example.com", {
-        method: "POST",
-        body: JSON.stringify({
-          trustedData: {
-            messageBytes: Buffer.from(
-              Message.encode(
-                Message.create({
-                  data: {
-                    fid: 123,
-                    frameActionBody: {
-                      castId: {
-                        fid: 456,
-                      },
-                      address: Buffer.from([0x789]),
-                      buttonIndex: 1,
-                      inputText: Buffer.from("hello"),
-                      state: Buffer.from(JSON.stringify({ test: true })),
-                    },
-                  },
-                })
-              ).finish()
-            ).toString("hex"),
-          },
-          untrustedData: {},
-        }),
-      }),
+      request: sampleFrameActionRequest.clone(),
     } as any;
 
     const mw = farcaster();
@@ -130,15 +136,10 @@ describe("farcaster middleware", () => {
       };
     });
 
-    const response = await routeHandler(
-      new Request("http://test.com", {
-        method: "POST",
-        body: JSON.stringify({}),
-      })
-    );
+    const response = await routeHandler(sampleFrameActionRequest.clone());
     expect(response).toBeInstanceOf(Response);
 
     const responseText = await response.clone().text();
-    expect(responseText).not.toContain("/?fid=undefined");
+    expect(responseText).toContain("/?fid=123");
   });
 });

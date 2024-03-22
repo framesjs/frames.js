@@ -1,6 +1,7 @@
 import {
   FrameActionPayload,
   FrameMessageReturnType,
+  HubHttpUrlOptions,
   getFrameMessage,
 } from "..";
 import {
@@ -60,10 +61,9 @@ type FramesMessageContext = {
   message?: FrameMessage;
 };
 
-export function farcasterHubContext(): FramesMiddleware<
-  any,
-  FramesMessageContext
-> {
+export function farcasterHubContext(
+  options?: HubHttpUrlOptions
+): FramesMiddleware<any, FramesMessageContext> {
   return async (context, next) => {
     // frame message is available only if the request is a POST request
     if (context.request.method !== "POST") {
@@ -78,6 +78,7 @@ export function farcasterHubContext(): FramesMiddleware<
     }
 
     const message = await getFrameMessage(payload, {
+      ...options,
       fetchHubContext: true,
     });
 
