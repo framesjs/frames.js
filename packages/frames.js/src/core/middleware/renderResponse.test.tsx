@@ -35,7 +35,7 @@ describe("renderResponse middleware", () => {
     basePath: "/",
     initialState: undefined,
     request: new Request("https://example.com"),
-    currentURL: new URL("https://example.com"),
+    url: new URL("https://example.com"),
     searchParams: {},
   };
 
@@ -43,7 +43,7 @@ describe("renderResponse middleware", () => {
     arrayBufferMock.mockClear();
     constructorMock.mockClear();
     context.request = new Request("https://example.com");
-    context.currentURL = new URL("https://example.com");
+    context.url = new URL("https://example.com");
   });
 
   it("returns redirect Response if redirect is returned from handler", async () => {

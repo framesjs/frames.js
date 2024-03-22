@@ -72,7 +72,7 @@ export function createFrames<
         basePath,
         initialState: initialState as TState,
         request,
-        currentURL: new URL(request.url),
+        url: new URL(request.url),
       };
 
       const result = await composedMiddleware(context);

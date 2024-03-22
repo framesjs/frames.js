@@ -49,7 +49,7 @@ export type FramesContext<TState extends JsonValue | undefined = JsonValue> = {
   /**
    * Current request URL
    */
-  currentURL: URL;
+  url: URL;
 };
 
 type AllowedFramesContextShape = Record<string, any>;
