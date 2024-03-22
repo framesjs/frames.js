@@ -53,9 +53,18 @@ export function generateTargetURL({
     url = new URL(`/${finalPathname}`, currentURL);
   } else if (target && typeof target === "object") {
     // resolve target relatively to basePath
+
     url = new URL(
       formatUrl({
-        ...url,
+        host: url.host,
+        hash: url.hash,
+        hostname: url.hostname,
+        href: url.href,
+        // pathname: url.pathname,
+        protocol: url.protocol,
+        search: url.search,
+        port: url.port,
+        // query: url.searchParams,
         ...target,
         pathname:
           "/" +

@@ -41,7 +41,7 @@ describe("framesjsMiddleware middleware", () => {
       pressedButton: {
         action: "post",
         index: 1,
-        searchParams: { test: "true" },
+        searchParams: { test: "true", __bi: "1:p" },
       },
     });
   });
@@ -64,7 +64,13 @@ describe("framesjsMiddleware middleware", () => {
     await middleware(context, next);
 
     expect(next).toHaveBeenCalledWith({
-      pressedButton: { action: "post_redirect", index: 1 },
+      pressedButton: {
+        action: "post_redirect",
+        index: 1,
+        searchParams: {
+          __bi: "1:r",
+        },
+      },
     });
   });
 
