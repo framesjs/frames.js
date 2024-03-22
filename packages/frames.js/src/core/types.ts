@@ -36,12 +36,15 @@ export type UnionToIntersection<Union> =
  * This is just internal object, if we have some values that are provided by frames by default
  * we should define them in here.
  */
-export type FramesContext = {
+export type FramesContext<TState extends JsonValue | undefined = JsonValue> = {
   /**
    * All frame relative targets will be resolved relative to this
    */
   basePath: string;
-  initialState?: JsonValue;
+  /**
+   * Values passed to createFrames()
+   */
+  readonly initialState: TState;
   request: Request;
   /**
    * Current request URL
@@ -118,9 +121,10 @@ export type FramesMiddleware<
 ) => FramesMiddlewareReturnType;
 
 export type FrameHandlerFunction<
+  TState extends JsonValue,
   TFramesContext extends AllowedFramesContextShape,
 > = (
-  ctx: FramesContext & TFramesContext
+  ctx: FramesContext<TState> & TFramesContext & { state: TState }
 ) => Promise<FramesHandlerFunctionReturnType>;
 
 export type FramesContextFromMiddlewares<
@@ -144,6 +148,7 @@ export type FramesRequestHandlerFunctionOptions<
 };
 
 export type FramesRequestHandlerFunction<
+  TState extends JsonValue,
   TDefaultMiddleware extends
     | ReadonlyArray<FramesMiddleware<any>>
     | FramesMiddleware<any>[]
@@ -154,6 +159,7 @@ export type FramesRequestHandlerFunction<
   TPerRouteMiddleware extends FramesMiddleware<any>[] | undefined = undefined,
 >(
   handler: FrameHandlerFunction<
+    TState,
     (TDefaultMiddleware extends undefined
       ? {}
       : FramesContextFromMiddlewares<NonNullable<TDefaultMiddleware>>) &
@@ -168,6 +174,7 @@ export type FramesRequestHandlerFunction<
 ) => TRequestHandlerFunction;
 
 export type FramesOptions<
+  TState extends JsonValue | undefined,
   TFrameMiddleware extends FramesMiddleware<any>[] | undefined,
 > = {
   /**
@@ -175,7 +182,12 @@ export type FramesOptions<
    * @default '/''
    */
   basePath?: string;
-  initialState?: JsonValue;
+  /**
+   * Initial state, used if no state is provided in the message or you are on initial frame.
+   *
+   * Value must be JSON serializable
+   */
+  initialState?: TState;
   middleware?: TFrameMiddleware extends undefined
     ? FramesMiddleware<any>[]
     : TFrameMiddleware;
@@ -187,9 +199,13 @@ export type CreateFramesFunctionDefinition<
     | FramesMiddleware<any>[]
     | undefined,
   TRequestHandlerFunction extends Function,
-> = <TFrameMiddleware extends FramesMiddleware<any>[] | undefined = undefined>(
-  options?: FramesOptions<TFrameMiddleware>
+> = <
+  TFrameMiddleware extends FramesMiddleware<any>[] | undefined = undefined,
+  TState extends JsonValue = JsonValue,
+>(
+  options?: FramesOptions<TState, TFrameMiddleware>
 ) => FramesRequestHandlerFunction<
+  TState,
   TDefaultMiddleware,
   TFrameMiddleware,
   TRequestHandlerFunction

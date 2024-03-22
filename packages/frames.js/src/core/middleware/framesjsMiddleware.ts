@@ -9,11 +9,12 @@ type FramesjsMiddlewareContext = {
     | {
         action: "post" | "post_redirect";
         index: 1 | 2 | 3 | 4;
+        /**
+         * Value of `state` prop on pressed <Button> component.
+         */
         state?: JsonValue;
       }
     | undefined;
-  /** is the initialState for the first frame, and the  */
-  state?: JsonValue | undefined;
 };
 
 /**
@@ -23,7 +24,7 @@ export function framesjsMiddleware(): FramesMiddleware<FramesjsMiddlewareContext
   return async (context, next) => {
     // clicked button always issues a POST request
     if (context.request.method !== "POST") {
-      return next({ state: context.initialState });
+      return next();
     }
 
     // parse clicked buttom from URL
@@ -31,7 +32,7 @@ export function framesjsMiddleware(): FramesMiddleware<FramesjsMiddlewareContext
       context.currentURL
     );
 
-    const result = await next({ pressedButton, state: pressedButton?.state });
+    const result = await next({ pressedButton });
 
     if (pressedButton?.action === "post_redirect") {
       // check if the response is redirect, if not, warn

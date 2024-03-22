@@ -7,7 +7,7 @@ import {
   InvalidFrameActionPayloadError,
   RequestBodyNotJSONError,
 } from "../errors";
-import { FramesMiddleware, JsonValue } from "../types";
+import type { FramesMiddleware } from "../types";
 
 function isValidFrameActionPayload(value: any): value is FrameActionPayload {
   return (
@@ -52,7 +52,7 @@ async function decodeFrameActionPayloadFromRequest(
 type FrameMessage = Omit<
   FrameMessageReturnType<{ fetchHubContext: false }>,
   "message"
-> & { state?: JsonValue };
+>;
 
 type FramesMessageContext = {
   message?: FrameMessage;
