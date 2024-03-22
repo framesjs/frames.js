@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.1.9
+
+### Patch Changes
+
+- 0bc7f70: adds testnets
+
 ## 0.1.8
 
 ### Patch Changes
