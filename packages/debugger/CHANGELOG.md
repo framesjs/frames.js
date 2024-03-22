@@ -1,5 +1,12 @@
 # @frames.js/debugger
 
+## 0.1.8
+
+### Patch Changes
+
+- Updated dependencies
+  - frames.js@0.9.0
+
 ## 0.1.7
 
 ### Patch Changes

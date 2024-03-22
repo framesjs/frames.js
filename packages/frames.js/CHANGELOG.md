@@ -1,5 +1,18 @@
 # frames.js
 
+## 0.9.0
+
+### Minor Changes
+
+- New framework agnostic api
+
+## 0.8.6
+
+### Patch Changes
+
+- d7c5cb3: fix(use-frame): respect tx button post_url
+- cdad26b: fix: xmtp validator types
+
 ## 0.8.5
 
 ### Patch Changes

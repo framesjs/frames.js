@@ -1,5 +1,12 @@
 # framesjs-starter
 
+## 0.2.5
+
+### Patch Changes
+
+- Updated dependencies
+  - frames.js@0.9.0
+
 ## 0.2.4
 
 ### Patch Changes
