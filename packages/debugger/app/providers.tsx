@@ -12,12 +12,35 @@ import {
   polygon,
   zora,
   anvil,
+  baseSepolia,
+  optimismSepolia,
+  arbitrumSepolia,
+  zoraSepolia,
+  sepolia,
+  scrollSepolia,
+  liskSepolia,
 } from "wagmi/chains";
 
 const config = getDefaultConfig({
   appName: "frames.js debugger",
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_ID!,
-  chains: [mainnet, polygon, optimism, arbitrum, base, zora, anvil],
+  chains: [
+    mainnet,
+    polygon,
+    optimism,
+    arbitrum,
+    base,
+    zora,
+    anvil,
+    // sepolia testnets
+    baseSepolia,
+    optimismSepolia,
+    arbitrumSepolia,
+    zoraSepolia,
+    sepolia,
+    scrollSepolia,
+    liskSepolia,
+  ],
   ssr: true,
 });
 
