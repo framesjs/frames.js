@@ -4,12 +4,17 @@ import { Client, Signer } from "@xmtp/xmtp-js";
 import { WalletClient, createWalletClient, http } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { mainnet } from "viem/chains";
-import { getXmtpFrameMessage, isXmtpFrameActionPayload } from "../../xmtp";
+import {
+  XmtpFrameMessageReturnType,
+  getXmtpFrameMessage,
+  isXmtpFrameActionPayload,
+} from "../../xmtp";
 import { redirect } from "../redirect";
-import { FrameDefinition, FramesContext } from "../types";
+import { FrameDefinition, FramesContext, FramesMiddleware } from "../types";
 import { isFrameDefinition } from "../utils";
-import { openframes } from "./openframes";
+import { OpenFramesMessageContext, openframes } from "./openframes";
 import { renderResponse } from "./renderResponse";
+import { createFrames } from "..";
 
 export function convertWalletClientToSigner(
   walletClient: WalletClient
@@ -34,7 +39,9 @@ describe("openframes middleware", () => {
   let framesClient: FramesClient;
   let xmtpValidator: XmtpValidator;
 
-  let clientProtocolHandlers: any;
+  let xmtpMiddleware: FramesMiddleware<
+    OpenFramesMessageContext<XmtpFrameMessageReturnType>
+  >;
 
   beforeAll(async () => {
     // make sure we don't introduce unexpected network requests
@@ -56,8 +63,12 @@ describe("openframes middleware", () => {
 
     xmtpValidator = new XmtpValidator();
 
-    clientProtocolHandlers = {
-      [xmtpValidator.minProtocolVersion()]: {
+    xmtpMiddleware = openframes({
+      clientProtocol: {
+        id: "xmtp",
+        version: "2024-02-09",
+      },
+      handler: {
         isValidPayload: (body: JSON) => isXmtpFrameActionPayload(body),
         getFrameMessage: async (body: JSON) => {
           if (!isXmtpFrameActionPayload(body)) {
@@ -75,7 +86,7 @@ describe("openframes middleware", () => {
           return { ...result, state };
         },
       },
-    };
+    });
   });
 
   afterEach(() => {
@@ -102,37 +113,65 @@ describe("openframes middleware", () => {
       }),
     } as any;
 
-    const mw = openframes({
-      clientProtocolHandlers: {
-        "other@vNext": {
-          isValidPayload: () => false,
-          getFrameMessage: async () => {
-            return {};
-          },
+    const mw1 = openframes({
+      clientProtocol: "foo@vNext",
+      handler: {
+        isValidPayload: () => false,
+        getFrameMessage: async () => {
+          return {};
         },
       },
     });
+    const mw2 = openframes({
+      clientProtocol: "bar@vNext",
+      handler: {
+        isValidPayload: () => false,
+        getFrameMessage: async () => {
+          return {};
+        },
+      },
+    });
+
     // eslint-disable-next-line no-unused-vars
-    const next = jest.fn((...args) =>
+    const next1 = jest.fn((...args) =>
       Promise.resolve({
         image: "/test.png",
       } as FrameDefinition)
     );
 
-    const nextResult = await mw(context, next);
+    const nextResult1 = await mw1(context, next1);
 
-    expect(isFrameDefinition(nextResult)).toBe(true);
-    expect((nextResult as FrameDefinition).accepts).toContainEqual({
-      id: "other",
+    expect(isFrameDefinition(nextResult1)).toBe(true);
+    expect((nextResult1 as FrameDefinition).accepts).toContainEqual({
+      id: "foo",
+      version: "vNext",
+    });
+
+    // eslint-disable-next-line no-unused-vars
+    const next2 = jest.fn((...args) => Promise.resolve(nextResult1));
+
+    const nextResult2 = await mw2(context, next2);
+
+    expect(isFrameDefinition(nextResult2)).toBe(true);
+    expect((nextResult2 as FrameDefinition).accepts).toContainEqual({
+      id: "foo",
+      version: "vNext",
+    });
+    expect((nextResult2 as FrameDefinition).accepts).toContainEqual({
+      id: "bar",
       version: "vNext",
     });
 
     const responseMw = renderResponse();
-    const responseNext = jest.fn((...args) => Promise.resolve(nextResult));
+    // eslint-disable-next-line no-unused-vars
+    const responseNext = jest.fn((...args) => Promise.resolve(nextResult2));
     const response = (await responseMw(context, responseNext)) as Response;
     const responseText = await response.text();
     expect(responseText).toContain(
-      `<meta name="of:accepts:other" content="vNext"/>`
+      `<meta name="of:accepts:foo" content="vNext"/>`
+    );
+    expect(responseText).toContain(
+      `<meta name="of:accepts:bar" content="vNext"/>`
     );
   });
 
@@ -141,9 +180,7 @@ describe("openframes middleware", () => {
       request: new Request("https://example.com"),
     } as any;
 
-    const mw = openframes({
-      clientProtocolHandlers,
-    });
+    const mw = xmtpMiddleware;
     const response = redirect("http://test.com");
     const next = jest.fn(() => Promise.resolve(response));
 
@@ -159,14 +196,55 @@ describe("openframes middleware", () => {
       }),
     } as any;
 
-    const mw = openframes({
-      clientProtocolHandlers,
-    });
+    const mw = xmtpMiddleware;
     const response = redirect("http://test.com");
     const next = jest.fn(() => Promise.resolve(response));
 
     await expect(mw(context, next)).resolves.toMatchObject(response);
     expect(next).toHaveBeenCalledWith();
+  });
+
+  it("supports custom global typed context", async () => {
+    const mw1 = openframes<{ test1?: boolean }>({
+      clientProtocol: "foo@vNext",
+      handler: {
+        isValidPayload: () => false,
+        getFrameMessage: async () => {
+          return { test1: true };
+        },
+      },
+    });
+    // TODO: Can this be inferred as a partial?
+    const mw2 = openframes<{ test2?: boolean }>({
+      clientProtocol: "bar@vNext",
+      handler: {
+        isValidPayload: () => true,
+        getFrameMessage: async () => {
+          return { test2: true };
+        },
+      },
+    });
+
+    const handler = createFrames({
+      middleware: [mw1, mw2],
+    });
+
+    const routeHandler = handler(async (ctx) => {
+      return {
+        image: `/?test2=${ctx.message?.test2}`,
+      };
+    });
+
+    const response = await routeHandler(
+      new Request("http://test.com", {
+        method: "POST",
+        body: JSON.stringify({}),
+      })
+    );
+    expect(response).toBeInstanceOf(Response);
+
+    const responseText = await response.clone().text();
+    expect(responseText).toContain("/?test2=true");
   });
 
   it("moves to next middleware if request is POST with valid JSON but invalid body shape", async () => {
@@ -177,9 +255,7 @@ describe("openframes middleware", () => {
       }),
     } as any;
 
-    const mw = openframes({
-      clientProtocolHandlers,
-    });
+    const mw = xmtpMiddleware;
     const response = redirect("http://test.com");
     const next = jest.fn(() => Promise.resolve(response));
 
@@ -207,9 +283,7 @@ describe("openframes middleware", () => {
       }),
     } as any;
 
-    const mw = openframes({
-      clientProtocolHandlers,
-    });
+    const mw = xmtpMiddleware;
     // eslint-disable-next-line no-unused-vars
     const next = jest.fn((...args) => Promise.resolve(new Response()));
 
@@ -221,6 +295,9 @@ describe("openframes middleware", () => {
     expect(calledArg.message.buttonIndex).toBe(buttonIndex);
     expect(calledArg.message.inputText).toBe("hello");
     expect(calledArg.message.state).toMatchObject({ test: true });
-    expect(calledArg.clientProtocol).toBe(xmtpValidator.minProtocolVersion());
+    expect(calledArg.clientProtocol).toEqual({
+      id: "xmtp",
+      version: "2024-02-09",
+    });
   });
 });
