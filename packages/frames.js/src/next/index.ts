@@ -1,9 +1,6 @@
-import {
-  DefaultMiddleware,
-  createFrames as coreCreateFrames,
-  types,
-} from "../core";
+import { createFrames as coreCreateFrames, types } from "../core";
 import type { NextRequest, NextResponse } from "next/server";
+import { DefaultMiddleware } from "../middleware";
 export { Button, type types } from "../core";
 
 export { fetchMetadata } from "./fetchMetadata";

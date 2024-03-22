@@ -1,8 +1,4 @@
-export {
-  createFrames,
-  type DefaultMiddleware,
-  defaultMiddleware,
-} from "./createFrames";
+export { createFrames } from "./createFrames";
 export { concurrentMiddleware } from "../middleware/concurrentMiddleware";
 export { composeMiddleware } from "./composeMiddleware";
 export { Button } from "./components";

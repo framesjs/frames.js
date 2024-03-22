@@ -1,10 +1,7 @@
 export { Button, type types } from "../core";
-import {
-  DefaultMiddleware,
-  createFrames as coreCreateFrames,
-  types,
-} from "../core";
+import { createFrames as coreCreateFrames, types } from "../core";
 import type { Handler } from "hono";
+import { DefaultMiddleware } from "../middleware";
 
 type CreateFramesForHono = types.CreateFramesFunctionDefinition<
   DefaultMiddleware,

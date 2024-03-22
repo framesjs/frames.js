@@ -1,3 +1,6 @@
+import { defaultMiddleware } from "../middleware";
+import { stateMiddleware } from "../middleware/stateMiddleware";
+import { composeMiddleware } from "./composeMiddleware";
 import type {
   FramesContext,
   FramesMiddleware,
@@ -6,19 +9,6 @@ import type {
   FramesRequestHandlerFunction,
   JsonValue,
 } from "./types";
-import { composeMiddleware } from "./composeMiddleware";
-import { renderResponse } from "../middleware/renderResponse";
-import { framesjsMiddleware } from "../middleware/framesjsMiddleware";
-import { stateMiddleware } from "../middleware/stateMiddleware";
-import { farcasterHubContext } from "../middleware/farcasterHubContext";
-
-export const defaultMiddleware = [
-  renderResponse(),
-  framesjsMiddleware(),
-  farcasterHubContext(),
-] as const;
-
-export type DefaultMiddleware = typeof defaultMiddleware;
 
 export function createFrames<
   TState extends JsonValue | undefined,
