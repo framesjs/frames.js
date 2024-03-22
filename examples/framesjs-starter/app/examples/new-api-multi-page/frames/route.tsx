@@ -4,7 +4,7 @@ import { createFrames, Button } from "frames.js/next";
 const totalPages = 5;
 
 const frames = createFrames({
-  basePath: "/examples/new-api/frames",
+  basePath: "/examples/new-api-multi-page/frames",
 });
 
 const handleRequest = frames(async (ctx) => {
