@@ -15,6 +15,11 @@ export default function ExamplesIndexPage() {
             Transactions
           </Link>
         </li>
+        <li>
+          <Link className="underline" href="/examples/new-api-multi-page">
+            Multi Page
+          </Link>
+        </li>
       </ul>
       <b>Frames.js v0.8 and below</b>
       <ul>
