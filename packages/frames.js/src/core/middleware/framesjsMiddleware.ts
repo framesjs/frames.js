@@ -1,4 +1,4 @@
-import { FramesMiddleware, JsonValue } from "../types";
+import type { FramesMiddleware } from "../types";
 import {
   isFrameRedirect,
   parseButtonInformationFromTargetURL,

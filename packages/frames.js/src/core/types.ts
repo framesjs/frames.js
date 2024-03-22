@@ -46,7 +46,6 @@ export type FramesContext<TState extends JsonValue | undefined = JsonValue> = {
    */
   readonly initialState: TState;
   request: Request;
-  searchParams: { [s: string]: string };
   /**
    * Current request URL
    */
