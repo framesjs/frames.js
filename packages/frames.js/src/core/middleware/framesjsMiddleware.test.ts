@@ -177,6 +177,8 @@ describe("framesjsMiddleware middleware", () => {
 
     await middleware(context, next);
 
-    expect(next).toHaveBeenCalledWith();
+    expect(next).toHaveBeenCalledWith({
+      searchParams: { __bi: "1:p", test: "true" },
+    });
   });
 });
