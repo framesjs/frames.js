@@ -43,6 +43,7 @@ export type FramesContext = {
   basePath: string;
   initialState?: JsonValue;
   request: Request;
+  searchParams: { [s: string]: string };
   /**
    * Current request URL
    */

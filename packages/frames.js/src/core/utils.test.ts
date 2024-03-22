@@ -20,7 +20,7 @@ describe("generatePostButtonTargetURL", () => {
   });
 
   it("generates an URL for post button without target and with state", () => {
-    const expected = new URL("/test", "http://test.com");
+    const expected = new URL("/", "http://test.com");
     expected.searchParams.set("test", "test");
     expected.searchParams.set("__bi", "1:p");
 
@@ -52,8 +52,8 @@ describe("generatePostButtonTargetURL", () => {
 
   it("generates an URL for post button with target and with state", () => {
     const expected = new URL("/test", "http://test.com");
-    expected.searchParams.set("__bi", "1:p");
     expected.searchParams.set("test", "test");
+    expected.searchParams.set("__bi", "1:p");
 
     expect(
       generatePostButtonTargetURL({
@@ -156,7 +156,6 @@ describe("parseButtonInformationFromTargetURL", () => {
     expect(parseButtonInformationFromTargetURL(url)).toEqual({
       action: "post",
       index: 1,
-      searchParams: { test: "test", __bi: "1:p" },
     });
   });
 });

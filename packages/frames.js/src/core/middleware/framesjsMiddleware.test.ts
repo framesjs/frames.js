@@ -14,7 +14,10 @@ describe("framesjsMiddleware middleware", () => {
 
     await middleware(context, next);
 
-    expect(next).toHaveBeenCalledWith({ pressedButton: undefined });
+    expect(next).toHaveBeenCalledWith({
+      pressedButton: undefined,
+      searchParams: {},
+    });
   });
 
   it("provides pressedButton to context if post button is detected", async () => {
@@ -41,8 +44,8 @@ describe("framesjsMiddleware middleware", () => {
       pressedButton: {
         action: "post",
         index: 1,
-        searchParams: { test: "true", __bi: "1:p" },
       },
+      searchParams: { test: "true", __bi: "1:p" },
     });
   });
 
@@ -67,9 +70,9 @@ describe("framesjsMiddleware middleware", () => {
       pressedButton: {
         action: "post_redirect",
         index: 1,
-        searchParams: {
-          __bi: "1:r",
-        },
+      },
+      searchParams: {
+        __bi: "1:pr",
       },
     });
   });
