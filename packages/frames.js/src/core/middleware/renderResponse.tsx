@@ -28,11 +28,11 @@ class ImageRenderError extends Error {}
  * If the accept header is set to application/json, it will return the metadata as JSON
  * so it is easy to parse it for metatags in existing applications.
  */
-export function renderResponse(): FramesMiddleware<{}> {
+export function renderResponse(): FramesMiddleware<any, {}> {
   return async (context, next) => {
     const wantsJSON =
       context.request.headers.get("accept") === FRAMES_META_TAGS_HEADER;
-    let result: FramesHandlerFunctionReturnType | Response;
+    let result: FramesHandlerFunctionReturnType<any> | Response;
 
     try {
       result = await next(context);
@@ -242,7 +242,7 @@ export function renderResponse(): FramesMiddleware<{}> {
 
 async function renderImage(
   element: React.ReactElement,
-  options: FrameDefinition["imageOptions"]
+  options: FrameDefinition<any>["imageOptions"]
 ): Promise<string> {
   const response = new ImageResponse(
     (

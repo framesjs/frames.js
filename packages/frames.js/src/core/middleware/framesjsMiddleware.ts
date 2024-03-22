@@ -19,19 +19,20 @@ type FramesjsMiddlewareContext = {
         index: 1 | 2 | 3 | 4;
       }
     | undefined;
-  /** is the initialState for the first frame, and the  */
-  state?: JsonValue | undefined;
 };
 
 /**
  * Creates middleware responsible to detect and parse clicked button, it provides pressedButton to context.
  */
-export function framesjsMiddleware(): FramesMiddleware<FramesjsMiddlewareContext> {
+export function framesjsMiddleware(): FramesMiddleware<
+  any,
+  FramesjsMiddlewareContext
+> {
   return async (context, next) => {
     const { searchParams } = parseSearchParams(context.currentURL);
     // clicked button always issues a POST request
     if (context.request.method !== "POST") {
-      return next({ state: context.initialState, searchParams });
+      return next({ searchParams });
     }
 
     // parse clicked buttom from URL

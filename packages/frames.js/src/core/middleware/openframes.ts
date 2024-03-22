@@ -43,7 +43,7 @@ async function nextInjectAcceptedClient({
   nextResult,
   clientProtocol,
 }: {
-  nextResult: FramesMiddlewareReturnType;
+  nextResult: FramesMiddlewareReturnType<any>;
   clientProtocol: ClientProtocolId;
 }) {
   const result = await nextResult;
@@ -65,7 +65,7 @@ export function openframes<T = OpenFrameMessage>({
    */
   clientProtocol: ClientProtocolId | `${string}@${string}`;
   handler: ClientProtocolHandler<T>;
-}): FramesMiddleware<OpenFramesMessageContext<T>> {
+}): FramesMiddleware<any, OpenFramesMessageContext<T>> {
   return async (context, next) => {
     const clientProtocol: ClientProtocolId =
       typeof clientProtocolRaw === "string"

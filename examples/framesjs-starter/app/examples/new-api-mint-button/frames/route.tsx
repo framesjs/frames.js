@@ -37,43 +37,41 @@ const frames = createFrames({
   basePath: "/examples/new-api-mint-button/frames",
 });
 
-const handleRequest = frames(
-  async ({ pressedButton, message, searchParams }) => {
-    const page = Number(searchParams?.pageIndex ?? 0);
-    return {
-      image: nfts[page]!.src,
-      imageOptions: {
-        aspectRatio: "1:1",
-      },
-      buttons: [
-        <Button
-          action="post"
-          target={{
-            query: {
-              pageIndex: String((page - 1) % nfts.length),
-            },
-          }}
-        >
-          ←
-        </Button>,
-        <Button
-          action="post"
-          target={{
-            query: {
-              pageIndex: String((page + 1) % nfts.length),
-            },
-          }}
-        >
-          →
-        </Button>,
-        <Button action="mint" target={nfts[page]!.tokenUrl}>
-          Mint
-        </Button>,
-      ],
-      textInput: "Type something!",
-    };
-  }
-);
+const handleRequest = frames(async (ctx) => {
+  const page = Number(ctx.searchParams?.pageIndex ?? 0);
+  return {
+    image: nfts[page]!.src,
+    imageOptions: {
+      aspectRatio: "1:1",
+    },
+    buttons: [
+      <Button
+        action="post"
+        target={{
+          query: {
+            pageIndex: String((page - 1) % nfts.length),
+          },
+        }}
+      >
+        ←
+      </Button>,
+      <Button
+        action="post"
+        target={{
+          query: {
+            pageIndex: String((page + 1) % nfts.length),
+          },
+        }}
+      >
+        →
+      </Button>,
+      <Button action="mint" target={nfts[page]!.tokenUrl}>
+        Mint
+      </Button>,
+    ],
+    textInput: "Type something!",
+  };
+});
 
 export const GET = handleRequest;
 export const POST = handleRequest;
