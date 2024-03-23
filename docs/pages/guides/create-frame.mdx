@@ -26,7 +26,9 @@ This guide shows you how to add frames rendering to your next.js + tailwind app 
 /* eslint-disable react/jsx-key */
 import { createFrames, Button } from "frames.js/next";
 
-const frames = createFrames();
+const frames = createFrames({
+  basePath: "/frames",
+});
 const handleRequest = frames(async (ctx) => {
   return {
     image: (
