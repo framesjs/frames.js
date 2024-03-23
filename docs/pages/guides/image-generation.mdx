@@ -44,6 +44,7 @@ const handleRequest = frames(async (ctx) => {
 
 The Image generation uses an experimental tailwind based system, [read their docs on limitations](https://vercel.com/docs/functions/og-image-generation/og-image-examples#using-tailwind-css---experimental)._createMdxContent
 
-## Using custom fonts
+## Using custom fonts & font-weight
 
-In order to use custom fonts, you need to load them in `imageOptions`, [reference docs here](https://vercel.com/docs/functions/og-image-generation/og-image-api)
+In order to use custom fonts or font weights, you need to load fonts for them in `imageOptions`, [reference docs here](https://vercel.com/docs/functions/og-image-generation/og-image-api)._createMdxContent
+[Here's an example of how to do this](https://github.com/orgs/vercel/discussions/1343#discussioncomment-5562614).
