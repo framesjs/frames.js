@@ -35,6 +35,7 @@ export async function fetchMetadata(
         // we use Accept header to get the response in JSON format, this is automatically supported by frames.js renderResponse middleware
         Accept: FRAMES_META_TAGS_HEADER,
       },
+      cache: "no-cache",
     });
 
     if (response?.ok) {
