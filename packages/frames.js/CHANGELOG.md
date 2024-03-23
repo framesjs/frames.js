@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.9.5
+
+### Patch Changes
+
+- b56713e: fix(nextjs): fetchMetadata cache issue
+
 ## 0.9.4
 
 ### Patch Changes
