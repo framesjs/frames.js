@@ -38,49 +38,55 @@ npx degit github:framesjs/frames.js/examples/framesjs-starter#main framesjs-star
 
 or [clone from github](https://github.com/framesjs/frames.js/tree/main/examples/framesjs-starter)
 
-### Alternatively, Start with frames.js in Next.js in two copy-pastes
+
+
+## Alternatively, add frames.js to your existing project manually
+
+### Start with frames.js in Next.js in three steps
+
+```bash
+yarn add frames.js
+```
 
 ```tsx filename="// ./app/page.tsx"
 // ./app/page.tsx
 
-import {
-  FrameContainer,
-  FrameImage,
-  FrameButton,
-  useFramesReducer,
-  getPreviousFrame,
-  validateActionSignature,
-  FrameInput,
-} from "frames.js/next/server";
+import { fetchMetadata } from "frames.js/next";
 
-const reducer = (state, action) => ({ count: state.count + 1 });
+export async function generateMetadata() {
+  return {
+    title: "My page",
+    other: await fetchMetadata(
+      new URL("/frames", process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+    ),
+  };
+}
 
-export default async function Home(props) {
-  const previousFrame = getPreviousFrame(props.searchParams);
-  await validateActionSignature(previousFrame.postBody);
-  const [state, dispatch] = useFramesReducer(
-    reducer,
-    { count: 0 },
-    previousFrame
-  );
-
-  return (
-    <FrameContainer
-      postUrl="/frames"
-      state={state}
-      previousFrame={previousFrame}
-    >
-      <FrameImage src="https://picsum.photos/seed/frames.js/1146/600" />
-      <FrameButton onClick={dispatch}>{state.count}</FrameButton>
-    </FrameContainer>
-  );
+export default function Home(props) {
+  return <div>My Page</div>;
 }
 ```
 
-```ts filename="./app/frames/route.ts"
-// ./app/frames/route.ts
+```ts filename="./app/frames/route.tsx"
+// ./app/frames/route.tsx
+/* eslint-disable react/jsx-key */
+import { createFrames, Button } from 'frames.js/next';
 
-export { POST } from "frames.js/next/server";
+const frames = createFrames();
+const handleRequest = frames(async (ctx) => {
+  return {
+    image: <div tw="w-full h-full bg-slate-700 text-white justify-center items-center">
+      {ctx.message?.state?.count ?? 0}
+    </div>,
+    buttons: [
+      <Button action="post">Increment counter</Button>
+    ],
+    state: { count: (ctx.message?.state?.count ?? 0) + 1 }
+  };
+});
+
+export const GET = handleRequest;
+export const POST = handleRequest;
 ```
 
 ![](/frames/frame2.png)
