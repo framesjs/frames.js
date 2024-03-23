@@ -1,4 +1,3 @@
-import { JsonValue } from "./types";
 import type { UrlObject } from "url";
 
 type PostButtonProps = {
@@ -10,10 +9,6 @@ type PostButtonProps = {
    * if omitted it will send use current url and path. Optionally pass in an object with properties `pathname`, `query`, ... instead.
    */
   target?: string | UrlObject;
-  /**
-   * State passed to the next frame, will be available on the context as pressedButton.state
-   */
-  state?: JsonValue;
 };
 
 type PostRedirectButton = {
@@ -25,12 +20,6 @@ type PostRedirectButton = {
    * if omitted it will send use current url and path. Optionally pass in an object with properties `pathname`, `query`, ... instead.
    */
   target?: string | UrlObject;
-  /**
-   * State passed to the next frame
-   *
-   * State passed to the next frame, will be available on the context as pressedButton.state
-   */
-  state?: JsonValue;
 };
 
 type MintButtonProps = {
@@ -49,7 +38,7 @@ type LinkButtonProps = {
   target: string | UrlObject;
 };
 
-type TxButtonProps = Pick<PostButtonProps, "state"> & {
+type TxButtonProps = {
   /** A 256-byte string which is label of the button */
   children: string;
   action: "tx";
