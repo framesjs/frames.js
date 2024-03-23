@@ -10,6 +10,10 @@ Frames.js uses middleware to extend the functionality of Frames, bringing in dat
 You can use middleware for all your frames by passing in middleware via the `middleware` Option.
 
 ```tsx
+import { farcasterHubContext, openframes } from "frames.js/middleware";
+import { createFrames } from "frames.js/next";
+import { getXmtpFrameMessage, isXmtpFrameActionPayload } from "frames.js/xmtp";
+
 const frames = createFrames({
   basePath: "/",
   initialState: {
