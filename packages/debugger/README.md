@@ -1,4 +1,4 @@
-# @frames/debugger
+# @frames.js/debugger
 
 Debug your Frames built using [frames.js](https://framesjs.org) with ease.
 
