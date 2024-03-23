@@ -39,3 +39,11 @@ const handleRequest = frames(async (ctx) => {
   };
 });
 ```
+
+## Using tailwind CSS rules & other quirks
+
+The Image generation uses an experimental tailwind based system, [read their docs on limitations](https://vercel.com/docs/functions/og-image-generation/og-image-examples#using-tailwind-css---experimental)._createMdxContent
+
+## Using custom fonts
+
+In order to use custom fonts, you need to load them in `imageOptions`, [reference docs here](https://vercel.com/docs/functions/og-image-generation/og-image-api)
