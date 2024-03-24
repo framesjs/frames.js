@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.9.6
+
+### Patch Changes
+
+- 9239c36: fix: add UrlObject type to post_url prop on tx button
+
 ## 0.9.5
 
 ### Patch Changes
