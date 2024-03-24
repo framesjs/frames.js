@@ -33,6 +33,19 @@ export default function ExamplesIndexPage() {
             Only followers can mint
           </Link>
         </li>
+        <li>
+          <Link className="underline" href="/examples/new-api-custom-font">
+            Custom font
+          </Link>
+        </li>
+        <li>
+          <Link
+            className="underline"
+            href="/examples/new-api-custom-middleware"
+          >
+            Custom middleware
+          </Link>
+        </li>
       </ul>
       <b>Frames.js v0.8 and below</b>
       <ul>

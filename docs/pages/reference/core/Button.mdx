@@ -20,7 +20,7 @@ This button sends a request to a URL on which it was rendered. If you want to na
 
 The `target` path will be resolved relatively to current URL.
 
-### Passing state when button is clicked using query parameters
+### Passing query params when button is clicked using query parameters
 
 ```tsx
 <Button action="post" target={{ query: { foo: "bar" }, pathname: "/next-route"}}>
@@ -28,7 +28,7 @@ The `target` path will be resolved relatively to current URL.
 </Button>
 ```
 
-The state will be available in handler `ctx.pressedButton.state`.
+The query params will be available in handler via `ctx.searchParams.foo`.
 
 ## Post Redirect Button
 

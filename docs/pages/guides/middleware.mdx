@@ -51,3 +51,25 @@ const frames = createFrames({
   ],
 });
 ```
+
+## Writing your own middleware
+
+You should make sure to clone any request you use, in order to not break other middleware. For example you can only call `const body = await ctx.request.clone().json();` once on a request.
+
+Here's an example. Your middleware should return `next({ ... })` with an additional object that will be merged into the existing `ctx`
+```tsx
+import { createFrames } from "frames.js/next";
+
+export const frames = createFrames({
+  basePath: "/examples/new-api-custom-middleware/frames",
+  middleware: [
+    async (ctx, next) => {
+      const body = await ctx.request.clone().json();
+
+      return next({ body });
+    },
+    // the request body will now be available via `ctx.body` in your handler
+  ],
+});
+
+```
