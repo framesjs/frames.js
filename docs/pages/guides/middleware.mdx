@@ -14,6 +14,14 @@ import { farcasterHubContext, openframes } from "frames.js/middleware";
 import { createFrames } from "frames.js/next";
 import { getXmtpFrameMessage, isXmtpFrameActionPayload } from "frames.js/xmtp";
 
+const DEFAULT_DEBUGGER_URL =
+  process.env.DEBUGGER_URL ?? "http://localhost:3010/";
+
+export const DEFAULT_DEBUGGER_HUB_URL =
+  process.env.NODE_ENV === "development"
+    ? new URL("/hub", DEFAULT_DEBUGGER_URL).toString()
+    : undefined;
+
 const frames = createFrames({
   basePath: "/",
   initialState: {

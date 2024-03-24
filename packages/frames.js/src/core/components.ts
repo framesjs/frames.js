@@ -53,7 +53,7 @@ type TxButtonProps = {
    * URL where a frame message containing the transaction ID will be posted if the transaction succeeds.
    * Overrides the top level frame post_url.
    */
-  post_url?: string;
+  post_url?: string | UrlObject;
 };
 
 export type ButtonProps =
