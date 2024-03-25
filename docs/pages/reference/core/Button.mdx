@@ -114,8 +114,7 @@ type EthSendTransactionParams {
 
 If the transaction is successful, the frame will send a POST request to the URL specified in `post_url` or the frame `post_url`. This can be handled by the frame to show a success message or redirect the user to a different page.
 
-```tsx
-// /route.tsx
+```tsx [route.tsx]
 import { Button } from "frames.js/next";
 import { createFrames } from "frames.js/next";
 

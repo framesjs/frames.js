@@ -65,9 +65,7 @@ pnpm create frames
 yarn add frames.js
 ```
 
-```tsx filename="// ./app/page.tsx"
-// ./app/page.tsx
-
+```tsx [./app/page.tsx]
 import { fetchMetadata } from "frames.js/next";
 
 export async function generateMetadata() {
@@ -89,8 +87,7 @@ export default function Home(props) {
 }
 ```
 
-```ts filename="./app/frames/route.tsx"
-// ./app/frames/route.tsx
+```ts [./app/frames/route.tsx]
 /* eslint-disable react/jsx-key */
 import { createFrames, Button } from 'frames.js/next';
 
@@ -126,14 +123,12 @@ Check out the following places for more Frames-related content:
 
 Or use the [hosted Frames debugger](https://debugger.framesjs.org/?url=https%3A%2F%2Fframesjs.org). Running locally has the benefits of it working with natively with localhost.
 
-## Prefer to not use JSX?
+## Prefer to not use JSX? 
 
-### Use frames.js in Next.js using helper functions
+### frames.js in Next.js using helper functions
 
-```tsx filename="./app/page.tsx"
-// page that renders a frame
-// ./app/page.tsx
-
+```tsx [./app/page.tsx]
+// Page that returns a frame
 import { Frame, getFrameFlattened } from "frames.js";
 import type { Metadata } from "next";
 
@@ -164,10 +159,8 @@ export const metadata: Metadata = {
 };
 ```
 
-```ts filename="app/frames/route.ts"
-// handle frame actions
-// ./app/frames/route.ts
-
+```ts [./app/frames/route.ts]
+// Route that handles frame actions
 import { getFrameHtml, validateFrameMessage } from "frames.js";
 import { NextRequest } from "next/server";
 

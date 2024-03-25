@@ -1,5 +1,5 @@
 ---
-title: "Guide: Display Frames in your app"
+title: "Guide: Create your first Frame"
 description: "Frames.js is the react based framework for making frames. Debugger included."
 ---
 
@@ -8,21 +8,26 @@ description: "Frames.js is the react based framework for making frames. Debugger
 This guide shows you how to add frames rendering to your next.js + tailwind app using frames.js.
 
 ## Steps
+::::steps
+### Create a new repo
 
-1. Create a new repo
+Create a new Next.js app
 
-`npx create-next-app@latest my-project --ts --eslint --tailwind --app`
+```sh
+npx create-next-app@latest my-project --ts --eslint --tailwind --app
+cd my-project
+```
 
-`cd my-project`
+Add `frames.js` to your project
 
-`yarn add frames.js`
+```sh
+yarn add frames.js
+```
 
-`yarn install`
 
-2. Create your Frames app
+### Create your Frames app
 
-```tsx filename="// ./app/frames/route.tsx"
-// ./app/frames/route.tsx
+```tsx [./app/frames/route.tsx]
 /* eslint-disable react/jsx-key */
 import { createFrames, Button } from "frames.js/next";
 
@@ -51,10 +56,9 @@ export const GET = handleRequest;
 export const POST = handleRequest;
 ```
 
-3. If you have an existing page, render Frames in your metadata
+### If you have an existing page, render Frames in your metadata
 
-```tsx filename="// ./app/page.tsx"
-// ./app/page.tsx
+```tsx [./app/page.tsx]
 import { fetchMetadata } from "frames.js/next";
 
 export async function generateMetadata() {
@@ -72,6 +76,8 @@ export default function Page() {
 }
 ```
 
-4. Run `yarn run dev`
+### Run `yarn run dev`
 
-5. Done! 🎉
+### Done! 🎉
+
+::::
