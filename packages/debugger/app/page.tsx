@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useAccount, useChainId, useConfig } from "wagmi";
 import { FrameDebugger } from "./components/frame-debugger";
+import pkg from "../package.json";
 import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
 import { MockHubActionContext } from "./utils/mock-hub-utils";
 const LoginWindow = dynamic(() => import("./components/create-signer"), {
@@ -46,6 +47,17 @@ export default function App({
   const config = useConfig();
   const account = useAccount();
   const { openConnectModal } = useConnectModal();
+
+  useEffect(() => {
+    console.log(
+      ` ,---.                                             ,--.        \n/  .-',--.--. ,--,--.,--,--,--. ,---.  ,---.       \`--' ,---.  \n|  \`-,|  .--'' ,-.  ||        || .-. :(  .-'       ,--.(  .-'  \n|  .-'|  |    '-'  ||  |  |  |   --..-'  \`).--.  |  |.-'  \`) \n\`--'  \`--'    \`--\`--'\`--\`--\`--' \`----'\`----' '--'.-'  /\`----'  \n                                                 '---'         \n${pkg.name}, Version ${pkg.version}`
+    );
+    console.log(
+      "%c" +
+        "*You'll find console.log statements from your frames in the server logs in your terminal, not here.*",
+      "font-weight:bold;"
+    );
+  }, []);
 
   useEffect(() => {
     if (url !== urlInput && url) {
