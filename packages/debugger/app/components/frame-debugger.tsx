@@ -276,12 +276,13 @@ export function FrameDebugger({
                     } as FrameRequest);
                   }}
                 >
-                  <span className="flex flex-row w-full">
+                  <span className="flex text-left flex-row w-full">
                     <span className="border text-gray-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">
                       {frameStackItem.method}
                     </span>
                     <span className="border text-gray-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">
-                      {new URL(frameStackItem.url).protocol}//
+                      {new URL(frameStackItem.url).protocol}
+                      {"//"}
                       {new URL(frameStackItem.url).hostname}
                       {new URL(frameStackItem.url).port
                         ? `:${new URL(frameStackItem.url).port}`
@@ -302,20 +303,27 @@ export function FrameDebugger({
                     </span>
                   </span>
                   <span className="flex flex-row w-full">
-                    <span>{new URL(frameStackItem.url).pathname}</span>
+                    <span className="text-left line-clamp-2 text-ellipsis overflow-hidden break-words">
+                      {new URL(frameStackItem.url).pathname}
+                    </span>
+                    <span className="ml-auto" suppressHydrationWarning>
+                      {frameStackItem.timestamp.toLocaleTimeString()}
+                    </span>
+                  </span>
+                  <div>
                     {Array.from(
                       new URL(frameStackItem.url).searchParams.entries()
                     ).length ? (
                       <HoverCard>
                         <HoverCardTrigger>
-                          <span className="border ml-2 text-gray-500 text-xs font-medium me-2 p-1 cursor-pointer rounded dark:bg-gray-700 dark:text-gray-300">
+                          <span className="border text-gray-500 text-xs font-medium me-2 p-1 cursor-pointer rounded dark:bg-gray-700 dark:text-gray-300">
                             ?params
                           </span>
                         </HoverCardTrigger>
                         <HoverCardContent>
                           <pre
                             id="json"
-                            className="font-mono text-xs"
+                            className="font-mono text-xs text-left"
                             style={{
                               padding: "10px",
                               borderRadius: "4px",
@@ -334,10 +342,7 @@ export function FrameDebugger({
                         </HoverCardContent>
                       </HoverCard>
                     ) : null}
-                    <span className="ml-auto" suppressHydrationWarning>
-                      {frameStackItem.timestamp.toLocaleTimeString()}
-                    </span>
-                  </span>
+                  </div>
                 </button>
               );
             })}
