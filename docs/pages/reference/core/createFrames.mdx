@@ -146,3 +146,71 @@ handleRequest(new Request("/")).then((res) => {
   return res.text();
 });
 ```
+
+## Context
+
+Core middleware is included and executed by default and gives you access to the following default context in your frame handlers:
+
+### `basePath`
+
+- Type: `string`
+
+Specifies the base path for all relative URLs in the frame definition.
+
+### `initialState`
+
+- Type: generic
+
+A JSON serializable value that is used if no state is provided in the message or you are on the initial frame.
+
+### `request`
+
+- Type: [Web API `Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request)
+
+The request object that was passed to the request handler.
+
+### `url`
+
+- Type: [Web API `URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL)
+
+The URL object that was parsed from the request.
+
+### `searchParams`
+
+- Type: `Record<string, string>`
+
+The search params in the URL as an object. If there are no search params, it will be an empty object.
+
+### `pressedButton`
+
+- Type: `undefined | { action: "post" | "post_redirect"; index: 1 | 2 | 3 | 4 }`
+
+The button that was clicked on the previous frame.
+
+### `buttonIndex`
+
+- Type: `number`
+
+The index of the button that was clicked on the previous frame.
+
+### `message`
+
+- Type: `FrameMessage`
+
+The frame message that was parsed from the request body.
+
+### `clientProtocol`
+
+- Type: `ClientProtocolId`
+
+The client protocol that was used to send the frame message.
+
+### `state`
+
+- Type: `JsonValue`
+
+The state extracted from the frame message. If you are on the initial frame (no button pressed), the value is the `initialState` value passed to `createFrames`. If you are on a frame with a button pressed, the value is the state from the previous frame.
+
+
+
+
