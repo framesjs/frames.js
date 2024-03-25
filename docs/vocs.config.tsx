@@ -51,12 +51,18 @@ const sidebar = [
         link: "/guides/transactions",
       },
       {
-        text: "Display Frames",
-        link: "/guides/display-frames",
-      },
-      {
         text: "Open Frames",
         link: "/guides/open-frames",
+      },
+    ],
+  },
+  {
+    text: "Frames.js for Apps",
+    collapsed: false,
+    items: [
+      {
+        text: "Display Frames",
+        link: "/guides/apps/display-frames",
       },
     ],
   },
@@ -232,7 +238,7 @@ const sidebar = [
         ],
       },
       {
-        text: "frames.js/render",
+        text: "@frames.js/render",
         collapsed: true,
         items: [
           {
@@ -247,23 +253,23 @@ const sidebar = [
             text: "FrameUI",
             link: "/reference/render/frame-ui",
           },
-        ],
-      },
-      {
-        text: "frames.js/render/next",
-        collapsed: true,
-        items: [
           {
-            text: "FrameImage",
-            link: "/reference/render/next/frame-image",
-          },
-          {
-            text: "POST",
-            link: "/reference/render/next/POST",
-          },
-          {
-            text: "GET",
-            link: "/reference/render/next/GET",
+            text: "Next.js",
+            collapsed: true,
+            items: [
+              {
+                text: "FrameImage",
+                link: "/reference/render/next/frame-image",
+              },
+              {
+                text: "POST",
+                link: "/reference/render/next/POST",
+              },
+              {
+                text: "GET",
+                link: "/reference/render/next/GET",
+              },
+            ],
           },
         ],
       },

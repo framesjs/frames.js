@@ -18,22 +18,21 @@ type Props = {
   onMint?: (t: onMintArgs) => void;
   /** the context of this frame, used for generating Frame Action payloads */
   frameContext: FrameContext;
-}
+};
 ```
 
 ## Usage
 
 ```tsx [frames.js/render/types.tsx]
 "use client";
-import {
-  FrameUI,
-  fallbackFrameContext,
-  FrameContext,
-} from "frames.js/render";
-import { FrameImageNext } from "frames.js/render/next";
+import { FrameUI, fallbackFrameContext, FrameContext } from "@frames.js/render";
+import { FrameImageNext } from "@frames.js/render/next";
 import { FrameButton } from "frames.js";
-import { useFrame } from "frames.js/render/use-frame";
-import { mockFarcasterSigner, createFrameActionMessageWithSignerKey } from "frames.js/render/farcaster";
+import { useFrame } from "@frames.js/render/use-frame";
+import {
+  mockFarcasterSigner,
+  createFrameActionMessageWithSignerKey,
+} from "@frames.js/render/farcaster";
 
 export default function Page() {
   const frameState = useFrame({
@@ -54,7 +53,9 @@ export default function Page() {
         // Implement me
         alert("A frame button was pressed without a signer.");
       },
-      signFrameAction: () => { alert('implement me.') },
+      signFrameAction: () => {
+        alert("implement me.");
+      },
     },
   });
 
@@ -64,4 +65,4 @@ export default function Page() {
 }
 ```
 
-[Full example](/guides/display-frames.mdx)
+[Full example](/guides/apps/display-frames.mdx)
