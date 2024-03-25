@@ -18,9 +18,7 @@ import { getFrame } from "../getFrame";
 import { getFarcasterTime } from "@farcaster/core";
 
 function onMintFallback({ target }: onMintArgs) {
-  if (window.confirm("You are about to be redirected to " + target!)) {
-    parent.window.open(target!, "_blank");
-  }
+  window.alert("Mint requested: " + target!);
 }
 
 export const unsignedFrameAction: SignerStateInstance["signFrameAction"] =
