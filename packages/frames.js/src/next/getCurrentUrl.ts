@@ -9,16 +9,22 @@ export function getCurrentUrl(
   const appUrl = process.env.VERCEL_URL || process.env.APP_URL;
   const host: string | undefined = (req.headers as any)?.host;
 
+  const pathname = req.url?.startsWith("/")
+    ? req.url
+    : req.url
+      ? new URL(req.url).pathname + new URL(req.url).search
+      : "";
+
   // Construct a valid URL from the Vercel URL environment variable if it exists
   const parsedAppUrl = appUrl
     ? appUrl.startsWith("http://") || appUrl.startsWith("https://")
-      ? appUrl
-      : scheme + appUrl
+      ? new URL(pathname, appUrl)
+      : new URL(pathname, scheme + appUrl)
     : undefined;
 
   // App URL
-  if (parsedAppUrl && isValidUrl(parsedAppUrl)) {
-    return new URL(parsedAppUrl);
+  if (parsedAppUrl) {
+    return parsedAppUrl;
   }
 
   // Request URL
