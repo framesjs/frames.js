@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const url = currentURL("/examples/new-api-custom-font");
+  const url = currentURL("/examples/new-api-custom-font/frames");
 
   return (
     <div>

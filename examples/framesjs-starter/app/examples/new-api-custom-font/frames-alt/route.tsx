@@ -1,28 +1,42 @@
 /* eslint-disable react/jsx-key */
 import { Button } from "frames.js/next";
 import { frames } from "./frames";
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
 
-// without this line, this type of importing fonts doesn't work for some reason
-export const runtime = "edge";
+export const runtime = "nodejs";
 
-const interRegularFont = fetch(
-  new URL("/public/Inter-Regular.ttf", import.meta.url)
-).then((res) => res.arrayBuffer());
-const interBoldFont = fetch(
-  new URL("/public/Inter-Bold.ttf", import.meta.url)
-).then((res) => res.arrayBuffer());
-const firaScriptFont = fetch(
-  new URL("/public/FiraCodeiScript-Regular.ttf", import.meta.url)
-).then((res) => res.arrayBuffer());
+const interRegularFont = fs.readFile(
+  path.join(path.resolve(process.cwd(), "public"), "Inter-Regular.ttf")
+);
+
+const interBoldFont = fs.readFile(
+  path.join(path.resolve(process.cwd(), "public"), "Inter-Bold.ttf")
+);
+
+const firaScriptFont = fs.readFile(
+  path.join(
+    path.resolve(process.cwd(), "public"),
+    "FiraCodeiScript-Regular.ttf"
+  )
+);
 
 const handleRequest = frames(async (ctx) => {
-  const [interRegularFontData, interBoldFontData, firaScriptFontData] =
+  const [interRegularFontData, interBoldFontData, firaScriptData] =
     await Promise.all([interRegularFont, interBoldFont, firaScriptFont]);
 
   return {
+    buttons: [
+      <Button target={"/frames"} action="post">
+        Edge Fn
+      </Button>,
+      <Button action="post" target={"/frames-alt"}>
+        Node.js
+      </Button>,
+    ],
     image: (
       <span tw="flex flex-col">
-        <div>Edge functions example custom fonts</div>
+        <div>Node.js example custom fonts</div>
         <div style={{ marginTop: 40, fontWeight: 400 }}>Regular Inter Font</div>
         <div style={{ marginTop: 40, fontWeight: 700 }}>Bold Inter Font</div>
         <div
@@ -35,15 +49,6 @@ const handleRequest = frames(async (ctx) => {
         </div>
       </span>
     ),
-    buttons: [
-      <Button target={"/frames"} action="post">
-        Edge Fn
-      </Button>,
-      <Button action="post" target={"/frames-alt"}>
-        Node.js
-      </Button>,
-    ],
-    textInput: "Type something!",
     imageOptions: {
       fonts: [
         {
@@ -58,7 +63,7 @@ const handleRequest = frames(async (ctx) => {
         },
         {
           name: "Fira Code",
-          data: firaScriptFontData,
+          data: firaScriptData,
           weight: 700,
         },
       ],
