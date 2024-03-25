@@ -17,6 +17,51 @@ const handleRequest = frames(async (ctx) => {
 
 The function passed to `frames` will be called with the context of a frame action and should return a `FrameDefinition`.
 
+## Parameters
+
+`createFrames` accepts an optional options object with the following properties:
+
+### `basePath`
+
+- Type: `string`
+
+A string that specifies the base path for all relative URLs in the frame definition. It defaults to `/`.
+
+### `initialState`
+
+- Type: generic
+
+A JSON serializable value that is used if no state is provided in the message or you are on the initial frame.
+
+### `middleware`
+
+Type: `FramesMiddleware`
+
+An array of middleware functions that are called before the frame handler and allows you to inject additional context into the `ctx` parameter passed to each frame handler call.
+
+Each middleware should return a promise that resolves to the next middleware, or a [Web API `Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response), or a `FrameDefinition`.
+
+#### Example
+
+```tsx [./app/frames/route.tsx]
+const frames = createFrames({
+  middleware: [
+    async (ctx, next) => {
+      console.log("Before frame handler");
+      const result = await next({name: "Alice"});
+      console.log("After frame handler");
+      return result;
+    },
+  ],
+});
+
+const handler = frames(async (ctx) => {
+  return {
+    image: <span>{ctx.name}</span>, // Outputs an image with the text "Alice"
+  };
+});
+```
+
 ## FrameDefinition
 
 `FrameDefinition` is an object that describes a frame. It has the following properties:
@@ -84,8 +129,7 @@ const handleRequest = frames(async (ctx) => {
       aspectRatio: "1:1",
     },
     buttons: [<Button action="post">Refresh</Button>],
-    headers: {
-      // [!code focus]
+    headers: {// [!code focus]
       // Max cache age in seconds // [!code focus]
       "Cache-Control": "max-age=0", // [!code focus]
     }, // [!code focus]
