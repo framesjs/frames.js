@@ -1,9 +1,28 @@
-import { fetchMetadata } from "frames.js/next";
+import { type FrameFlattened, getFrameFlattened } from "frames.js";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { framePostUrl, ogImage } from "./constants";
+import { framePostUrl } from "./constants";
 
 const inter = Inter({ subsets: ["latin"] });
+
+const imageUrl = "https://picsum.photos/seed/frames.js/1146/600";
+
+/**
+ * Stripes undefined values from a `FrameFlattened` object and returns a new object with only the defined values
+ */
+function convertFlattenedFrameToMetadata(
+  frame: FrameFlattened
+): Metadata["other"] {
+  const metadata: Metadata["other"] = {};
+
+  for (const [key, value] of Object.entries(frame)) {
+    if (value != null) {
+      metadata[key] = value;
+    }
+  }
+
+  return metadata;
+}
 
 export const metadata: Metadata = {
   title: "Random Image Frame",
@@ -11,13 +30,28 @@ export const metadata: Metadata = {
   openGraph: {
     images: [
       {
-        url: ogImage,
+        url: imageUrl,
       },
     ],
   },
-  other: {
-    ...(await fetchMetadata(new URL("/frames", framePostUrl))),
-  },
+  other: convertFlattenedFrameToMetadata(
+    getFrameFlattened({
+      image: imageUrl,
+      version: "vNext",
+      buttons: [
+        {
+          label: "Next",
+          action: "post",
+        },
+        {
+          label: "Visit frames.js",
+          action: "post_redirect",
+        },
+      ],
+      inputText: "Type something",
+      postUrl: framePostUrl,
+    })
+  ),
 };
 
 export default function RootLayout({

@@ -2,7 +2,7 @@
   "name": "framesjs-monorepo",
   "private": true,
   "scripts": {
-    "build": "turbo build && node ./.scripts/prepare-create-frames.js",
+    "build": "turbo build --filter=!./templates/* && node ./.scripts/prepare-create-frames.js",
     "build:ci": "turbo build --filter=!debugger --filter=!framesjs-starter --filter=!utils-starter --filter=!docs",
     "dev": "FJS_MONOREPO=true turbo dev --filter=framesjs-starter... --filter=debugger...",
     "dev:custom-redirects": "turbo dev --filter=custom-redirects...",
