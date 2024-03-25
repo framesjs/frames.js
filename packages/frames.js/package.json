@@ -16,7 +16,8 @@
     "lint": "eslint \"./src/**/*.{ts,tsx}\"",
     "build": "NODE_OPTIONS='--max-old-space-size=16384' rimraf ./dist && tsup `find ./src -type f \\( -regex '.*\\.tsx*' -a -not -regex '.*\\.test\\.tsx*' \\)` --format cjs,esm --dts",
     "dev": "npm run build -- --watch",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "update:proto": "curl https://raw.githubusercontent.com/farcasterxyz/hub-monorepo/main/packages/core/src/protobufs/generated/message.ts -o src/farcaster/generated/message.ts"
   },
   "repository": {
     "type": "git",
@@ -229,7 +230,6 @@
     "react-dom": "^18.2.0"
   },
   "dependencies": {
-    "@farcaster/core": "^0.14.7",
     "@vercel/og": "^0.6.2",
     "cheerio": "^1.0.0-rc.12",
     "protobufjs": "^7.2.6",

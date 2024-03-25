@@ -1,4 +1,4 @@
-import { Message } from "@farcaster/core";
+import { Message } from "../farcaster";
 import nock from "nock";
 import { FrameMessageReturnType } from "../getFrameMessage";
 import { redirect } from "../core/redirect";
