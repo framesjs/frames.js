@@ -1,0 +1,84 @@
+# Open Frames
+
+[Open Frames](https://github.com/open-frames/standard) is a standard for Frames that work in multiple ecosystems, including Farcaster, XMTP and others.
+
+The Open Frames middleware allows you to easily support Open Frames actions in your Frames app. It will automatically add the Open Frames meta tags to your frame output.
+
+You can specify multiple Open Frames middleware instances with different client protocols.
+
+## Usage
+
+```tsx
+// ...
+import { openframes } from "frames.js/middleware";
+
+const frames = createFrames({
+  // ...
+  middleware: [
+    openframes({
+      clientProtocol: {
+        id: "my-protocol",
+        version: "1.0.0",
+      },
+      handler: {
+        isValidPayload: (body: JSON) => {
+          // Check if the request body is a valid Open Frames action
+          // ...
+          return isValid; // true or false
+        },
+        getFrameMessage: async (body: JSON) => {
+          // Parse the data in the request body and return a Frame message
+          // ...
+          return frameMessage;
+        },
+      },
+    }),
+  ],
+});
+```
+
+## Options
+
+### `clientProtocol`
+
+The ID of the client protocol in the form of a ClientProtocolId object or a string of the shape "id@version"
+
+### `handler`
+
+- `isValidPayload`: A function that takes a post request body and returns a boolean indicating whether the `getFrameMessage` handler can parse the request.
+- `getFrameMessage`: A function that takes a post request body and returns a Frame message.
+
+## Examples
+
+### XMTP
+
+```tsx
+/* eslint-disable react/jsx-key */
+import { openframes } from "frames.js/middleware";
+import { createFrames } from "frames.js/next";
+import { getXmtpFrameMessage, isXmtpFrameActionPayload } from "frames.js/xmtp";
+
+export const frames = createFrames({
+  middleware: [
+    openframes({
+      clientProtocol: {
+        id: "xmtp",
+        version: "2024-02-09",
+      },
+      handler: {
+        isValidPayload: (body: JSON) => isXmtpFrameActionPayload(body),
+        getFrameMessage: async (body: JSON) => {
+          if (!isXmtpFrameActionPayload(body)) {
+            return undefined;
+          }
+          const result = await getXmtpFrameMessage(body);
+
+          return { ...result };
+        },
+      },
+    }),
+  ],
+});
+```
+
+Use the [Multi Protocol starter](https://github.com/framesjs/frames.js/tree/main/examples/framesjs-starter/app/examples/new-api-multi-protocol) as a template to build your Open Frames frames.

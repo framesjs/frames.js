@@ -83,6 +83,20 @@ const sidebar = [
     ],
   },
   {
+    text: "Middleware",
+    collapsed: false,
+    items: [
+      {
+        text: "Farcaster Hub Context",
+        link: "/middleware/farcasterHubContext",
+      },
+      {
+        text: "Open Frames",
+        link: "/middleware/openframes",
+      },
+    ],
+  },
+  {
     text: "Reference",
     // link: "/reference",
     collapsed: false,
