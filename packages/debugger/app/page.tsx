@@ -3,22 +3,22 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { sendTransaction, switchChain } from "@wagmi/core";
 import {
   FrameUI,
   OnTransactionFunc,
   fallbackFrameContext,
-} from "frames.js/render";
-import { FrameImageNext } from "frames.js/render/next";
-import { useFrame } from "frames.js/render/use-frame";
+} from "@frames.js/render";
+import { FrameImageNext } from "@frames.js/render/next";
+import { useFrame } from "@frames.js/render/use-frame";
+import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
+import { sendTransaction, switchChain } from "@wagmi/core";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { useChainId, useConfig, useAccount } from "wagmi";
+import { useAccount, useChainId, useConfig } from "wagmi";
 import { FrameDebugger } from "./components/frame-debugger";
 import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
 import { MockHubActionContext } from "./utils/mock-hub-utils";
-import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 const LoginWindow = dynamic(() => import("./components/create-signer"), {
   ssr: false,
 });

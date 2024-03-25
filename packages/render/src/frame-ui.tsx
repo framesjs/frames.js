@@ -1,6 +1,6 @@
-import { FrameTheme, FrameState } from "./types";
+import { FrameTheme, FrameState } from "./types.js";
 import React, { ImgHTMLAttributes } from "react";
-import { FrameButton } from "..";
+import { FrameButton } from "frames.js";
 
 export const defaultTheme: Required<FrameTheme> = {
   buttonBg: "#fff",

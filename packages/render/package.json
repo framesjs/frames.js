@@ -1,0 +1,85 @@
+{
+  "name": "@frames.js/render",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "types": "index.d.cts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*"
+      ]
+    }
+  },
+  "scripts": {
+    "lint": "eslint \"./src/**/*.{ts,tsx}\"",
+    "build": "NODE_OPTIONS='--max-old-space-size=16384' tsup `find ./src -type f \\( -regex '.*\\.tsx*' -a -not -regex '.*\\.test\\.tsx*' \\)` --format cjs,esm --dts",
+    "dev": "npm run build -- --watch",
+    "test:watch": "jest --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/framesjs/frames.js/tree/main/packages/frames.js"
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./next": {
+      "import": {
+        "types": "./dist/next/index.d.ts",
+        "default": "./dist/next/index.js"
+      },
+      "require": {
+        "types": "./dist/next/index.d.cts",
+        "default": "./dist/next/index.cjs"
+      }
+    },
+    "./farcaster": {
+      "import": {
+        "types": "./dist/farcaster/index.d.ts",
+        "default": "./dist/farcaster/index.js"
+      },
+      "require": {
+        "types": "./dist/farcaster/index.d.cts",
+        "default": "./dist/farcaster/index.cjs"
+      }
+    },
+    "./use-frame": {
+      "import": {
+        "types": "./dist/use-frame.d.ts",
+        "default": "./dist/use-frame.js"
+      },
+      "require": {
+        "types": "./dist/use-frame.d.cts",
+        "default": "./dist/use-frame.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "devDependencies": {
+    "@remix-run/node": "^2.8.1",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3"
+  },
+  "license": "MIT",
+  "peerDependencies": {
+    "next": "^14.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "dependencies": {
+    "@farcaster/core": "^0.14.7",
+    "frames.js": "^0.9.6"
+  }
+}
