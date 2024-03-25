@@ -147,6 +147,24 @@ handleRequest(new Request("/")).then((res) => {
 });
 ```
 
+### Per-route middleware
+
+You can also pass middleware to the `handleRequest` function to be executed only for that specific route.
+
+```tsx
+const handleRequest = frames(async (ctx) => {
+  return {
+    image: <span>Test</span>,
+  };
+}, {
+  middleware: [
+    farcasterHubContext({ hubHttpUrl: process.env.HUB_HTTP_URL }),
+  ]
+});
+```
+
+This will only execute the `farcasterHubContext` middleware for the route that `handleRequest` is called with.
+
 ## Context
 
 Core middleware is included and executed by default and gives you access to the following default context in your frame handlers:
