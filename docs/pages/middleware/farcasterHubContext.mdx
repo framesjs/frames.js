@@ -1,0 +1,33 @@
+# Farcaster Hub Context
+
+Fetches additional context about the message from a Farcaster hub.
+
+## Usage
+
+```tsx
+// ...
+import { farcasterHubContext } from "frames.js/middleware";
+
+const frames = createFrames({
+  // ...
+  middleware: [
+    farcasterHubContext({
+      hubHttpUrl: "https://nemes.farcaster.xyz:2281",
+    }),
+  ],
+});
+```
+
+## Options
+
+### `hubHttpUrl`
+
+The URL of the Farcaster hub to fetch additional context from.
+
+### `hubRequestOptions`
+
+Additional options to pass to the fetch request to the hub. This can be used to set API keys or other headers.
+
+## Frames.js Debugger
+
+When using the [Frames.js debugger](/guides/debugger), you can set the `hubHttpUrl` parameter to be the URL of the debugger hub (default: `http://localhost:3010/hub`) to support creating valid messages locally without a real farcaster signer. In production this should always be a real hub - if unspecified it will automatically fall back to a real hub.

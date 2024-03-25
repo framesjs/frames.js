@@ -7,21 +7,34 @@ description: "A specification for Frames that work across ecosystems"
 
 [Open Frames](https://github.com/open-frames/standard) is a standard for Frames that work in multiple ecosystems, including Farcaster, XMTP and others.
 
-You can define your frame as supporting multiple Open Frames compatible protocols by using the `accepts` property.
+You can define your frame as supporting multiple Open Frames compatible protocols by using the [`openframes`](/middleware/openframes) middleware.
 
 ```tsx
 // ...
-const handleRequest = frames(async (ctx) => {
-  return {
-    // ...
-    accepts: [{
-        id: 'farcaster',
-        version: 'vNext'
-    },{
-        id: 'xmtp',
-        version: 'vNext'
-    }]
-  };
+import { openframes } from "frames.js/middleware";
+
+const frames = createFrames({
+  // ...
+  middleware: [
+    openframes({
+      clientProtocol: {
+        id: "my-protocol",
+        version: "1.0.0",
+      },
+      handler: {
+        isValidPayload: (body: JSON) => {
+          // Check if the request body is a valid Open Frames action
+          // ...
+          return isValid; // true or false
+        },
+        getFrameMessage: async (body: JSON) => {
+          // Parse the data in the request body and return a Frame message
+          // ...
+          return frameMessage; // { username: "alice" }
+        },
+      },
+    }),
+  ],
 });
 ```
 
@@ -30,8 +43,11 @@ and access the protocol used to sign the Frame Message via the `clientProtocol` 
 ```tsx
 // ...
 const handleRequest = frames(async (ctx) => {
-  if(ctx.clientProtocol === "farcaster"){
-    // ...
+  if (ctx.clientProtocol === "my-protocol") {
+    // ctx.username is available here
   }
+  // ...
 });
 ```
+
+Use the [Multi Protocol starter](https://github.com/framesjs/frames.js/tree/main/examples/framesjs-starter/app/examples/new-api-multi-protocol) as a template to build your Open Frames frames.
