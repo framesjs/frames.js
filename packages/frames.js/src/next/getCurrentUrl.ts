@@ -18,13 +18,13 @@ export function getCurrentUrl(
   // Construct a valid URL from the Vercel URL environment variable if it exists
   const parsedAppUrl = appUrl
     ? appUrl.startsWith("http://") || appUrl.startsWith("https://")
-      ? appUrl + pathname
-      : scheme + appUrl + pathname
+      ? new URL(pathname, appUrl)
+      : new URL(pathname, scheme + appUrl)
     : undefined;
 
   // App URL
-  if (parsedAppUrl && isValidUrl(parsedAppUrl)) {
-    return new URL(parsedAppUrl);
+  if (parsedAppUrl) {
+    return parsedAppUrl;
   }
 
   // Request URL
