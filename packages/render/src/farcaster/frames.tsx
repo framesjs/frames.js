@@ -7,9 +7,9 @@ import {
   FrameActionBody,
   FrameActionMessage,
 } from "@farcaster/core";
-import { FrameButton } from "../../types";
-import { FrameActionBodyPayload, FrameContext } from "../types";
-import { FarcasterSignerState } from "./signers";
+import { FrameButton } from "frames.js";
+import { FrameActionBodyPayload, FrameContext } from "../types.js";
+import { FarcasterSignerState } from "./signers.js";
 import { hexToBytes } from "viem";
 
 export interface FarcasterFrameActionBodyPayload

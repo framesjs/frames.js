@@ -12,9 +12,9 @@ import {
   FrameRequest,
   UseFrameReturn,
   onTransactionArgs,
-} from "./types";
-import type { FrameButton, TransactionTargetResponse } from "../types";
-import { getFrame } from "../getFrame";
+} from "./types.js";
+import type { FrameButton, TransactionTargetResponse } from "frames.js";
+import { getFrame } from "frames.js";
 import { getFarcasterTime } from "@farcaster/core";
 
 function onMintFallback({ target }: onMintArgs) {

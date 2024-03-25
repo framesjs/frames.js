@@ -1,5 +1,5 @@
-import { SignerStateInstance } from "../types";
-import { FarcasterFrameActionBodyPayload } from "./frames";
+import { SignerStateInstance } from "../types.js";
+import { FarcasterFrameActionBodyPayload } from "./frames.js";
 
 export interface FarcasterSignerState
   extends SignerStateInstance<
