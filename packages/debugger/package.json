@@ -5,7 +5,7 @@
     "frames.js",
     "farcaster"
   ],
-  "version": "0.1.9",
+  "version": "0.1.10",
   "bin": {
     "frames": "./bin/debugger.js"
   },
@@ -16,7 +16,7 @@
     "url": "https://github.com/framesjs/frames.js/tree/main/packages/debugger"
   },
   "dependencies": {
-    "@frames.js/render": "^0.0.0",
+    "@frames.js/render": "^0.0.1",
     "@noble/ed25519": "^2.0.0",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-checkbox": "^1.0.4",
@@ -48,7 +48,7 @@
     "@farcaster/core": "^0.14.7",
     "@rainbow-me/rainbowkit": "^2.0.2",
     "@tanstack/react-query": "^5.22.2",
-    "frames.js": "^0.9.0",
+    "frames.js": "^0.10.0",
     "next": "^14.1.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

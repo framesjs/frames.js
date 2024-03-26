@@ -1,5 +1,20 @@
 # frames.js
 
+## 0.10.0
+
+### Minor Changes
+
+- a538797: feat: Breaking change! frames/render has been moved to its own @frames.js/render package
+
+### Patch Changes
+
+- 06cbf1c: full sets of open frames tags and fixes getFrame
+- 9d20e11: fix: getFrame validate image url length even if not data url
+- 457ca30: fix(nextjs): getCurrentUrl respect VERCEL_URL and APP_URL env variables
+- 66687fe: fix(render): mint fallback message
+- 5b9169a: fix: correctly import barrel files in node10 resolution
+- 384e282: chore: remove @farcaster/core
+
 ## 0.9.6
 
 ### Patch Changes
