@@ -103,6 +103,10 @@ const sidebar = [
     ],
   },
   {
+    text: "Troubleshooting",
+    link: "/troubleshooting",
+  },
+  {
     text: "Reference",
     // link: "/reference",
     collapsed: false,
