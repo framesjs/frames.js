@@ -47,7 +47,12 @@ export type FrameElementType =
   | typeof FrameImage
   | typeof FrameInput;
 
-/** validates a frame action message payload signature, @returns message, throws an Error on failure */
+/** 
+ * validates a frame action message payload signature, 
+ * @returns message, throws an Error on failure 
+ * 
+ * @deprecated please upgrade to new API, see https://framesjs.org/guides/security
+ */
 export async function validateActionSignature(
   frameActionPayload: FrameActionPayload | null,
   options?: HubHttpUrlOptions
@@ -80,6 +85,8 @@ export async function validateActionSignature(
 /** Convenience wrapper around `framesjs.getFrameMessage` that accepts a null for payload body.
  * Returns a `FrameActionData` object from the message trusted data. (e.g. button index, input text). The `fetchHubContext` option (default: true) determines whether to validate and fetch other metadata from hubs.
  * If `isValid` is false, the message should not be trusted.
+ * 
+ * @deprecated please upgrade to new API, see https://framesjs.org/reference/core/next
  */
 export async function getFrameMessage<T extends GetFrameMessageOptions>(
   frameActionPayload: FrameActionPayload | null,
@@ -109,7 +116,10 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
 
   return result;
 }
-/** deserializes a `PreviousFrame` from url searchParams, fetching headers automatically from nextjs, @returns PreviousFrame */
+/** 
+ * deserializes a `PreviousFrame` from url searchParams, fetching headers automatically from nextjs, @returns PreviousFrame 
+ * @deprecated please upgrade to new API, see https://framesjs.org/reference/core/next.
+ */
 export function getPreviousFrame<T extends FrameState = FrameState>(
   searchParams: NextServerPageProps["searchParams"]
 ): PreviousFrame<T> {
@@ -130,7 +140,10 @@ export function getPreviousFrame<T extends FrameState = FrameState>(
   return createPreviousFrame(parseFrameParams<T>(searchParams), headersList);
 }
 
-/** @returns PreviousFrame by combining headers and previousFrames from params */
+/** 
+ * @deprecated please upgrade to new API, see https://framesjs.org/reference/core/next
+ * @returns PreviousFrame by combining headers and previousFrames from params 
+ */
 export function createPreviousFrame<T extends FrameState = FrameState>(
   previousFrameFromParams: Pick<
     PreviousFrame<T>,
@@ -144,7 +157,11 @@ export function createPreviousFrame<T extends FrameState = FrameState>(
   };
 }
 
-/** deserializes data stored in the url search params and @returns a Partial PreviousFrame object  */
+/** 
+ * @deprecated please upgrade to new API, see https://framesjs.org/reference/core/next
+ * 
+ * deserializes data stored in the url search params and @returns a Partial PreviousFrame object  
+ */
 export function parseFrameParams<T extends FrameState = FrameState>(
   searchParams: NextServerPageProps["searchParams"]
 ): Pick<
@@ -186,6 +203,8 @@ export function parseFrameParams<T extends FrameState = FrameState>(
  * @param initialState the initial state to use if there was no previous action
  * @param initializerArg the previousFrame object to use to initialize the state
  * @returns An array of [State, Dispatch] where State is your reducer state, and dispatch is a function that doesn't do anything atm
+ * 
+ * @deprecated please upgrade to new API, see https://framesjs.org/reference/core/next.
  */
 export function useFramesReducer<T extends FrameState = FrameState>(
   reducer: FrameReducer<T>,
@@ -242,6 +261,8 @@ function toUrl(req: NextRequest) {
  * It handles all the redirecting for you, correctly, based on the <FrameContainer> props defined by the Frame that triggered the user action.
  * @param req a `NextRequest` object from `next/server` (Next.js app router server components)
  * @returns NextResponse
+ * 
+ * @deprecated please upgrade to new API, see https://framesjs.org/reference/core/next.
  */
 export async function POST(
   req: NextRequest,
@@ -373,6 +394,8 @@ function isElementFrameInput(
 }
 
 /**
+ * @deprecated please upgrade to new API, see https://framesjs.org/reference/core/next
+ * 
  * A React functional component that Wraps a Frame and processes it, validating certain properties of the Frames spec, as well as adding other props. It also generates the postUrl.
  * It throws an error if the Frame is invalid, which can be caught by using an error boundary.
  * @param param0
@@ -570,7 +593,11 @@ export function FrameContainer<T extends FrameState = FrameState>({
   );
 }
 
-/** Renders a 'fc:frame:button', must be used inside a `FrameContainer` */
+/** 
+ * Renders a 'fc:frame:button', must be used inside a `FrameContainer` 
+ * 
+ * @deprecated please upgrade to new API, see https://framesjs.org/reference/core/next
+ */
 export function FrameButton(props: FrameButtonProvidedProps) {
   return null;
 }
@@ -603,7 +630,11 @@ function FFrameButtonShim({
   );
 }
 
-/** Render a 'fc:frame:input:text', must be used inside a <FrameContainer> */
+/** 
+ * Render a 'fc:frame:input:text', must be used inside a <FrameContainer> 
+ * 
+ * @deprecated please upgrade to new API, see https://framesjs.org/reference/core/next
+ */
 export function FrameInput({ text }: { text: string }) {
   return (
     <>
@@ -612,7 +643,11 @@ export function FrameInput({ text }: { text: string }) {
   );
 }
 
-/** Render a 'fc:frame:image', must be used inside a <FrameContainer> */
+/** 
+ * Render a 'fc:frame:image', must be used inside a <FrameContainer> 
+ * 
+ * @deprecated please upgrade to new API, see https://framesjs.org/reference/core/next
+ */
 export async function FrameImage(
   props: {
     /** 'fc:frame:aspect_ratio' (defaults to 1:91) */
