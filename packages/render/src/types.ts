@@ -1,5 +1,5 @@
-import type { Frame, FrameButton, TransactionTargetResponse } from "..";
-import { FarcasterFrameContext } from "./farcaster";
+import type { Frame, FrameButton, TransactionTargetResponse } from "frames.js";
+import { FarcasterFrameContext } from "./farcaster/index.js";
 
 export type OnTransactionFunc = (
   t: onTransactionArgs

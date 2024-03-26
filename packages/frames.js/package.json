@@ -7,15 +7,17 @@
   "typesVersions": {
     "*": {
       "*": [
-        "./dist/*"
+        "dist/*",
+        "dist/*/index.d.ts"
       ]
     }
   },
   "scripts": {
     "lint": "eslint \"./src/**/*.{ts,tsx}\"",
-    "build": "NODE_OPTIONS='--max-old-space-size=16384' tsup `find ./src -type f \\( -regex '.*\\.tsx*' -a -not -regex '.*\\.test\\.tsx*' \\)` --format cjs,esm --dts",
+    "build": "NODE_OPTIONS='--max-old-space-size=16384' rimraf ./dist && tsup `find ./src -type f \\( -regex '.*\\.tsx*' -a -not -regex '.*\\.test\\.tsx*' \\)` --format cjs,esm --dts",
     "dev": "npm run build -- --watch",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "update:proto": "curl https://raw.githubusercontent.com/farcasterxyz/hub-monorepo/main/packages/core/src/protobufs/generated/message.ts -o src/farcaster/generated/message.ts"
   },
   "repository": {
     "type": "git",
@@ -132,46 +134,6 @@
         "default": "./dist/xmtp/index.cjs"
       }
     },
-    "./render/next": {
-      "import": {
-        "types": "./dist/render/next/index.d.ts",
-        "default": "./dist/render/next/index.js"
-      },
-      "require": {
-        "types": "./dist/render/next/index.d.cts",
-        "default": "./dist/render/next/index.cjs"
-      }
-    },
-    "./render/farcaster": {
-      "import": {
-        "types": "./dist/render/farcaster/index.d.ts",
-        "default": "./dist/render/farcaster/index.js"
-      },
-      "require": {
-        "types": "./dist/render/farcaster/index.d.cts",
-        "default": "./dist/render/farcaster/index.cjs"
-      }
-    },
-    "./render/use-frame": {
-      "import": {
-        "types": "./dist/render/use-frame.d.ts",
-        "default": "./dist/render/use-frame.js"
-      },
-      "require": {
-        "types": "./dist/render/use-frame.d.cts",
-        "default": "./dist/render/use-frame.cjs"
-      }
-    },
-    "./render": {
-      "import": {
-        "types": "./dist/render/index.d.ts",
-        "default": "./dist/render/index.js"
-      },
-      "require": {
-        "types": "./dist/render/index.d.cts",
-        "default": "./dist/render/index.cjs"
-      }
-    },
     "./core": {
       "import": {
         "types": "./dist/core/index.d.ts",
@@ -268,7 +230,6 @@
     "react-dom": "^18.2.0"
   },
   "dependencies": {
-    "@farcaster/core": "^0.14.7",
     "@vercel/og": "^0.6.2",
     "cheerio": "^1.0.0-rc.12",
     "protobufjs": "^7.2.6",

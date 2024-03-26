@@ -15,14 +15,14 @@ This guide shows you how to add frames rendering to your next.js + tailwind app 
 
 `cd my-project`
 
-`yarn add @farcaster/core frames.js`
+`yarn add @frames.js/render`
 
 `yarn install`
 
 2. Add proxies for routing frame requests via your backend for privacy + preventing CORS issues
 ```tsx filename="// ./app/frames/route.tsx"
 // ./app/frames/route.tsx
-export { GET, POST } from "frames.js/render/next";
+export { GET, POST } from "@frames.js/render/next";
 ```
 
 3. Add the renderer to your page
@@ -34,11 +34,11 @@ import {
   FrameUI,
   fallbackFrameContext,
   FrameContext,
-} from "frames.js/render";
-import { signFrameAction, FarcasterSigner } from 'frames.js/render/farcaster'
-import { FrameImageNext } from "frames.js/render/next";
+} from "@frames.js/render";
+import { signFrameAction, FarcasterSigner } from '@frames.js/render/farcaster'
+import { FrameImageNext } from "@frames.js/render/next";
 import { FrameButton } from "frames.js";
-import { useFrame } from "frames.js/render/use-frame";
+import { useFrame } from "@frames.js/render/use-frame";
 
 export default function Page() {
   // TODO: replace with your farcaster signer

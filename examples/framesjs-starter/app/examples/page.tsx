@@ -33,6 +33,26 @@ export default function ExamplesIndexPage() {
             Only followers can mint
           </Link>
         </li>
+        <li>
+          <Link className="underline" href="/examples/new-api-post-redirect">
+            Post redirect
+          </Link>
+        </li>
+        <li>
+          <Link className="underline" href="/examples/new-api-multi-protocol">
+            Open Frames
+          </Link>
+        </li>
+        <li>
+          <Link className="underline" href="/examples/new-api-cache-control">
+            Caching
+          </Link>
+        </li>
+        <li>
+          <Link className="underline" href="/examples/new-api-slow-request">
+            Slow requests
+          </Link>
+        </li>
       </ul>
       <b>Frames.js v0.8 and below</b>
       <ul>

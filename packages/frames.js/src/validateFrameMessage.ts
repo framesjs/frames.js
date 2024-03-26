@@ -4,7 +4,7 @@ import {
   hexStringToUint8Array,
 } from ".";
 import { DEFAULT_HUB_API_KEY, DEFAULT_HUB_API_URL } from "./default";
-import { FrameActionMessage, Message } from "@farcaster/core";
+import { FrameActionMessage, Message } from "./farcaster";
 
 /**
  * @returns a Promise that resolves with whether the message signature is valid, by querying a Farcaster hub, as well as the message itself

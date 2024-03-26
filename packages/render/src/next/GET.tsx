@@ -1,4 +1,4 @@
-import { getFrame } from "../..";
+import { getFrame } from "frames.js";
 import { NextRequest, NextResponse as NextResponseBase } from "next/server";
 
 // this is ugly hack to go around the issue https://github.com/vercel/next.js/pull/61721

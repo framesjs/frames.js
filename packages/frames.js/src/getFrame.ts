@@ -100,6 +100,8 @@ export function getFrame({
       .map((i, elem) => parseButtonElement(elem))
       .filter((i, elem) => elem !== null)
       .toArray()
+      // only take the first, to deduplicate of and fc:frame
+      .slice(0, 1)
   );
   const buttonActions = [1, 2, 3, 4].flatMap((el) =>
     $(
@@ -108,6 +110,8 @@ export function getFrame({
       .map((i, elem) => parseButtonElement(elem))
       .filter((i, elem) => elem !== null)
       .toArray()
+      // only take the first, to deduplicate of and fc:frame
+      .slice(0, 1)
   );
 
   const buttonTargets = [1, 2, 3, 4].flatMap((el) =>
@@ -117,6 +121,8 @@ export function getFrame({
       .map((i, elem) => parseButtonElement(elem))
       .filter((i, elem) => elem !== null)
       .toArray()
+      // only take the first, to deduplicate of and fc:frame
+      .slice(0, 1)
   );
 
   const buttonPostUrls = [1, 2, 3, 4].flatMap((el) =>
@@ -126,6 +132,8 @@ export function getFrame({
       .map((i, elem) => parseButtonElement(elem))
       .filter((i, elem) => elem !== null)
       .toArray()
+      // only take the first, to deduplicate of and fc:frame
+      .slice(0, 1)
   );
 
   let buttonsValidation = [false, false, false, false];
@@ -295,14 +303,14 @@ export function getFrame({
         });
       }
     }
+  }
 
-    // validate data url is less than 256kb (warpcast)
-    if (getByteLength(image) > 256 * 1024) {
-      addError({
-        message: `Data URI is more than 256kb (${Math.ceil(getByteLength(image) / 1024)}kb)`,
-        key: "fc:frame:image",
-      });
-    }
+  if (image && getByteLength(image) > 256 * 1024) {
+    // validate image url is less than 256kb (warpcast)
+    addError({
+      message: `Image URL is more than 256kb (${Math.ceil(getByteLength(image) / 1024)}kb)`,
+      key: "fc:frame:image",
+    });
   }
 
   if (state && Buffer.from(state).length > 4096) {

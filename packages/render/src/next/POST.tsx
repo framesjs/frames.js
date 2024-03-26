@@ -1,4 +1,4 @@
-import { getFrame } from "../..";
+import { getFrame } from "frames.js";
 import { NextRequest } from "next/server";
 
 /** Proxies frame actions to avoid CORS issues and preserve user IP privacy */

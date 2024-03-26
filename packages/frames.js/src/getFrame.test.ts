@@ -182,28 +182,7 @@ describe("getFrame", () => {
     const exampleFrame: Frame = {
       version: "vNext",
       image: "http://example.com/image.png",
-      buttons: [
-        {
-          label: "1",
-          action: "post",
-          target: undefined,
-        },
-        {
-          label: "2",
-          action: "post_redirect",
-          target: undefined,
-        },
-        {
-          label: "3",
-          action: "link",
-          target: "https://example.com",
-        },
-        {
-          label: "Mint",
-          action: "mint",
-          target: "eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df",
-        },
-      ],
+
       postUrl: "https://example.com",
       accepts: [
         {
@@ -211,6 +190,35 @@ describe("getFrame", () => {
           version: "vNext",
         },
       ],
+      buttons: [
+        {
+          action: "post",
+          label: "1",
+          post_url: undefined,
+          target: undefined,
+        },
+        {
+          action: "post_redirect",
+          label: "2",
+          post_url: undefined,
+          target: undefined,
+        },
+        {
+          action: "link",
+          label: "3",
+          post_url: undefined,
+          target: "https://example.com",
+        },
+        {
+          action: "mint",
+          label: "Mint",
+          post_url: undefined,
+          target: "eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df",
+        },
+      ],
+      imageAspectRatio: undefined,
+      inputText: undefined,
+      state: undefined,
     };
 
     const html = getFrameHtml(exampleFrame);

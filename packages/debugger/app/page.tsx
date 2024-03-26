@@ -3,22 +3,23 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { sendTransaction, switchChain } from "@wagmi/core";
 import {
   FrameUI,
   OnTransactionFunc,
   fallbackFrameContext,
-} from "frames.js/render";
-import { FrameImageNext } from "frames.js/render/next";
-import { useFrame } from "frames.js/render/use-frame";
+} from "@frames.js/render";
+import { FrameImageNext } from "@frames.js/render/next";
+import { useFrame } from "@frames.js/render/use-frame";
+import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
+import { sendTransaction, switchChain } from "@wagmi/core";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { useChainId, useConfig, useAccount } from "wagmi";
+import { useAccount, useChainId, useConfig } from "wagmi";
 import { FrameDebugger } from "./components/frame-debugger";
+import pkg from "../package.json";
 import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
 import { MockHubActionContext } from "./utils/mock-hub-utils";
-import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 const LoginWindow = dynamic(() => import("./components/create-signer"), {
   ssr: false,
 });
@@ -46,6 +47,17 @@ export default function App({
   const config = useConfig();
   const account = useAccount();
   const { openConnectModal } = useConnectModal();
+
+  useEffect(() => {
+    console.log(
+      ` ,---.                                             ,--.        \n/  .-',--.--. ,--,--.,--,--,--. ,---.  ,---.       \`--' ,---.  \n|  \`-,|  .--'' ,-.  ||        || .-. :(  .-'       ,--.(  .-'  \n|  .-'|  |    '-'  ||  |  |  |   --..-'  \`).--.  |  |.-'  \`) \n\`--'  \`--'    \`--\`--'\`--\`--\`--' \`----'\`----' '--'.-'  /\`----'  \n                                                 '---'         \n${pkg.name}, Version ${pkg.version}`
+    );
+    console.log(
+      "%c" +
+        "*You'll find console.log statements from your frames in the server logs in your terminal, not here.*",
+      "font-weight:bold;"
+    );
+  }, []);
 
   useEffect(() => {
     if (url !== urlInput && url) {

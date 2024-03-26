@@ -7,7 +7,7 @@ import {
   FarcasterSignerState,
   FarcasterSigner,
   signFrameAction,
-} from "frames.js/render";
+} from "@frames.js/render";
 
 interface SignedKeyRequest {
   deeplinkUrl: string;
