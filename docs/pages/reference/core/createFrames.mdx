@@ -66,42 +66,57 @@ const handler = frames(async (ctx) => {
 
 `FrameDefinition` is an object that describes a frame. It has the following properties:
 
+### `image`
+
+- Type: `React.ReactElement | string`
+
+The image to be rendered in the frame. If a string is provided, it must be a valid URL.
+
+### `imageOptions`
+
+- Type: `{ aspectRatio?: "1.91:1" | "1:1" } & ConstructorParameters<typeof ImageResponse>[1]`
+
+Options for the image. The `aspectRatio` property can be set to `"1.91:1"` or `"1:1"`.
+
+### `buttons`
+
+- Type: 1, 2, 3, or 4 `FrameButtonElement` elements
+
+An array of buttons to be rendered in the frame. The buttons are rendered in the order they are provided.
+
+#### Example
+
 ```tsx
-/**
- * Frame definition, this is rendered by the frames
- */
-export type FrameDefinition = {
-  /**
-   * If string then it must be a valid URL
-   */
-  image: React.ReactElement | string;
-  imageOptions?: {
-    /**
-     * @default '1.91:1'
-     */
-    aspectRatio?: "1.91:1" | "1:1";
-  } & ConstructorParameters<typeof ImageResponse>[1];
-  buttons?:
-    | []
-    | [FrameButtonElement]
-    | [FrameButtonElement, FrameButtonElement]
-    | [FrameButtonElement, FrameButtonElement, FrameButtonElement]
-    | [
-        FrameButtonElement,
-        FrameButtonElement,
-        FrameButtonElement,
-        FrameButtonElement,
-      ];
-  /**
-   * Label for text input, if no value is provided the input is not rendered
-   */
-  textInput?: string;
-  /**
-   * Global app state that will be available on next frame
-   */
-  state?: JsonValue;
-} & ResponseInit;
+import { Button } from "frames.js/next";
+
+const handleRequest = frames(async (ctx) => {
+  return {
+    image: <span>Test</span>,
+    buttons: [
+      <Button action="post">Post</Button>,
+      <Button action="post_redirect">Post Redirect</Button>,
+    ],
+  };
+});
 ```
+
+### `textInput`
+
+- Type: `string`
+
+Label for text input. If no value is provided, the input is not rendered.
+
+### `state`
+
+- Type: `JsonValue`
+
+Global app state that will be available on the next frame.
+
+### `headers`
+
+- Type: `HeadersInit`
+
+Custom headers to be included in the response.
 
 The `ResponseInit` properties allow you to specify custom headers such as `Cache-Control`.
 
