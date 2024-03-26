@@ -7,7 +7,7 @@ import { HomePage } from "vocs/components";
 
 <HomePage.Root>
   <h1 className="vocs_HomePage_title">frames.js</h1>
-  <HomePage.InstallPackage name="frames" type="init" />
+  <HomePage.InstallPackage name="frames.js" type="install" />
   <HomePage.Description>
     **frames.js** is the fastest way to make Frames.
   </HomePage.Description>
@@ -41,23 +41,21 @@ import { HomePage } from "vocs/components";
 
 Run one of the commands below based on your preferred package manager and then follow the steps in the terminal.
 
-### Using npm
+:::code-group
 
-```sh
+```bash [npm]
 npm init frames
 ```
 
-### Using yarn
-
-```sh
+```bash [yarn]
 yarn create frames
 ```
 
-### Using pnpm
-
-```sh
+```bash [pnpm]
 pnpm create frames
 ```
+
+:::
 
 ## Alternatively, add frames.js to your existing project manually
 
@@ -76,7 +74,12 @@ export async function generateMetadata() {
   return {
     title: "My page",
     other: await fetchMetadata(
-      new URL("/frames", process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+      new URL(
+        "/frames",
+        process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : "http://localhost:3000"
+      )
     ),
   };
 }
