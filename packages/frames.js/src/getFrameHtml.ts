@@ -64,11 +64,40 @@ export function getFrameHtmlHead(frame: Frame): string {
         ? `<meta name="fc:frame:button:${index + 1}:post_url" content="${button.post_url}"/>`
         : "",
     ]) ?? []),
-    ...(frame.accepts?.map(
-      ({ id, version }) =>
-        `<meta name="of:accepts:${id}" content="${version}"/>`
-    ) ?? []),
   ];
+
+  if (frame.accepts?.length) {
+    tags.push(
+      ...[
+        `<meta name="of:version" content="${frame.version}"/>`,
+        `<meta name="of:image" content="${frame.image}"/>`,
+        `<meta name="of:post_url" content="${frame.postUrl}"/>`,
+        frame.state ? `<meta name="of:state" content='${frame.state}'/>` : "",
+        frame.imageAspectRatio
+          ? `<meta name="of:image:aspect_ratio" content="${frame.imageAspectRatio}"/>`
+          : "",
+        frame.inputText
+          ? `<meta name="of:input:text" content="${frame.inputText}"/>`
+          : "",
+        ...(frame.buttons?.flatMap((button, index) => [
+          `<meta name="of:button:${index + 1}" content="${button.label}"/>`,
+          button.action
+            ? `<meta name="of:button:${index + 1}:action" content="${button.action}"/>`
+            : "",
+          button.target
+            ? `<meta name="of:button:${index + 1}:target" content="${button.target}"/>`
+            : "",
+          button.post_url
+            ? `<meta name="of:button:${index + 1}:post_url" content="${button.post_url}"/>`
+            : "",
+        ]) ?? []),
+      ],
+      ...(frame.accepts?.map(
+        ({ id, version }) =>
+          `<meta name="of:accepts:${id}" content="${version}"/>`
+      ) ?? [])
+    );
+  }
 
   return tags.join("");
 }

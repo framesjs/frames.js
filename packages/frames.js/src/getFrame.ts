@@ -100,6 +100,8 @@ export function getFrame({
       .map((i, elem) => parseButtonElement(elem))
       .filter((i, elem) => elem !== null)
       .toArray()
+      // only take the first, to deduplicate of and fc:frame
+      .slice(0, 1)
   );
   const buttonActions = [1, 2, 3, 4].flatMap((el) =>
     $(
@@ -108,6 +110,8 @@ export function getFrame({
       .map((i, elem) => parseButtonElement(elem))
       .filter((i, elem) => elem !== null)
       .toArray()
+      // only take the first, to deduplicate of and fc:frame
+      .slice(0, 1)
   );
 
   const buttonTargets = [1, 2, 3, 4].flatMap((el) =>
@@ -117,6 +121,8 @@ export function getFrame({
       .map((i, elem) => parseButtonElement(elem))
       .filter((i, elem) => elem !== null)
       .toArray()
+      // only take the first, to deduplicate of and fc:frame
+      .slice(0, 1)
   );
 
   const buttonPostUrls = [1, 2, 3, 4].flatMap((el) =>
@@ -126,6 +132,8 @@ export function getFrame({
       .map((i, elem) => parseButtonElement(elem))
       .filter((i, elem) => elem !== null)
       .toArray()
+      // only take the first, to deduplicate of and fc:frame
+      .slice(0, 1)
   );
 
   let buttonsValidation = [false, false, false, false];

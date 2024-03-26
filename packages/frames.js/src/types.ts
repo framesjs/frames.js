@@ -34,7 +34,7 @@ type FrameOptionalStringKeys =
   | "fc:frame:image:aspect_ratio"
   | "fc:frame:input:text"
   | "fc:frame:state"
-  | `of:accepts:${string}`;
+  | keyof OpenFramesProperties;
 type FrameOptionalActionButtonTypeKeys =
   `fc:frame:button:${1 | 2 | 3 | 4}:action`;
 type FrameOptionalButtonStringKeys =
@@ -57,6 +57,25 @@ type FrameRequiredProperties = {
   "fc:frame": FrameVersion;
   "fc:frame:image": string;
   "fc:frame:post_url": string;
+};
+
+export type OpenFramesProperties = {
+  "of:version": FrameVersion;
+  "of:image": string;
+  "of:post_url": string;
+  "of:image:aspect_ratio": string;
+  "of:input:text": string;
+  "of:state": string;
+} & {
+  [s in `of:accepts:${string}`]: string;
+} & {
+  [s in `of:button:${1 | 2 | 3 | 4}`]: string;
+} & {
+  [s in `of:button:${1 | 2 | 3 | 4}:action`]: string;
+} & {
+  [s in `of:button:${1 | 2 | 3 | 4}:target`]: string;
+} & {
+  [s in `of:button:${1 | 2 | 3 | 4}:post_url`]: string;
 };
 
 /** A Frame represented as an object with keys and values corresponding to the Frames spec: https://docs.farcaster.xyz/reference/frames/spec */

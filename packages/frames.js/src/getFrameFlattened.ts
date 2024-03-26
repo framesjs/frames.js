@@ -6,11 +6,43 @@ import type { Frame, FrameFlattened } from "./types";
  * @returns a plain object with frame metadata keys and values according to the frame spec, using their lengthened syntax, e.g. "fc:frame:image"
  */
 export function getFrameFlattened(frame: Frame): FrameFlattened {
+  const openFrames = !!frame.accepts?.length
+    ? {
+        // custom of tags
+        [`of:version`]: frame.version,
+        ...frame.accepts?.reduce(
+          (acc: Record<string, string>, { id, version }) => {
+            acc[`of:accepts:${id}`] = version;
+            return acc;
+          },
+          {}
+        ),
+        // same as fc:frame tags
+        [`of:image`]: frame.image,
+        [`of:post_url`]: frame.postUrl,
+        [`of:input:text`]: frame.inputText,
+        ...(frame.state ? { [`of:state`]: frame.state } : {}),
+        ...(frame.imageAspectRatio
+          ? { [`of:image:aspect_ratio`]: frame.imageAspectRatio }
+          : {}),
+        ...frame.buttons?.reduce(
+          (acc, button, index) => ({
+            ...acc,
+            [`of:button:${index + 1}`]: button.label,
+            [`of:button:${index + 1}:action`]: button.action,
+            [`of:button:${index + 1}:target`]: button.target,
+            [`of:button:${index + 1}:post_url`]: button.post_url,
+          }),
+          {}
+        ),
+      }
+    : {};
+
   const metadata: FrameFlattened = {
-    "fc:frame": frame.version,
-    "fc:frame:image": frame.image,
-    "fc:frame:post_url": frame.postUrl,
-    "fc:frame:input:text": frame.inputText,
+    [`fc:frame`]: frame.version,
+    [`fc:frame:image`]: frame.image,
+    [`fc:frame:post_url`]: frame.postUrl,
+    [`fc:frame:input:text`]: frame.inputText,
     ...(frame.state ? { [`fc:frame:state`]: frame.state } : {}),
     ...(frame.imageAspectRatio
       ? { [`fc:frame:image:aspect_ratio`]: frame.imageAspectRatio }
@@ -25,10 +57,7 @@ export function getFrameFlattened(frame: Frame): FrameFlattened {
       }),
       {}
     ),
-    ...frame.accepts?.reduce((acc: Record<string, string>, { id, version }) => {
-      acc[`of:accepts:${id}`] = version;
-      return acc;
-    }, {}),
+    ...openFrames,
   };
 
   return metadata;
