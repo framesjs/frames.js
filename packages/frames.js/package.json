@@ -212,6 +212,7 @@
   "devDependencies": {
     "@open-frames/types": "^0.0.6",
     "@remix-run/node": "^2.8.1",
+    "@types/supertest": "^6.0.2",
     "@types/express": "^4.17.21",
     "@xmtp/frames-client": "^0.4.3",
     "@xmtp/frames-validator": "^0.5.2",

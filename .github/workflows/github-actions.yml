@@ -1,0 +1,50 @@
+name: Frames.js Actions
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  initialize:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn --frozen-lockfile
+
+  lint:
+    needs: [initialize]
+    steps:
+      - name: Lint
+        run: yarn lint
+
+  typecheck:
+    needs: [initialize]
+    steps:
+      - name: Typecheck
+        run: yarn build:ci
+
+  test:
+    need: [lint, typecheck]
+    timeout-minutes: 10
+    steps:
+      - name: Unit Tests
+        run: yarn test:ci
