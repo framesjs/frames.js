@@ -27,11 +27,18 @@ yarn add frames.js
 
 ### Create your Frames app
 
+```tsx [./app/frames/frames.ts]
+import { createFrames } from "frames.js/next";
+
+export const frames = createFrames();
+```
+
+### Create a route
 ```tsx [./app/frames/route.tsx]
 /* eslint-disable react/jsx-key */
-import { createFrames, Button } from "frames.js/next";
+import { Button } from "frames.js/next";
+import { frames } from "./frames";
 
-const frames = createFrames();
 const handleRequest = frames(async (ctx) => {
   return {
     image: (

@@ -35,11 +35,28 @@ A JSON serializable value that is used if no state is provided in the message or
 
 ### `middleware`
 
+See the [Middleware guide](/guides/middleware) for more information.
+
 Type: `FramesMiddleware`
 
 An array of middleware functions that are called before the frame handler and allows you to inject additional context into the `ctx` parameter passed to each frame handler call.
 
 Each middleware should return a promise that resolves to the next middleware, or a [Web API `Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response), or a `FrameDefinition`.
+
+#### Types
+
+For strong type support in the handler, the middleware should be typed as `FramesMiddleware<any, YourContextType>`.
+
+```tsx
+import { createFrames, types } from "frames.js/next";
+
+const myMiddleware: types.FramesMiddleware<
+  any,
+  { foo?: string }
+> = async (ctx, next) => {
+  return next({ foo: "bar" });
+};
+```
 
 #### Example
 
@@ -48,7 +65,7 @@ const frames = createFrames({
   middleware: [
     async (ctx, next) => {
       console.log("Before frame handler");
-      const result = await next({name: "Alice"});
+      const result = await next({ name: "Alice" });
       console.log("After frame handler");
       return result;
     },
@@ -167,15 +184,16 @@ handleRequest(new Request("/")).then((res) => {
 You can also pass middleware to the `handleRequest` function to be executed only for that specific route.
 
 ```tsx
-const handleRequest = frames(async (ctx) => {
-  return {
-    image: <span>Test</span>,
-  };
-}, {
-  middleware: [
-    farcasterHubContext({ hubHttpUrl: process.env.HUB_HTTP_URL }),
-  ]
-});
+const handleRequest = frames(
+  async (ctx) => {
+    return {
+      image: <span>Test</span>,
+    };
+  },
+  {
+    middleware: [farcasterHubContext({ hubHttpUrl: process.env.HUB_HTTP_URL })],
+  }
+);
 ```
 
 This will only execute the `farcasterHubContext` middleware for the route that `handleRequest` is called with.
@@ -243,7 +261,3 @@ The client protocol that was used to send the frame message.
 - Type: `JsonValue`
 
 The state extracted from the frame message. If you are on the initial frame (no button pressed), the value is the `initialState` value passed to `createFrames`. If you are on a frame with a button pressed, the value is the state from the previous frame.
-
-
-
-

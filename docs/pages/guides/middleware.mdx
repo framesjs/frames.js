@@ -7,47 +7,113 @@ description: ""
 
 Frames.js uses middleware to extend the functionality of Frames, bringing in data from API providers, verifying frame actions and adding Open Frames support.
 
-You can use middleware for all your frames by passing in middleware via the `middleware` Option.
+You can use middleware for all your frames by passing in middleware via the `middleware` option in `createFrames` or you can specify per-route middleware.
 
-```tsx
-import { farcasterHubContext, openframes } from "frames.js/middleware";
+## Using middleware
+
+Include the middleware in your `createFrames` call:
+
+```tsx [frames.ts]
+import { farcasterHubContext } from "frames.js/middleware";
 import { createFrames } from "frames.js/next";
-import { getXmtpFrameMessage, isXmtpFrameActionPayload } from "frames.js/xmtp";
-
-const DEFAULT_DEBUGGER_URL =
-  process.env.DEBUGGER_URL ?? "http://localhost:3010/";
-
-export const DEFAULT_DEBUGGER_HUB_URL =
-  process.env.NODE_ENV === "development"
-    ? new URL("/hub", DEFAULT_DEBUGGER_URL).toString()
-    : undefined;
 
 const frames = createFrames({
   basePath: "/",
   initialState: {
     pageIndex: 0,
   },
-  middleware: [
-    farcasterHubContext({
-      hubHttpUrl: DEFAULT_DEBUGGER_HUB_URL,
-    }),
-    openframes({
-      clientProtocol: {
-        id: "xmtp",
-        version: "2024-02-09",
-      },
-      handler: {
-        isValidPayload: (body: JSON) => isXmtpFrameActionPayload(body),
-        getFrameMessage: async (body: JSON) => {
-          if (!isXmtpFrameActionPayload(body)) {
-            return undefined;
-          }
-          const result = await getXmtpFrameMessage(body);
-
-          return { ...result };
-        },
-      },
-    }),
-  ],
+  middleware: [farcasterHubContext()],
 });
 ```
+
+```tsx [frames/username/route.tsx]
+import { frames } from "./frames";
+
+export const POST = frames(async (ctx) => {
+  // The added context from the middleware will be available on `ctx` here
+  if (!ctx.message.isValid) {
+    throw new Error("Invalid message");
+  }
+
+  return {
+    image: (
+      <div tw="flex">The user's username is {ctx.message.requesterUserData.username}</div>
+    ),
+  };
+});
+```
+
+### Per-route middleware
+
+You can also specify middleware per-route that will only be applied to that route:
+
+```tsx [frames/username/route.tsx]
+import { farcasterHubContext } from "frames.js/middleware";
+
+export const POST = frames(
+  async (ctx) => {
+    // The added context from the middleware will be available on `ctx` here
+    if (!ctx.message.isValid) {
+      throw new Error("Invalid message");
+    }
+
+    return {
+      image: (
+        <div>
+          The user's username is {ctx.message.requesterUserData.username}
+        </div>
+      ),
+    };
+  },
+  {
+    middleware: [farcasterHubContext()],
+  }
+);
+```
+
+## Defining your own middleware
+
+You can define your own middleware by creating a function that returns a promise that resolves to the next middleware, or a [Web API `Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response), or a `FrameDefinition`.
+
+Middleware can modify the context or return a response that will terminate the request early.
+
+### Adding context
+
+:::code-group
+
+```tsx [frames.ts]
+import { createFrames, types } from "frames.js/next";
+
+const myMiddleware: types.FramesMiddleware<
+  any,
+  { foo: string }
+> = async (ctx, next) => {
+  return next({ foo: "bar" });
+};
+
+export const frames = createFrames({
+  basePath: "/",
+  initialState: {
+    pageIndex: 0,
+  },
+  // Add the middleware
+  middleware: [myMiddleware],
+});
+```
+
+```tsx [frames/route.tsx]
+import { Button } from "frames.js/next";
+import { frames } from "./frames";
+
+const handler = frames(async (ctx) => {
+  return {
+    // Use the additional contect
+    image: <div tw="flex">foo: ${ctx.bar}</div>,
+  };
+});
+
+export const GET = handler;
+export const POST = handler;
+```
+
+:::
