@@ -45,7 +45,7 @@ jobs:
         run: yarn build:ci
 
   test:
-    need: [lint, typecheck]
+    needs: [lint, typecheck]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
