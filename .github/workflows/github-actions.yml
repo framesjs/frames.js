@@ -32,18 +32,21 @@ jobs:
 
   lint:
     needs: [initialize]
+    runs-on: ubuntu-latest
     steps:
       - name: Lint
         run: yarn lint
 
   typecheck:
     needs: [initialize]
+    runs-on: ubuntu-latest
     steps:
       - name: Typecheck
         run: yarn build:ci
 
   test:
     need: [lint, typecheck]
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Unit Tests
