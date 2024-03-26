@@ -8,9 +8,7 @@
     "dev:monorepo": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "update-debugger": "npx degit github:framesjs/frames.js/examples/framesjs-starter/app/debug#main app/debug --force",
-    "update-framesjs": "yarn upgrade frames.js@latest && yarn run update-debugger"
+    "lint": "next lint"
   },
   "dependencies": {
     "@farcaster/core": "^0.14.3",

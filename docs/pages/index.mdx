@@ -18,6 +18,12 @@ import { HomePage } from "vocs/components";
     <HomePage.Button href="https://github.com/framesjs/frames.js">
       GitHub
     </HomePage.Button>
+    <HomePage.Button href="#quickstart" variant="accent">
+      Quickstart
+    </HomePage.Button>
+    <HomePage.Button href="https://github.com/framesjs/frames.js">
+      GitHub
+    </HomePage.Button>
   </HomePage.Buttons>
 </HomePage.Root>
 
@@ -31,15 +37,25 @@ import { HomePage } from "vocs/components";
 
 # Quickstart
 
-## 1. Clone the frames.js starter template (with local debugger)
+## Bootstrap the project from template using the CLI tool
 
-Run to clone the starter into a new folder called `framesjs-starter`
+Run one of the commands below based on your preferred package manager and then follow the steps in the terminal.
 
-```bash
-npx degit github:framesjs/frames.js/examples/framesjs-starter#main framesjs-starter
+:::code-group
+
+```bash [npm]
+npm init frames
 ```
 
-or [clone from github](https://github.com/framesjs/frames.js/tree/main/examples/framesjs-starter)
+```bash [yarn]
+yarn create frames
+```
+
+```bash [pnpm]
+pnpm create frames
+```
+
+:::
 
 ## Alternatively, add frames.js to your existing project manually
 
@@ -58,7 +74,12 @@ export async function generateMetadata() {
   return {
     title: "My page",
     other: await fetchMetadata(
-      new URL("/frames", process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+      new URL(
+        "/frames",
+        process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : "http://localhost:3000"
+      )
     ),
   };
 }
