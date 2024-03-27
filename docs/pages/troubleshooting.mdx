@@ -36,7 +36,7 @@ Ensure that the `fetchMetadata` URL is correct and that it is inside the `other`
 
 ### `VERCEL_URL` environment variable
 
-If you are using Vercel, the `VERCEL_URL` environment variable is not a fully qualified URL and may cause issues with `fetchMetadata`. You will have to prepend the protocol `VERCEL_URL`.
+If you are using Vercel, the `VERCEL_URL` environment variable is not a fully qualified URL and may cause issues with `fetchMetadata`. You will have to prepend the protocol to `VERCEL_URL`.
 
 ```tsx
 export async function generateMetadata() {
