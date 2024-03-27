@@ -20,15 +20,22 @@ This button sends a request to a URL on which it was rendered. If you want to na
 
 The `target` path will be resolved relatively to current URL.
 
-### Passing state when button is clicked using query parameters
+### Passing state between frames
 
 ```tsx
-<Button action="post" target={{ query: { foo: "bar" }, pathname: "/next-route"}}>
+<Button
+  action="post"
+  target={{ query: { foo: "bar" }, pathname: "/next-route" }}
+>
   Click me
 </Button>
 ```
 
-The state will be available in handler `ctx.pressedButton.state`.
+The state will be available in the frame handler via `ctx.searchParams` e.g.
+
+```ts
+ctx.searchParams.foo; // bar
+```
 
 ## Post Redirect Button
 
@@ -39,7 +46,10 @@ It accepts same props as `post` button.
 ```tsx
 import { Button } from "frames.js/core";
 
-<Button action="post_redirect" target={{ query: { foo: "bar" }, pathname: "/next-route"}}>
+<Button
+  action="post_redirect"
+  target={{ query: { foo: "bar" }, pathname: "/next-route" }}
+>
   Click me
 </Button>;
 ```
@@ -114,8 +124,7 @@ type EthSendTransactionParams {
 
 If the transaction is successful, the frame will send a POST request to the URL specified in `post_url` or the frame `post_url`. This can be handled by the frame to show a success message or redirect the user to a different page.
 
-```tsx
-// /route.tsx
+```tsx [route.tsx]
 import { Button } from "frames.js/next";
 import { createFrames } from "frames.js/next";
 
@@ -124,7 +133,7 @@ const export frames = createFrames()
 export const GET = frames(async (ctx) => {
   return {
     image: (
-      <div>
+      <div tw="flex">
         Execute transaction
       </div>
     ),

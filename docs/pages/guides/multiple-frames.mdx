@@ -5,67 +5,168 @@ description: ""
 
 # Multi-Page Frames
 
-You will want to connect multiple frames together. 
-There's two different ways of navigating between frames.
+Frames.js can be used to create multi-page applications by defining multiple Frames that are linked together.
 
-The first way is by defining the `state` prop of a `Button`, and using that state to return a different Frame in the handler. See below
+## Creating a Multi-Page Application
 
-```tsx
-/* eslint-disable react/jsx-key */
-import { createFrames, Button } from "frames.js/next";
+Frames are connected by [`Button`](/reference/core/Button) targets, similar to how Next.js `Link` components work.
 
-const totalPages = 5;
+:::steps
 
-const frames = createFrames({
-  basePath: "/examples/new-api/frames",
-  initialState: {
-    pageIndex: 0,
-  },
+### Create your frames app
+
+We create a new directory `./frames` with a `frames.ts` file to export our frames application from because it needs to be used from multiple routes.
+
+```tsx [frames.ts]
+import { createFrames } from "frames.js/next";
+
+export const frames = createFrames({
+  basePath: "/frames",
 });
+```
 
-const handleRequest = frames(async (ctx) => {
-  const pageIndex = Number(ctx.searchParams.pageIndex || 0);
+### Define your initial route
 
-  const imageUrl = `https://picsum.photos/seed/frames.js-${pageIndex}/300/200`;
+The first frame is always fetched via a GET request and is typically included alongside existing OpenGraph data via the [`generateMetadata`](https://nextjs.org/docs/app/api-reference/functions/generate-metadata) function in Next.js if you have an existing site.
 
+#### Define the initial frame
+
+Create a `./frames/route.tsx` file that contains your initial frame. This frame will include buttons to navigate to other frames.
+
+```tsx [route.tsx]
+/* eslint-disable react/jsx-key */
+import { frames } from "./frames";
+import { Button } from "frames.js/next";
+
+export const GET = frames(async () => {
   return {
-    image: (
-      <div tw="flex flex-col">
-        <img width={300} height={200} src={imageUrl} alt="Image" />
-        <div tw="flex">
-          This is slide {pageIndex + 1} / {totalPages}
-        </div>
-      </div>
-    ),
+    image: <div tw="flex">Welcome</div>,
     buttons: [
+      // With query params
       <Button
         action="post"
-        target={{
-          query: { pageIndex: (pageIndex - 1) % totalPages },
-        }}
+        target={{ pathname: "/frames/route1", query: { foo: "bar" } }}
       >
-        ←
+        Go to route 1
       </Button>,
-      <Button
-        action="post"
-        target={{
-          query: { pageIndex: (pageIndex + 1) % totalPages },
-        }}
-      >
-        →
+      // Without query params
+      <Button action="post" target="/frames/route2">
+        Go to route 2
       </Button>,
     ],
-    textInput: "Type something!",
+  };
+});
+```
+
+#### Export the initial frame metadata
+
+In your `page.tsx` file, fetch the initial frame's metadata and include it alongside your existing page's metadata.
+
+`fetchMetadata` is a helper function that fetches the metadata for a frame from the frames.js handler and formats it for use in the `generateMetadata` function.
+
+```tsx [page.tsx]
+import { fetchMetadata } from "frames.js/next";
+
+export async function generateMetadata() {
+  return {
+    title: "My Page",
+    // provide a full URL to your /frames endpoint
+    other: await fetchMetadata(
+      new URL(
+        "/frames",
+        process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : "http://localhost:3000"
+      )
+    ),
+  };
+}
+
+export default function Page() {
+  return <span>My existing page</span>;
+}
+```
+
+### Create the other routes
+
+Create additional frames in the `./frames` directory.
+
+#### Route 1
+
+Create a directory `./frames/route1/route.tsx` with a `POST` handler that returns the frame content.
+
+```tsx [route1.tsx]
+/* eslint-disable react/jsx-key */
+import { frames } from "../frames";
+import { Button } from "frames.js/next";
+
+export const POST = frames(async (ctx) => {
+  const foo = ctx.searchParams.foo;
+
+  return {
+    image: <div tw="flex">Route 1 foo: {foo}</div>, // foo: bar
+    buttons: [
+      <Button action="post" target="/frames/route2">
+        Go to route 2
+      </Button>,
+    ],
+  };
+});
+```
+
+#### Route 2
+
+Create a directory `./frames/route2/route.tsx` with a `POST` handler that returns the frame content.
+
+```tsx [route2.tsx]
+/* eslint-disable react/jsx-key */
+import { frames } from "../frames";
+import { Button } from "frames.js/next";
+
+export const POST = frames(async () => {
+  return {
+    image: <div tw="flex">Route 2</div>,
+    buttons: [
+      <Button action="post" target="/frames/route1">
+        Go to route 1
+      </Button>,
+    ],
+  };
+});
+```
+
+### (Optional) Navigate back to the initial frame
+
+If you want to navigate back to the initial frame you need to export a `POST` handler for the initial route. You may want to refactor the initial frame handler into a `frameHandler` variable that is exported as both `GET` and `POST`
+
+```tsx [route.tsx]
+import { frames } from "./frames";
+
+const frameHandler = frames(async () => {
+  return {
+    image: <div tw="flex">Welcome</div>
+    buttons: [
+      <Button action="post" target="/frames/route1">Go to route 1</Button>,
+      <Button action="post" target="/frames/route2">Go to route 2</Button>,
+    ],
   };
 });
 
-export const GET = handleRequest;
-export const POST = handleRequest;
+export const GET = frameHandler;
+export const POST = frameHandler;
 ```
 
-The second way to navigate between frames is by defining a `Button` with `type`, `post`, with a `target` that points at another Frame.
-This can be a Frame on the same domain, or a Frame on another website entirely. In order to link between Frames in the same project, you need to set up a frames.js handler on the `POST` route of the path defined in the target.
+You can then navigate back to the initial frame by linking to the initial route.
 
-{/* 
-TODO: Link to examples
- */}
+```tsx
+<Button action="post" target="/frames">
+  Go back
+</Button>
+```
+
+:::
+
+## Notes
+
+The second way to navigate between frames is by defining a [`Button`](/reference/core/Button) with `type`, `post`, with a `target` that points at another Frame.
+This can be a Frame on the same domain, or a Frame on another website entirely. In order to link between Frames in the same project, you need to set up a frames.js handler on the `POST` route of the path defined in the target.

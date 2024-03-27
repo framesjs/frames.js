@@ -9,26 +9,32 @@ This guide shows you how to add frames rendering to your next.js + tailwind app 
 
 ## Steps
 
-1. Create a new repo
+::::steps
 
-`npx create-next-app@latest my-project --ts --eslint --tailwind --app`
+### Create a new repo
 
-`cd my-project`
 
-`yarn add @frames.js/render`
+Create a new Next.js app
 
-`yarn install`
+```sh
+npx create-next-app@latest my-project --ts --eslint --tailwind --app
+cd my-project
+```
 
-2. Add proxies for routing frame requests via your backend for privacy + preventing CORS issues
-```tsx filename="// ./app/frames/route.tsx"
-// ./app/frames/route.tsx
+Add `@frames.js/render` to your project
+
+```sh
+yarn add @frames.js/render
+```
+
+### Add proxies for routing frame requests via your backend for privacy + preventing CORS issues
+```tsx [./app/frames/route.tsx]
 export { GET, POST } from "@frames.js/render/next";
 ```
 
-3. Add the renderer to your page
+### Add the renderer to your page
 
-```tsx filename="// ./app/page.tsx"
-// ./app/page.tsx
+```tsx [./app/page.tsx]
 "use client";
 import {
   FrameUI,
@@ -81,10 +87,9 @@ export default function Page() {
 
 ```
 
-4. In order for the styles to work, your project should have tailwind set up as well as the tailwind.config.js rule
+### In order for the styles to work, your project should have tailwind set up as well as the tailwind.config.js rule
 
-```tsx filename="// tailwind.config.js"
-// tailwind.config.js
+```tsx [tailwind.config.js]
 const config = {
     // ...
     content: [
@@ -97,10 +102,9 @@ const config = {
 }
 ```
 
-5. Allow images from any domain
+### Allow images from any domain
 
-```tsx filename="// next.config.js"
-// next.config.js
+```tsx [next.config.js]
 const nextConfig = {
   images: {
     remotePatterns: [
@@ -113,10 +117,10 @@ const nextConfig = {
 };
 ```
 
-6. Run `yarn run dev`
+### Run `yarn run dev`
 
-7. Done! 🎉
-
+### Done! 🎉
+::::
 
 ### Optional
 

@@ -8,8 +8,7 @@ Frames.js can be easily integrated with [Next.js](https://nextjs.org) applicatio
 
 Frames handler is responsible for rendering your Frames and also reacts to user interactions with buttons.
 
-```tsx
-// app/frames/route.tsx
+```tsx [./app/frames/route.tsx]
 /* eslint-disable react/jsx-key */
 import { createFrames, Button } from "frames.js/next";
 
@@ -29,8 +28,7 @@ export const POST = handleRequest;
 
 In order to render the initial frame of your Frames app on some of your pages, you need to render frame metadata. That can be achieved using [`generateMetadata() API`](https://nextjs.org/docs/app/api-reference/functions/generate-metadata).
 
-```tsx
-// app/page.tsx
+```tsx [./app/page.tsx]
 import { fetchMetadata } from "frames.js/next";
 
 export async function generateMetadata() {

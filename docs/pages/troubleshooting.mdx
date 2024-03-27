@@ -1,0 +1,139 @@
+# Troubleshooting
+
+## Image not rendering
+
+### Image too large
+
+If the image is not rendering, it may be too large.
+
+- If you are including a full size external `<img>` element, consider passing the external image as a string instead:
+
+```tsx
+return {
+  image: "https://example.com/image.jpg",
+};
+```
+
+- Try resizing it to a smaller size via the `imageOptions` of the returned `FrameDefinition`.
+
+```tsx
+return {
+  image: <div>...</div>,
+  imageOptions: {
+    width: 100,
+    height: 100,
+  },
+};
+```
+
+### Image wrong format
+
+If the image is not rendering, it may be in the wrong format. SVG images are typically not supported on mobile.
+
+## Initial frame not loading
+
+Ensure that the `fetchMetadata` URL is correct and that it is inside the `other` property for Next.js.
+
+### `VERCEL_URL` environment variable
+
+If you are using Vercel, the `VERCEL_URL` environment variable is not a fully qualified URL and may cause issues with `fetchMetadata`. You will have to prepend the protocol to `VERCEL_URL`.
+
+```tsx
+export async function generateMetadata() {
+  const frameMetadata = await fetchMetadata(
+    new URL(
+      "/frames",
+      process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "http://localhost:3000"
+    )
+  );
+
+  return {
+    title: "My page",
+    other: {
+      ...frameMetadata,
+    },
+  };
+}
+```
+
+### Vercel authentication
+
+When deploying to Vercel, your site will not automatically be accessible to the public. You will need to disable Vercel Authentication under your project's `Settings > Deployment Protection > Vercel Authentication` on vercel.com.
+
+## Import type errors
+
+If you are getting type errors when importing `frames.js`, you may need to change the `moduleResolution` in your `tsconfig.json` from `node` to `nodenext`.
+
+```json [tsconfig.json]
+{
+  "compilerOptions": {
+    "moduleResolution": "nodenext"
+  }
+}
+```
+
+## Unable to access frame message on initial frame
+
+The initial frame is accessed via a GET request and does not have access to frame message and hence user data.
+
+## Type error: Route ... does not match the required types of a Next.js Route
+
+If you are getting this error you are exporting something other than a Next.js route from a `route.tsx` or `page.tsx` file.
+
+We recommend creating a new file for your `frames` app and importing it in the routes that use it.
+
+### Example
+
+Frames app file
+
+```tsx [frames.ts]
+import { createFrames } from "frames.js/next";
+
+export const frames = createFrames({
+  basePath: "/frames",
+});
+```
+
+Initial page route
+
+```tsx [route.tsx]
+import { frames } from "./frames";
+
+export const GET = frames(async (ctx) => {
+  // ctx.message is not available in the initial frame
+  return {
+    image: <div>...</div>,
+    buttons: [
+      <Button action="post" target="/my-route">
+        Next
+      </Button>,
+    ],
+  };
+});
+```
+
+Frame action handler route
+
+```tsx [my-route/route.tsx]
+import { frames } from "../frames";
+
+export const POST = frames(async (ctx) => {
+  // Do something with ctx.message
+  // ...
+
+  return {
+    image: <div>...</div>,
+    buttons: [
+      // ...
+    ],
+  };
+});
+```
+
+## Combining old and new SDKs
+
+You cannot use the `<FrameComponent>`, `<FrameButton>` and `<FrameImage>` components from the old SDK (`frames.js/next/server`) with the new SDK (`frames.js/next`).
+
+The new SDK uses a [`FrameDefinition`](/reference/core/createFrames#framedefinition) object to define a frame.
