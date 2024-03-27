@@ -1,15 +1,17 @@
-import {
+import type {
   ClientProtocolId,
   FrameActionPayload,
-  FrameMessageReturnType,
   HubHttpUrlOptions,
+} from "../types";
+import {
+  type FrameMessageReturnType,
   getFrameMessage,
-} from "..";
+} from "../getFrameMessage";
 import {
   InvalidFrameActionPayloadError,
   RequestBodyNotJSONError,
 } from "../core/errors";
-import { FramesMiddleware, JsonValue } from "../core/types";
+import type { FramesMiddleware, JsonValue } from "../core/types";
 
 function isValidFrameActionPayload(
   value: unknown

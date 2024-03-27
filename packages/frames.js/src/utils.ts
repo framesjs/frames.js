@@ -1,5 +1,5 @@
 import { CastId, Message, MessageType, Protocol } from "./farcaster";
-import {
+import type {
   FrameActionPayload,
   FrameButton,
   FrameButtonLink,

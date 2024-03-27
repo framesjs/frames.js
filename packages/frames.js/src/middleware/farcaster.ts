@@ -1,14 +1,13 @@
+import type { ClientProtocolId, FrameActionPayload } from "../types";
 import {
-  ClientProtocolId,
-  FrameActionPayload,
-  FrameMessageReturnType,
+  type FrameMessageReturnType,
   getFrameMessage,
-} from "..";
+} from "../getFrameMessage";
 import {
   InvalidFrameActionPayloadError,
   RequestBodyNotJSONError,
 } from "../core/errors";
-import { FramesMiddleware, JsonValue } from "../core/types";
+import type { FramesMiddleware, JsonValue } from "../core/types";
 
 function isValidFrameActionPayload(
   value: unknown

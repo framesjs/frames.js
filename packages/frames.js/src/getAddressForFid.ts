@@ -1,8 +1,8 @@
 import { createPublicClient, http, parseAbi } from "viem";
 import { optimism } from "viem/chains";
-import { AddressReturnType, HubHttpUrlOptions } from "./types";
+import type { AddressReturnType, HubHttpUrlOptions } from "./types";
 import { DEFAULT_HUB_API_KEY, DEFAULT_HUB_API_URL } from "./default";
-import { extractAddressFromJSONMessage } from ".";
+import { extractAddressFromJSONMessage } from "./utils";
 
 /**
  * Returns the first verified address for a given `Farcaster` users `fid` if available, falling back to their account custodyAddress

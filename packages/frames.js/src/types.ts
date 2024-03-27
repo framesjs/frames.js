@@ -1,4 +1,4 @@
-import { Abi } from "viem";
+import type { Abi } from "viem";
 
 export type FrameVersion = "vNext" | `${number}-${number}-${number}`;
 

@@ -1,8 +1,8 @@
 import { createPublicClient, http, parseAbi } from "viem";
 import { optimism } from "viem/chains";
-import { AddressWithType, HubHttpUrlOptions } from "./types";
+import type { AddressWithType, HubHttpUrlOptions } from "./types";
 import { DEFAULT_HUB_API_KEY, DEFAULT_HUB_API_URL } from "./default";
-import { extractAddressFromJSONMessage } from ".";
+import { extractAddressFromJSONMessage } from "./utils";
 
 async function getCustodyAddressForFid(fid: number): Promise<AddressWithType> {
   const publicClient = createPublicClient({

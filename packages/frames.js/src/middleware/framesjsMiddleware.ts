@@ -1,4 +1,4 @@
-import { FramesMiddleware } from "../core/types";
+import type { FramesMiddleware } from "../core/types";
 import {
   isFrameRedirect,
   parseButtonInformationFromTargetURL,
