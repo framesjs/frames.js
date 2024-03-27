@@ -5,7 +5,7 @@ describe("cloudflare workers adapter", () => {
     expect(lib).toHaveProperty(exportName);
   });
 
-  it("correctly integrates with Hono", async () => {
+  it("correctly integrates with Cloudflare Workers", async () => {
     const frames = lib.createFrames();
     const handler = frames(async (ctx) => {
       expect(ctx.request.url).toBe("http://localhost:3000/");
