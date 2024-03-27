@@ -1,5 +1,19 @@
 # frames.js
 
+## 0.11.0
+
+### Minor Changes
+
+- 63b6c6b: feat: cloudflare workers adapter
+- 1434879: chore: deprecate old Next.js api
+
+### Patch Changes
+
+- 2b25562: fix: turbo build
+- 29bcbc6: fix(nextjs): prioritize APP_URL over VERCEL_URL
+- 0b681fb: fix: expose core types and utils via frames.js/types and frames.js/utils
+- 65c7f6c: fix: correctly tree shake the bundle
+
 ## 0.10.0
 
 ### Minor Changes

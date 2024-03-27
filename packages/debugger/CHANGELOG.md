@@ -1,5 +1,18 @@
 # @frames.js/debugger
 
+## 0.1.11
+
+### Patch Changes
+
+- Updated dependencies [2b25562]
+- Updated dependencies [63b6c6b]
+- Updated dependencies [29bcbc6]
+- Updated dependencies [1434879]
+- Updated dependencies [0b681fb]
+- Updated dependencies [65c7f6c]
+  - frames.js@0.11.0
+  - @frames.js/render@0.0.2
+
 ## 0.1.10
 
 ### Patch Changes

@@ -1,5 +1,21 @@
 # framesjs-starter
 
+## 0.2.8
+
+### Patch Changes
+
+- 9b5690f: feat: custom fonts example
+- 8800afa: feat: updated multi-page example
+- 4451b7c: fix: refactor frames app into frames.ts in examples
+- e5674d6: feat: custom middleware example
+- Updated dependencies [2b25562]
+- Updated dependencies [63b6c6b]
+- Updated dependencies [29bcbc6]
+- Updated dependencies [1434879]
+- Updated dependencies [0b681fb]
+- Updated dependencies [65c7f6c]
+  - frames.js@0.11.0
+
 ## 0.2.7
 
 ### Patch Changes
