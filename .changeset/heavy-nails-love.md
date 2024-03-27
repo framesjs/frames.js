@@ -1,6 +1,6 @@
 ---
 "frames.js": minor
-"docs": minor
+"docs": patch
 ---
 
 feat: cloudflare workers adapter
