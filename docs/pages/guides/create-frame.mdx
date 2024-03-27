@@ -8,7 +8,9 @@ description: "Frames.js is the react based framework for making frames. Debugger
 This guide shows you how to add frames rendering to your next.js + tailwind app using frames.js.
 
 ## Steps
+
 ::::steps
+
 ### Create a new repo
 
 Create a new Next.js app
@@ -24,7 +26,6 @@ Add `frames.js` to your project
 yarn add frames.js
 ```
 
-
 ### Create your Frames app
 
 ```tsx [./app/frames/frames.ts]
@@ -34,6 +35,7 @@ export const frames = createFrames();
 ```
 
 ### Create a route
+
 ```tsx [./app/frames/route.tsx]
 /* eslint-disable react/jsx-key */
 import { Button } from "frames.js/next";
@@ -49,10 +51,10 @@ const handleRequest = frames(async (ctx) => {
       </span>
     ),
     buttons: [
-      <Button action="post" target={{ query: { value: "Yes" }}}>
+      <Button action="post" target={{ query: { value: "Yes" } }}>
         Say Yes
       </Button>,
-      <Button action="post" target={{ query: { value: "No" }}}>
+      <Button action="post" target={{ query: { value: "No" } }}>
         Say No
       </Button>,
     ],
@@ -73,7 +75,12 @@ export async function generateMetadata() {
     title: "My Page",
     // provide a full URL to your /frames endpoint
     other: await fetchMetadata(
-      new URL("/frames", process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+      new URL(
+        "/frames",
+        process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : "http://localhost:3000"
+      )
     ),
   };
 }
@@ -88,3 +95,7 @@ export default function Page() {
 ### Done! 🎉
 
 ::::
+
+## Next Steps
+
+- Read the [`createFrames`](/reference/core/createFrames) and [`Button`](/reference/core/Button) documentation

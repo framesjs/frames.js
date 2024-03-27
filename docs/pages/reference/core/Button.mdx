@@ -20,15 +20,22 @@ This button sends a request to a URL on which it was rendered. If you want to na
 
 The `target` path will be resolved relatively to current URL.
 
-### Passing state when button is clicked using query parameters
+### Passing state between frames
 
 ```tsx
-<Button action="post" target={{ query: { foo: "bar" }, pathname: "/next-route"}}>
+<Button
+  action="post"
+  target={{ query: { foo: "bar" }, pathname: "/next-route" }}
+>
   Click me
 </Button>
 ```
 
-The state will be available in handler `ctx.pressedButton.state`.
+The state will be available in the frame handler via `ctx.searchParams` e.g.
+
+```ts
+ctx.searchParams.foo; // bar
+```
 
 ## Post Redirect Button
 
@@ -39,7 +46,10 @@ It accepts same props as `post` button.
 ```tsx
 import { Button } from "frames.js/core";
 
-<Button action="post_redirect" target={{ query: { foo: "bar" }, pathname: "/next-route"}}>
+<Button
+  action="post_redirect"
+  target={{ query: { foo: "bar" }, pathname: "/next-route" }}
+>
   Click me
 </Button>;
 ```
