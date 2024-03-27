@@ -37,7 +37,9 @@ export const POST = frames(async (ctx) => {
 
   return {
     image: (
-      <div tw="flex">The user's username is {ctx.message.requesterUserData.username}</div>
+      <div tw="flex">
+        The user's username is {ctx.message.requesterUserData.username}
+      </div>
     ),
   };
 });
@@ -73,7 +75,7 @@ export const POST = frames(
 
 ## Defining your own middleware
 
-You can define your own middleware by creating a function that returns a promise that resolves to the next middleware, or a [Web API `Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response), or a `FrameDefinition`.
+You can define your own middleware by creating a function that returns a promise that resolves to the next middleware, or a [Web API `Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response), or a [`FrameDefinition`](/reference/core/createFrames#framedefinition).
 
 Middleware can modify the context or return a response that will terminate the request early.
 
@@ -84,10 +86,10 @@ Middleware can modify the context or return a response that will terminate the r
 ```tsx [frames.ts]
 import { createFrames, types } from "frames.js/next";
 
-const myMiddleware: types.FramesMiddleware<
-  any,
-  { foo: string }
-> = async (ctx, next) => {
+const myMiddleware: types.FramesMiddleware<any, { foo: string }> = async (
+  ctx,
+  next
+) => {
   return next({ foo: "bar" });
 };
 
@@ -117,3 +119,31 @@ export const POST = handler;
 ```
 
 :::
+
+
+### Accessing the request object
+
+Sometimes you want to access the request object in your middleware - whenever you do this, you should clone the request object to avoid mutating it and breaking other middleware.
+
+Here's an example of creating middleware which will add the request json to your context:
+
+```tsx
+import { createFrames, types } from "frames.js/next";
+
+const bodyMiddleware: types.FramesMiddleware<any, { body: any }> = async (
+  ctx,
+  next
+) => {
+  const body = await ctx.request.clone().json();
+  return next({ body });
+};
+
+export const frames = createFrames({
+  basePath: "/",
+  initialState: {
+    pageIndex: 0,
+  },
+  middleware: [bodyMiddleware],
+  // The request body will now be available via `ctx.body` in your frame handlers
+});
+```
