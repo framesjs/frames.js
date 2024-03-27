@@ -4,6 +4,9 @@ import { defineConfig } from "tsup";
 import glob from "fast-glob";
 
 export default defineConfig({
+  // this is necessary for cloudfare workers adapter to be able to import
+  // buffer from cloudflare compatiblity layer
+  external: ["node:buffer"],
   dts: true,
   format: ["cjs", "esm"],
   clean: true,
