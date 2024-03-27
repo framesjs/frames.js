@@ -1,10 +1,7 @@
 /* eslint-disable react/jsx-key */
-import { createFrames, Button } from "frames.js/next";
+import { Button } from "frames.js/next";
 import { redirect } from "frames.js/core";
-
-const frames = createFrames({
-  basePath: "/examples/new-api-post-redirect/frames",
-});
+import { frames } from "./frames";
 
 const handleRequest = frames(async (ctx) => {
   if (ctx.pressedButton?.action === "post_redirect") {
