@@ -24,6 +24,8 @@ pnpm create cloudflare my-cf-frames --type hello-world --ts
 
 In order for `frames.js` to work properly in [Cloudflare Workers](https://workers.cloudflare.com) you must replace the `@vercel/og` dependency with `workers-og`. Follow following steps to override the dependency.
 
+::::steps
+
 ### Override `@vercel/og` package with `workers-og`
 
 Add following to your `package.json`.
@@ -79,6 +81,7 @@ pnpm add frames.js
 ```
 
 :::
+::::
 
 ## Write your Frames handler
 
@@ -112,9 +115,11 @@ export default {
 };
 ```
 
-## Test locally using `wrangler dev`
+## Develop and test locally
 
 You can test your Cloudflare Worker locally using `wrangler dev` and our [debugger](/guides/debugger#local-debugger-cli). Follow these steps to start developing locally:
+
+::::steps
 
 #### Start the local server
 
@@ -157,6 +162,8 @@ pnpm dlx @frames.js/debugger --url <local-url>
 ```
 
 :::
+
+::::
 
 ## Deploy to Cloudflare Workers
 
