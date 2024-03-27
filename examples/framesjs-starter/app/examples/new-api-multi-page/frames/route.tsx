@@ -1,47 +1,25 @@
 /* eslint-disable react/jsx-key */
-import { createFrames, Button } from "frames.js/next";
+import { frames } from "./frames";
+import { Button } from "frames.js/next";
 
-const totalPages = 5;
-
-const frames = createFrames({
-  basePath: "/examples/new-api-multi-page/frames",
-});
-
-const handleRequest = frames(async (ctx) => {
-  const pageIndex = Number(ctx.searchParams.pageIndex || 0);
-
-  const imageUrl = `https://picsum.photos/seed/frames.js-${pageIndex}/300/200`;
-
+const handler = frames(async () => {
   return {
-    image: (
-      <div tw="flex flex-col">
-        <img width={300} height={200} src={imageUrl} alt="Image" />
-        <div tw="flex">
-          This is slide {pageIndex + 1} / {totalPages}
-        </div>
-      </div>
-    ),
+    image: <div tw="flex">Welcome</div>,
     buttons: [
+      // With query params
       <Button
         action="post"
-        target={{
-          query: { pageIndex: (pageIndex - 1) % totalPages },
-        }}
+        target={{ pathname: "/route1", query: { foo: "bar" } }}
       >
-        ←
+        Go to route 1
       </Button>,
-      <Button
-        action="post"
-        target={{
-          query: { pageIndex: (pageIndex + 1) % totalPages },
-        }}
-      >
-        →
+      // Without query params
+      <Button action="post" target="/route2">
+        Go to route 2
       </Button>,
     ],
-    textInput: "Type something!",
   };
 });
 
-export const GET = handleRequest;
-export const POST = handleRequest;
+export const GET = handler;
+export const POST = handler;
