@@ -144,6 +144,26 @@
         "default": "./dist/core/index.cjs"
       }
     },
+    "./types": {
+      "import": {
+        "types": "./dist/core/types.d.ts",
+        "default": "./dist/core/types.js"
+      },
+      "require": {
+        "types": "./dist/core/types.d.cts",
+        "default": "./dist/core/types.cjs"
+      }
+    },
+    "./utils": {
+      "import": {
+        "types": "./dist/core/utils.d.ts",
+        "default": "./dist/core/utils.js"
+      },
+      "require": {
+        "types": "./dist/core/utils.d.cts",
+        "default": "./dist/core/utils.cjs"
+      }
+    },
     "./middleware": {
       "import": {
         "types": "./dist/middleware/index.d.ts",
