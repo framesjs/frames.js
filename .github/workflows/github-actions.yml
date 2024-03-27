@@ -5,7 +5,13 @@ on:
     branches:
       - main
       - dev
+    paths-ignore:
+      - "docs/**"
+      - "changesets/**"
   pull_request:
+    paths-ignore:
+      - "docs/**"
+      - "changesets/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
