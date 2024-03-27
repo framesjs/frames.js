@@ -1,5 +1,5 @@
 import { ImageResponse } from "@vercel/og";
-import { ClientProtocolId } from "..";
+import type { ClientProtocolId } from "../types";
 import { Button } from "./components";
 
 export type JsonObject = { [Key in string]: JsonValue } & {

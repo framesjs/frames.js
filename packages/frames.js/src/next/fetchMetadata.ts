@@ -1,6 +1,6 @@
-import type { FrameFlattened } from "..";
+import type { FrameFlattened } from "../types";
 import { FRAMES_META_TAGS_HEADER } from "../core";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 
 /**
  * Fetches meta tags from your Frames app that can be used in Next.js generateMetadata() function.

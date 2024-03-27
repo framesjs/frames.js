@@ -1,10 +1,7 @@
-import {
-  FrameActionPayload,
-  HubHttpUrlOptions,
-  hexStringToUint8Array,
-} from ".";
+import type { FrameActionPayload, HubHttpUrlOptions } from "./types";
+import { hexStringToUint8Array } from "./utils";
 import { DEFAULT_HUB_API_KEY, DEFAULT_HUB_API_URL } from "./default";
-import { FrameActionMessage, Message } from "./farcaster";
+import { type FrameActionMessage, Message } from "./farcaster";
 
 /**
  * @returns a Promise that resolves with whether the message signature is valid, by querying a Farcaster hub, as well as the message itself

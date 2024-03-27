@@ -14,7 +14,7 @@
   },
   "scripts": {
     "lint": "eslint \"./src/**/*.{ts,tsx}\"",
-    "build": "NODE_OPTIONS='--max-old-space-size=16384' tsup `find ./src -type f \\( -regex '.*\\.tsx*' -a -not -regex '.*\\.test\\.tsx*' \\)` --format cjs,esm --dts",
+    "build": "NODE_OPTIONS='--max-old-space-size=16384' tsup",
     "dev": "npm run build -- --watch",
     "test:watch": "jest --watch",
     "update:proto": "curl https://raw.githubusercontent.com/farcasterxyz/hub-monorepo/main/packages/core/src/protobufs/generated/message.ts -o src/farcaster/generated/message.ts"

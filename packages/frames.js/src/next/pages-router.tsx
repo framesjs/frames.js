@@ -1,4 +1,4 @@
-import { Metadata, NextApiRequest, NextApiResponse } from "next";
+import type { Metadata, NextApiRequest, NextApiResponse } from "next";
 import { createFrames as coreCreateFrames } from "../core";
 import {
   createReadableStreamFromReadable,

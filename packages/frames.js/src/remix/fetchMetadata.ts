@@ -1,4 +1,4 @@
-import type { FrameFlattened } from "..";
+import type { FrameFlattened } from "../types";
 import { FRAMES_META_TAGS_HEADER } from "../core";
 import type { MetaFunction } from "@remix-run/node";
 
