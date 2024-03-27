@@ -1,9 +1,12 @@
-import { createFrames, types } from "frames.js/next";
+import { createFrames } from "frames.js/next";
+import { FramesMiddleware } from "frames.js/types";
 
-const priceMiddleware: types.FramesMiddleware<
-  any,
-  { ethPrice?: number }
-> = async (ctx, next) => {
+type PriceContext = { ethPrice?: number };
+
+const priceMiddleware: FramesMiddleware<any, PriceContext> = async (
+  ctx,
+  next
+) => {
   try {
     const res = await fetch(
       "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd"
