@@ -1,0 +1,29 @@
+{
+  "name": "template-next",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "frames.js": "^0.9.6",
+    "next": "^14.1.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.17.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@frames.js/debugger": "^",
+    "concurrently": "^8.2.2",
+    "typescript": "^5.3.3"
+  },
+  "scripts": {
+    "dev": "concurrently \"next dev\" \"frames --url http://localhost:3000\"",
+    "start": "next start",
+    "build": "next build",
+    "lint": "next lint"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  }
+}

@@ -13,7 +13,7 @@ type CreateFramesForHono = types.CreateFramesFunctionDefinition<
  *
  * @example
  * import { createFrames, Button } from 'frames.js/hono';
- * import { Honoe } from 'hono';
+ * import { Hono } from 'hono';
  *
  * const frames = createFrames();
  * const honoHandler = frames(async (ctx) => {

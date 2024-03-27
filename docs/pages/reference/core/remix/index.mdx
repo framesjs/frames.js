@@ -8,8 +8,7 @@ Frames.js can be easily integrated with [Remix](https://remix.run) applications.
 
 Frames handler is responsible for rendering your Frames and also reacts to user interactions with buttons.
 
-```tsx
-// app/routes/frames.tsx
+```tsx [./app/routes/frames.tsx]
 /* eslint-disable react/jsx-key */
 import { createFrames, Button } from "frames.js/remix";
 
@@ -27,8 +26,7 @@ export const loader = handleRequest;
 
 ### Render initial frame on your existing page
 
-```tsx
-// app/routes/_index.tsx
+```tsx [./app/routes/_index.tsx]
 import { fetchMetadata } from "frames.js/remix";
 
 export async function loader({ request }) {

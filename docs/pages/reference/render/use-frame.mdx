@@ -2,38 +2,154 @@
 
 ## Props
 
-```ts
-type Props = {
-  /** the route used to POST frame actions. The post_url will be added as a the `url` query parameter */
-  frameActionProxy: string;
-  /** the route used to GET the initial frame via proxy */
-  frameGetProxy: string;
-  /** an auth state object used to determine what actions are possible */
-  signerState: SignerStateInstance<T, B>;
-  /** the url of the homeframe, if null won't load a frame */
-  homeframeUrl: string | null;
-  /** the initial frame. if not specified will fetch it from the url prop */
-  frame?: Frame;
-  /** a function to handle mint buttons */
-  onMint?: (t: onMintArgs) => void;
-  /** the context of this frame, used for generating Frame Action payloads */
-  frameContext: FrameContext;
-}
-```
+### `dangerousSkipSigning`
+
+- Type: `boolean`
+
+If true, the frame will not be signed before being sent to the frameActionProxy. This is useful for frames that don't verify signatures.
+
+### `frameActionProxy`
+
+- Type: `string`
+
+The route used to POST frame actions. The post_url will be added as a the `url` query parameter.
+
+### `frameGetProxy`
+
+- Type: `string`
+
+The route used to GET the initial frame via proxy.
+
+### `signerState`
+
+- Type: `SignerStateInstance<T, B>`
+
+An signer state object used to determine what actions are possible.
+
+### `homeframeUrl`
+
+- Type: `string | null`
+
+The url of the homeframe, if null won't load a frame.
+
+### `frame`
+
+- Type: `Frame`
+
+The initial frame. if not specified will fetch it from the url prop.
+
+### `onMint`
+
+- Type: `(t: onMintArgs) => void`
+
+A function to handle mint buttons.
+
+### `onTransaction`
+
+- Type: `OnTransactionFunc`
+
+A function to handle transaction button presses, returns the transaction hash or null.
+
+### `frameContext`
+
+- Type: `FrameContext`
+
+The context of this frame, used for generating Frame Action payloads.
+
+### `extraButtonRequestPayload`
+
+- Type: `Record<string, unknown>`
+
+Extra data appended to the frame action payload.
+
+## Returns
+
+- Type: `FrameState`
+
+### `fetchFrame`
+
+- Type: `(request: FrameRequest) => void`
+
+Fetches a frame from the frameGetProxy.
+
+### `clearFrameStack`
+
+- Type: `() => void`
+
+Clears the frame stack.
+
+### `frame`
+
+- Type: `Frame | null`
+
+The frame at the top of the stack (at index 0).
+
+### `framesStack`
+
+- Type: `FramesStack`
+
+A stack of frames with additional context, with the most recent frame at index 0.
+
+### `isLoading`
+
+- Type: `null | FrameStackPending`
+
+Whether the frame is loading.
+
+### `inputText`
+
+- Type: `string`
+
+The input text.
+
+### `setInputText`
+
+- Type: `(s: string) => void`
+
+Sets the input text.
+
+### `onButtonPress`
+
+- Type: `(frameButton: FrameButton, index: number) => void`
+
+Handles a button press.
+
+### `isFrameValid`
+
+- Type: `boolean | undefined`
+
+Whether the frame at the top of the stack has any frame validation errors. Undefined when the frame is not loaded or set.
+
+### `frameValidationErrors`
+
+- Type: `Record<string, string[]> | undefined | null`
+
+The frame validation errors.
+
+### `error`
+
+- Type: `null | unknown`
+
+Whether there was an error loading the frame.
+
+### `homeframeUrl`
+
+- Type: `string | null`
+
+The url of the frame.
 
 ## Usage
 
 ```tsx [frames.js/render/types.tsx]
 "use client";
-import {
-  FrameUI,
-  fallbackFrameContext,
-  FrameContext,
-} from "frames.js/render";
-import { FrameImageNext } from "frames.js/render/next";
+import { FrameUI, fallbackFrameContext, FrameContext } from "@frames.js/render";
+import { FrameImageNext } from "@frames.js/render/next";
 import { FrameButton } from "frames.js";
-import { useFrame } from "frames.js/render/use-frame";
-import { mockFarcasterSigner, createFrameActionMessageWithSignerKey } from "frames.js/render/farcaster";
+import { useFrame } from "@frames.js/render/use-frame";
+import {
+  mockFarcasterSigner,
+  createFrameActionMessageWithSignerKey,
+} from "@frames.js/render/farcaster";
 
 export default function Page() {
   const frameState = useFrame({
@@ -54,7 +170,9 @@ export default function Page() {
         // Implement me
         alert("A frame button was pressed without a signer.");
       },
-      signFrameAction: () => { alert('implement me.') },
+      signFrameAction: () => {
+        alert("implement me.");
+      },
     },
   });
 
@@ -64,4 +182,4 @@ export default function Page() {
 }
 ```
 
-[Full example](/guides/display-frames.mdx)
+[Full example](/guides/apps/display-frames.mdx)

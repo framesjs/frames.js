@@ -1,6 +1,6 @@
 import { createFrames as coreCreateFrames, types } from "../core";
 import type { NextRequest, NextResponse } from "next/server";
-import { CoreMiddleware } from "../middleware";
+import type { CoreMiddleware } from "../middleware";
 import { getCurrentUrl } from "./getCurrentUrl";
 export { Button, type types } from "../core";
 

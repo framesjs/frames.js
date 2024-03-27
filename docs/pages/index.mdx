@@ -31,15 +31,25 @@ import { HomePage } from "vocs/components";
 
 # Quickstart
 
-## 1. Clone the frames.js starter template (with local debugger)
+## Bootstrap the project from template using the CLI tool
 
-Run to clone the starter into a new folder called `framesjs-starter`
+Run one of the commands below based on your preferred package manager and then follow the steps in the terminal.
 
-```bash
-npx degit github:framesjs/frames.js/examples/framesjs-starter#main framesjs-starter
+:::code-group
+
+```bash [npm]
+npm init frames
 ```
 
-or [clone from github](https://github.com/framesjs/frames.js/tree/main/examples/framesjs-starter)
+```bash [yarn]
+yarn create frames
+```
+
+```bash [pnpm]
+pnpm create frames
+```
+
+:::
 
 ## Alternatively, add frames.js to your existing project manually
 
@@ -49,16 +59,19 @@ or [clone from github](https://github.com/framesjs/frames.js/tree/main/examples/
 yarn add frames.js
 ```
 
-```tsx filename="// ./app/page.tsx"
-// ./app/page.tsx
-
+```tsx [./app/page.tsx]
 import { fetchMetadata } from "frames.js/next";
 
 export async function generateMetadata() {
   return {
     title: "My page",
     other: await fetchMetadata(
-      new URL("/frames", process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+      new URL(
+        "/frames",
+        process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : "http://localhost:3000"
+      )
     ),
   };
 }
@@ -68,8 +81,7 @@ export default function Home(props) {
 }
 ```
 
-```ts filename="./app/frames/route.tsx"
-// ./app/frames/route.tsx
+```ts [./app/frames/route.tsx]
 /* eslint-disable react/jsx-key */
 import { createFrames, Button } from 'frames.js/next';
 
@@ -105,14 +117,12 @@ Check out the following places for more Frames-related content:
 
 Or use the [hosted Frames debugger](https://debugger.framesjs.org/?url=https%3A%2F%2Fframesjs.org). Running locally has the benefits of it working with natively with localhost.
 
-## Prefer to not use JSX?
+## Prefer to not use JSX? 
 
-### Use frames.js in Next.js using helper functions
+### frames.js in Next.js using helper functions
 
-```tsx filename="./app/page.tsx"
-// page that renders a frame
-// ./app/page.tsx
-
+```tsx [./app/page.tsx]
+// Page that returns a frame
 import { Frame, getFrameFlattened } from "frames.js";
 import type { Metadata } from "next";
 
@@ -143,10 +153,8 @@ export const metadata: Metadata = {
 };
 ```
 
-```ts filename="app/frames/route.ts"
-// handle frame actions
-// ./app/frames/route.ts
-
+```ts [./app/frames/route.ts]
+// Route that handles frame actions
 import { getFrameHtml, validateFrameMessage } from "frames.js";
 import { NextRequest } from "next/server";
 

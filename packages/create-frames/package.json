@@ -1,0 +1,22 @@
+{
+  "name": "create-frames",
+  "version": "0.0.0",
+  "type": "module",
+  "bin": "bin.js",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "engineStrict": true,
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "detect-package-manager": "^3.0.1",
+    "ignore": "^5.3.1",
+    "picocolors": "^1.0.0",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@types/yargs": "^17.0.32"
+  },
+  "repository": "framesjs/frame.js"
+}

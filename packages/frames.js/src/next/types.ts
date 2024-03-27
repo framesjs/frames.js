@@ -1,4 +1,4 @@
-import { ActionIndex, FrameActionPayload } from "../types";
+import type { ActionIndex, FrameActionPayload } from "../types";
 
 /**
  * A subset of HTTP request headers provided to the server request

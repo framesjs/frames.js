@@ -6,7 +6,7 @@ export function getCurrentUrl(
   req: Request | NextRequest | NextApiRequest | IncomingMessage
 ): URL | undefined {
   const scheme = process.env.NODE_ENV === "production" ? "https://" : "http://";
-  const appUrl = process.env.VERCEL_URL || process.env.APP_URL;
+  const appUrl = process.env.APP_URL || process.env.VERCEL_URL;
   const host: string | undefined = (req.headers as any)?.host;
 
   const pathname = req.url?.startsWith("/")

@@ -1,8 +1,9 @@
-import React from "react";
 import { ImageResponse } from "@vercel/og";
-import { type Frame, getFrameFlattened, getFrameHtmlHead } from "..";
+import { getFrameHtmlHead } from "../getFrameHtml";
+import { getFrameFlattened } from "../getFrameFlattened";
+import { type Frame } from "../types";
 import type { ButtonProps } from "../core/components";
-import {
+import type {
   FrameButtonElement,
   FrameDefinition,
   FramesHandlerFunctionReturnType,
@@ -249,34 +250,41 @@ async function renderImage(
   options: FrameDefinition<any>["imageOptions"]
 ): Promise<string> {
   const response = new ImageResponse(
-    (
-      <div
-        style={{
+    // do not use React jsx here because it causes problem with tree shaking React
+    {
+      type: "div",
+      key: "",
+      props: {
+        style: {
           display: "flex", // Use flex layout
           flexDirection: "row", // Align items horizontally
           alignItems: "stretch", // Stretch items to fill the container height
           width: "100%",
           height: "100vh", // Full viewport height
           backgroundColor: "white",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            lineHeight: 1.2,
-            fontSize: 36,
-            color: "black",
-            flex: 1,
-            overflow: "hidden",
-          }}
-        >
-          {element}
-        </div>
-      </div>
-    ),
+        },
+        children: [
+          {
+            type: "div",
+            key: "",
+            props: {
+              style: {
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                lineHeight: 1.2,
+                fontSize: 36,
+                color: "black",
+                flex: 1,
+                overflow: "hidden",
+              },
+              children: element,
+            },
+          },
+        ],
+      },
+    },
     {
       ...(options?.aspectRatio === "1:1"
         ? {

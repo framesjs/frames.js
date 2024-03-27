@@ -51,12 +51,18 @@ const sidebar = [
         link: "/guides/transactions",
       },
       {
-        text: "Display Frames",
-        link: "/guides/display-frames",
-      },
-      {
         text: "Open Frames",
         link: "/guides/open-frames",
+      },
+    ],
+  },
+  {
+    text: "Frames.js for Apps",
+    collapsed: false,
+    items: [
+      {
+        text: "Display Frames",
+        link: "/guides/apps/display-frames",
       },
     ],
   },
@@ -80,6 +86,10 @@ const sidebar = [
         text: "Remix",
         link: "/reference/core/remix",
       },
+      {
+        text: 'Cloudflare Workers',
+        link: '/reference/core/cloudflare-workers'
+      }
     ],
   },
   {
@@ -95,6 +105,10 @@ const sidebar = [
         link: "/middleware/openframes",
       },
     ],
+  },
+  {
+    text: "Troubleshooting",
+    link: "/troubleshooting",
   },
   {
     text: "Reference",
@@ -176,63 +190,7 @@ const sidebar = [
         ],
       },
       {
-        text: "frames.js/next/server",
-        collapsed: true,
-        items: [
-          {
-            text: "getPreviousFrame",
-            link: "/reference/nextjs/getPreviousFrame",
-          },
-          {
-            text: "POST",
-            link: "/reference/nextjs/POST",
-          },
-        ],
-      },
-      {
-        text: "frames.js/next/server - [react]",
-        collapsed: true,
-        items: [
-          {
-            text: "types",
-            link: "/reference/react/types",
-          },
-          {
-            text: "FrameContainer",
-            link: "/reference/react/FrameContainer",
-          },
-          {
-            text: "FrameButton",
-            link: "/reference/react/FrameButton",
-          },
-          {
-            text: "FrameImage",
-            link: "/reference/react/FrameImage",
-          },
-          {
-            text: "FrameInput",
-            link: "/reference/react/FrameInput",
-          },
-          {
-            text: "parseFrameParams",
-            link: "/reference/react/parseFrameParams",
-          },
-          {
-            text: "useFramesReducer",
-            link: "/reference/react/useFramesReducer",
-          },
-          {
-            text: "validateActionSignature",
-            link: "/reference/react/validateActionSignature",
-          },
-          {
-            text: "createPreviousFrame",
-            link: "/reference/react/createPreviousFrame",
-          },
-        ],
-      },
-      {
-        text: "frames.js/render",
+        text: "@frames.js/render",
         collapsed: true,
         items: [
           {
@@ -247,23 +205,84 @@ const sidebar = [
             text: "FrameUI",
             link: "/reference/render/frame-ui",
           },
+          {
+            text: "Next.js",
+            collapsed: true,
+            items: [
+              {
+                text: "FrameImage",
+                link: "/reference/render/next/frame-image",
+              },
+              {
+                text: "POST",
+                link: "/reference/render/next/POST",
+              },
+              {
+                text: "GET",
+                link: "/reference/render/next/GET",
+              },
+            ],
+          },
         ],
       },
       {
-        text: "frames.js/render/next",
-        collapsed: true,
+        text: "Deprecated APIs",
         items: [
           {
-            text: "FrameImage",
-            link: "/reference/render/next/frame-image",
+            text: "frames.js/next/server",
+            collapsed: true,
+            items: [
+              {
+                text: "getPreviousFrame",
+                link: "/reference/nextjs/getPreviousFrame",
+              },
+              {
+                text: "POST",
+                link: "/reference/nextjs/POST",
+              },
+            ],
           },
           {
-            text: "POST",
-            link: "/reference/render/next/POST",
-          },
-          {
-            text: "GET",
-            link: "/reference/render/next/GET",
+            text: "frames.js/next/server - [react]",
+            collapsed: true,
+            items: [
+              {
+                text: "types",
+                link: "/reference/react/types",
+              },
+              {
+                text: "FrameContainer",
+                link: "/reference/react/FrameContainer",
+              },
+              {
+                text: "FrameButton",
+                link: "/reference/react/FrameButton",
+              },
+              {
+                text: "FrameImage",
+                link: "/reference/react/FrameImage",
+              },
+              {
+                text: "FrameInput",
+                link: "/reference/react/FrameInput",
+              },
+              {
+                text: "parseFrameParams",
+                link: "/reference/react/parseFrameParams",
+              },
+              {
+                text: "useFramesReducer",
+                link: "/reference/react/useFramesReducer",
+              },
+              {
+                text: "validateActionSignature",
+                link: "/reference/react/validateActionSignature",
+              },
+              {
+                text: "createPreviousFrame",
+                link: "/reference/react/createPreviousFrame",
+              },
+            ],
           },
         ],
       },

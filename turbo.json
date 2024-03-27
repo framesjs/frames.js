@@ -15,6 +15,7 @@
     }
   },
   "globalEnv": [
+    "NODE_ENV",
     "NEXT_PUBLIC_HOST",
     "FARCASTER_DEVELOPER_FID",
     "FARCASTER_DEVELOPER_MNEMONIC"

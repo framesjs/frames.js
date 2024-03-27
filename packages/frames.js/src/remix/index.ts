@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { createFrames as coreCreateFrames, types } from "../core";
-import { CoreMiddleware } from "../middleware";
+import type { CoreMiddleware } from "../middleware";
 export { Button, type types } from "../core";
 
 export { fetchMetadata } from "./fetchMetadata";
