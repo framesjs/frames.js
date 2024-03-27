@@ -80,6 +80,10 @@ const sidebar = [
         text: "Remix",
         link: "/reference/core/remix",
       },
+      {
+        text: 'Cloudflare Workers',
+        link: '/reference/core/cloudflare-workers'
+      }
     ],
   },
   {

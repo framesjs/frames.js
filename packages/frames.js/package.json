@@ -203,6 +203,16 @@
         "types": "./dist/express/index.d.cts",
         "default": "./dist/express/index.cjs"
       }
+    },
+    "./cloudflare-workers": {
+      "import": {
+        "types": "./dist/cloudflare-workers/index.d.ts",
+        "default": "./dist/cloudflare-workers/index.js"
+      },
+      "require": {
+        "types": "./dist/cloudflare-workers/index.d.cts",
+        "default": "./dist/cloudflare-workers/index.cjs"
+      }
     }
   },
   "files": [
