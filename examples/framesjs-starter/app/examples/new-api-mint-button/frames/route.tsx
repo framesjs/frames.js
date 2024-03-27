@@ -1,7 +1,8 @@
 /* eslint-disable react/jsx-key */
-import { Button, createFrames } from "frames.js/next";
+import { Button } from "frames.js/next";
 import { getTokenUrl } from "frames.js";
 import { zora } from "viem/chains";
+import { frames } from "./frames";
 
 const nfts: {
   src: string;
@@ -32,10 +33,6 @@ const nfts: {
     }),
   },
 ];
-
-const frames = createFrames({
-  basePath: "/examples/new-api-mint-button/frames",
-});
 
 const handleRequest = frames(async (ctx) => {
   const page = Number(ctx.searchParams?.pageIndex ?? 0);
