@@ -28,4 +28,35 @@ describe("hono adapter", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toBe("text/html");
   });
+
+  it('works properly with state', async () => {
+    type State = {
+      test: boolean;
+    };
+    const frames = lib.createFrames<State>({
+      initialState: {
+        test: false,
+      },
+    });
+
+    const handler = frames(async (ctx) => {
+      expect(ctx.state).toEqual({ test: false });
+
+      return {
+        image: 'http://test.png',
+        state: ctx.state satisfies State,
+      };
+    });
+
+    const app = new Hono();
+
+    app.on(["GET", "POST"], "/", handler);
+
+    const request = new Request("http://localhost:3000");
+
+    const response = await app.request(request);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toBe("text/html");
+  });
 });

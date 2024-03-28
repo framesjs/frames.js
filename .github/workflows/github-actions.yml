@@ -69,8 +69,11 @@ jobs:
       - name: Install dependencies
         run: yarn --frozen-lockfile
 
-      - name: Typecheck
+      - name: Build
         run: yarn build:ci
+
+      - name: Typecheck
+        run: yarn typecheck
 
   test:
     needs: [lint, typecheck]

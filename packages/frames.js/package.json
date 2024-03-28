@@ -17,7 +17,8 @@
     "build": "NODE_OPTIONS='--max-old-space-size=16384' tsup",
     "dev": "npm run build -- --watch",
     "test:watch": "jest --watch",
-    "update:proto": "curl https://raw.githubusercontent.com/farcasterxyz/hub-monorepo/main/packages/core/src/protobufs/generated/message.ts -o src/farcaster/generated/message.ts"
+    "update:proto": "curl https://raw.githubusercontent.com/farcasterxyz/hub-monorepo/main/packages/core/src/protobufs/generated/message.ts -o src/farcaster/generated/message.ts",
+    "typecheck": "tsc --noEmit"
   },
   "repository": {
     "type": "git",
@@ -257,6 +258,7 @@
   "license": "MIT",
   "peerDependencies": {
     "@cloudflare/workers-types": "^4.20240320.1",
+    "@types/express": "^4.17.21",
     "@xmtp/frames-validator": "^0.5.2",
     "next": "^14.1.0",
     "react": "^18.2.0",
