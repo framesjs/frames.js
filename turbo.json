@@ -13,7 +13,9 @@
       "cache": false,
       "persistent": true
     },
-    "typecheck": {}
+    "check:package-types": {},
+    "check:package-lint": {},
+    "check:types": {}
   },
   "globalEnv": [
     "NODE_ENV",
