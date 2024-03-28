@@ -212,8 +212,8 @@ export type CreateFramesFunctionDefinition<
     | undefined,
   TRequestHandlerFunction extends Function,
 > = <
+  TState extends JsonValue | undefined = JsonValue | undefined,
   TFrameMiddleware extends FramesMiddleware<any, any>[] | undefined = undefined,
-  TState extends JsonValue = JsonValue,
 >(
   options?: FramesOptions<TState, TFrameMiddleware>
 ) => FramesRequestHandlerFunction<

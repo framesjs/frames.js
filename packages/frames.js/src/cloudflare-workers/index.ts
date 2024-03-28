@@ -43,14 +43,16 @@ type DefaultMiddleware<TEnv> = [
  * });
  *
  * @example
- * // With custom type for Env
- * import { createFrames, Button } from 'frames.js/cloudflare-workers';
+ * // With custom type for Env and state
+ * import { createFrames, Button, type types } from 'frames.js/cloudflare-workers';
  *
  * type Env = {
- * secret: string;
+ *   secret: string;
  * };
  *
- * const frames = createFrames<Env>();
+ * type State = { test: boolean };
+ *
+ * const frames = createFrames<State, Env>();
  * const fetch = frames(async (ctx) => {
  *  return {
  *    image: <span>{ctx.cf.env.secret}</span>,
@@ -67,11 +69,11 @@ type DefaultMiddleware<TEnv> = [
  * } satisfies ExportedHandler;
  */
 export function createFrames<
+  TState extends JsonValue | undefined = JsonValue | undefined,
   TEnv = unknown,
   TFramesMiddleware extends
     | FramesMiddleware<any, any>[]
     | undefined = undefined,
-  TState extends JsonValue = JsonValue,
 >(
   options?: types.FramesOptions<TState, TFramesMiddleware>
 ): FramesRequestHandlerFunction<

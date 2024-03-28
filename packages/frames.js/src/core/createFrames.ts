@@ -11,7 +11,7 @@ import type {
 } from "./types";
 
 export function createFrames<
-  TState extends JsonValue | undefined,
+  TState extends JsonValue | undefined = JsonValue | undefined,
   TMiddlewares extends FramesMiddleware<any, any>[] | undefined = undefined,
 >({
   basePath = "/",

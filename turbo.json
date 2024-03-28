@@ -12,7 +12,8 @@
     "dev": {
       "cache": false,
       "persistent": true
-    }
+    },
+    "typecheck": {}
   },
   "globalEnv": [
     "NODE_ENV",

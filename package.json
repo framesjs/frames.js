@@ -11,6 +11,7 @@
     "lint": "turbo lint --filter=!template-*",
     "test:ci": "jest --ci",
     "test": "cd ./packages/frames.js && npm run test:watch",
+    "typecheck": "turbo typecheck",
     "publish-packages": "yarn build lint && changeset version && changeset publish && git push --follow-tags origin main",
     "publish-canary": "turbo run build lint && cd ./packages/frames.js && yarn publish --tag canary && git push --follow-tags origin main",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
