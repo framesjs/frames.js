@@ -7,6 +7,9 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+    images: {
+      formats: ["image/png", "image/jpg", "image/jpeg", "image/gif"],
+    },
     remotePatterns: [
       {
         hostname: "*",
