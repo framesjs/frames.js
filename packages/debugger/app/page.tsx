@@ -140,7 +140,6 @@ export default function App({
           return await res.json();
         })
         .then((json) => {
-          console.log(json);
           onTransaction({ ...t, transactionData: json.data });
         })
         .catch((e) => {
