@@ -18,7 +18,9 @@
     "dev": "npm run build -- --watch",
     "test:watch": "jest --watch",
     "update:proto": "curl https://raw.githubusercontent.com/farcasterxyz/hub-monorepo/main/packages/core/src/protobufs/generated/message.ts -o src/farcaster/generated/message.ts",
-    "typecheck": "tsc --noEmit"
+    "check:types": "tsc --noEmit",
+    "check:package-types": "attw --pack .",
+    "check:package-lint": "publint --strict"
   },
   "repository": {
     "type": "git",

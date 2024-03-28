@@ -73,7 +73,13 @@ jobs:
         run: yarn build:ci
 
       - name: Typecheck
-        run: yarn typecheck
+        run: yarn check:types
+
+      - name: Check package types
+        run: yarn check:package-types
+
+      - name: Lint packages
+        run: yarn check:package-lint
 
   test:
     needs: [lint, typecheck]

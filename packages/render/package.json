@@ -16,7 +16,9 @@
     "lint": "eslint \"./src/**/*.{ts,tsx}\"",
     "build": "NODE_OPTIONS='--max-old-space-size=16384' tsup",
     "dev": "npm run build -- --watch",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "check:package-types": "attw --pack .",
+    "check:package-lint": "publint --strict"
   },
   "repository": {
     "type": "git",
