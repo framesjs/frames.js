@@ -116,6 +116,38 @@ export default function App({
     signerState,
     extraButtonRequestPayload: { mockData: mockHubContext },
     onTransaction,
+    onMint(t) {
+      if (!confirm(`Mint ${t.target}?`)) {
+        return;
+      }
+
+      if (!account.address) {
+        openConnectModal?.();
+        return;
+      }
+
+      const searchParams = new URLSearchParams({
+        target: t.target,
+        taker: account.address,
+      });
+
+      fetch(`/mint?${searchParams.toString()}`)
+        .then(async (res) => {
+          if (!res.ok) {
+            const json = await res.json();
+            throw new Error(json.message);
+          }
+          return await res.json();
+        })
+        .then((json) => {
+          console.log(json);
+          onTransaction({ ...t, transactionData: json.data });
+        })
+        .catch((e) => {
+          alert(e);
+          console.error(e);
+        });
+    },
   });
 
   return (
