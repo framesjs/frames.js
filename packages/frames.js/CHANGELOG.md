@@ -1,5 +1,12 @@
 # frames.js
 
+## 0.11.1
+
+### Patch Changes
+
+- f4d5f4f: fix: allow to explicitly set state using generics
+- 3875369: fix: add missing ctx, env, and req access to cloudflare workers handlers
+
 ## 0.11.0
 
 ### Minor Changes

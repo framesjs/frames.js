@@ -1,5 +1,14 @@
 # @frames.js/debugger
 
+## 0.1.12
+
+### Patch Changes
+
+- 46d4dd5: feat: mint tx via reservoir api
+- Updated dependencies [f4d5f4f]
+- Updated dependencies [3875369]
+  - frames.js@0.11.1
+
 ## 0.1.11
 
 ### Patch Changes

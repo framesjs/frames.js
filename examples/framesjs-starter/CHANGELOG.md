@@ -1,5 +1,14 @@
 # framesjs-starter
 
+## 0.2.9
+
+### Patch Changes
+
+- 0c525ae: feat: update starter frame to use the new api
+- Updated dependencies [f4d5f4f]
+- Updated dependencies [3875369]
+  - frames.js@0.11.1
+
 ## 0.2.8
 
 ### Patch Changes

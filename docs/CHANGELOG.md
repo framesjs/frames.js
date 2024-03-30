@@ -1,5 +1,14 @@
 # docs
 
+## 0.0.4
+
+### Patch Changes
+
+- 3875369: fix: add missing ctx, env, and req access to cloudflare workers handlers
+- Updated dependencies [f4d5f4f]
+- Updated dependencies [3875369]
+  - frames.js@0.11.1
+
 ## 0.0.3
 
 ### Patch Changes
