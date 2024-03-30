@@ -101,4 +101,32 @@ describe("express adapter", () => {
         );
       });
   });
+
+  it('works properly with state', async () => {
+    type State = {
+      test: boolean;
+    };
+    const app = express();
+    const frames = lib.createFrames<State>({
+      initialState: {
+        test: false,
+      },
+    });
+
+    const expressHandler = frames(async (ctx) => {
+      expect(ctx.state).toEqual({ test: false });
+
+      return {
+        image: 'http://test.png',
+        state: ctx.state satisfies State,
+      };
+    });
+
+    app.use("/", expressHandler);
+
+    await request(app)
+      .get("/")
+      .expect("Content-Type", "text/html")
+      .expect(200);
+  });
 });

@@ -5,7 +5,13 @@ on:
     branches:
       - main
       - dev
+    paths-ignore:
+      - "docs/**"
+      - "changesets/**"
   pull_request:
+    paths-ignore:
+      - "docs/**"
+      - "changesets/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -63,8 +69,17 @@ jobs:
       - name: Install dependencies
         run: yarn --frozen-lockfile
 
-      - name: Typecheck
+      - name: Build
         run: yarn build:ci
+
+      - name: Typecheck
+        run: yarn check:types
+
+      - name: Check package types
+        run: yarn check:package-types
+
+      - name: Lint packages
+        run: yarn check:package-lint
 
   test:
     needs: [lint, typecheck]

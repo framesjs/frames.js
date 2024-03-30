@@ -12,7 +12,10 @@
     "dev": {
       "cache": false,
       "persistent": true
-    }
+    },
+    "check:package-types": {},
+    "check:package-lint": {},
+    "check:types": {}
   },
   "globalEnv": [
     "NODE_ENV",

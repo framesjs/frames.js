@@ -1,0 +1,46 @@
+{
+  "name": "template-cloudflare-worker",
+  "description": "Simple Cloudflare Worker template with Frames.js, React and TypeScript",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "frames.js": "^0.11.0",
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.1.0",
+    "@cloudflare/workers-types": "^4.20240320.1",
+    "@frames.js/debugger": "^0.1.9",
+    "@types/node": "^18.17.0",
+    "@types/react": "^18.2.45",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "typescript": "^5.1.6",
+    "vitest": "1.3.0",
+    "wrangler": "^3.39.0"
+  },
+  "resolutions": {
+    "@vercel/og": "npm:workers-og"
+  },
+  "overrides": {
+    "frames.js": {
+      "@vercel/og": "npm:workers-og@^0.0.23"
+    }
+  },
+  "pnpm": {
+    "overrides": {
+      "@vercel/og": "npm:workers-og@^0.0.23"
+    }
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "scripts": {
+    "dev": "concurrently --kill-others \"wrangler dev\" \"frames --url http://localhost:8787\"",
+    "deploy": "wrangler deploy",
+    "build": "wrangler deploy --dry-run",
+    "start": "wangler dev",
+    "test": "vitest"
+  }
+}

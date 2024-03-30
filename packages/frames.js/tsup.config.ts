@@ -11,7 +11,7 @@ export default defineConfig({
   format: ["cjs", "esm"],
   clean: true,
   entry: glob.sync("src/**/*.{ts,tsx}", {
-    ignore: ["**/*.test.{ts,tsx}", "**/*.snap"],
+    ignore: ["**/*.test.{ts,tsx}", "**/*.snap", "**/test.types.{ts,tsx}"],
     onlyFiles: true,
     cwd: dirname(fileURLToPath(import.meta.url)),
   }),
