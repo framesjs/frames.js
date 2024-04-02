@@ -1,5 +1,5 @@
 import { FrameTheme, FrameState } from "./types.js";
-import React, { ImgHTMLAttributes } from "react";
+import React, { ImgHTMLAttributes, useEffect } from "react";
 import { FrameButton } from "frames.js";
 
 export const defaultTheme: Required<FrameTheme> = {
@@ -26,6 +26,14 @@ export type FrameUIProps = {
 
 /** A UI component only, that should be easy for any app to integrate */
 export function FrameUI({ frameState, theme, FrameImage }: FrameUIProps) {
+  const [isImageLoading, setIsImageLoading] = React.useState(true);
+
+  const isLoading = !!frameState.isLoading || isImageLoading;
+
+  useEffect(() => {
+    if (frameState.frame?.image) setIsImageLoading(true);
+  }, [frameState]);
+
   const resolvedTheme = getThemeWithDefaults(theme ?? {});
   if (!frameState.homeframeUrl) return <div>Missing frame url</div>;
   if (frameState.error) {
@@ -47,7 +55,7 @@ export function FrameUI({ frameState, theme, FrameImage }: FrameUIProps) {
         alt="Frame image"
         width={"100%"}
         style={{
-          filter: frameState.isLoading ? "blur(4px)" : undefined,
+          filter: isLoading ? "blur(4px)" : undefined,
           borderTopLeftRadius: `${resolvedTheme.buttonRadius}px`,
           borderTopRightRadius: `${resolvedTheme.buttonRadius}px`,
           border: `1px solid ${resolvedTheme.buttonBorderColor}`,
@@ -58,6 +66,10 @@ export function FrameUI({ frameState, theme, FrameImage }: FrameUIProps) {
               ? "1/1"
               : "1.91/1",
         }}
+        onLoad={() => {
+          setIsImageLoading(false);
+        }}
+        onError={() => setIsImageLoading(false)}
       />
       {frameState.frame.inputText && (
         <input
@@ -84,9 +96,9 @@ export function FrameUI({ frameState, theme, FrameImage }: FrameUIProps) {
           (frameButton: FrameButton, index: number) => (
             <button
               type="button"
-              disabled={!!frameState.isLoading}
+              disabled={isLoading}
               className={`p-2 ${
-                frameState.isLoading ? "bg-gray-100" : ""
+                isLoading ? "bg-gray-100" : ""
               } border text-sm text-gray-800 rounded`}
               style={{
                 flex: "1 1 0px",
@@ -94,7 +106,7 @@ export function FrameUI({ frameState, theme, FrameImage }: FrameUIProps) {
                 backgroundColor: resolvedTheme.buttonBg,
                 borderColor: resolvedTheme.buttonBorderColor,
                 color: resolvedTheme.buttonColor,
-                cursor: frameState.isLoading ? undefined : "pointer",
+                cursor: isLoading ? undefined : "pointer",
               }}
               onClick={() => frameState.onButtonPress(frameButton, index)}
               key={index}
