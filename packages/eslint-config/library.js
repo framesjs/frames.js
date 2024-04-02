@@ -31,8 +31,11 @@ module.exports = {
   rules: {
     "@typescript-eslint/consistent-type-definitions": "off",
     "@typescript-eslint/require-await": "warn",
+    "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-unnecessary-condition": "warn",
-    "react/jsx-sort-props": "warn",
+    "jest/expect-expect": "warn",
+    "react/jsx-sort-props": "off",
     "unicorn/filename-case": "off",
+    eqeqeq: "off",
   },
 };
