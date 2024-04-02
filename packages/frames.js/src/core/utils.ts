@@ -1,6 +1,6 @@
+import type { UrlObject } from "node:url";
 import { formatUrl } from "./formatUrl";
-import { FrameDefinition, FrameRedirect } from "./types";
-import type { UrlObject } from "url";
+import type { FrameDefinition, FrameRedirect, JsonValue } from "./types";
 
 const buttonActionToCode = {
   post: "p",
@@ -9,7 +9,7 @@ const buttonActionToCode = {
 
 const BUTTON_INFORMATION_SEARCH_PARAM_NAME = "__bi";
 
-function isValidButtonIndex(index: any): index is 1 | 2 | 3 | 4 {
+function isValidButtonIndex(index: unknown): index is 1 | 2 | 3 | 4 {
   return (
     typeof index === "number" &&
     !Number.isNaN(index) &&
@@ -18,7 +18,9 @@ function isValidButtonIndex(index: any): index is 1 | 2 | 3 | 4 {
   );
 }
 
-function isValidButtonAction(action: any): action is "post" | "post_redirect" {
+function isValidButtonAction(
+  action: unknown
+): action is "post" | "post_redirect" {
   return (
     typeof action === "string" &&
     (action === "post" || action === "post_redirect")
@@ -38,7 +40,7 @@ export function generateTargetURL({
 
   if (
     target &&
-    typeof target == "string" &&
+    typeof target === "string" &&
     (target.startsWith("http://") || target.startsWith("https://"))
   ) {
     // handle absolute urls
@@ -46,7 +48,7 @@ export function generateTargetURL({
   } else if (target && typeof target === "string") {
     // resolve target relatively to basePath
     const baseUrl = new URL(basePath, currentURL);
-    const preformatted = baseUrl.pathname + "/" + target;
+    const preformatted = `${baseUrl.pathname}/${target}`;
     const parts = preformatted.split("/").filter(Boolean);
     const finalPathname = parts.join("/");
 
@@ -115,9 +117,7 @@ type ButtonInformation = {
 };
 
 export function parseSearchParams(url: URL): {
-  searchParams: {
-    [k: string]: string;
-  };
+  searchParams: Record<string, string>;
 } {
   const searchParams = Object.fromEntries(url.searchParams);
 
@@ -159,10 +159,17 @@ export function parseButtonInformationFromTargetURL(
   };
 }
 
-export function isFrameRedirect(value: any): value is FrameRedirect {
-  return value && typeof value === "object" && value.kind === "redirect";
+export function isFrameRedirect(value: unknown): value is FrameRedirect {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    "kind" in value &&
+    value.kind === "redirect"
+  );
 }
 
-export function isFrameDefinition(value: any): value is FrameDefinition<any> {
-  return value && typeof value === "object" && "image" in value;
+export function isFrameDefinition(
+  value: unknown
+): value is FrameDefinition<undefined | JsonValue> {
+  return value !== null && typeof value === "object" && "image" in value;
 }

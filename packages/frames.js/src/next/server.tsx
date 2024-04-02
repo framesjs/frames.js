@@ -1,10 +1,11 @@
-import { FrameActionMessage } from "../farcaster";
 import { headers } from "next/headers";
+import { ImageResponse } from "@vercel/og";
 import {
   type NextRequest,
   NextResponse as NextResponseBase,
 } from "next/server";
 import React from "react";
+import type { FrameActionMessage } from "../farcaster";
 import {
   type FrameMessageReturnType,
   type GetFrameMessageOptions,
@@ -31,10 +32,9 @@ import type {
   RedirectMap,
   RedirectHandler,
 } from "./types";
+
 export * from "./types";
 
-import { ImageResponse } from "@vercel/og";
-import type { SatoriOptions } from "satori";
 
 // this is ugly hack to go around the issue https://github.com/vercel/next.js/pull/61721
 const NextResponse = (
@@ -60,7 +60,7 @@ export async function validateActionSignature(
   if (options?.hubHttpUrl) {
     if (!options.hubHttpUrl.startsWith("http")) {
       throw new Error(
-        `frames.js: Invalid Hub URL: ${options?.hubHttpUrl}, ensure you have included the protocol (e.g. https://)`
+        `frames.js: Invalid Hub URL: ${options.hubHttpUrl}, ensure you have included the protocol (e.g. https://)`
       );
     }
   }
@@ -101,6 +101,7 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
   }
 
   if (!frameActionPayload) {
+    // eslint-disable-next-line no-console -- provide a feedback to user on server
     console.log(
       "info: no frameActionPayload, this is expected for the homeframe"
     );
@@ -199,9 +200,9 @@ export function parseFrameParams<T extends FrameState = FrameState>(
 
 /**
  *
- * @param reducer a function taking a state and action and returning another action. This reducer is always called in the Frame to compute the state by calling it with the previous Frame + action
- * @param initialState the initial state to use if there was no previous action
- * @param initializerArg the previousFrame object to use to initialize the state
+ * @param reducer - a function taking a state and action and returning another action. This reducer is always called in the Frame to compute the state by calling it with the previous Frame + action
+ * @param initialState - the initial state to use if there was no previous action
+ * @param initializerArg - the previousFrame object to use to initialize the state
  * @returns An array of [State, Dispatch] where State is your reducer state, and dispatch is a function that doesn't do anything atm
  * 
  * @deprecated please upgrade to new API, see https://framesjs.org/reference/core/next.
@@ -249,6 +250,7 @@ function toUrl(req: NextRequest) {
   reqUrl.host = host || reqUrl.host;
   reqUrl.port = port;
 
+  // eslint-disable-next-line no-console -- provide feedback to user on server
   console.info(
     `frames.js: NEXT_PUBLIC_HOST not set, using x-forwarded-* headers for redirect (${reqUrl.toString()})`
   );
@@ -259,7 +261,7 @@ function toUrl(req: NextRequest) {
 /**
  * A function ready made for next.js in order to directly export it, which handles all incoming `POST` requests that apps will trigger when users press buttons in your Frame.
  * It handles all the redirecting for you, correctly, based on the <FrameContainer> props defined by the Frame that triggered the user action.
- * @param req a `NextRequest` object from `next/server` (Next.js app router server components)
+ * @param req - a `NextRequest` object from `next/server` (Next.js app router server components)
  * @returns NextResponse
  * 
  * @deprecated please upgrade to new API, see https://framesjs.org/reference/core/next.
@@ -398,7 +400,7 @@ function isElementFrameInput(
  * 
  * A React functional component that Wraps a Frame and processes it, validating certain properties of the Frames spec, as well as adding other props. It also generates the postUrl.
  * It throws an error if the Frame is invalid, which can be caught by using an error boundary.
- * @param param0
+ * 
  * @returns React.JSXElement
  */
 export function FrameContainer<T extends FrameState = FrameState>({
@@ -412,7 +414,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
   /** Either a relative e.g. "/frames" or an absolute path, e.g. "https://google.com/frames" */
   postUrl: string;
   /** The elements to include in the Frame */
-  children: Array<ChildType | null> | ChildType;
+  children: (ChildType | null)[] | ChildType;
   /** The current reducer state object, returned from useFramesReducer */
   state: T;
   previousFrame: PreviousFrame<T>;
@@ -421,10 +423,12 @@ export function FrameContainer<T extends FrameState = FrameState>({
   /** Client protocols to accept */
   accepts?: ClientProtocolId[];
 }) {
-  if (!pathname)
+  if (!pathname) {
+    // eslint-disable-next-line no-console -- provide feedback to user on server
     console.warn(
       "frames.js: warning: You have not specified a `pathname` prop on your <FrameContainer>. This is not recommended, as it will default to the root path and not work if your frame is being rendered at a different path. Please specify a `pathname` prop on your <FrameContainer>."
     );
+  }
 
   const nextIndexByComponentType: Record<
     "button" | "image" | "input",
@@ -434,7 +438,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
     image: 1,
     input: 1,
   };
-  let redirectMap: RedirectMap = {};
+  const redirectMap: RedirectMap = {};
 
   function createURLForPOSTHandler(target: string): URL {
     let url: URL;
@@ -574,6 +578,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
 
   const postUrlFull = `${postUrlRoute}?${searchParams.toString()}`;
   if (getByteLength(postUrlFull) > 256) {
+    // eslint-disable-next-line no-console -- provide feedback to user on server
     console.error(
       `post_url is too long. ${postUrlFull.length} bytes, max is 256. The url is generated to include your state and the redirect urls in <FrameButton href={s. In order to shorten your post_url, you could try storing less in state, or providing redirects via the POST handler's second optional argument instead, which saves url space. The generated post_url was: `,
       postUrlFull
@@ -586,7 +591,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
       <meta name="fc:frame" content="vNext" />
       <meta name="fc:frame:post_url" content={postUrlFull} />
       {...accepts?.map(({ id, version }) => (
-        <meta name={`of:accepts:${id}`} content={version} />
+        <meta name={`of:accepts:${id}`} key={id} content={version} />
       )) ?? []}
       {newTree}
     </>
@@ -598,15 +603,14 @@ export function FrameContainer<T extends FrameState = FrameState>({
  * 
  * @deprecated please upgrade to new API, see https://framesjs.org/reference/core/next
  */
-export function FrameButton(props: FrameButtonProvidedProps) {
-  return null;
-}
+export const FrameButton: React.FunctionComponent<FrameButtonProvidedProps> = () => null;
 
 /** An internal component that handles FrameButtons */
 function FFrameButtonShim({
   actionIndex,
   target,
   action = "post",
+  // eslint-disable-next-line camelcase -- this is according to the spec
   post_url,
   children,
 }: FrameButtonProvidedProps & FrameButtonAutomatedProps) {
@@ -635,11 +639,9 @@ function FFrameButtonShim({
  * 
  * @deprecated please upgrade to new API, see https://framesjs.org/reference/core/next
  */
-export function FrameInput({ text }: { text: string }) {
+export function FrameInput({ text }:{ text: string }): React.JSX.Element {
   return (
-    <>
-      <meta name="fc:frame:input:text" content={text} />
-    </>
+    <meta name="fc:frame:input:text" content={text} />
   );
 }
 
@@ -659,10 +661,10 @@ export async function FrameImage(
     | {
         /** Children to pass to satori to render to PNG. [Supports tailwind](https://vercel.com/blog/introducing-vercel-og-image-generation-fast-dynamic-social-card-images#tailwind-css-support) via the `tw=` prop instead of `className` */
         children: React.ReactNode;
-        options?: SatoriOptions;
+        options?: ConstructorParameters<typeof ImageResponse>[1];
       }
   )
-) {
+): Promise<React.JSX.Element> {
   let imgSrc: string;
 
   if ("children" in props) {
@@ -720,11 +722,11 @@ export async function FrameImage(
     <>
       <meta name="fc:frame:image" content={imgSrc} />
       <meta property="og:image" content={imgSrc} />
-      {props.aspectRatio && (
+      {Boolean(props.aspectRatio) && (
         <meta
           name="fc:frame:image:aspect_ratio"
           content={props.aspectRatio}
-        ></meta>
+        />
       )}
     </>
   );

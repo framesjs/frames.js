@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createFrames, types } from '.';
+import type { NextRequest, NextResponse } from 'next/server';
+import type { types } from '.';
+import { createFrames } from '.';
 
 type Handler = (req: NextRequest) => Promise<NextResponse>;
 
@@ -40,8 +41,8 @@ framesWithExplicitState(async ctx => {
     test: boolean;
   };
   ctx satisfies {
-    message?: any;
-    pressedButton?: any;
+    message?: unknown;
+    pressedButton?: unknown;
     request: Request;
   }
 

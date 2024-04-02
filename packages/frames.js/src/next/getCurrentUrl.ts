@@ -1,5 +1,5 @@
-import { IncomingMessage } from "http";
-import { NextApiRequest } from "next";
+import type { IncomingMessage } from "node:http";
+import type { NextApiRequest } from "next";
 import type { NextRequest } from "next/server.js";
 
 export function getCurrentUrl(

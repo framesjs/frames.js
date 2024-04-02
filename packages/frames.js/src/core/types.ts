@@ -1,6 +1,6 @@
-import { ImageResponse } from "@vercel/og";
+import type { ImageResponse } from "@vercel/og";
 import type { ClientProtocolId } from "../types";
-import { Button } from "./components";
+import type { Button } from "./components";
 
 export type JsonObject = { [Key in string]: JsonValue } & {
   [Key in string]?: JsonValue | undefined;
@@ -67,7 +67,7 @@ export type FrameDefinition<TState extends JsonValue | undefined> = {
   image: React.ReactElement | string;
   imageOptions?: {
     /**
-     * @default '1.91:1'
+     * @defaultValue '1.91:1'
      */
     aspectRatio?: "1.91:1" | "1:1";
   } & ConstructorParameters<typeof ImageResponse>[1];
@@ -139,7 +139,7 @@ export type FrameHandlerFunction<
 export type FramesContextFromMiddlewares<
   TMiddlewares extends
     | FramesMiddleware<any, any>[]
-    | ReadonlyArray<FramesMiddleware<any, any>>,
+    | readonly FramesMiddleware<any, any>[],
 > = UnionToIntersection<
   {
     [K in keyof TMiddlewares]: TMiddlewares[K] extends FramesMiddleware<
@@ -160,7 +160,7 @@ export type FramesRequestHandlerFunctionOptions<
 export type FramesRequestHandlerFunction<
   TState extends JsonValue | undefined,
   TDefaultMiddleware extends
-    | ReadonlyArray<FramesMiddleware<any, any>>
+    | readonly FramesMiddleware<any, any>[]
     | FramesMiddleware<any, any>[]
     | undefined,
   TFrameMiddleware extends FramesMiddleware<any, any>[] | undefined,
@@ -191,7 +191,7 @@ export type FramesOptions<
 > = {
   /**
    * All frame relative targets will be resolved relative to this
-   * @default '/''
+   * @defaultValue '/'
    */
   basePath?: string;
   /**
@@ -207,7 +207,7 @@ export type FramesOptions<
 
 export type CreateFramesFunctionDefinition<
   TDefaultMiddleware extends
-    | ReadonlyArray<FramesMiddleware<any, any>>
+    | readonly FramesMiddleware<any, any>[]
     | FramesMiddleware<any, any>[]
     | undefined,
   TRequestHandlerFunction extends Function,

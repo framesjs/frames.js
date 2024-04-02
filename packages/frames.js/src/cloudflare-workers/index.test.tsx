@@ -12,7 +12,7 @@ describe("cloudflare workers adapter", () => {
 
       return {
         image: <span>Test</span>,
-        buttons: [<lib.Button action="post">Click me</lib.Button>],
+        buttons: [<lib.Button action="post" key="1">Click me</lib.Button>],
       };
     });
 

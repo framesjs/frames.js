@@ -1,6 +1,6 @@
+import type { MetaFunction } from "@remix-run/node";
 import type { FrameFlattened } from "../types";
 import { FRAMES_META_TAGS_HEADER } from "../core";
-import type { MetaFunction } from "@remix-run/node";
 
 type Metadata = ReturnType<MetaFunction>;
 
@@ -8,6 +8,7 @@ type Metadata = ReturnType<MetaFunction>;
  * Fetches meta tags from your Frames app that can be used in Remix meta() function.
  *
  * @example
+ * ```ts
  * import { fetchMetadata } from "frames.js/remix";
  *
  * export async function loader({ request }: LoaderFunctionArgs) {
@@ -22,8 +23,9 @@ type Metadata = ReturnType<MetaFunction>;
  *    ...data.metaTags,
  *   ];
  * };
+ * ```
  *
- * @param url Full URL of your Frames app
+ * @param url - Full URL of your Frames app
  */
 export async function fetchMetadata(url: URL | string): Promise<Metadata> {
   const response = await fetch(url, {
@@ -48,6 +50,6 @@ export async function fetchMetadata(url: URL | string): Promise<Metadata> {
   }
 
   throw new Error(
-    `Failed to fetch frames metadata from ${url}. The server returned ${response.status} ${response.statusText} response.`
+    `Failed to fetch frames metadata from ${url.toString()}. The server returned ${response.status} ${response.statusText} response.`
   );
 }

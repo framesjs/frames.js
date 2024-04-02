@@ -1,4 +1,5 @@
-import { CastId, Message, MessageType, Protocol } from "./farcaster";
+import type { CastId } from "./farcaster";
+import { Message, MessageType, Protocol } from "./farcaster";
 import type {
   FrameActionPayload,
   FrameButton,
@@ -26,7 +27,7 @@ export function isFrameButtonMint(
 }
 
 export function bytesToHexString(bytes: Uint8Array): `0x${string}` {
-  return ("0x" + Buffer.from(bytes).toString("hex")) as `0x${string}`;
+  return `0x${Buffer.from(bytes).toString("hex")}`;
 }
 
 export function getByteLength(str: string): number {
@@ -34,9 +35,13 @@ export function getByteLength(str: string): number {
 }
 
 export function hexStringToUint8Array(hexstring: string): Uint8Array {
-  return new Uint8Array(
-    hexstring.match(/.{1,2}/g)!.map((byte: string) => parseInt(byte, 16))
-  );
+  const matches = hexstring.match(/.{1,2}/g);
+
+  if (!matches) {
+    throw new Error("Invalid hex string provided");
+  }
+
+  return new Uint8Array(matches.map((byte: string) => parseInt(byte, 16)));
 }
 
 export function normalizeCastId(castId: CastId): {
@@ -55,14 +60,12 @@ export function normalizeCastId(castId: CastId): {
 export function getFrameMessageFromRequestBody(
   body: FrameActionPayload
 ): Message {
-  return Message.decode(
-    Buffer.from(body?.trustedData?.messageBytes ?? "", "hex")
-  );
+  return Message.decode(Buffer.from(body.trustedData.messageBytes, "hex"));
 }
 
 /**
  * Validates whether the version param is valid
- * @param version the version string to validate
+ * @param version - the version string to validate
  * @returns true if the provided version conforms to the Frames spec
  */
 export function isValidVersion(version: string): boolean {
@@ -104,7 +107,7 @@ export function getEnumKeyByEnumValue<
 }
 
 export function extractAddressFromJSONMessage(
-  message: any
+  message: unknown
 ): `0x${string}` | null {
   const { data } = Message.fromJSON(message);
 
@@ -128,13 +131,5 @@ export function extractAddressFromJSONMessage(
     return null;
   }
 
-  /**
-   * This is ugly hack but we want to return the address as a string that is expected by the users ( essentially what they see in the response from the hub ).
-   * We could use Buffer.from(data.verificationAddAddressBody.address).toString('base64') here but that results in different base64.
-   * Therefore we return address from source message and not from decoded message.
-   *
-   * For example for value 0x8d25687829d6b85d9e0020b8c89e3ca24de20a89 from API we get 0x8d25687829d6b85d9e0020b8c89e3ca24de20a8w== from Buffer.from(...).toString('base64').
-   * The values are the same if you compare them as Buffer.from(a).equals(Buffer.from(b)).
-   */
-  return message.data.verificationAddAddressBody.address;
+  return bytesToHexString(data.verificationAddAddressBody.address);
 }

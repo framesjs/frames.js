@@ -1,11 +1,12 @@
+import type { Metadata } from "next";
 import type { FrameFlattened } from "../types";
 import { FRAMES_META_TAGS_HEADER } from "../core";
-import type { Metadata } from "next";
 
 /**
  * Fetches meta tags from your Frames app that can be used in Next.js generateMetadata() function.
  *
  * @example
+ * ```ts
  * import type { Metadata } from "next";
  * import { fetchMetadata } from "frames.js/next";
  *
@@ -22,8 +23,9 @@ import type { Metadata } from "next";
  *     ),
  *   },
  * };
+ * ```
  *
- * @param url Full URL of your Frames app
+ * @param url - Full URL of your Frames app
  */
 export async function fetchMetadata(
   url: URL | string
@@ -38,18 +40,23 @@ export async function fetchMetadata(
       cache: "no-cache",
     });
 
-    if (response?.ok) {
+    if (response.ok) {
       // process the JSON value to nextjs compatible format
       const flattenedFrame: FrameFlattened = await response.json();
 
       return flattenedFrame as NonNullable<Metadata["other"]>;
-    } else if (response?.status) {
+    } else if (response.status) {
+      // eslint-disable-next-line no-console -- provide feedback
       console.warn(
-        `Failed to fetch frame metadata from ${url}. Status code: ${response.status}`
+        `Failed to fetch frame metadata from ${url.toString()}. Status code: ${response.status}`
       );
     }
   } catch (error) {
-    console.warn(`Failed to fetch frame metadata from ${url}.`, error);
+    // eslint-disable-next-line no-console -- provide feedback
+    console.warn(
+      `Failed to fetch frame metadata from ${url.toString()}.`,
+      error
+    );
   }
 
   return {};

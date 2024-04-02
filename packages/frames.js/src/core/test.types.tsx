@@ -1,4 +1,5 @@
-import { createFrames, types } from '.';
+import type { types } from '.';
+import { createFrames } from '.';
 
 type Handler = (req: Request) => Promise<Response>;
 
@@ -27,7 +28,7 @@ framesWithInferredState(async (ctx) => {
 const framesWithExplicitState = createFrames<{ test: boolean }>({});
 framesWithExplicitState(async (ctx) => {
   ctx.state satisfies { test: boolean };
-  ctx satisfies { initialState?: {test: boolean}; message?: any, pressedButton?: any };
+  ctx satisfies { initialState?: {test: boolean}; message?: unknown, pressedButton?: unknown };
 
   return {
     image: 'http://test.png',
@@ -37,7 +38,7 @@ framesWithExplicitState(async (ctx) => {
 const framesWithExplicitStateAndEnv = createFrames<{ test: boolean }>({});
 framesWithExplicitStateAndEnv(async (ctx) => {
   ctx.state satisfies { test: boolean };
-  ctx satisfies { initialState?: { test: boolean }; message?: any, pressedButton?: any; request: Request; };
+  ctx satisfies { initialState?: { test: boolean }; message?: unknown, pressedButton?: unknown; request: Request; };
 
 
   return {

@@ -23,18 +23,19 @@ export function stateMiddleware<
       ctx.message &&
       "state" in ctx.message
     ) {
-      let state: TState = ctx.initialState as TState;
+      let state: TState = ctx.initialState;
 
       // since we are stringifyng state to JSON in renderResponse middleware, we need to parse decode JSON here
       // so it is easy to use in middleware chain and frames handler
-      if (ctx.message.state) {
+      if (typeof ctx.message.state === "string") {
         try {
-          state = JSON.parse(ctx.message.state as unknown as string);
+          state = JSON.parse(ctx.message.state) as TState;
         } catch (e) {
+          // eslint-disable-next-line no-console -- provide feedback
           console.warn(
             "Failed to parse state from frame message, are you sure that the state was constructed by frames.js?"
           );
-          state = ctx.initialState as TState;
+          state = ctx.initialState;
         }
       }
 
@@ -44,7 +45,7 @@ export function stateMiddleware<
     }
 
     return next({
-      state: ctx.initialState as TState,
+      state: ctx.initialState,
     });
   };
 }

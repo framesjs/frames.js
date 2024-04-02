@@ -1,9 +1,9 @@
+import * as vercelOg from "@vercel/og";
 import { FRAMES_META_TAGS_HEADER } from "../core";
 import { Button } from "../core/components";
 import { redirect } from "../core/redirect";
 import type { FramesContext } from "../core/types";
 import { renderResponse } from "./renderResponse";
-import * as vercelOg from "@vercel/og";
 
 jest.mock("@vercel/og", () => {
   const arrayBufferMock = jest.fn(() => new ArrayBuffer(10));

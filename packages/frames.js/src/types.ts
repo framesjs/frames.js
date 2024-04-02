@@ -133,7 +133,6 @@ export type FrameButtonPostRedirect = FrameButtonPost;
 export type FrameButton =
   | FrameButtonPost
   | FrameButtonLink
-  | FrameButtonPostRedirect
   | FrameButtonMint
   | FrameButtonTx;
 
@@ -224,7 +223,7 @@ export type FrameActionPayload = {
     /** an optional transaction id property. For Ethereum, this must be the transaction hash. For other chains, this is not yet specified.  */
     transactionId?: string;
   };
-  /** Open Frames spec: the identifier and version of the client protocol that sent the request e.g. farcaster@vNext */
+  /** Open Frames spec: the identifier and version of the client protocol that sent the request e.g. farcaster\@vNext */
   clientProtocol?: string;
 };
 

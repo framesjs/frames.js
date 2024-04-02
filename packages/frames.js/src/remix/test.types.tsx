@@ -1,5 +1,5 @@
-import { ActionFunction, LoaderFunction } from '@remix-run/node';
-import { createFrames, types } from '.';
+import type { ActionFunction, LoaderFunction } from '@remix-run/node';
+import { createFrames, type types } from '.';
 
 type Handler = LoaderFunction | ActionFunction;
 
@@ -40,8 +40,8 @@ framesWithExplicitState(async ctx => {
     test: boolean;
   };
   ctx satisfies {
-    message?: any;
-    pressedButton?: any;
+    message?: unknown;
+    pressedButton?: unknown;
     request: Request;
   }
 

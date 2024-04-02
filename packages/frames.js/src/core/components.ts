@@ -1,4 +1,4 @@
-import type { UrlObject } from "url";
+import type { UrlObject } from "node:url";
 
 type PostButtonProps = {
   /** A 256-byte string which is label of the button */

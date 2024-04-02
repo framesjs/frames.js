@@ -1,11 +1,11 @@
 import type { Metadata, NextApiRequest, NextApiResponse } from "next";
+import React from "react";
 import { createFrames as coreCreateFrames } from "../core";
 import {
   createReadableStreamFromReadable,
   writeReadableStreamToWritable,
 } from "../lib/stream-pump";
 export { Button, type types } from "../core";
-import React from "react";
 
 export { fetchMetadata } from "./fetchMetadata";
 
@@ -13,7 +13,7 @@ export const createFrames: typeof coreCreateFrames =
   function createFramesForNextJSPagesRouter(options: any) {
     const frames = coreCreateFrames(options);
 
-    // @ts-expect-error
+    // @ts-expect-error -- this is correct but the function does not satisfy the type
     return function createHandler(handler, handlerOptions) {
       const requestHandler = frames(handler, handlerOptions);
 
@@ -31,6 +31,7 @@ export const createFrames: typeof coreCreateFrames =
  * Converts metadata returned from fetchMetadata() call to Next.js <Head /> compatible components.
  *
  * @example
+ * ```tsx
  * import { fetchMetadata, metadataToMetaTags } from "frames.js/next/pages-router";
  *
  * export const getServerSideProps = async function getServerSideProps() {
@@ -54,8 +55,9 @@ export const createFrames: typeof coreCreateFrames =
  *    </>
  *  );
  * }
+ * ```
  */
-export function metadataToMetaTags(metadata: NonNullable<Metadata["other"]>) {
+export function metadataToMetaTags(metadata: NonNullable<Metadata["other"]>): React.JSX.Element {
   return (
     <>
       {Object.entries(metadata).map(([key, value]) => {
@@ -107,12 +109,12 @@ function createRequest(req: NextApiRequest, res: NextApiResponse): Request {
 export function createRequestHeaders(
   requestHeaders: NextApiRequest["headers"]
 ): Headers {
-  let headers = new Headers();
+  const headers = new Headers();
 
-  for (let [key, values] of Object.entries(requestHeaders)) {
+  for (const [key, values] of Object.entries(requestHeaders)) {
     if (values) {
       if (Array.isArray(values)) {
-        for (let value of values) {
+        for (const value of values) {
           headers.append(key, value);
         }
       } else {
@@ -124,11 +126,11 @@ export function createRequestHeaders(
   return headers;
 }
 
-async function sendResponse(res: NextApiResponse, response: Response) {
+async function sendResponse(res: NextApiResponse, response: Response): Promise<void> {
   res.statusMessage = response.statusText;
   res.status(response.status);
 
-  for (let [key, value] of response.headers.entries()) {
+  for (const [key, value] of response.headers.entries()) {
     res.setHeader(key, value);
   }
 

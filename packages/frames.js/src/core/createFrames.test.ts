@@ -1,7 +1,7 @@
-import { createFrames } from "./createFrames";
 import { concurrentMiddleware } from "../middleware/concurrentMiddleware";
+import { createFrames } from "./createFrames";
 import { redirect } from "./redirect";
-import { FramesMiddleware } from "./types";
+import type { FramesMiddleware } from "./types";
 
 describe("createFrames", () => {
   it("returns a handler function", () => {

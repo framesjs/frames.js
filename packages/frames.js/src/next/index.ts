@@ -1,7 +1,9 @@
-import { createFrames as coreCreateFrames, types } from "../core";
 import type { NextRequest, NextResponse } from "next/server";
+import type { types } from "../core";
+import { createFrames as coreCreateFrames } from "../core";
 import type { CoreMiddleware } from "../middleware";
 import { getCurrentUrl } from "./getCurrentUrl";
+
 export { Button, type types } from "../core";
 
 export { fetchMetadata } from "./fetchMetadata";
@@ -15,6 +17,7 @@ type CreateFramesForNextJS = types.CreateFramesFunctionDefinition<
  * Creates Frames instance to use with you Next.js server
  *
  * @example
+ * ```tsx
  * import { createFrames, Button } from 'frames.js/next';
  * import { NextApiRequest, NextApiResponse } from 'next';
  *
@@ -32,8 +35,9 @@ type CreateFramesForNextJS = types.CreateFramesFunctionDefinition<
  *
  * export const GET = nextHandler;
  * export const POST = nextHandler;
+ * ```
  */
-// @ts-expect-error
+// @ts-expect-error -- this is correct but the function does not satisfy the type
 export const createFrames: CreateFramesForNextJS =
   function createFramesForNextJS(options?: types.FramesOptions<any, any>) {
     const frames = coreCreateFrames(options);
