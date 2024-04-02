@@ -1,5 +1,13 @@
 # framesjs-starter
 
+## 0.2.10
+
+### Patch Changes
+
+- 18e12da: fix: cache control example
+- Updated dependencies [27d1817]
+  - frames.js@0.11.2
+
 ## 0.2.9
 
 ### Patch Changes

@@ -1,5 +1,15 @@
 # docs
 
+## 0.0.5
+
+### Patch Changes
+
+- 6c1a22c: docs: improve farcasterHubContext docs
+- e6b5450: fix: quickstart example and baseUrl
+- 18e12da: fix: cache control example
+- Updated dependencies [27d1817]
+  - frames.js@0.11.2
+
 ## 0.0.4
 
 ### Patch Changes

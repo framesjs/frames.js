@@ -1,5 +1,13 @@
 # @frames.js/render
 
+## 0.0.3
+
+### Patch Changes
+
+- 64fcee3: fix: image loading state
+- Updated dependencies [27d1817]
+  - frames.js@0.11.2
+
 ## 0.0.2
 
 ### Patch Changes

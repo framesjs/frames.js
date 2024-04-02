@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.11.2
+
+### Patch Changes
+
+- 27d1817: feat: relative url support for images
+
 ## 0.11.1
 
 ### Patch Changes
