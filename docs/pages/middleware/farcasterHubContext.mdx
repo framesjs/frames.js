@@ -2,9 +2,11 @@
 
 Fetches additional context about the message from a Farcaster hub.
 
-## Usage
+## Setup
 
-```tsx
+Add the `farcasterHubContext` middleware to your `createFrames` call:
+
+```tsx [frames.ts]
 // ...
 import { farcasterHubContext } from "frames.js/middleware";
 
@@ -17,6 +19,26 @@ const frames = createFrames({
   ],
 });
 ```
+
+## Usage
+
+Use the added context in your message handler:
+
+```tsx [route.tsx]
+import { frames } from "./frames";
+
+export const POST = frames(async (ctx) => {
+  if (!ctx.message?.isValid) {
+    throw new Error("Invalid message");
+  }
+
+  return {
+    image: <div tw="flex">Message from {ctx.message?.requesterFid}</div>,
+  };
+});
+```
+
+For all the added context see the [`getFrameMessage`](/reference/js/getFrameMessage) function reference.
 
 ## Options
 

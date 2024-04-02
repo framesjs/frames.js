@@ -55,52 +55,91 @@ pnpm create frames
 
 ### Start with frames.js in Next.js in three steps
 
-```bash
+::::steps
+
+### Add `frames.js` to your project
+
+```sh
 yarn add frames.js
 ```
 
-```tsx [./app/page.tsx]
-import { fetchMetadata } from "frames.js/next";
+### Create your Frames app
 
-export async function generateMetadata() {
-  return {
-    title: "My page",
-    other: await fetchMetadata(
-      new URL(
-        "/frames",
-        process.env.VERCEL_URL
-          ? `https://${process.env.VERCEL_URL}`
-          : "http://localhost:3000"
-      )
-    ),
-  };
-}
+Create a `frames` directory in your Next.js app and add the following files:
 
-export default function Home(props) {
-  return <div>My Page</div>;
-}
+```tsx [./app/frames/frames.ts]
+import { createFrames } from "frames.js/next";
+
+export const frames = createFrames({
+  basePath: "/frames",
+});
 ```
 
-```ts [./app/frames/route.tsx]
-/* eslint-disable react/jsx-key */
-import { createFrames, Button } from 'frames.js/next';
+### Create a Frames route
 
-const frames = createFrames();
+```tsx [./app/frames/route.tsx]
+/* eslint-disable react/jsx-key */
+import { Button } from "frames.js/next";
+import { frames } from "./frames";
+
 const handleRequest = frames(async (ctx) => {
   return {
-    image: <div tw="w-full h-full bg-slate-700 text-white justify-center items-center">
-      {ctx.message?.state?.count ?? 0}
-    </div>,
+    image: (
+      <span>
+        {ctx.pressedButton
+          ? `I clicked ${ctx.searchParams.value}`
+          : `Click some button`}
+      </span>
+    ),
     buttons: [
-      <Button action="post">Increment counter</Button>
+      <Button action="post" target={{ query: { value: "Yes" } }}>
+        Say Yes
+      </Button>,
+      <Button action="post" target={{ query: { value: "No" } }}>
+        Say No
+      </Button>,
     ],
-    state: { count: (ctx.message?.state?.count ?? 0) + 1 }
   };
 });
 
 export const GET = handleRequest;
 export const POST = handleRequest;
 ```
+
+### Include Frames alongside your existing page's metadata
+
+```tsx [./app/page.tsx]
+import { fetchMetadata } from "frames.js/next";
+
+export async function generateMetadata() {
+  return {
+    title: "My Page",
+    // ...
+    other: {
+      // ...
+      ...(await fetchMetadata(
+        // provide a full URL to your /frames endpoint
+        new URL(
+          "/frames",
+          process.env.VERCEL_URL
+            ? `https://${process.env.VERCEL_URL}`
+            : "http://localhost:3000"
+        )
+      )),
+    },
+  };
+}
+
+export default function Page() {
+  return <span>My existing page</span>;
+}
+```
+
+### Run `yarn run dev`
+
+### Done! 🎉
+
+::::
 
 ## Community
 
@@ -117,7 +156,7 @@ Check out the following places for more Frames-related content:
 
 Or use the [hosted Frames debugger](https://debugger.framesjs.org/?url=https%3A%2F%2Fframesjs.org). Running locally has the benefits of it working with natively with localhost.
 
-## Prefer to not use JSX? 
+## Prefer to not use JSX?
 
 ### frames.js in Next.js using helper functions
 

@@ -116,6 +116,8 @@ describe("openframes middleware", () => {
         method: "POST",
         body: JSON.stringify(signedPayload),
       }),
+      url: new URL("https://example.com").toString(),
+      basePath: "/",
     } as any;
 
     const mw1 = openframes({

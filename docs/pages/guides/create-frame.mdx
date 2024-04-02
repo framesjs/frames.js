@@ -28,10 +28,14 @@ yarn add frames.js
 
 ### Create your Frames app
 
+Create a `frames` directory in your Next.js app and add the following files:
+
 ```tsx [./app/frames/frames.ts]
 import { createFrames } from "frames.js/next";
 
-export const frames = createFrames();
+export const frames = createFrames({
+  basePath: "/frames",
+});
 ```
 
 ### Create a route
