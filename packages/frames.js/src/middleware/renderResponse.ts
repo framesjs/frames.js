@@ -14,7 +14,7 @@ import {
   generateTargetURL,
   isFrameRedirect,
 } from "../core/utils";
-import { FRAMES_META_TAGS_HEADER } from "../core";
+import { FRAMES_META_TAGS_HEADER } from "../core/constants";
 
 class InvalidButtonShapeError extends Error {}
 
@@ -30,15 +30,16 @@ class ImageRenderError extends Error {}
  * If the accept header is set to application/json, it will return the metadata as JSON
  * so it is easy to parse it for metatags in existing applications.
  */
-export function renderResponse(): FramesMiddleware<any, {}> {
+export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
   return async (context, next) => {
     const wantsJSON =
       context.request.headers.get("accept") === FRAMES_META_TAGS_HEADER;
-    let result: FramesHandlerFunctionReturnType<any> | Response;
+    let result: FramesHandlerFunctionReturnType<any> | Response | undefined;
 
     try {
       result = await next(context);
     } catch (e) {
+      // eslint-disable-next-line no-console -- provide feedback to the user
       console.error(e);
 
       return new Response(
@@ -55,6 +56,7 @@ export function renderResponse(): FramesMiddleware<any, {}> {
       );
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- this can happen if the handler returns undefined
     if (!result) {
       return new Response(
         wantsJSON
@@ -91,6 +93,7 @@ export function renderResponse(): FramesMiddleware<any, {}> {
       if (context.request.method === "POST") {
         state = JSON.stringify(result.state);
       } else {
+        // eslint-disable-next-line no-console -- provide feedback to the user
         console.warn(
           "State is not supported on initial request (the one initialized when Frames are rendered for first time, that uses GET request) and will be ignored"
         );
@@ -116,6 +119,7 @@ export function renderResponse(): FramesMiddleware<any, {}> {
               })
             : await renderImage(result.image, result.imageOptions).catch(
                 (e) => {
+                  // eslint-disable-next-line no-console -- provide feedback to the user
                   console.error(e);
 
                   throw new ImageRenderError("Could not render image");
@@ -124,7 +128,7 @@ export function renderResponse(): FramesMiddleware<any, {}> {
         buttons: result.buttons
           ?.slice()
           .filter(
-            (v: any): v is FrameButtonElement => v && typeof v === "object"
+            (v): v is FrameButtonElement => typeof v === "object" && v !== null
           )
           .map((button, i): NonNullable<Frame["buttons"]>[number] => {
             if (!("type" in button && "props" in button)) {
@@ -221,7 +225,7 @@ export function renderResponse(): FramesMiddleware<any, {}> {
         },
       });
     } catch (e) {
-      let message: string = "Internal Server Error";
+      let message = "Internal Server Error";
 
       // do not expose any unrecognized errors in response, use console.error instead
       if (
@@ -232,6 +236,7 @@ export function renderResponse(): FramesMiddleware<any, {}> {
       ) {
         message = e.message;
       } else {
+        // eslint-disable-next-line no-console -- provide feedback to the user
         console.error(e);
       }
 

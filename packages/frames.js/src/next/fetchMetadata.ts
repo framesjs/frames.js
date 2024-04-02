@@ -42,7 +42,7 @@ export async function fetchMetadata(
 
     if (response.ok) {
       // process the JSON value to nextjs compatible format
-      const flattenedFrame: FrameFlattened = await response.json();
+      const flattenedFrame = (await response.json()) as FrameFlattened;
 
       return flattenedFrame as NonNullable<Metadata["other"]>;
     } else if (response.status) {

@@ -7,7 +7,7 @@ describe("cloudflare workers adapter", () => {
 
   it("correctly integrates with Cloudflare Workers", async () => {
     const frames = lib.createFrames();
-    const handler = frames(async (ctx) => {
+    const handler = frames((ctx) => {
       expect(ctx.request.url).toBe("http://localhost:3000/");
 
       return {
@@ -35,7 +35,7 @@ describe("cloudflare workers adapter", () => {
       },
     });
 
-    const handler = frames(async (ctx) => {
+    const handler = frames((ctx) => {
       expect(ctx.state).toEqual({ test: false });
 
       return {

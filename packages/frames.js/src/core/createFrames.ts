@@ -1,4 +1,4 @@
-import { coreMiddleware } from "../middleware";
+import { coreMiddleware } from "../middleware/default";
 import { stateMiddleware } from "../middleware/stateMiddleware";
 import { composeMiddleware } from "./composeMiddleware";
 import type {
@@ -21,7 +21,7 @@ export function createFrames<
   TState,
   typeof coreMiddleware,
   TMiddlewares,
-  (req: Request) => Promise<Response>
+  (req: Request) => Promise<Response> | Response
 > {
   const globalMiddleware: FramesMiddleware<TState, FramesContext<TState>>[] =
     middleware || [];
@@ -30,8 +30,10 @@ export function createFrames<
    * This function takes handler function that does the logic with the help of context and returns one of possible results
    */
   return function createFramesRequestHandler(handler, options = {}) {
-    const perRouteMiddleware: FramesMiddleware<any, FramesContext<TState>>[] =
-      options && Array.isArray(options.middleware) ? options.middleware : [];
+    const perRouteMiddleware: FramesMiddleware<
+      JsonValue | undefined,
+      FramesContext<TState>
+    >[] = Array.isArray(options.middleware) ? options.middleware : [];
 
     const composedMiddleware = composeMiddleware<
       FramesContext<TState>,

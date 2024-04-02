@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/require-await -- we want to test that handler supports async*/
 import type { ExecutionContext, Request as CfRequest, ExportedHandlerFetchHandler } from '@cloudflare/workers-types';
 import type { types } from '.';
 import { createFrames } from '.';
@@ -37,6 +38,17 @@ framesWithExplicitState(async (ctx) => {
 
 const framesWithExplicitStateAndEnv = createFrames<{ test: boolean }, { secret: string }>({});
 framesWithExplicitStateAndEnv(async (ctx) => {
+  ctx.state satisfies { test: boolean };
+  ctx satisfies { initialState?: { test: boolean }; message?: unknown, pressedButton?: unknown; request: Request; };
+  ctx satisfies { cf: { env: { secret: string }; ctx: ExecutionContext; req: CfRequest }}
+
+  return {
+    image: 'http://test.png',
+  };
+}) satisfies ExportedHandlerFetchHandler<{ secret: string }>;
+
+const framesWithExplicitStateAndEnvNoPromiseHandler = createFrames<{ test: boolean }, { secret: string }>({});
+framesWithExplicitStateAndEnvNoPromiseHandler((ctx) => {
   ctx.state satisfies { test: boolean };
   ctx satisfies { initialState?: { test: boolean }; message?: unknown, pressedButton?: unknown; request: Request; };
   ctx satisfies { cf: { env: { secret: string }; ctx: ExecutionContext; req: CfRequest }}

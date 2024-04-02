@@ -1,5 +1,5 @@
-import * as protobufs from "./generated/message";
-import { UserNameProof } from "./generated/username_proof";
+import type * as protobufs from "./generated/message";
+import type { UserNameProof } from "./generated/username_proof";
 
 /** Message types */
 

@@ -69,5 +69,9 @@ export async function getAddressForFid<
     });
   }
 
+  if (!address) {
+    throw new Error(`No address found for fid ${fid}`);
+  }
+
   return address as AddressReturnType<Options>;
 }

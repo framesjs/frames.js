@@ -1,10 +1,9 @@
 import { Message } from "../farcaster";
-import nock from "nock";
-import { FrameMessageReturnType } from "../getFrameMessage";
 import { redirect } from "../core/redirect";
-import { FramesContext } from "../core/types";
-import { farcasterHubContext } from "./farcasterHubContext";
+import type { FramesContext } from "../core/types";
 import { createFrames } from "../core";
+import type { UserDataReturnType } from "..";
+import { farcasterHubContext } from "./farcasterHubContext";
 
 describe("farcasterHubContext middleware", () => {
   let sampleFrameActionRequest: Request;
@@ -49,9 +48,9 @@ describe("farcasterHubContext middleware", () => {
   });
 
   it("moves to next middleware without parsing if request is not POST request", async () => {
-    const context: FramesContext = {
+    const context = {
       request: new Request("https://example.com"),
-    } as any;
+    } as unknown as FramesContext;
 
     const mw = farcasterHubContext();
     const response = redirect("http://test.com");
@@ -62,12 +61,12 @@ describe("farcasterHubContext middleware", () => {
   });
 
   it("moves to next middleware if request is POST but does not have a valid JSON body", async () => {
-    const context: FramesContext = {
+    const context = {
       request: new Request("https://example.com", {
         method: "POST",
         body: "invalid json",
       }),
-    } as any;
+    } as unknown as FramesContext;
 
     const mw = farcasterHubContext();
     const response = redirect("http://test.com");
@@ -78,12 +77,12 @@ describe("farcasterHubContext middleware", () => {
   });
 
   it("moves to next middleware if request is POST with valid JSON but invalid body shape", async () => {
-    const context: FramesContext = {
+    const context = {
       request: new Request("https://example.com", {
         method: "POST",
         body: JSON.stringify({}),
       }),
-    } as any;
+    } as unknown as FramesContext;
 
     const mw = farcasterHubContext();
     const response = redirect("http://test.com");
@@ -94,31 +93,31 @@ describe("farcasterHubContext middleware", () => {
   });
 
   it("parses frame message from request body and fetches external hub context and adds it to context", async () => {
-    const context: FramesContext = {
+    const context = {
       request: sampleFrameActionRequest.clone(),
-    } as any;
+    } as unknown as FramesContext;
 
     const mw = farcasterHubContext();
     const next = jest.fn(() => Promise.resolve(new Response()));
 
     await mw(context, next);
 
-    const {
-      message: calledArg,
-    }: {
-      message: FrameMessageReturnType<{ fetchHubContext: true }>;
-    } = (next.mock.calls[0]! as any)[0];
-
-    expect(calledArg.buttonIndex).toBe(1);
-    expect(calledArg.castId).toEqual({
-      fid: 456,
-      hash: "0x",
-    });
-    expect(calledArg.connectedAddress).toBe("0x89");
-    expect(calledArg.inputText).toBe("hello");
-    expect(calledArg.requesterFid).toBe(123);
-    expect(calledArg.state).toEqual(JSON.stringify({ test: true }));
-    expect(calledArg).toHaveProperty("requesterUserData");
+    expect(next).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: {
+          buttonIndex: 1,
+          castId: {
+            fid: 456,
+            hash: "0x",
+          },
+          connectedAddress: "0x89",
+          inputText: "hello",
+          requesterFid: 123,
+          state: JSON.stringify({ test: true }),
+          requestedUserData: expect.anything() as UserDataReturnType,
+        },
+      })
+    );
   });
 
   it("supports custom global typed context", async () => {
@@ -128,7 +127,7 @@ describe("farcasterHubContext middleware", () => {
       middleware: [mw1],
     });
 
-    const routeHandler = handler(async (ctx) => {
+    const routeHandler = handler((ctx) => {
       return {
         image: `/?username=${ctx.message?.requesterUserData?.username}`,
       };

@@ -134,7 +134,9 @@ export type FrameHandlerFunction<
 > = (
   // we pass ctx.state here since it is made available internally by stateMiddleware but the inference would not work
   ctx: FramesContext<TState> & TFramesContext & { state: TState }
-) => Promise<FramesHandlerFunctionReturnType<TState>>;
+) =>
+  | Promise<FramesHandlerFunctionReturnType<TState>>
+  | FramesHandlerFunctionReturnType<TState>;
 
 export type FramesContextFromMiddlewares<
   TMiddlewares extends
@@ -164,7 +166,7 @@ export type FramesRequestHandlerFunction<
     | FramesMiddleware<any, any>[]
     | undefined,
   TFrameMiddleware extends FramesMiddleware<any, any>[] | undefined,
-  TRequestHandlerFunction extends Function,
+  TRequestHandlerFunction extends (...args: any[]) => any,
 > = <
   TPerRouteMiddleware extends
     | FramesMiddleware<any, any>[]
@@ -173,13 +175,13 @@ export type FramesRequestHandlerFunction<
   handler: FrameHandlerFunction<
     TState,
     (TDefaultMiddleware extends undefined
-      ? {}
+      ? Record<string, any>
       : FramesContextFromMiddlewares<NonNullable<TDefaultMiddleware>>) &
       (TFrameMiddleware extends undefined
-        ? {}
+        ? Record<string, any>
         : FramesContextFromMiddlewares<NonNullable<TFrameMiddleware>>) &
       (TPerRouteMiddleware extends undefined
-        ? {}
+        ? Record<string, any>
         : FramesContextFromMiddlewares<NonNullable<TPerRouteMiddleware>>)
   >,
   options?: FramesRequestHandlerFunctionOptions<TPerRouteMiddleware>
@@ -210,7 +212,7 @@ export type CreateFramesFunctionDefinition<
     | readonly FramesMiddleware<any, any>[]
     | FramesMiddleware<any, any>[]
     | undefined,
-  TRequestHandlerFunction extends Function,
+  TRequestHandlerFunction extends (...args: any[]) => any,
 > = <
   TState extends JsonValue | undefined = JsonValue | undefined,
   TFrameMiddleware extends FramesMiddleware<any, any>[] | undefined = undefined,

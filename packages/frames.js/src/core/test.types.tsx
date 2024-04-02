@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/require-await  -- we are checking compatibility with promises */
 import type { types } from '.';
 import { createFrames } from '.';
 
-type Handler = (req: Request) => Promise<Response>;
+type Handler = (req: Request) => Promise<Response> | Response;
 
 const framesWithoutState = createFrames();
 framesWithoutState(async (ctx) => {
@@ -37,6 +38,17 @@ framesWithExplicitState(async (ctx) => {
 
 const framesWithExplicitStateAndEnv = createFrames<{ test: boolean }>({});
 framesWithExplicitStateAndEnv(async (ctx) => {
+  ctx.state satisfies { test: boolean };
+  ctx satisfies { initialState?: { test: boolean }; message?: unknown, pressedButton?: unknown; request: Request; };
+
+
+  return {
+    image: 'http://test.png',
+  };
+}) satisfies Handler;
+
+const framesWithExplicitStateAndEnvNoPromise = createFrames<{ test: boolean }>({});
+framesWithExplicitStateAndEnvNoPromise((ctx) => {
   ctx.state satisfies { test: boolean };
   ctx satisfies { initialState?: { test: boolean }; message?: unknown, pressedButton?: unknown; request: Request; };
 

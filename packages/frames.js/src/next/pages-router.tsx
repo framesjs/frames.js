@@ -1,20 +1,26 @@
 import type { Metadata, NextApiRequest, NextApiResponse } from "next";
 import React from "react";
+import type { types } from "../core";
 import { createFrames as coreCreateFrames } from "../core";
 import {
   createReadableStreamFromReadable,
   writeReadableStreamToWritable,
 } from "../lib/stream-pump";
+
 export { Button, type types } from "../core";
 
 export { fetchMetadata } from "./fetchMetadata";
 
 export const createFrames: typeof coreCreateFrames =
-  function createFramesForNextJSPagesRouter(options: any) {
+  function createFramesForNextJSPagesRouter(options: types.FramesOptions<any, any>) {
     const frames = coreCreateFrames(options);
 
-    // @ts-expect-error -- this is correct but the function does not satisfy the type
-    return function createHandler(handler, handlerOptions) {
+    return function createHandler<
+      TPerRouteMiddleware extends types.FramesMiddleware<any, any>[],
+    >(
+      handler: types.FrameHandlerFunction<any, any>,
+      handlerOptions?: types.FramesRequestHandlerFunctionOptions<TPerRouteMiddleware>
+    ) {
       const requestHandler = frames(handler, handlerOptions);
 
       return async function handleNextJSApiRequest(
@@ -78,21 +84,21 @@ function createRequest(req: NextApiRequest, res: NextApiResponse): Request {
   const normalizedXForwardedHost = Array.isArray(xForwardedHost)
     ? xForwardedHost[0]
     : xForwardedHost;
-  let [, hostnamePort] = normalizedXForwardedHost?.split(":") ?? [];
-  let [, hostPort] = req.headers["host"]?.split(":") ?? [];
-  let port = hostnamePort || hostPort;
+  const [, hostnamePort] = normalizedXForwardedHost?.split(":") ?? [];
+  const [, hostPort] = req.headers.host?.split(":") ?? [];
+  const port = hostnamePort || hostPort;
   // Use req.hostname here as it respects the "trust proxy" setting
-  let resolvedHost = `${req.headers["host"]}${!hostPort ? `:${port}` : ""}`;
+  const resolvedHost = `${req.headers.host}${!hostPort ? `:${port}` : ""}`;
   // Use `req.url` so NextJS is aware of the full path
-  let url = new URL(
+  const url = new URL(
     `${"encrypted" in req.socket && req.socket.encrypted ? "https" : "http"}://${resolvedHost}${req.url}`
   );
 
   // Abort action/loaders once we can no longer write a response
-  let controller = new AbortController();
-  res.on("close", () => controller.abort());
+  const controller = new AbortController();
+  res.on("close", () => { controller.abort(); });
 
-  let init: RequestInit = {
+  const init: RequestInit = {
     method: req.method,
     headers: createRequestHeaders(req.headers),
     signal: controller.signal,

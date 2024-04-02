@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/require-await -- middleware is always async */
 import { redirect } from "../core/redirect";
+import type { FramesContext, FramesMiddleware } from "../core/types";
 import { concurrentMiddleware } from "./concurrentMiddleware";
 
 describe("concurrentMiddleware", () => {
@@ -7,16 +9,18 @@ describe("concurrentMiddleware", () => {
   });
 
   it("returns middleware as is if only one is provided", () => {
-    const middleware = async () => {};
+    const middleware: FramesMiddleware<any, any> = async () => {
+      return new Response();
+    };
 
-    expect(concurrentMiddleware(middleware as any)).toBe(middleware);
+    expect(concurrentMiddleware(middleware)).toBe(middleware);
   });
 
   it("returns a middleware that wraps all provided middlewares", () => {
-    const middleware1 = async (context: any, next: any) => {
+    const middleware1: FramesMiddleware<any, any> = async (context, next) => {
       return next();
     };
-    const middleware2 = async (context: any, next: any) => {
+    const middleware2: FramesMiddleware<any, any> = async (context, next) => {
       return next();
     };
 
@@ -26,18 +30,21 @@ describe("concurrentMiddleware", () => {
   });
 
   it("calls all provided middlewares and properly mutates context and then calls next middleware", async () => {
-    const middleware1 = async (context: any, next: any) => {
-      await new Promise((resolve) => setTimeout(resolve, 5));
+    const middleware1: FramesMiddleware<any, any> = async (context, next) => {
+      await new Promise((resolve) => {
+        setTimeout(resolve, 5);
+      });
       return next({ test1: true });
     };
-    const middleware2 = async (context: any, next: any) => {
+    const middleware2: FramesMiddleware<any, any> = async (context, next) => {
       return next({ test2: true });
     };
 
     const parallelMiddleware = concurrentMiddleware(middleware1, middleware2);
-    let context: any = {};
+    let context = {} as unknown as FramesContext;
 
     await parallelMiddleware(context, async (newCtx) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- we don't care really about the type of the value
       context = newCtx;
       return redirect("http://test.com");
     });

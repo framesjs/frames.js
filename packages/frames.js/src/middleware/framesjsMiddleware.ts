@@ -7,9 +7,7 @@ import {
 
 type FramesjsMiddlewareContext = {
   /** the search params as an object. Empty will be an empty object */
-  searchParams: {
-    [k: string]: string;
-  };
+  searchParams: Record<string, string>;
   /**
    * Button that was clicked on previous frame
    */
@@ -47,6 +45,7 @@ export function framesjsMiddleware(): FramesMiddleware<
           (result.status < 300 || result.status > 399)) ||
         !isFrameRedirect(result)
       ) {
+        // eslint-disable-next-line no-console -- provide feedback to the developer
         console.warn(
           "The clicked button action was post_redirect, but the response was not a redirect"
         );
@@ -54,6 +53,7 @@ export function framesjsMiddleware(): FramesMiddleware<
     } else if (pressedButton?.action === "post") {
       // we support only frame definition as result for post button
       if (result instanceof Response || isFrameRedirect(result)) {
+        // eslint-disable-next-line no-console -- provide feedback to the developer
         console.warn(
           "The clicked button action was post, but the response was not a frame definition"
         );

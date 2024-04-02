@@ -4,7 +4,7 @@ import {
   type NextRequest,
   NextResponse as NextResponseBase,
 } from "next/server";
-import React from "react";
+import React, {Children, isValidElement} from "react";
 import type { FrameActionMessage } from "../farcaster";
 import {
   type FrameMessageReturnType,
@@ -95,7 +95,7 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
   if (options?.hubHttpUrl) {
     if (!options.hubHttpUrl.startsWith("http")) {
       throw new Error(
-        `frames.js: Invalid Hub URL: ${options?.hubHttpUrl}, ensure you have included the protocol (e.g. https://)`
+        `frames.js: Invalid Hub URL: ${options.hubHttpUrl}, ensure you have included the protocol (e.g. https://)`
       );
     }
   }
@@ -110,10 +110,6 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
   }
 
   const result = await _getFrameMessage(frameActionPayload, options);
-
-  if (!result) {
-    throw new Error("frames.js: something went wrong getting frame message");
-  }
 
   return result;
 }
@@ -150,11 +146,11 @@ export function createPreviousFrame<T extends FrameState = FrameState>(
     PreviousFrame<T>,
     "postBody" | "prevState" | "pathname" | "prevRedirects"
   >,
-  headers: HeadersList
+  headersList: HeadersList
 ): PreviousFrame<T> {
   return {
     ...previousFrameFromParams,
-    headers: headers,
+    headers: headersList,
   };
 }
 
@@ -170,30 +166,30 @@ export function parseFrameParams<T extends FrameState = FrameState>(
   "postBody" | "prevState" | "pathname" | "prevRedirects"
 > {
   const frameActionReceived =
-    searchParams?.postBody && typeof searchParams?.postBody === "string"
-      ? (JSON.parse(searchParams?.postBody) as FrameActionPayload)
+    searchParams?.postBody && typeof searchParams.postBody === "string"
+      ? (JSON.parse(searchParams.postBody) as FrameActionPayload)
       : null;
 
   const framePrevState =
-    searchParams?.prevState && typeof searchParams?.prevState === "string"
-      ? (JSON.parse(searchParams?.prevState) as T)
+    searchParams?.prevState && typeof searchParams.prevState === "string"
+      ? (JSON.parse(searchParams.prevState) as T)
       : null;
 
   const framePrevRedirects =
     searchParams?.prevRedirects &&
-    typeof searchParams?.prevRedirects === "string"
-      ? (JSON.parse(searchParams?.prevRedirects) as RedirectMap)
+    typeof searchParams.prevRedirects === "string"
+      ? (JSON.parse(searchParams.prevRedirects) as RedirectMap)
       : null;
 
   const pathname =
-    searchParams?.pathname && typeof searchParams?.pathname === "string"
-      ? searchParams?.pathname
+    searchParams?.pathname && typeof searchParams.pathname === "string"
+      ? searchParams.pathname
       : undefined;
 
   return {
     postBody: frameActionReceived,
     prevState: framePrevState,
-    pathname: pathname,
+    pathname,
     prevRedirects: framePrevRedirects,
   };
 }
@@ -220,12 +216,14 @@ export function useFramesReducer<T extends FrameState = FrameState>(
   }
 
   // doesn't do anything right now, but exists to make Button onClicks feel more natural and not magic.
-  function dispatch(actionIndex: ActionIndex) {}
+  function dispatch(_actionIndex: ActionIndex): void {
+    return undefined;
+  }
 
   return [frameReducerInit(initializerArg), dispatch];
 }
 
-function toUrl(req: NextRequest) {
+function toUrl(req: NextRequest): URL {
   const reqUrl = new URL(req.url);
 
   if (process.env.NEXT_PUBLIC_HOST) {
@@ -271,15 +269,20 @@ export async function POST(
   /** unused, but will most frequently be passed a res: NextResponse object. Should stay in here for easy consumption compatible with next.js */
   res: typeof NextResponse,
   redirectHandler?: RedirectHandler
-) {
-  const body = await req.json();
+): Promise<Response> {
+  const body = await req.json() as FrameActionPayload;
 
   const url = new URL(req.url);
   let newUrl = toUrl(req);
-  const isFullUrl =
-    url.searchParams.get("p")?.startsWith("http://") ||
-    url.searchParams.get("p")?.startsWith("https://");
-  if (isFullUrl) newUrl = new URL(url.searchParams.get("p")!);
+  const pathFromRequest = url.searchParams.get("p");
+
+  const isFullUrl = typeof pathFromRequest === 'string' && (
+    pathFromRequest.startsWith("http://") ||
+    pathFromRequest.startsWith("https://"));
+
+  if (isFullUrl) {
+    newUrl = new URL(pathFromRequest);
+  }
   else newUrl.pathname = url.searchParams.get("p") || "";
 
   // decompress from 256 bytes limitation of post_url
@@ -295,27 +298,20 @@ export async function POST(
     Object.fromEntries(url.searchParams.entries())
   );
 
+  const clickedButtonIndex = prevFrame.postBody?.untrustedData.buttonIndex;
+  const clickedButtonHref = clickedButtonIndex ? prevFrame.prevRedirects?.[clickedButtonIndex] : null;
+
   // Handle 'post_redirect' buttons with href values
-  if (
-    prevFrame.postBody?.untrustedData.buttonIndex &&
-    prevFrame.prevRedirects?.hasOwnProperty(
-      prevFrame.postBody?.untrustedData.buttonIndex
-    ) &&
-    prevFrame.prevRedirects[prevFrame.postBody?.untrustedData.buttonIndex]
-  ) {
+  if (clickedButtonHref) {
     return NextResponse.redirect(
-      prevFrame.prevRedirects[
-        `${prevFrame.postBody?.untrustedData.buttonIndex}`
-      ]!,
+      clickedButtonHref,
       { status: 302 }
     );
   }
   // Handle 'post_redirect' buttons without defined href values
   if (
     prevFrame.postBody?.untrustedData.buttonIndex &&
-    prevFrame.prevRedirects?.hasOwnProperty(
-      `_${prevFrame.postBody?.untrustedData.buttonIndex}`
-    )
+    prevFrame.prevRedirects && `_${prevFrame.postBody.untrustedData.buttonIndex}` in prevFrame.prevRedirects
   ) {
     if (!redirectHandler) {
       // Error!
@@ -422,7 +418,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
   pathname?: string;
   /** Client protocols to accept */
   accepts?: ClientProtocolId[];
-}) {
+}): React.JSX.Element {
   if (!pathname) {
     // eslint-disable-next-line no-console -- provide feedback to user on server
     console.warn(
@@ -464,10 +460,10 @@ export function FrameContainer<T extends FrameState = FrameState>({
 
   const newTree = (
     <>
-      {React.Children.map(children, (child) => {
+      {Children.map(children, (child) => {
         if (child === null) return;
 
-        if (!React.isValidElement(child)) {
+        if (!isValidElement(child)) {
           return child;
         }
 
@@ -530,7 +526,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
 
           const rewrittenProps: React.ComponentProps<typeof FFrameButtonShim> =
             {
-              ...(child.props as React.ComponentProps<typeof FrameButton>),
+              ...child.props,
               ...(target ? { target: target.toString() } : {}),
               actionIndex: nextIndexByComponentType.button++ as ActionIndex,
             };
@@ -603,17 +599,18 @@ export function FrameContainer<T extends FrameState = FrameState>({
  * 
  * @deprecated please upgrade to new API, see https://framesjs.org/reference/core/next
  */
-export const FrameButton: React.FunctionComponent<FrameButtonProvidedProps> = () => null;
+export function FrameButton(_props: FrameButtonProvidedProps): React.JSX.Element | null {
+  return null;
+}
 
 /** An internal component that handles FrameButtons */
 function FFrameButtonShim({
   actionIndex,
   target,
   action = "post",
-  // eslint-disable-next-line camelcase -- this is according to the spec
-  post_url,
+  post_url: postUrl,
   children,
-}: FrameButtonProvidedProps & FrameButtonAutomatedProps) {
+}: FrameButtonProvidedProps & FrameButtonAutomatedProps): React.JSX.Element {
   return (
     <>
       <meta
@@ -624,10 +621,11 @@ function FFrameButtonShim({
       {target ? (
         <meta name={`fc:frame:button:${actionIndex}:target`} content={target} />
       ) : null}
-      {post_url ? (
+      {
+      postUrl ? (
         <meta
           name={`fc:frame:button:${actionIndex}:post_url`}
-          content={post_url}
+          content={postUrl}
         />
       ) : null}
     </>
@@ -712,7 +710,7 @@ export async function FrameImage(
       ),
       imageOptions
     );
-    const imgBuffer = await imageResponse?.arrayBuffer();
+    const imgBuffer = await imageResponse.arrayBuffer();
     imgSrc = `data:image/png;base64,${Buffer.from(imgBuffer).toString("base64")}`;
   } else {
     imgSrc = props.src;

@@ -1,4 +1,4 @@
-import { Frame } from "./types";
+import type { Frame } from "./types";
 
 export interface GetFrameHtmlOptions {
   /** value for the OG "og:title" html tag*/
@@ -13,8 +13,8 @@ export interface GetFrameHtmlOptions {
 
 /**
  * Turns a `Frame` into html
- * @param frame The Frame to turn into html
- * @param options additional options passs into the html string
+ * @param frame - The Frame to turn into html
+ * @param options - additional options passs into the html string
  * @returns an html string
  */
 export function getFrameHtml(
@@ -36,7 +36,7 @@ export function getFrameHtml(
 
 /**
  * Formats a `Frame` ready to be included in a <head> of an html string
- * @param frame The `Frame` to get the <head> contents for
+ * @param frame - The `Frame` to get the <head> contents for
  * @returns an string with tags to be included in a <head>
  */
 export function getFrameHtmlHead(frame: Frame): string {
@@ -54,9 +54,7 @@ export function getFrameHtmlHead(frame: Frame): string {
       : "",
     ...(frame.buttons?.flatMap((button, index) => [
       `<meta name="fc:frame:button:${index + 1}" content="${button.label}"/>`,
-      button.action
-        ? `<meta name="fc:frame:button:${index + 1}:action" content="${button.action}"/>`
-        : "",
+      `<meta name="fc:frame:button:${index + 1}:action" content="${button.action}"/>`,
       button.target
         ? `<meta name="fc:frame:button:${index + 1}:target" content="${button.target}"/>`
         : "",
@@ -81,9 +79,7 @@ export function getFrameHtmlHead(frame: Frame): string {
           : "",
         ...(frame.buttons?.flatMap((button, index) => [
           `<meta name="of:button:${index + 1}" content="${button.label}"/>`,
-          button.action
-            ? `<meta name="of:button:${index + 1}:action" content="${button.action}"/>`
-            : "",
+          `<meta name="of:button:${index + 1}:action" content="${button.action}"/>`,
           button.target
             ? `<meta name="of:button:${index + 1}:target" content="${button.target}"/>`
             : "",
@@ -92,10 +88,10 @@ export function getFrameHtmlHead(frame: Frame): string {
             : "",
         ]) ?? []),
       ],
-      ...(frame.accepts?.map(
+      ...frame.accepts.map(
         ({ id, version }) =>
           `<meta name="of:accepts:${id}" content="${version}"/>`
-      ) ?? [])
+      )
     );
   }
 

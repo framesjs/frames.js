@@ -70,7 +70,7 @@ export async function getAddressesForFid({
       // filter out unsupported addresses
       .filter((val): val is AddressWithType => val !== null);
     return [...verifiedAddresses, custodyAddress];
-  } else {
-    return [custodyAddress];
   }
+
+  return [custodyAddress];
 }

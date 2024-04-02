@@ -1,3 +1,4 @@
+/* eslint-disable no-console -- provide feedback */
 import * as cheerio from "cheerio";
 import {
   getByteLength,
@@ -19,7 +20,7 @@ import type {
  */
 
 /**
- * @returns a { frame: Frame | null, errors: null | ErrorMessages } object, extracting the frame metadata from the given htmlString.
+ * @returns an object, extracting the frame metadata from the given htmlString.
  * If the Frame fails validation, the `errors` object will be non-null
  */
 export function getFrame({
@@ -35,21 +36,22 @@ export function getFrame({
   const $ = cheerio.load(htmlString);
   let errors: null | Record<string, string[]> = null;
 
-  function addError({ key, message }: { key: string; message: string }) {
-    if (!errors) errors = {};
-    if (
-      errors.hasOwnProperty(key) &&
-      errors[key] &&
-      Array.isArray(errors[key])
-    ) {
+  function addError({ key, message }: { key: string; message: string }): void {
+    if (!errors) {
+      errors = {};
+    }
+
+    const error = errors[key];
+
+    if (error && Array.isArray(error)) {
       console.error(`Error: ${key} ${message}`);
-      errors[key]!.push(message);
+      error.push(message);
     } else {
       errors[key] = [message];
     }
   }
 
-  function getMetaContent(key: string) {
+  function getMetaContent(key: string): string | undefined {
     const selector = `meta[property='${key}'], meta[name='${key}']`;
     const content = $(selector).attr("content");
     if (content) return content;
@@ -57,6 +59,7 @@ export function getFrame({
   }
 
   const pageTitle = $("title").text();
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- just in case
   if (pageTitle === undefined) {
     // This should probably be a warning instead of an error. would help
     addError({
@@ -81,9 +84,12 @@ export function getFrame({
     })
     .map((i, el) => {
       const attribute = $(el).attr("name") || $(el).attr("property");
-      const id = attribute?.substring("of:accepts:".length)!;
-      const version = $(el).attr("content")!;
-      return { id, version };
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- this is already checked in filter above
+      const id = attribute!.substring("of:accepts:".length);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- this is already checked in filter above
+      const detectedVersion = $(el).attr("content")!;
+
+      return { id, version: detectedVersion };
     })
     .toArray();
 
@@ -98,7 +104,7 @@ export function getFrame({
       `meta[property='fc:frame:button:${el}'], meta[name='fc:frame:button:${el}'], meta[property='of:button:${el}'], meta[name='of:button:${el}']`
     )
       .map((i, elem) => parseButtonElement(elem))
-      .filter((i, elem) => elem !== null)
+      .filter((i, elem) => Boolean(elem))
       .toArray()
       // only take the first, to deduplicate of and fc:frame
       .slice(0, 1)
@@ -108,7 +114,7 @@ export function getFrame({
       `meta[property='fc:frame:button:${el}:action'], meta[name='fc:frame:button:${el}:action'], meta[property='of:button:${el}:action'], meta[name='of:button:${el}:action']`
     )
       .map((i, elem) => parseButtonElement(elem))
-      .filter((i, elem) => elem !== null)
+      .filter((i, elem) => Boolean(elem))
       .toArray()
       // only take the first, to deduplicate of and fc:frame
       .slice(0, 1)
@@ -119,7 +125,7 @@ export function getFrame({
       `meta[property='fc:frame:button:${el}:target'], meta[name='fc:frame:button:${el}:target'], meta[property='of:button:${el}:target'], meta[name='of:button:${el}:target']`
     )
       .map((i, elem) => parseButtonElement(elem))
-      .filter((i, elem) => elem !== null)
+      .filter((i, elem) => Boolean(elem))
       .toArray()
       // only take the first, to deduplicate of and fc:frame
       .slice(0, 1)
@@ -130,23 +136,23 @@ export function getFrame({
       `meta[property='fc:frame:button:${el}:post_url'], meta[name='fc:frame:button:${el}:post_url'], meta[property='of:button:${el}:post_url'], meta[name='of:button:${el}:post_url']`
     )
       .map((i, elem) => parseButtonElement(elem))
-      .filter((i, elem) => elem !== null)
+      .filter((i, elem) => Boolean(elem))
       .toArray()
       // only take the first, to deduplicate of and fc:frame
       .slice(0, 1)
   );
 
-  let buttonsValidation = [false, false, false, false];
+  const buttonsValidation = [false, false, false, false];
   const buttonsWithActions = buttonLabels
     .map((button): FrameButton & { buttonIndex: number } => {
       const buttonAction = buttonActions.find(
-        (action) => action?.buttonIndex === button?.buttonIndex
+        (action) => action.buttonIndex === button.buttonIndex
       );
       const buttonTarget = buttonTargets.find(
-        (action) => action?.buttonIndex === button?.buttonIndex
+        (action) => action.buttonIndex === button.buttonIndex
       );
       const buttonPostUrl = buttonPostUrls.find(
-        (action) => action?.buttonIndex === button?.buttonIndex
+        (action) => action.buttonIndex === button.buttonIndex
       );
       if (buttonsValidation[button.buttonIndex - 1]) {
         addError({
@@ -164,7 +170,7 @@ export function getFrame({
       }
 
       const action =
-        buttonAction?.content !== undefined ? buttonAction?.content : "post";
+        buttonAction?.content !== undefined ? buttonAction.content : "post";
       if (action === "link" || action === "tx") {
         if (!buttonTarget?.content) {
           addError({
@@ -279,14 +285,14 @@ export function getFrame({
     });
   if (!image) {
     addError({ message: "No image found in frame", key: "fc:frame:image" });
-  } else if (!(image?.startsWith("http://") || image?.startsWith("https://"))) {
+  } else if (!(image.startsWith("http://") || image.startsWith("https://"))) {
     // validate image data url is not an svg
     if (
       !(
-        image?.startsWith("data:image/png;base64,") ||
-        image?.startsWith("data:image/jpg;base64,") ||
-        image?.startsWith("data:image/jpeg;base64,") ||
-        image?.startsWith("data:image/gif;base64,")
+        image.startsWith("data:image/png;base64,") ||
+        image.startsWith("data:image/jpg;base64,") ||
+        image.startsWith("data:image/jpeg;base64,") ||
+        image.startsWith("data:image/gif;base64,")
       )
     ) {
       if (image.startsWith("data:")) {
@@ -356,7 +362,8 @@ export function getFrame({
   return {
     frame: {
       version: version as "vNext" | `${number}-${number}-${number}`,
-      image: image!,
+      // @todo we should fix this
+      image: image ?? "",
       imageAspectRatio: imageAspectRatio as ImageAspectRatio,
       buttons: buttonsWithActions as FrameButtonsType,
       postUrl,
@@ -368,17 +375,19 @@ export function getFrame({
   };
 }
 
-export function parseButtonElement(elem: cheerio.Element) {
-  const nameAttr = elem.attribs["name"] || elem.attribs["property"];
+export function parseButtonElement(
+  elem: cheerio.Element
+): { buttonIndex: number; content: string | undefined } | null {
+  const nameAttr = elem.attribs.name || elem.attribs.property;
   const buttonSegments = nameAttr?.split(":");
 
   // Handles both cases of fc:frame:button:N and of:button:N
   const buttonIndex =
-    buttonSegments?.[0] === "fc" ? buttonSegments?.[3] : buttonSegments?.[2];
+    buttonSegments?.[0] === "fc" ? buttonSegments[3] : buttonSegments?.[2];
   try {
     return {
       buttonIndex: parseInt(buttonIndex || ""),
-      content: elem.attribs["content"],
+      content: elem.attribs.content,
     };
   } catch (error) {
     return null;

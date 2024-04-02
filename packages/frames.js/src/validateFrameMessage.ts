@@ -40,6 +40,7 @@ export async function validateFrameMessage(
   isValid: boolean;
   message: FrameActionMessage | undefined;
 }> {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- just in case
   if (!body) {
     throw new Error(
       "Tried to call validateFrameMessage with no frame action payload. You may be calling it incorrectly on the homeframe"

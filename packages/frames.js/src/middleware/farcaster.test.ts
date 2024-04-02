@@ -1,10 +1,10 @@
+// eslint-disable-next-line import/no-extraneous-dependencies -- dev dependency
+import { disableNetConnect, enableNetConnect } from "nock";
 import { Message } from "../farcaster";
-import nock from "nock";
-import { FrameMessageReturnType } from "../getFrameMessage";
 import { redirect } from "../core/redirect";
-import { FramesContext } from "../core/types";
-import { farcaster } from "./farcaster";
+import type { FramesContext } from "../core/types";
 import { createFrames } from "../core";
+import { farcaster } from "./farcaster";
 
 describe("farcaster middleware", () => {
   let sampleFrameActionRequest: Request;
@@ -41,17 +41,17 @@ describe("farcaster middleware", () => {
   beforeEach(() => {
     // make sure we don't introduce unexpected network requests
     // TODO: Mock hub/onchain calls
-    nock.disableNetConnect();
+    disableNetConnect();
   });
 
   afterEach(() => {
-    nock.enableNetConnect();
+    enableNetConnect();
   });
 
   it("moves to next middleware without parsing if request is not POST request", async () => {
-    const context: FramesContext = {
+    const context = {
       request: new Request("https://example.com"),
-    } as any;
+    } as unknown as FramesContext;
 
     const mw = farcaster();
     const response = redirect("http://test.com");
@@ -62,12 +62,12 @@ describe("farcaster middleware", () => {
   });
 
   it("moves to next middleware if request is POST but does not have a valid JSON body", async () => {
-    const context: FramesContext = {
+    const context = {
       request: new Request("https://example.com", {
         method: "POST",
         body: "invalid json",
       }),
-    } as any;
+    } as unknown as FramesContext;
 
     const mw = farcaster();
     const response = redirect("http://test.com");
@@ -78,12 +78,12 @@ describe("farcaster middleware", () => {
   });
 
   it("moves to next middleware if request is POST with valid JSON but invalid body shape", async () => {
-    const context: FramesContext = {
+    const context = {
       request: new Request("https://example.com", {
         method: "POST",
         body: JSON.stringify({}),
       }),
-    } as any;
+    } as unknown as FramesContext;
 
     const mw = farcaster();
     const response = redirect("http://test.com");
@@ -94,33 +94,32 @@ describe("farcaster middleware", () => {
   });
 
   it("parses frame message from request body and adds it to context", async () => {
-    const context: FramesContext = {
+    const context = {
       request: sampleFrameActionRequest.clone(),
-    } as any;
+    } as unknown as FramesContext;
 
     const mw = farcaster();
     const next = jest.fn(() => Promise.resolve(new Response()));
 
-    nock.disableNetConnect();
+    disableNetConnect();
     await mw(context, next);
-    nock.enableNetConnect();
+    enableNetConnect();
 
-    const {
-      message: calledArg,
-    }: {
-      message: FrameMessageReturnType<{ fetchHubContext: true }>;
-    } = (next.mock.calls[0]! as any)[0];
-
-    expect(calledArg.buttonIndex).toBe(1);
-    expect(calledArg.castId).toEqual({
-      fid: 456,
-      hash: "0x",
-    });
-    expect(calledArg.connectedAddress).toBe("0x89");
-    expect(calledArg.inputText).toBe("hello");
-    expect(calledArg.requesterFid).toBe(123);
-    expect(calledArg.state).toEqual(JSON.stringify({ test: true }));
-    expect(calledArg).not.toHaveProperty("requesterUserData");
+    expect(next).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: {
+          buttonIndex: 1,
+          castId: {
+            fid: 456,
+            hash: "0x",
+          },
+          connectedAddress: "0x789",
+          inputText: "hello",
+          requesterFid: 123,
+          state: JSON.stringify({ test: true }),
+        },
+      })
+    );
   });
 
   it("supports custom global typed context", async () => {
@@ -130,7 +129,7 @@ describe("farcaster middleware", () => {
       middleware: [mw1],
     });
 
-    const routeHandler = handler(async (ctx) => {
+    const routeHandler = handler((ctx) => {
       return {
         image: `/?fid=${ctx.message?.requesterFid}`,
       };

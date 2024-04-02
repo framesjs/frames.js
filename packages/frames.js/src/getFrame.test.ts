@@ -1,6 +1,6 @@
 import { getFrame } from "./getFrame";
 import { getFrameHtml } from "./getFrameHtml";
-import { Frame } from "./types";
+import type { Frame } from "./types";
 
 describe("getFrame", () => {
   const sampleHtml = `
@@ -144,7 +144,7 @@ describe("getFrame", () => {
       url: "https://example.com",
     });
 
-    expect(frame?.imageAspectRatio).toEqual("1:91");
+    expect(frame.imageAspectRatio).toEqual("1:91");
 
     const html2 = `
     <meta name="fc:frame" content="vNext"/>
@@ -158,7 +158,7 @@ describe("getFrame", () => {
       url: "https://example.com",
     });
 
-    expect(frame2?.imageAspectRatio).toEqual("1:1");
+    expect(frame2.imageAspectRatio).toEqual("1:1");
   });
 
   it("should reject invalid aspect ratio", () => {
@@ -244,7 +244,7 @@ describe("getFrame", () => {
       url: "https://example.com",
     });
 
-    expect(frame?.accepts).toEqual([
+    expect(frame.accepts).toEqual([
       { id: "xmtp", version: "vNext" },
       { id: "lens", version: "1.5" },
     ]);

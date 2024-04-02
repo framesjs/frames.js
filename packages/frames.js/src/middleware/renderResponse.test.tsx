@@ -1,3 +1,6 @@
+/* eslint-disable no-console -- we are expecting console usage */
+/* eslint-disable @typescript-eslint/require-await -- middleware expectes async functions */
+/* eslint-disable testing-library/render-result-naming-convention -- we are not using react testing library here */
 import * as vercelOg from "@vercel/og";
 import { FRAMES_META_TAGS_HEADER } from "../core";
 import { Button } from "../core/components";
@@ -18,9 +21,8 @@ jest.mock("@vercel/og", () => {
     arrayBufferMock,
     constructorMock,
     ImageResponse: class {
-      constructor(...args: any[]) {
-        // @ts-expect-error
-        return constructorMock(...args);
+      constructor() {
+        constructorMock();
       }
       arrayBuffer = arrayBufferMock;
     },
@@ -28,8 +30,8 @@ jest.mock("@vercel/og", () => {
 });
 
 describe("renderResponse middleware", () => {
-  let arrayBufferMock: jest.Mock = (vercelOg as any).arrayBufferMock;
-  let constructorMock: jest.Mock = (vercelOg as any).constructorMock;
+  const arrayBufferMock: jest.Mock = (vercelOg as unknown as { arrayBufferMock: jest.Mock }).arrayBufferMock;
+  const constructorMock: jest.Mock = (vercelOg as unknown as { constructorMock: jest.Mock }).constructorMock;
   const render = renderResponse();
   const context: FramesContext<undefined> = {
     basePath: "/",
@@ -93,18 +95,21 @@ describe("renderResponse middleware", () => {
         buttons: [
           <Button
             action="post"
+            key="1"
             target={{ query: { value: "customStateValue1" } }}
           >
             Click me 1
           </Button>,
           <Button
             action="post"
+            key="2"
             target={{ query: { a: true }, pathname: "/a/b" }}
           >
             Click me 2
           </Button>,
           <Button
             action="post"
+            key="3"
             target={{ pathname: "/test", query: { value: 10 } }}
           >
             Click me 3
@@ -130,6 +135,7 @@ describe("renderResponse middleware", () => {
         buttons: [
           <Button
             action="post"
+            key="1"
             target={{ query: { value: "customStateValue1" } }}
           >
             Click me 1
@@ -154,6 +160,7 @@ describe("renderResponse middleware", () => {
         buttons: [
           <Button
             action="post"
+            key="1"
             target={{
               pathname: "/test",
               query: { value: "customStateValue1" },
@@ -201,16 +208,16 @@ describe("renderResponse middleware", () => {
   });
 
   it("returns 500 if invalid number of buttons is provided", async () => {
-    // @ts-expect-error
+    // @ts-expect-error -- we are providing more than 4 buttons
     const result = await render(context, async () => {
       return {
         image: <div>My image</div>,
         buttons: [
-          <Button action="post">Click me 1</Button>,
-          <Button action="post">Click me 2</Button>,
-          <Button action="post">Click me 3</Button>,
-          <Button action="post">Click me 4</Button>,
-          <Button action="post">Click me 5</Button>,
+          <Button action="post" key="1">Click me 1</Button>,
+          <Button action="post" key="2">Click me 2</Button>,
+          <Button action="post" key="3">Click me 3</Button>,
+          <Button action="post" key="4">Click me 4</Button>,
+          <Button action="post" key="5">Click me 5</Button>,
         ],
       };
     });
@@ -228,8 +235,8 @@ describe("renderResponse middleware", () => {
       return {
         image: <div>My image</div>,
         buttons: [
-          // @ts-expect-error
-          <Button action="invalid">Click me 1</Button>,
+          // @ts-expect-error -- props are not matching the expected type
+          <Button action="invalid" key="1">Click me 1</Button>,
         ],
       };
     });
@@ -242,7 +249,7 @@ describe("renderResponse middleware", () => {
   });
 
   it("returns 500 if invalid button shape is provided", async () => {
-    // @ts-expect-error
+    // @ts-expect-error -- returns invalid object shape
     const result = await render(context, async () => {
       return {
         image: <div>My image</div>,
@@ -283,9 +290,9 @@ describe("renderResponse middleware", () => {
       expect.any(Object),
       expect.any(Object)
     );
-    expect(constructorMock.mock.calls[0][0]).toMatchSnapshot();
+    expect((constructorMock.mock.calls[0] as unknown[])[0]).toMatchSnapshot();
 
-    // @ts-expect-error
+    // @ts-expect-error -- we are modifying the context object
     newContext.something = "true";
 
     result = await render(newContext, async () => {
@@ -308,7 +315,7 @@ describe("renderResponse middleware", () => {
       expect.any(Object),
       expect.any(Object)
     );
-    expect(constructorMock.mock.calls[1][0]).toMatchSnapshot();
+    expect((constructorMock.mock.calls[1] as unknown[])[0]).toMatchSnapshot();
   });
 
   it("correctly renders tx button", async () => {
@@ -321,14 +328,14 @@ describe("renderResponse middleware", () => {
       return {
         image: <div>My image</div>,
         buttons: [
-          <Button action="tx" target="/tx" post_url="/txid">
+          <Button action="tx" key="1" target="/tx" post_url="/txid">
             Tx button
           </Button>,
         ],
       };
     });
 
-    const json = await (result as Response).json();
+    const json = await (result as Response).json() as Record<string, string>;
 
     expect(json["fc:frame:button:1"]).toBe("Tx button");
     expect(json["fc:frame:button:1:action"]).toBe("tx");
@@ -360,9 +367,9 @@ describe("renderResponse middleware", () => {
 
     expect(console.warn).toHaveBeenCalledTimes(1);
 
-    const json = await (result as Response).json();
+    const json = await (result as Response).json() as Record<string, string>;
 
-    expect(json["state"]).toBeUndefined();
+    expect(json.state).toBeUndefined();
   });
 
   it("returns a state on POST requests (these are not initial since those are always reactions to clicks)", async () => {
@@ -382,7 +389,7 @@ describe("renderResponse middleware", () => {
 
     expect(console.warn).not.toHaveBeenCalled();
 
-    const json = await (result as Response).json();
+    const json = await (result as Response).json() as Record<string, string>;
 
     expect(console.warn).not.toHaveBeenCalled();
     expect(json["fc:frame:state"]).toEqual(JSON.stringify({ test: true }));
@@ -440,6 +447,7 @@ describe("renderResponse middleware", () => {
         buttons: [
           <Button
             action="post"
+            key="1"
             target={{ pathname: "/", query: { value: true } }}
           >
             Click me 1
@@ -454,7 +462,7 @@ describe("renderResponse middleware", () => {
 
     expect(result).toBeInstanceOf(Response);
     expect((result as Response).status).toBe(200);
-    const json = await (result as Response).json();
+    const json = await (result as Response).json() as Record<string, string>;
     expect(json["fc:frame:button:1:target"]).toBe(expectedUrl.toString());
   });
 
@@ -471,13 +479,14 @@ describe("renderResponse middleware", () => {
         buttons: [
           <Button
             action="post"
+            key="1"
             target={{ pathname: "/", query: { value: true } }}
           >
             Click me 1
           </Button>,
           null,
           true,
-          <Button action="post" target="/">
+          <Button action="post" key="2" target="/">
             Click me 2
           </Button>,
         ],
@@ -486,12 +495,12 @@ describe("renderResponse middleware", () => {
 
     expect(result).toBeInstanceOf(Response);
     expect((result as Response).status).toBe(200);
-    const json = await (result as Response).json();
+    const json = await (result as Response).json() as Record<string, string>;
     expect(json).toMatchObject({
       "fc:frame:button:1": "Click me 1",
-      "fc:frame:button:1:target": expect.any(String),
+      "fc:frame:button:1:target": expect.any(String) as string,
       "fc:frame:button:2": "Click me 2",
-      "fc:frame:button:2:target": expect.any(String),
+      "fc:frame:button:2:target": expect.any(String) as string,
     });
   });
 });

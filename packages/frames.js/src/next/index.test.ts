@@ -1,5 +1,5 @@
-import * as lib from ".";
 import { NextRequest } from "next/server";
+import * as lib from ".";
 
 describe("next adapter", () => {
   it.each(["Button", "createFrames", "fetchMetadata"])(
@@ -19,7 +19,7 @@ describe("next adapter", () => {
       },
     });
 
-    const handleRequest = frames(async (ctx) => {
+    const handleRequest = frames((ctx) => {
       expect(ctx.state).toEqual({ test: false });
 
       return {

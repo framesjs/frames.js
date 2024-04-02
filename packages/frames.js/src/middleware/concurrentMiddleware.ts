@@ -17,12 +17,12 @@ export function concurrentMiddleware<
     throw new Error("No middlewares provided");
   }
 
-  if (middlewares.length === 1) {
-    return middlewares[0]!;
+  if (middlewares.length === 1 && middlewares[0]) {
+    return middlewares[0];
   }
 
   return async (context, next) => {
-    let ctx = context;
+    const ctx = context;
     const newContexts: any[] = [];
 
     await Promise.all(
@@ -36,9 +36,10 @@ export function concurrentMiddleware<
       )
     );
 
-    let finalCtx = ctx;
+    let finalCtx: typeof ctx = ctx;
 
     for (const newCtx of newContexts) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- this is correct because we are merging objects
       finalCtx = { ...finalCtx, ...newCtx };
     }
 

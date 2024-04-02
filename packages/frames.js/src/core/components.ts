@@ -63,6 +63,6 @@ export type ButtonProps =
   | LinkButtonProps
   | TxButtonProps;
 
-export const Button: React.FunctionComponent<ButtonProps> = () => {
+export function Button(_: ButtonProps): null {
   return null;
-};
+}

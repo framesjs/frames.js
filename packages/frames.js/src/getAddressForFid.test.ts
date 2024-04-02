@@ -1,10 +1,11 @@
-import nock from "nock";
-import { getAddressForFid } from ".";
+// eslint-disable-next-line import/no-extraneous-dependencies -- dev dependency
+import nock, { cleanAll } from "nock";
 import { DEFAULT_HUB_API_URL } from "./default";
+import { getAddressForFid } from ".";
 
 describe("getAddressForFid", () => {
   beforeEach(() => {
-    nock.cleanAll();
+    cleanAll();
   });
 
   it("returns address for fid with connected address", async () => {

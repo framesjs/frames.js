@@ -1,3 +1,5 @@
+/* eslint-disable no-console -- we expect the usage of console.log */
+import type { FramesContext } from "../core/types";
 import { stateMiddleware } from "./stateMiddleware";
 
 describe("stateMiddleware", () => {
@@ -10,7 +12,7 @@ describe("stateMiddleware", () => {
     const mw = stateMiddleware();
     const next = jest.fn();
 
-    await mw(ctx as any, next);
+    await mw(ctx as unknown as FramesContext, next);
 
     expect(next).toHaveBeenCalledWith({ state });
   });
@@ -27,7 +29,7 @@ describe("stateMiddleware", () => {
 
     expect(console.warn).not.toHaveBeenCalled();
 
-    await mw(ctx as any, next);
+    await mw(ctx as unknown as FramesContext, next);
 
     expect(console.warn).toHaveBeenCalled();
 
@@ -41,7 +43,7 @@ describe("stateMiddleware", () => {
     const mw = stateMiddleware();
     const next = jest.fn();
 
-    await mw(ctx as any, next);
+    await mw(ctx as unknown as FramesContext, next);
 
     expect(next).toHaveBeenCalledWith({ state: { initial: true } });
   });

@@ -1,6 +1,6 @@
 import { DEFAULT_HUB_API_KEY, DEFAULT_HUB_API_URL } from "./default";
 import { MessageType, UserDataType, Message } from "./farcaster";
-import { HubHttpUrlOptions, UserDataReturnType } from "./types";
+import type { HubHttpUrlOptions, UserDataReturnType } from "./types";
 
 /**
  * Returns the latest user data for a given Farcaster users Fid if available.
@@ -39,29 +39,30 @@ export async function getUserDataForFid<
     })) as { messages?: Record<string, any>[] };
 
   if (messages && messages.length > 0) {
-    const valuesByType = messages.reduce(
-      (acc, messageJson) => {
-        const message = Message.fromJSON(messageJson);
+    const valuesByType = messages.reduce<
+      Partial<Record<UserDataType, { value: string; timestamp: number }>>
+    >((acc, messageJson) => {
+      const message = Message.fromJSON(messageJson);
 
-        if (message.data?.type !== MessageType.USER_DATA_ADD) {
-          return acc;
-        }
-
-        const timestamp = message.data.timestamp;
-        const { type, value } = message.data.userDataBody!;
-
-        if (!acc[type]) {
-          acc[type] = { value, timestamp };
-        } else if (message.data.timestamp > acc[type]!.timestamp) {
-          acc[type] = { value, timestamp };
-        }
+      if (message.data?.type !== MessageType.USER_DATA_ADD) {
         return acc;
-      },
-      {} as Record<
-        UserDataType,
-        undefined | { value: string; timestamp: number }
-      >
-    );
+      }
+
+      if (!message.data.userDataBody) {
+        return acc;
+      }
+
+      const timestamp = message.data.timestamp;
+      const { type, value } = message.data.userDataBody;
+
+      if (acc[type] && acc[type].timestamp < timestamp) {
+        acc[type] = { value, timestamp };
+      } else {
+        acc[type] = { value, timestamp };
+      }
+
+      return acc;
+    }, {});
 
     return {
       profileImage: valuesByType[UserDataType.PFP]?.value,
@@ -69,7 +70,7 @@ export async function getUserDataForFid<
       username: valuesByType[UserDataType.USERNAME]?.value,
       bio: valuesByType[UserDataType.BIO]?.value,
     };
-  } else {
-    return null;
   }
+
+  return null;
 }

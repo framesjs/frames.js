@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/require-await -- we want to test that types are compatible with promises */
 import type { NextRequest, NextResponse } from 'next/server';
 import type { types } from '.';
 import { createFrames } from '.';
@@ -34,6 +35,27 @@ const framesWithExplicitState = createFrames<{
   test: boolean;
 }>({});
 framesWithExplicitState(async ctx => {
+  ctx.state satisfies {
+    test: boolean;
+  };
+  ctx.initialState satisfies {
+    test: boolean;
+  };
+  ctx satisfies {
+    message?: unknown;
+    pressedButton?: unknown;
+    request: Request;
+  }
+
+  return {
+    image: 'http://test.png'
+  };
+}) satisfies Handler;
+
+const framesWithExplicitStateNoPromise = createFrames<{
+  test: boolean;
+}>({});
+framesWithExplicitStateNoPromise(ctx => {
   ctx.state satisfies {
     test: boolean;
   };

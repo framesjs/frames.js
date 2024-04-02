@@ -38,7 +38,8 @@ export async function fetchMetadata(url: URL | string): Promise<Metadata> {
 
   if (response.ok) {
     // process the JSON value to nextjs compatible format
-    const flattenedFrame: FrameFlattened = await response.json();
+    // @todo we should validate the response shape
+    const flattenedFrame = (await response.json()) as FrameFlattened;
 
     // convert to remix compatible shape
     return Object.entries(flattenedFrame).map(([key, value]) => {

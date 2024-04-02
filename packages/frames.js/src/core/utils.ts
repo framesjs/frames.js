@@ -69,13 +69,11 @@ export function generateTargetURL({
         port: url.port,
         // query: url.searchParams,
         ...target,
-        pathname:
-          "/" +
-          [basePath ?? "", "/", target.pathname ?? ""]
-            .join("")
-            .split("/")
-            .filter(Boolean)
-            .join("/"),
+        pathname: `/${[basePath, "/", target.pathname ?? ""]
+          .join("")
+          .split("/")
+          .filter(Boolean)
+          .join("/")}`,
       })
     );
   }
