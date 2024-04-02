@@ -1,22 +1,14 @@
 /* eslint-disable react/jsx-key */
 import { Button } from "frames.js/next";
 import { frames } from "./frames";
+import { vercelURL } from "../../../utils";
 
 const handleRequest = frames(async (ctx) => {
   return {
-    image: (
-      <div tw="bg-purple-800 text-white w-full h-full justify-center items-center flex">
-        The current time is {new Date().toLocaleString()}
-      </div>
-    ),
-    imageOptions: {
-      aspectRatio: "1:1",
-    },
+    // Separate image response because cache control headers need to be set on the image response
+    // Add a random query param to ensure the frame action response image is not cached
+    image: `/images/current-time?t=${Math.random()}`,
     buttons: [<Button action="post">Refresh</Button>],
-    headers: {
-      // Max cache age in seconds
-      "Cache-Control": "max-age=5",
-    },
   };
 });
 
