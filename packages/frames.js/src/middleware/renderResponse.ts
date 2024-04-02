@@ -109,7 +109,11 @@ export function renderResponse(): FramesMiddleware<any, {}> {
         // and disabling it, has no effect on final bundle size of app
         image:
           typeof result.image === "string"
-            ? result.image
+            ? generateTargetURL({
+                target: result.image,
+                currentURL: context.url,
+                basePath: context.basePath,
+              })
             : await renderImage(result.image, result.imageOptions).catch(
                 (e) => {
                   console.error(e);
