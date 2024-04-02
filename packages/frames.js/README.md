@@ -42,52 +42,88 @@ or [clone from github](https://github.com/framesjs/frames.js/tree/main/examples/
 
 ## Alternatively, add frames.js to your existing project manually
 
-### Start with frames.js in Next.js in three steps
 
-```bash
+### 1. Add `frames.js` to your project
+
+```sh
 yarn add frames.js
 ```
 
-```tsx filename="// ./app/page.tsx"
-// ./app/page.tsx
+### 2. Create your Frames app
 
-import { fetchMetadata } from "frames.js/next";
+Create a `frames` directory in your Next.js app and add the following files:
 
-export async function generateMetadata() {
-  return {
-    title: "My page",
-    other: await fetchMetadata(
-      new URL("/frames", process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
-    ),
-  };
-}
+#### `./app/frames/frames.ts`
+```tsx [./app/frames/frames.ts]
+import { createFrames } from "frames.js/next";
 
-export default function Home(props) {
-  return <div>My Page</div>;
-}
+export const frames = createFrames({
+  basePath: "/frames",
+});
 ```
 
-```ts filename="./app/frames/route.tsx"
-// ./app/frames/route.tsx
-/* eslint-disable react/jsx-key */
-import { createFrames, Button } from 'frames.js/next';
+### 3. Create a Frames route
 
-const frames = createFrames();
+#### `./app/frames/route.tsx`
+```tsx [./app/frames/route.tsx]
+/* eslint-disable react/jsx-key */
+import { Button } from "frames.js/next";
+import { frames } from "./frames";
+
 const handleRequest = frames(async (ctx) => {
   return {
-    image: <div tw="w-full h-full bg-slate-700 text-white justify-center items-center">
-      {ctx.message?.state?.count ?? 0}
-    </div>,
+    image: (
+      <span>
+        {ctx.pressedButton
+          ? `I clicked ${ctx.searchParams.value}`
+          : `Click some button`}
+      </span>
+    ),
     buttons: [
-      <Button action="post">Increment counter</Button>
+      <Button action="post" target={{ query: { value: "Yes" } }}>
+        Say Yes
+      </Button>,
+      <Button action="post" target={{ query: { value: "No" } }}>
+        Say No
+      </Button>,
     ],
-    state: { count: (ctx.message?.state?.count ?? 0) + 1 }
   };
 });
 
 export const GET = handleRequest;
 export const POST = handleRequest;
 ```
+
+### 4. Include Frames alongside your existing page's metadata
+
+```tsx [./app/page.tsx]
+import { fetchMetadata } from "frames.js/next";
+
+export async function generateMetadata() {
+  return {
+    title: "My Page",
+    // ...
+    other: {
+      // ...
+      ...(await fetchMetadata(
+        // provide a full URL to your /frames endpoint
+        new URL(
+          "/frames",
+          process.env.VERCEL_URL
+            ? `https://${process.env.VERCEL_URL}`
+            : "http://localhost:3000"
+        )
+      )),
+    },
+  };
+}
+
+export default function Page() {
+  return <span>My existing page</span>;
+}
+```
+
+### 5. Done! 🎉
 
 ![](/frames/frame2.png)
 
