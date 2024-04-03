@@ -14,7 +14,7 @@ import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import { sendTransaction, switchChain } from "@wagmi/core";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAccount, useChainId, useConfig } from "wagmi";
 import { FrameDebugger } from "./components/frame-debugger";
 import pkg from "../package.json";
@@ -30,10 +30,18 @@ export default function App({
   searchParams: Record<string, string>;
 }): JSX.Element {
   const router = useRouter();
-  const url = searchParams.url ?? null;
-  const [urlInput, setUrlInput] = useState(
-    url || process.env.NEXT_PUBLIC_HOST || "http://localhost:3000"
-  );
+  const url = useMemo(() => {
+    const fallbackURL = process.env.NEXT_PUBLIC_HOST || 'http://localhost:3000';
+
+    try {
+      const parsedUrl = new URL(searchParams.url || fallbackURL);
+
+      return parsedUrl.toString();
+    } catch (e) {
+      console.error(e);
+      return fallbackURL
+    }
+  }, [searchParams.url]);
   const [mockHubContext, setMockHubContext] = useState<
     Partial<MockHubActionContext>
   >({
@@ -59,11 +67,6 @@ export default function App({
     );
   }, []);
 
-  useEffect(() => {
-    if (url) {
-      setUrlInput(url);
-    }
-  }, [url]);
   const signerState = useFarcasterIdentity();
 
   const onTransaction: OnTransactionFunc = useCallback(
@@ -176,29 +179,37 @@ export default function App({
             className="flex flex-row"
             onSubmit={(e) => {
               e.preventDefault();
+              const newUrl = new FormData(e.currentTarget).get('url')?.toString() || '';
+
               if (
                 !(
-                  urlInput.startsWith("http://") ||
-                  urlInput.startsWith("https://")
+                  newUrl.startsWith("http://") ||
+                  newUrl.startsWith("https://")
                 )
               ) {
                 alert("URL must start with http:// or https://");
                 return;
               }
-              if (searchParams.url === urlInput) {
-                location.reload();
-              }
-              router.push(`?url=${encodeURIComponent(urlInput)}`);
+
+              try {
+                const parsedUrl = new URL(newUrl).toString();
+
+                if (searchParams.url === parsedUrl) {
+                  location.reload();
+                }
+  
+                router.push(`?url=${encodeURIComponent(parsedUrl)}`);
+              } catch (e) {
+                alert('URL must be in valid format');
+                return;
+              }              
             }}
           >
             <Input
               type="text"
               name="url"
               className="w-[400px] px-2 py-1 border border-gray-400 rounded-l rounded-r-none"
-              value={urlInput}
-              onChange={(e) => {
-                setUrlInput(e.target.value);
-              }}
+              defaultValue={url}
               placeholder="Enter URL"
             />
             <Button className="rounded-l-none">Debug</Button>
