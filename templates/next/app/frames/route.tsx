@@ -2,6 +2,7 @@ import { farcasterHubContext } from "frames.js/middleware";
 import { createFrames, Button } from "frames.js/next";
 
 const frames = createFrames({
+  basePath: '/frames',
   middleware: [
     farcasterHubContext({
       // remove if you aren't using @frames.js/debugger or you just don't want to use the debugger hub
@@ -42,7 +43,7 @@ const handleRequest = frames(async (ctx) => {
     ),
     buttons: !ctx.url.searchParams.has("saidGm")
       ? [
-          <Button action="post" target={{ query: { saidGm: true } }}>
+          <Button action="post" key="1" target={{ query: { saidGm: true } }}>
             Say GM
           </Button>,
         ]
