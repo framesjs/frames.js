@@ -1,7 +1,7 @@
 import { getFrameHtmlHead, getFrameFlattened } from "frames.js";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import React from "react";
-import { FrameState, FrameRequest, FrameStackSuccess } from "frames.js/render";
+import { FrameState, FrameStackSuccess } from "@frames.js/render";
 import { Table, TableBody, TableCell, TableRow } from "@/components/table";
 import {
   AlertTriangle,
@@ -10,7 +10,6 @@ import {
   HomeIcon,
   ListIcon,
   LoaderIcon,
-  MessageCircle,
   MessageCircleHeart,
   RefreshCwIcon,
   XCircle,
@@ -190,20 +189,22 @@ export function FrameDebugger({
 
   const [openAccordions, setOpenAccordions] = useState<string[]>([]);
 
+  const [latestFrame] = frameState.framesStack;
+
   useEffect(() => {
     if (!frameState.isLoading) {
       // make sure the first frame is open
       if (
         !openAccordions.includes(
-          String(frameState.framesStack[0]?.timestamp.getTime())
+          String(latestFrame?.timestamp.getTime())
         )
       )
         setOpenAccordions((v) => [
           ...v,
-          String(frameState.framesStack[0]?.timestamp.getTime()),
+          String(latestFrame?.timestamp.getTime()),
         ]);
     }
-  }, [frameState.isLoading]);
+  }, [frameState.isLoading, latestFrame?.timestamp, openAccordions]);
 
   return (
     <div className="flex flex-row items-start p-4 gap-4 bg-slate-50 max-w-full w-full h-full">
@@ -219,7 +220,6 @@ export function FrameDebugger({
                 frameState.fetchFrame({
                   url: frameState?.homeframeUrl,
                   method: "GET",
-                  request: {},
                 });
             }}
           >
@@ -235,7 +235,6 @@ export function FrameDebugger({
                 frameState.fetchFrame({
                   url: frameState?.homeframeUrl,
                   method: "GET",
-                  request: {},
                 });
               }
             }}
@@ -246,12 +245,21 @@ export function FrameDebugger({
             className="flex flex-row gap-3 items-center shadow-sm border"
             variant={"outline"}
             onClick={() => {
-              if (frameState?.framesStack[0]?.request) {
-                frameState.fetchFrame({
-                  url: frameState?.framesStack[0].url,
-                  method: frameState?.framesStack[0].method,
-                  request: frameState.framesStack[0].request,
-                } as FrameRequest);
+              const [latestFrame] = frameState.framesStack;
+
+              if (latestFrame) {
+                frameState.fetchFrame(
+                  latestFrame.method === "GET"
+                    ? {
+                        method: "GET",
+                        url: latestFrame.url,
+                      }
+                    : {
+                        method: "POST",
+                        request: latestFrame.request,
+                        url: latestFrame.url,
+                      }
+                );
               }
             }}
           >
@@ -269,11 +277,14 @@ export function FrameDebugger({
                   className={`px-4 py-3 flex flex-col gap-2 ${i !== 0 ? "border-t" : "bg-slate-50"} hover:bg-slate-50 w-full`}
                   key={frameStackItem.timestamp.getTime()}
                   onClick={() => {
-                    frameState.fetchFrame({
+                    frameState.fetchFrame(frameStackItem.method === 'GET' ? {
+                      method: 'GET',
+                      url: frameStackItem.url,
+                    } : {
                       url: frameStackItem.url,
                       method: frameStackItem.method,
                       request: frameStackItem.request,
-                    } as FrameRequest);
+                    });
                   }}
                 >
                   <span className="flex text-left flex-row w-full">
