@@ -1,7 +1,9 @@
-export { Button, type types } from "../core";
-import { createFrames as coreCreateFrames, types } from "../core";
 import type { Handler } from "hono";
-import { CoreMiddleware } from "../middleware";
+import type { types } from "../core";
+import { createFrames as coreCreateFrames } from "../core";
+import type { CoreMiddleware } from "../middleware";
+
+export { Button, type types } from "../core";
 
 type CreateFramesForHono = types.CreateFramesFunctionDefinition<
   CoreMiddleware,
@@ -12,6 +14,7 @@ type CreateFramesForHono = types.CreateFramesFunctionDefinition<
  * Creates Frames instance to use with you Hono server
  *
  * @example
+ * ```tsx
  * import { createFrames, Button } from 'frames.js/hono';
  * import { Hono } from 'hono';
  *
@@ -30,17 +33,24 @@ type CreateFramesForHono = types.CreateFramesFunctionDefinition<
  * const app = new Hono();
  *
  * app.on(['GET', 'POST'], '/', honoHandler);
+ * ```
  */
-// @ts-expect-error
+// @ts-expect-error -- this code is correct just function doesn't satisfy the type
 export const createFrames: CreateFramesForHono = function createFramesForHono(
-  options?: types.FramesOptions<any, any>
+  options?: types.FramesOptions<types.JsonValue | undefined, undefined>
 ) {
   const frames = coreCreateFrames(options);
 
   return function honoFramesHandler<
-    TPerRouteMiddleware extends types.FramesMiddleware<any, any>[],
+    TPerRouteMiddleware extends types.FramesMiddleware<
+      types.JsonValue | undefined,
+      Record<string, unknown>
+    >[],
   >(
-    handler: types.FrameHandlerFunction<any, any>,
+    handler: types.FrameHandlerFunction<
+      types.JsonValue | undefined,
+      Record<string, unknown>
+    >,
     handlerOptions?: types.FramesRequestHandlerFunctionOptions<TPerRouteMiddleware>
   ) {
     const framesHandler = frames(handler, handlerOptions);

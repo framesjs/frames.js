@@ -1,5 +1,5 @@
-import { IncomingMessage } from "http";
-import { NextApiRequest } from "next";
+import type { IncomingMessage } from "node:http";
+import type { NextApiRequest } from "next";
 import type { NextRequest } from "next/server.js";
 
 export function getCurrentUrl(
@@ -7,20 +7,31 @@ export function getCurrentUrl(
 ): URL | undefined {
   const scheme = process.env.NODE_ENV === "production" ? "https://" : "http://";
   const appUrl = process.env.APP_URL || process.env.VERCEL_URL;
-  const host: string | undefined = (req.headers as any)?.host;
+  const host: string | undefined = (
+    req.headers as unknown as Record<string, string> | undefined
+  )?.host;
 
-  const pathname = req.url?.startsWith("/")
-    ? req.url
-    : req.url
-      ? new URL(req.url).pathname + new URL(req.url).search
-      : "";
+  let pathname: string;
+
+  if (req.url?.startsWith("/")) {
+    pathname = req.url;
+  } else if (req.url) {
+    const url = new URL(req.url);
+    pathname = url.pathname + url.search;
+  } else {
+    pathname = "";
+  }
 
   // Construct a valid URL from the Vercel URL environment variable if it exists
-  const parsedAppUrl = appUrl
-    ? appUrl.startsWith("http://") || appUrl.startsWith("https://")
-      ? new URL(pathname, appUrl)
-      : new URL(pathname, scheme + appUrl)
-    : undefined;
+  let parsedAppUrl: URL | undefined;
+
+  if (appUrl) {
+    if (appUrl.startsWith("http://") || appUrl.startsWith("https://")) {
+      parsedAppUrl = new URL(pathname, appUrl);
+    } else {
+      parsedAppUrl = new URL(pathname, scheme + appUrl);
+    }
+  }
 
   // App URL
   if (parsedAppUrl) {
@@ -40,8 +51,9 @@ export function getCurrentUrl(
   return undefined;
 }
 
-function isValidUrl(url: string) {
+function isValidUrl(url: string): boolean {
   try {
+    // eslint-disable-next-line no-new -- constructor will validate the URL
     new URL(url);
     return true;
   } catch (err) {

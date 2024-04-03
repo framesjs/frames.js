@@ -19,10 +19,11 @@ export type HeadersList = {
 
 /** A subset of JS objects that are serializable */
 type AnyJson = boolean | number | string | null | JsonArray | JsonMap;
+// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style -- this is necessary
 interface JsonMap {
   [key: string]: AnyJson;
 }
-interface JsonArray extends Array<AnyJson> {}
+type JsonArray = AnyJson[];
 
 /**
  * FrameState constraints
@@ -78,7 +79,7 @@ export type FrameButtonAutomatedProps = {
 /**
  * Does nothing at the moment, but may be used in the future. It also makes the syntax more logical, as it seems like `Button` `onClick` actually dispatches a state transition, although in reality it works differently.
  */
-export type Dispatch = (actionIndex: ActionIndex) => any;
+export type Dispatch = (actionIndex: ActionIndex) => unknown;
 
 export type FrameButtonProvidedProps =
   | FrameButtonPostRedirectProvidedProps
@@ -135,6 +136,6 @@ export type FrameButtonMintProvidedProps = {
 
 /** See https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional */
 export type NextServerPageProps = {
-  params: {};
-  searchParams?: { [key: string]: string | string[] | undefined };
+  params: Record<string, string | undefined>;
+  searchParams?: Record<string, string | string[] | undefined>;
 };

@@ -1,10 +1,11 @@
-import nock from "nock";
-import { getUserDataForFid } from ".";
+// eslint-disable-next-line import/no-extraneous-dependencies -- this is dev dependency
+import nock, { cleanAll } from "nock";
 import { DEFAULT_HUB_API_URL } from "./default";
+import { getUserDataForFid } from ".";
 
 describe("getUserDataForFid", () => {
   beforeEach(() => {
-    nock.cleanAll();
+    cleanAll();
   });
 
   it("returns latest user data for fid", async () => {

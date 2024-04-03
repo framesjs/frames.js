@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/require-await -- we expect promises */
 import { composeMiddleware } from "./composeMiddleware";
 
 describe("composeMiddleware", () => {
@@ -10,7 +11,7 @@ describe("composeMiddleware", () => {
   it("properly works with just one middleware", async () => {
     const context = { a: 1 };
 
-    const composedMiddleware = composeMiddleware<typeof context, any>([
+    const composedMiddleware = composeMiddleware<typeof context, unknown>([
       async (ctx, next) => {
         ctx.a = 2;
         return next();
@@ -31,7 +32,10 @@ describe("composeMiddleware", () => {
       order: [],
     };
 
-    const composedMiddleware = composeMiddleware<typeof context, Promise<any>>([
+    const composedMiddleware = composeMiddleware<
+      typeof context,
+      Promise<string> | string
+    >([
       async (ctx: typeof context, next) => {
         ctx.order.push(1);
         const result = await next({
@@ -54,7 +58,7 @@ describe("composeMiddleware", () => {
 
         return result;
       },
-      async (ctx: typeof context) => {
+      (ctx: typeof context) => {
         ctx.order.push(3);
 
         expect(ctx).toMatchObject({ 1: true, 2: "test" });

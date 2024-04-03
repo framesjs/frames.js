@@ -1,6 +1,7 @@
-import { FrameTheme, FrameState } from "./types.js";
-import React, { ImgHTMLAttributes, useEffect } from "react";
-import { FrameButton } from "frames.js";
+import type { ImgHTMLAttributes } from "react";
+import React, { useEffect, useState } from "react";
+import type { FrameButton } from "frames.js";
+import type { FrameTheme, FrameState } from "./types";
 
 export const defaultTheme: Required<FrameTheme> = {
   buttonBg: "#fff",
@@ -11,7 +12,7 @@ export const defaultTheme: Required<FrameTheme> = {
   bg: "#efefef",
 };
 
-const getThemeWithDefaults = (theme: FrameTheme) => {
+const getThemeWithDefaults = (theme: FrameTheme): FrameTheme => {
   return {
     ...defaultTheme,
     ...theme,
@@ -25,8 +26,12 @@ export type FrameUIProps = {
 };
 
 /** A UI component only, that should be easy for any app to integrate */
-export function FrameUI({ frameState, theme, FrameImage }: FrameUIProps) {
-  const [isImageLoading, setIsImageLoading] = React.useState(true);
+export function FrameUI({
+  frameState,
+  theme,
+  FrameImage,
+}: FrameUIProps): React.JSX.Element | null {
+  const [isImageLoading, setIsImageLoading] = useState(true);
 
   const isLoading = !!frameState.isLoading || isImageLoading;
 
@@ -53,7 +58,7 @@ export function FrameUI({ frameState, theme, FrameImage }: FrameUIProps) {
       <ImageEl
         src={frameState.frame.image}
         alt="Frame image"
-        width={"100%"}
+        width="100%"
         style={{
           filter: isLoading ? "blur(4px)" : undefined,
           borderTopLeftRadius: `${resolvedTheme.buttonRadius}px`,
@@ -69,9 +74,11 @@ export function FrameUI({ frameState, theme, FrameImage }: FrameUIProps) {
         onLoad={() => {
           setIsImageLoading(false);
         }}
-        onError={() => setIsImageLoading(false)}
+        onError={() => {
+          setIsImageLoading(false);
+        }}
       />
-      {frameState.frame.inputText && (
+      {frameState.frame.inputText ? (
         <input
           className="p-[6px] mx-2 border box-border"
           style={{
@@ -81,9 +88,11 @@ export function FrameUI({ frameState, theme, FrameImage }: FrameUIProps) {
           value={frameState.inputText}
           type="text"
           placeholder={frameState.frame.inputText}
-          onChange={(e) => frameState.setInputText(e.target.value)}
+          onChange={(e) => {
+            frameState.setInputText(e.target.value);
+          }}
         />
-      )}
+      ) : null}
       <div
         style={{
           display: "flex",
@@ -108,7 +117,13 @@ export function FrameUI({ frameState, theme, FrameImage }: FrameUIProps) {
                 color: resolvedTheme.buttonColor,
                 cursor: isLoading ? undefined : "pointer",
               }}
-              onClick={() => frameState.onButtonPress(frameButton, index)}
+              onClick={() => {
+                Promise.resolve(frameState.onButtonPress(frameButton, index)).catch((e: unknown) => {
+                  // eslint-disable-next-line no-console -- provide feedback to the user
+                  console.error(e);
+                });
+              }}
+              // eslint-disable-next-line react/no-array-index-key -- this is fine
               key={index}
             >
               {frameButton.action === "mint" ? `⬗ ` : ""}
@@ -124,7 +139,7 @@ export function FrameUI({ frameState, theme, FrameImage }: FrameUIProps) {
                   height="12"
                   fill="currentColor"
                 >
-                  <path d="M9.504.43a1.516 1.516 0 0 1 2.437 1.713L10.415 5.5h2.123c1.57 0 2.346 1.909 1.22 3.004l-7.34 7.142a1.249 1.249 0 0 1-.871.354h-.302a1.25 1.25 0 0 1-1.157-1.723L5.633 10.5H3.462c-1.57 0-2.346-1.909-1.22-3.004L9.503.429Zm1.047 1.074L3.286 8.571A.25.25 0 0 0 3.462 9H6.75a.75.75 0 0 1 .694 1.034l-1.713 4.188 6.982-6.793A.25.25 0 0 0 12.538 7H9.25a.75.75 0 0 1-.683-1.06l2.008-4.418.003-.006a.036.036 0 0 0-.004-.009l-.006-.006-.008-.001c-.003 0-.006.002-.009.004Z"></path>
+                  <path d="M9.504.43a1.516 1.516 0 0 1 2.437 1.713L10.415 5.5h2.123c1.57 0 2.346 1.909 1.22 3.004l-7.34 7.142a1.249 1.249 0 0 1-.871.354h-.302a1.25 1.25 0 0 1-1.157-1.723L5.633 10.5H3.462c-1.57 0-2.346-1.909-1.22-3.004L9.503.429Zm1.047 1.074L3.286 8.571A.25.25 0 0 0 3.462 9H6.75a.75.75 0 0 1 .694 1.034l-1.713 4.188 6.982-6.793A.25.25 0 0 0 12.538 7H9.25a.75.75 0 0 1-.683-1.06l2.008-4.418.003-.006a.036.036 0 0 0-.004-.009l-.006-.006-.008-.001c-.003 0-.006.002-.009.004Z" />
                 </svg>
               ) : (
                 ""

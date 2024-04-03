@@ -1,8 +1,8 @@
-import { getTokenUrl } from ".";
 import { zora } from "viem/chains";
+import { getTokenUrl } from ".";
 
 describe("getTokenUrl", () => {
-  it("should get token url", async () => {
+  it("should get token url", () => {
     expect(
       getTokenUrl({
         address: "0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df",
@@ -20,7 +20,7 @@ describe("getTokenUrl", () => {
     ).toBe(`eip155:1:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df:123`);
   });
 
-  it("should get token url with chain object", async () => {
+  it("should get token url with chain object", () => {
     expect(
       getTokenUrl({
         address: "0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df",

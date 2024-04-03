@@ -1,4 +1,4 @@
-import type { UrlObject } from "url";
+import type { UrlObject } from "node:url";
 
 type PostButtonProps = {
   /** A 256-byte string which is label of the button */
@@ -63,6 +63,6 @@ export type ButtonProps =
   | LinkButtonProps
   | TxButtonProps;
 
-export const Button: React.FunctionComponent<ButtonProps> = () => {
+export function Button(_: ButtonProps): null {
   return null;
-};
+}

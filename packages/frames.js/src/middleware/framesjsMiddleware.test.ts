@@ -1,3 +1,4 @@
+/* eslint-disable no-console -- we are expecting console.log usage */
 import { redirect } from "../core/redirect";
 import type { FramesContext } from "../core/types";
 import { generatePostButtonTargetURL } from "../core/utils";
@@ -5,10 +6,10 @@ import { framesjsMiddleware } from "./framesjsMiddleware";
 
 describe("framesjsMiddleware middleware", () => {
   it("does not provide pressedButton to context if no supported button is detected", async () => {
-    const context: FramesContext = {
+    const context = {
       url: new URL("https://example.com"),
       request: new Request("https://example.com", { method: "POST" }),
-    } as any;
+    } as unknown as FramesContext;
     const next = jest.fn();
     const middleware = framesjsMiddleware();
 
@@ -31,10 +32,10 @@ describe("framesjsMiddleware middleware", () => {
         query: { test: true },
       },
     });
-    const context: FramesContext = {
+    const context = {
       url: new URL(url),
       request: new Request(url, { method: "POST" }),
-    } as any;
+    } as unknown as FramesContext;
     const next = jest.fn();
     const middleware = framesjsMiddleware();
 
@@ -57,10 +58,10 @@ describe("framesjsMiddleware middleware", () => {
       currentURL: new URL("https://example.com"),
       target: "/test",
     });
-    const context: FramesContext = {
+    const context = {
       url: new URL(url),
       request: new Request(url, { method: "POST" }),
-    } as any;
+    } as unknown as FramesContext;
     const next = jest.fn(() => Promise.resolve(redirect("http://test.com")));
     const middleware = framesjsMiddleware();
 
@@ -86,10 +87,10 @@ describe("framesjsMiddleware middleware", () => {
       currentURL: new URL("https://example.com"),
       target: "/test",
     });
-    const context: FramesContext = {
+    const context = {
       url: new URL(url),
       request: new Request(url, { method: "POST" }),
-    } as any;
+    } as unknown as FramesContext;
     const next = jest.fn(() =>
       Promise.resolve(new Response(null, { status: 404 }))
     );
@@ -114,10 +115,10 @@ describe("framesjsMiddleware middleware", () => {
         query: { test: true },
       },
     });
-    const context: FramesContext = {
+    const context = {
       url: new URL(url),
       request: new Request(url, { method: "POST" }),
-    } as any;
+    } as unknown as FramesContext;
     const next = jest.fn(() => Promise.resolve(redirect("http://test.com")));
     const middleware = framesjsMiddleware();
 
@@ -140,10 +141,10 @@ describe("framesjsMiddleware middleware", () => {
         query: { test: true },
       },
     });
-    const context: FramesContext = {
+    const context = {
       url: new URL(url),
       request: new Request(url, { method: "POST" }),
-    } as any;
+    } as unknown as FramesContext;
     const next = jest.fn(() =>
       Promise.resolve(new Response(null, { status: 200 }))
     );
@@ -167,11 +168,11 @@ describe("framesjsMiddleware middleware", () => {
         query: { test: true },
       },
     });
-    const context: FramesContext = {
+    const context = {
       url: new URL(url),
       request: new Request(url),
       searchParams: {},
-    } as any;
+    } as unknown as FramesContext;
     const next = jest.fn();
     const middleware = framesjsMiddleware();
 

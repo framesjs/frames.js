@@ -15,7 +15,7 @@ export function getTokenFromUrl(url: string): ParsedToken {
   }
 
   return {
-    namespace: namespace,
+    namespace,
     chainId: parseInt(chainId),
     address,
     tokenId: tokenId || undefined,

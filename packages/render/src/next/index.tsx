@@ -1,3 +1,3 @@
-export * from "./GET.js";
-export * from "./POST.js";
-export * from "./FrameImage.js";
+export * from "./GET";
+export * from "./POST";
+export * from "./FrameImage";

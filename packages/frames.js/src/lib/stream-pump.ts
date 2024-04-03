@@ -27,16 +27,13 @@ export class StreamPump {
       new Stream.Readable().readableHighWaterMark;
     this.accumalatedSize = 0;
     this.stream = stream;
-    this.enqueue = this.enqueue.bind(this);
-    this.error = this.error.bind(this);
-    this.close = this.close.bind(this);
   }
 
-  size(chunk: Uint8Array) {
-    return chunk?.byteLength || 0;
+  size(chunk: Uint8Array): number {
+    return chunk.byteLength || 0;
   }
 
-  start(controller: ReadableStreamController<Uint8Array>) {
+  start(controller: ReadableStreamController<Uint8Array>): void {
     this.controller = controller;
     this.stream.on("data", this.enqueue);
     this.stream.once("error", this.error);
@@ -44,11 +41,11 @@ export class StreamPump {
     this.stream.once("close", this.close);
   }
 
-  pull() {
+  pull(): void {
     this.resume();
   }
 
-  cancel(reason?: Error) {
+  cancel(reason?: Error): void {
     if (this.stream.destroy) {
       this.stream.destroy(reason);
     }
@@ -59,17 +56,17 @@ export class StreamPump {
     this.stream.off("close", this.close);
   }
 
-  enqueue(chunk: Uint8Array | string) {
+  enqueue = (chunk: Uint8Array | string): void => {
     if (this.controller) {
       try {
-        let bytes = chunk instanceof Uint8Array ? chunk : Buffer.from(chunk);
+        const bytes = chunk instanceof Uint8Array ? chunk : Buffer.from(chunk);
 
-        let available = (this.controller.desiredSize || 0) - bytes.byteLength;
+        const available = (this.controller.desiredSize || 0) - bytes.byteLength;
         this.controller.enqueue(bytes);
         if (available <= 0) {
           this.pause();
         }
-      } catch (error: any) {
+      } catch (error) {
         this.controller.error(
           new Error(
             "Could not create Buffer, chunk must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object"
@@ -78,53 +75,54 @@ export class StreamPump {
         this.cancel();
       }
     }
-  }
+  };
 
-  pause() {
+  pause(): void {
     if (this.stream.pause) {
       this.stream.pause();
     }
   }
 
-  resume() {
+  resume(): void {
     if (this.stream.readable && this.stream.resume) {
       this.stream.resume();
     }
   }
 
-  close() {
+  close = (): void => {
     if (this.controller) {
       this.controller.close();
       delete this.controller;
     }
-  }
+  };
 
-  error(error: Error) {
+  error = (error: Error): void => {
     if (this.controller) {
       this.controller.error(error);
       delete this.controller;
     }
-  }
+  };
 }
 
-export const createReadableStreamFromReadable = (
+export function createReadableStreamFromReadable(
   source: Readable & { readableHighWaterMark?: number }
-) => {
-  let pump = new StreamPump(source);
-  let stream = new ReadableStream(pump, pump);
+): ReadableStream<Uint8Array> {
+  const pump = new StreamPump(source);
+  const stream = new ReadableStream(pump, pump);
   return stream;
-};
+}
 
-export async function writeReadableStreamToWritable(
-  stream: ReadableStream,
+export async function writeReadableStreamToWritable<R = any>(
+  stream: ReadableStream<R>,
   writable: Writable
-) {
-  let reader = stream.getReader();
-  let flushable = writable as { flush?: Function };
+): Promise<void> {
+  const reader = stream.getReader();
+  const flushable = writable as { flush?: () => void };
 
   try {
+    // eslint-disable-next-line no-constant-condition, @typescript-eslint/no-unnecessary-condition -- this is expected to be exhaustive
     while (true) {
-      let { done, value } = await reader.read();
+      const { done, value } = await reader.read();
 
       if (done) {
         writable.end();
@@ -132,6 +130,7 @@ export async function writeReadableStreamToWritable(
       }
 
       writable.write(value);
+
       if (typeof flushable.flush === "function") {
         flushable.flush();
       }

@@ -1,7 +1,7 @@
 import express from "express";
 import request from "supertest";
-import * as lib from ".";
 import { FRAMES_META_TAGS_HEADER } from "../core";
+import * as lib from ".";
 
 describe("express adapter", () => {
   it.each(["createFrames", "Button"])("exports %s", (exportName) => {
@@ -11,9 +11,9 @@ describe("express adapter", () => {
   it("properly correctly integrates with express.js app", async () => {
     const app = express();
     const frames = lib.createFrames();
-    const expressHandler = frames(async ({ request }) => {
-      expect(request).toBeInstanceOf(Request);
-      expect(request.url).toMatch(/http:\/\/127\.0\.0\.1:\d+\//);
+    const expressHandler = frames(({ request: req }) => {
+      expect(req).toBeInstanceOf(Request);
+      expect(req.url).toMatch(/http:\/\/127\.0\.0\.1:\d+\//);
 
       return {
         image: <span>Nehehe</span>,
@@ -33,9 +33,9 @@ describe("express adapter", () => {
   it("properly correctly integrates with express.js app and returns JSON if asked to", async () => {
     const app = express();
     const frames = lib.createFrames();
-    const expressHandler = frames(async ({ request }) => {
-      expect(request).toBeInstanceOf(Request);
-      expect(request.url).toMatch(/http:\/\/127\.0\.0\.1:\d+\//);
+    const expressHandler = frames(({ request: req }) => {
+      expect(req).toBeInstanceOf(Request);
+      expect(req.url).toMatch(/http:\/\/127\.0\.0\.1:\d+\//);
 
       return {
         image: <span>Nehehe</span>,
@@ -59,7 +59,7 @@ describe("express adapter", () => {
   it("properly handles error response", async () => {
     const app = express();
     const frames = lib.createFrames();
-    const expressHandler = frames(async () => {
+    const expressHandler = frames(() => {
       throw new Error("Something went wrong");
     });
 
@@ -74,9 +74,9 @@ describe("express adapter", () => {
   it("resolves button targets correctly", async () => {
     const app = express();
     const frames = lib.createFrames({ basePath: "/api" });
-    const expressHandler = frames(async ({ request }) => {
-      expect(request).toBeInstanceOf(Request);
-      expect(request.url).toMatch(/http:\/\/127\.0\.0\.1:\d+\//);
+    const expressHandler = frames(({ request: req }) => {
+      expect(req).toBeInstanceOf(Request);
+      expect(req.url).toMatch(/http:\/\/127\.0\.0\.1:\d+\//);
 
       return {
         image: <span>Nehehe</span>,
@@ -96,7 +96,7 @@ describe("express adapter", () => {
       .expect(200)
       .expect("Content-type", "application/json")
       .expect((res) => {
-        expect(res.body["fc:frame:button:1:target"]).toMatch(
+        expect((res.body as Record<string, string>)["fc:frame:button:1:target"]).toMatch(
           /http:\/\/127\.0\.0\.1:\d+\/api\/nested/
         );
       });
@@ -113,7 +113,7 @@ describe("express adapter", () => {
       },
     });
 
-    const expressHandler = frames(async (ctx) => {
+    const expressHandler = frames((ctx) => {
       expect(ctx.state).toEqual({ test: false });
 
       return {

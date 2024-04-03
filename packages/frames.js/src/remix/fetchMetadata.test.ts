@@ -1,14 +1,15 @@
-import nock from "nock";
-import { fetchMetadata } from "./fetchMetadata";
+// eslint-disable-next-line import/no-extraneous-dependencies -- this is dev dependency of root package
+import nock, { disableNetConnect, enableNetConnect } from "nock";
 import type { FrameFlattened } from "..";
+import { fetchMetadata } from "./fetchMetadata";
 
 describe("fetchMetaData", () => {
   beforeAll(() => {
-    nock.disableNetConnect();
+    disableNetConnect();
   });
 
   afterAll(() => {
-    nock.enableNetConnect();
+    enableNetConnect();
   });
 
   it("returns correct metadata from flattened frame", async () => {

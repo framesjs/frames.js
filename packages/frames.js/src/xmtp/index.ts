@@ -1,8 +1,6 @@
-import {
-  validateFramesPost,
-  XmtpOpenFramesRequest,
-} from "@xmtp/frames-validator";
-import { frames } from "@xmtp/proto";
+import type { XmtpOpenFramesRequest } from "@xmtp/frames-validator";
+import { validateFramesPost } from "@xmtp/frames-validator";
+import type { frames } from "@xmtp/proto";
 
 export type XmtpFrameMessageReturnType = frames.FrameActionBody & {
   verifiedWalletAddress: string;
@@ -25,7 +23,7 @@ export async function getXmtpFrameMessage(
 ): Promise<XmtpFrameMessageReturnType> {
   const { actionBody, verifiedWalletAddress } = await validateFramesPost({
     ...frameActionPayload,
-    clientProtocol: frameActionPayload.clientProtocol as `xmtp@${string}`,
+    clientProtocol: frameActionPayload.clientProtocol,
   });
 
   return {

@@ -1,5 +1,5 @@
-import { type FrameActionMessage, Message } from "./farcaster";
 import { bytesToHex } from "viem/utils";
+import { type FrameActionMessage, Message } from "./farcaster";
 import { normalizeCastId } from "./utils";
 import type {
   FrameActionDataParsed,
@@ -46,11 +46,8 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
     inputText: inputTextBytes,
     state: stateBytes,
     transactionId: transactionIdBytes,
-  } = (decodedMessage.data
-    .frameActionBody as typeof decodedMessage.data.frameActionBody) || {};
-  const inputText = inputTextBytes
-    ? Buffer.from(inputTextBytes).toString("utf-8")
-    : undefined;
+  } = decodedMessage.data.frameActionBody;
+  const inputText = Buffer.from(inputTextBytes).toString("utf-8");
   const transactionId =
     transactionIdBytes.length > 0 ? bytesToHex(transactionIdBytes) : undefined;
   const requesterFid = decodedMessage.data.fid;
@@ -63,9 +60,7 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
       ? bytesToHex(decodedMessage.data.frameActionBody.address)
       : undefined;
 
-  const state = stateBytes
-    ? Buffer.from(stateBytes).toString("utf-8")
-    : undefined;
+  const state = Buffer.from(stateBytes).toString("utf-8");
 
   const parsedData: FrameActionDataParsed = {
     buttonIndex,
@@ -125,7 +120,12 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
 
     const requesterCustodyAddress = requesterEthAddresses.find(
       (item) => item.type === "custody"
-    )!.address;
+    )?.address;
+
+    if (!requesterCustodyAddress) {
+      throw new Error("Custody address not found");
+    }
+
     const requesterVerifiedAddresses = requesterEthAddresses
       .filter((item) => item.type === "verified")
       .map((item) => item.address);
@@ -133,8 +133,8 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
     // Perform actions to fetch the HubFrameContext and then return the combined result
     const hubContext: FrameActionHubContext = {
       isValid: validationResult.isValid,
-      casterFollowsRequester: casterFollowsRequester,
-      requesterFollowsCaster: requesterFollowsCaster,
+      casterFollowsRequester,
+      requesterFollowsCaster,
       likedCast,
       recastedCast,
       requesterVerifiedAddresses,
@@ -142,7 +142,7 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
       requesterUserData,
     };
     return { ...parsedData, ...hubContext } as FrameMessageReturnType<T>;
-  } else {
-    return parsedData as FrameMessageReturnType<T>;
   }
+
+  return parsedData as FrameMessageReturnType<T>;
 }

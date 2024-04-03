@@ -8,12 +8,12 @@ describe("hono adapter", () => {
 
   it("correctly integrates with Hono", async () => {
     const frames = lib.createFrames();
-    const handler = frames(async (ctx) => {
+    const handler = frames((ctx) => {
       expect(ctx.request.url).toBe("http://localhost:3000/");
 
       return {
         image: <span>Test</span>,
-        buttons: [<lib.Button action="post">Click me</lib.Button>],
+        buttons: [<lib.Button action="post" key="1">Click me</lib.Button>],
       };
     });
 
@@ -39,7 +39,7 @@ describe("hono adapter", () => {
       },
     });
 
-    const handler = frames(async (ctx) => {
+    const handler = frames((ctx) => {
       expect(ctx.state).toEqual({ test: false });
 
       return {

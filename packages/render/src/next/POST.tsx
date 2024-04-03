@@ -1,14 +1,19 @@
+import type { FrameActionPayload} from "frames.js";
 import { getFrame } from "frames.js";
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 
 /** Proxies frame actions to avoid CORS issues and preserve user IP privacy */
-export async function POST(req: NextRequest) {
-  const body = await req.json();
+export async function POST(req: NextRequest): Promise<Response> {
+  const body = await req.json() as FrameActionPayload;
   const isPostRedirect =
     req.nextUrl.searchParams.get("postType") === "post_redirect";
   const isTransactionRequest =
     req.nextUrl.searchParams.get("postType") === "tx";
-  const postUrl = req.nextUrl.searchParams.get("postUrl")!;
+  const postUrl = req.nextUrl.searchParams.get("postUrl");
+
+  if (!postUrl) {
+    return Response.error();
+  }
 
   try {
     const r = await fetch(postUrl, {
@@ -31,7 +36,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (isTransactionRequest) {
-      const transaction = await r.json();
+      const transaction = await r.json() as JSON;
       return Response.json(transaction);
     }
 
@@ -44,6 +49,7 @@ export async function POST(req: NextRequest) {
 
     return Response.json({ frame, errors });
   } catch (err) {
+    // eslint-disable-next-line no-console -- provide feedback to the user
     console.error(err);
     return Response.error();
   }

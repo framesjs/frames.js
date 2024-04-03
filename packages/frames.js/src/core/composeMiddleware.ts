@@ -25,6 +25,8 @@ export function composeMiddleware<TContext, TReturnType>(
   );
 
   return (ctx) => {
-    return composedMiddleware(ctx, (() => {}) as any);
+    return composedMiddleware(ctx, (() => {
+      return undefined;
+    }) as () => TReturnType);
   };
 }

@@ -7,12 +7,12 @@ describe("cloudflare workers adapter", () => {
 
   it("correctly integrates with Cloudflare Workers", async () => {
     const frames = lib.createFrames();
-    const handler = frames(async (ctx) => {
+    const handler = frames((ctx) => {
       expect(ctx.request.url).toBe("http://localhost:3000/");
 
       return {
         image: <span>Test</span>,
-        buttons: [<lib.Button action="post">Click me</lib.Button>],
+        buttons: [<lib.Button action="post" key="1">Click me</lib.Button>],
       };
     });
 
@@ -35,7 +35,7 @@ describe("cloudflare workers adapter", () => {
       },
     });
 
-    const handler = frames(async (ctx) => {
+    const handler = frames((ctx) => {
       expect(ctx.state).toEqual({ test: false });
 
       return {

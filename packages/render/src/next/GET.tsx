@@ -1,5 +1,6 @@
 import { getFrame } from "frames.js";
-import { NextRequest, NextResponse as NextResponseBase } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse as NextResponseBase } from "next/server";
 
 // this is ugly hack to go around the issue https://github.com/vercel/next.js/pull/61721
 const NextResponse = (
@@ -21,6 +22,7 @@ export async function GET(request: NextRequest): Promise<NextResponseBase> {
 
     return NextResponse.json({ frame, errors });
   } catch (err) {
+    // eslint-disable-next-line no-console -- provide feedback to the developer
     console.error(err);
     return NextResponse.json({ message: err }, { status: 500 });
   }

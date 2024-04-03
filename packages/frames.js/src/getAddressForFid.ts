@@ -40,7 +40,7 @@ export async function getAddressForFid<
       throw new Error(
         `Failed to parse response body as JSON because server hub returned response with status "${response.status}" and body "${await response.clone().text()}"`
       );
-    })) as { messages?: Record<string, any>[] };
+    })) as { messages?: Record<string, unknown>[] };
 
   let address: AddressReturnType<Options> | null = null;
 
@@ -55,7 +55,11 @@ export async function getAddressForFid<
     }
   }
 
-  if (!address && fallbackToCustodyAddress) {
+  if (address) {
+    return address;
+  }
+
+  if (fallbackToCustodyAddress) {
     const publicClient = createPublicClient({
       transport: http(),
       chain: optimism,
@@ -69,5 +73,5 @@ export async function getAddressForFid<
     });
   }
 
-  return address as AddressReturnType<Options>;
+  return address as unknown as AddressReturnType<Options>;
 }

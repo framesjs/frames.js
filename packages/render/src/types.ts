@@ -1,8 +1,8 @@
 import type { Frame, FrameButton, TransactionTargetResponse } from "frames.js";
-import { FarcasterFrameContext } from "./farcaster/index.js";
+import type { FarcasterFrameContext } from "./farcaster/frames";
 
 export type OnTransactionFunc = (
-  t: onTransactionArgs
+  t: OnTransactionArgs
 ) => Promise<`0x${string}` | null>;
 
 export type UseFrameReturn<
@@ -22,7 +22,7 @@ export type UseFrameReturn<
   /** the initial frame. if not specified will fetch it from the url prop */
   frame?: Frame;
   /** a function to handle mint buttons */
-  onMint?: (t: onMintArgs) => void;
+  onMint?: (t: OnMintArgs) => void;
   /** a function to handle transaction buttons, returns the transaction hash or null */
   onTransaction?: OnTransactionFunc;
   /** the context of this frame, used for generating Frame Action payloads */
@@ -65,7 +65,6 @@ export interface SignerStateInstance<
 export type FrameRequest =
   | {
       method: "GET";
-      request: {};
       url: string;
     }
   | {
@@ -97,10 +96,10 @@ export type FrameStackError = FrameStackBase & {
   requestError: unknown;
 };
 
-export type FramesStack = Array<FrameStackSuccess | FrameStackError>;
+export type FramesStack = (FrameStackSuccess | FrameStackError)[];
 
 export type FrameState = {
-  fetchFrame: (request: FrameRequest) => void;
+  fetchFrame: (request: FrameRequest) => void | Promise<void>;
   clearFrameStack: () => void;
   /** The frame at the top of the stack (at index 0) */
   frame: Frame | null;
@@ -110,21 +109,24 @@ export type FrameState = {
   isLoading?: null | FrameStackPending;
   inputText: string;
   setInputText: (s: string) => void;
-  onButtonPress: (frameButton: FrameButton, index: number) => void;
+  onButtonPress: (
+    frameButton: FrameButton,
+    index: number
+  ) => void | Promise<void>;
   /** Whether the frame at the top of the stack has any frame validation errors. Undefined when the frame is not loaded or set */
   isFrameValid: boolean | undefined;
   frameValidationErrors: Record<string, string[]> | undefined | null;
-  error: null | unknown;
+  error: unknown;
   homeframeUrl: string | null;
 };
 
-export type onMintArgs = {
+export type OnMintArgs = {
   target: string;
   frameButton: FrameButton;
   frame: Frame;
 };
 
-export type onTransactionArgs = {
+export type OnTransactionArgs = {
   transactionData: TransactionTargetResponse;
   frameButton: FrameButton;
   frame: Frame;
@@ -141,6 +143,6 @@ export const themeParams = [
 
 export type FrameTheme = Partial<Record<(typeof themeParams)[number], string>>;
 
-export interface FrameActionBodyPayload {}
+export type FrameActionBodyPayload = Record<string, unknown>;
 
 export type FrameContext = FarcasterFrameContext;

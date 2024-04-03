@@ -1,15 +1,17 @@
+import type { IncomingHttpHeaders } from "node:http";
 import type {
   Handler as ExpressHandler,
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import type { IncomingHttpHeaders } from "node:http";
-import { createFrames as coreCreateFrames, types } from "../core";
+import type { types } from "../core";
+import { createFrames as coreCreateFrames } from "../core";
 import {
   createReadableStreamFromReadable,
   writeReadableStreamToWritable,
 } from "../lib/stream-pump";
-import { CoreMiddleware } from "../middleware";
+import type { CoreMiddleware } from "../middleware";
+
 export { Button, type types } from "../core";
 
 type CreateFramesForExpress = types.CreateFramesFunctionDefinition<
@@ -21,6 +23,7 @@ type CreateFramesForExpress = types.CreateFramesFunctionDefinition<
  * Creates Frames instance to use with you Express.js server
  *
  * @example
+ * ```tsx
  * import { createFrames, Button } from 'frames.js/express';
  * import express from 'express';
  *
@@ -37,8 +40,9 @@ type CreateFramesForExpress = types.CreateFramesFunctionDefinition<
  * };
  *
  * app.use("/", expressHandler);
+ * ```
  */
-// @ts-expect-error
+// @ts-expect-error -- this code is correct just function doesn't satisfy the type
 export const createFrames: CreateFramesForExpress =
   function createFramesForExpress(options?: types.FramesOptions<any, any>) {
     const frames = coreCreateFrames(options);
@@ -51,15 +55,21 @@ export const createFrames: CreateFramesForExpress =
     ) {
       const framesHandler = frames(handler, handlerOptions);
 
-      return async function handleExpressRequest(
+      return function handleExpressRequest(
         req: ExpressRequest,
         res: ExpressResponse
       ) {
         // convert express.js req to Web API Request
+        const response = framesHandler(createRequest(req, res));
 
-        const response = await framesHandler(createRequest(req, res));
-
-        sendResponse(res, response);
+        Promise.resolve(response)
+          .then((resolvedResponse) => sendResponse(res, resolvedResponse))
+          .catch((error) => {
+            // eslint-disable-next-line no-console -- provide feedback
+            console.error(error);
+            res.writeHead(500, { "content-type": "text/plain" });
+            res.end("Inernal server error");
+          });
       };
     };
   };
@@ -69,17 +79,19 @@ function createRequest(req: ExpressRequest, res: ExpressResponse): Request {
   // `X-Forwarded-Host` or `Host`
   const [, hostnamePort] = req.get("X-Forwarded-Host")?.split(":") ?? [];
   const [, hostPort] = req.get("Host")?.split(":") ?? [];
-  let port = hostnamePort || hostPort;
+  const port = hostnamePort || hostPort;
   // Use req.hostname here as it respects the "trust proxy" setting
-  let resolvedHost = `${req.hostname}${port ? `:${port}` : ""}`;
+  const resolvedHost = `${req.hostname}${port ? `:${port}` : ""}`;
   // Use `req.originalUrl` so Remix is aware of the full path
-  let url = new URL(`${req.protocol}://${resolvedHost}${req.originalUrl}`);
+  const url = new URL(`${req.protocol}://${resolvedHost}${req.originalUrl}`);
 
   // Abort action/loaders once we can no longer write a response
-  let controller = new AbortController();
-  res.on("close", () => controller.abort());
+  const controller = new AbortController();
+  res.on("close", () => {
+    controller.abort();
+  });
 
-  let init: RequestInit = {
+  const init: RequestInit = {
     method: req.method,
     headers: convertIncomingHTTPHeadersToHeaders(req.headers),
     signal: controller.signal,
@@ -111,11 +123,14 @@ function convertIncomingHTTPHeadersToHeaders(
   return headers;
 }
 
-async function sendResponse(res: ExpressResponse, response: Response) {
+async function sendResponse(
+  res: ExpressResponse,
+  response: Response
+): Promise<void> {
   res.statusMessage = response.statusText;
   res.status(response.status);
 
-  for (let [key, value] of response.headers.entries()) {
+  for (const [key, value] of response.headers.entries()) {
     res.setHeader(key, value);
   }
 

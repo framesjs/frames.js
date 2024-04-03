@@ -60,7 +60,7 @@ export default function App({
   }, []);
 
   useEffect(() => {
-    if (url !== urlInput && url) {
+    if (url) {
       setUrlInput(url);
     }
   }, [url]);
