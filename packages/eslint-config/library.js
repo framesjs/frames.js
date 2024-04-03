@@ -39,5 +39,6 @@ module.exports = {
     "unicorn/filename-case": "off",
     eqeqeq: "off",
     "no-await-in-loop": "off",
+    "no-implicit-coercion": "off",
   },
 };
