@@ -161,7 +161,7 @@ export function useFrame<
         if (!response.ok) {
           throw new Error(`Failed to fetch frame: ${response.statusText}`);
         }
-        
+
         newFrame = (await response.json()) as ReturnType<typeof getFrame>;
         const tend = new Date();
 
@@ -268,9 +268,19 @@ export function useFrame<
   const fetchFrameRef = useRef(fetchFrame);
   fetchFrameRef.current = fetchFrame;
 
+  /**
+   * This prevents the initial frame from being loaded twice.
+   */
+  const currentlyLoadingURLRef = useRef<string | null>(null);
+
   // Load initial frame if not defined
   useEffect(() => {
-    if (!initialFrame && homeframeUrl) {
+    if (
+      !initialFrame &&
+      homeframeUrl &&
+      homeframeUrl !== currentlyLoadingURLRef.current
+    ) {
+      currentlyLoadingURLRef.current = homeframeUrl;
       fetchFrameRef
         .current({
           url: homeframeUrl,
@@ -278,6 +288,9 @@ export function useFrame<
         })
         .catch((e) => {
           console.error(e);
+        })
+        .finally(() => {
+          currentlyLoadingURLRef.current = null;
         });
     }
   }, [initialFrame, homeframeUrl]);
@@ -479,7 +492,11 @@ export function useFrame<
   }
 
   async function onTransactionRequest({
-    buttonIndex, postInputText, frameButton, target, state,
+    buttonIndex,
+    postInputText,
+    frameButton,
+    target,
+    state,
   }: {
     frameButton: FrameButton;
     buttonIndex: number;
@@ -527,7 +544,8 @@ export function useFrame<
           ...body,
         }),
       });
-      const transactionResponse = (await response.json()) as TransactionTargetResponse;
+      const transactionResponse =
+        (await response.json()) as TransactionTargetResponse;
       return transactionResponse;
     } catch {
       throw new Error(
