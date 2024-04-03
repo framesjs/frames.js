@@ -43,7 +43,7 @@ const handleRequest = frames(async (ctx) => {
     ),
     buttons: !ctx.url.searchParams.has("saidGm")
       ? [
-          <Button action="post" key="1" target={{ query: { saidGm: true } }}>
+          <Button action="post" target={{ query: { saidGm: true } }}>
             Say GM
           </Button>,
         ]
