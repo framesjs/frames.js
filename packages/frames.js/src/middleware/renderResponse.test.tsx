@@ -1,5 +1,5 @@
 /* eslint-disable no-console -- we are expecting console usage */
-/* eslint-disable @typescript-eslint/require-await -- middleware expectes async functions */
+/* eslint-disable @typescript-eslint/require-await -- middleware expects async functions */
 /* eslint-disable testing-library/render-result-naming-convention -- we are not using react testing library here */
 import * as vercelOg from "@vercel/og";
 import { FRAMES_META_TAGS_HEADER } from "../core";
