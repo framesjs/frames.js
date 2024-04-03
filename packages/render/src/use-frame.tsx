@@ -218,6 +218,11 @@ export function useFrame<
             ...frameRequest.request.body,
           }),
         });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch frame: ${response.statusText}`);
+        }
+
         const dataRes = (await response.json()) as
           | ReturnType<typeof getFrame>
           | { location: string };
