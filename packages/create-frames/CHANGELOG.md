@@ -1,5 +1,13 @@
 # create-frames
 
+## 0.1.1
+
+### Patch Changes
+
+- 445cf3a: fix: missing basePath in next template
+- 3202ae6: fix: debugger dependency version
+- 0865ea1: fix: bump template versions
+
 ## 0.1.0
 
 ### Minor Changes

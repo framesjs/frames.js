@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.11.3
+
+### Patch Changes
+
+- 7d22df3: fix: minor bugs and code cleanup
+
 ## 0.11.2
 
 ### Patch Changes

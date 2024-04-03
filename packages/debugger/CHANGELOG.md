@@ -1,5 +1,13 @@
 # @frames.js/debugger
 
+## 0.1.14
+
+### Patch Changes
+
+- 7d22df3: fix: minor bugs and code cleanup
+- bdfad03: fix: correctly manipulate url on load and also on change
+- d6256cf: fix: properly split dev dependencies in debugger
+
 ## 0.1.13
 
 ### Patch Changes

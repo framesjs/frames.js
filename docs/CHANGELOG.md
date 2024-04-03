@@ -1,5 +1,13 @@
 # docs
 
+## 0.0.6
+
+### Patch Changes
+
+- b4c6de9: docs: state management
+- Updated dependencies [7d22df3]
+  - frames.js@0.11.3
+
 ## 0.0.5
 
 ### Patch Changes

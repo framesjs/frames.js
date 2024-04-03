@@ -1441,49 +1441,6 @@
   resolved "https://registry.yarnpkg.com/@floating-ui/utils/-/utils-0.2.1.tgz#16308cea045f0fc777b6ff20a9f25474dd8293d2"
   integrity sha512-9TANp6GPoMtYzQdt54kfAyMmz1+osLlXdg2ENroU7zzrtflTLrrC/lgrIfaSe+Wu0b89GKccT7vxXA0MoAIO+Q==
 
-"@frames.js/debugger@^":
-  version "0.1.9"
-  resolved "https://registry.yarnpkg.com/@frames.js/debugger/-/debugger-0.1.9.tgz#d3d45ec1f565b5facfd87d41eb8c3b8e9e2ad2e1"
-  integrity sha512-g7019xfCLMNHoTyaI+TY2L0ZxZnZH2DEvZQAlIeMmRHW0zhwXoKrgGa8QmO0MQtcB6XA3smaO4bM/7U0Yij0pA==
-  dependencies:
-    "@farcaster/core" "^0.14.7"
-    "@noble/ed25519" "^2.0.0"
-    "@radix-ui/react-accordion" "^1.1.2"
-    "@radix-ui/react-checkbox" "^1.0.4"
-    "@radix-ui/react-hover-card" "^1.0.7"
-    "@radix-ui/react-popover" "^1.0.7"
-    "@radix-ui/react-slot" "^1.0.2"
-    "@radix-ui/react-switch" "^1.0.3"
-    "@radix-ui/react-tabs" "^1.0.4"
-    "@rainbow-me/rainbowkit" "^2.0.2"
-    "@tanstack/react-query" "^5.22.2"
-    "@types/node" "^18.17.0"
-    "@types/react" "^18.2.0"
-    "@types/react-dom" "^18.2.0"
-    "@types/yargs" "^17.0.32"
-    "@xmtp/frames-validator" "^0.5.2"
-    autoprefixer "^10.0.1"
-    class-variance-authority "^0.7.0"
-    clsx "^2.1.0"
-    eslint "^8.56.0"
-    eslint-config-next "^14.1.0"
-    frames.js "^0.9.0"
-    is-port-reachable "^4.0.0"
-    lucide-react "^0.344.0"
-    next "^14.1.3"
-    open "^10.0.3"
-    postcss "^8"
-    qrcode.react "^3.1.0"
-    react "^18.2.0"
-    react-dom "^18.2.0"
-    tailwind-merge "^2.2.1"
-    tailwindcss "^3.3.0"
-    tailwindcss-animate "^1.0.7"
-    typescript "^5.3.3"
-    viem "^2.7.12"
-    wagmi "^2.5.7"
-    yargs "^17.7.2"
-
 "@hono/node-server@^1.2.3":
   version "1.8.2"
   resolved "https://registry.yarnpkg.com/@hono/node-server/-/node-server-1.8.2.tgz#940b3a0dbd7adbc510b79b626f3603258493354b"
@@ -7648,17 +7605,6 @@ fraction.js@^4.3.7:
   resolved "https://registry.yarnpkg.com/fraction.js/-/fraction.js-4.3.7.tgz#06ca0085157e42fda7f9e726e79fefc4068840f7"
   integrity sha512-ZsDfxO51wGAXREY55a7la9LScWpwv9RxIrYABrlvOFBlH/ShPnrtsXeuUIfXKKOVicNxQ+o8JTbJvjS4M89yew==
 
-frames.js@^0.9.0:
-  version "0.9.6"
-  resolved "https://registry.yarnpkg.com/frames.js/-/frames.js-0.9.6.tgz#dcf68f88a0237451dba11fbebcfd7df5a004c649"
-  integrity sha512-NtIs9kWdLnXBB3a7IAnYP3Iv4V+x1dHsKEwacVfWVaFd+3jnzBfiIbvo9dnMuYzFOOyaiPWmZYrff0aTygJP7A==
-  dependencies:
-    "@farcaster/core" "^0.14.7"
-    "@vercel/og" "^0.6.2"
-    cheerio "^1.0.0-rc.12"
-    protobufjs "^7.2.6"
-    viem "^2.7.8"
-
 fresh@0.5.2:
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/fresh/-/fresh-0.5.2.tgz#3d8cadd90d976569fa835ab1f8e4b23a105605a7"
@@ -13456,16 +13402,7 @@ string-length@^4.0.1:
     char-regex "^1.0.2"
     strip-ansi "^6.0.0"
 
-"string-width-cjs@npm:string-width@^4.2.0":
-  version "4.2.3"
-  resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
-  integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
-  dependencies:
-    emoji-regex "^8.0.0"
-    is-fullwidth-code-point "^3.0.0"
-    strip-ansi "^6.0.1"
-
-string-width@^4.1.0, string-width@^4.2.0, string-width@^4.2.3:
+"string-width-cjs@npm:string-width@^4.2.0", string-width@^4.1.0, string-width@^4.2.0, string-width@^4.2.3:
   version "4.2.3"
   resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
   integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
@@ -13572,14 +13509,7 @@ stringify-entities@^4.0.0:
     character-entities-html4 "^2.0.0"
     character-entities-legacy "^3.0.0"
 
-"strip-ansi-cjs@npm:strip-ansi@^6.0.1":
-  version "6.0.1"
-  resolved "https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-6.0.1.tgz#9e26c63d30f53443e9489495b2105d37b67a85d9"
-  integrity sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==
-  dependencies:
-    ansi-regex "^5.0.1"
-
-strip-ansi@^6.0.0, strip-ansi@^6.0.1:
+"strip-ansi-cjs@npm:strip-ansi@^6.0.1", strip-ansi@^6.0.0, strip-ansi@^6.0.1:
   version "6.0.1"
   resolved "https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-6.0.1.tgz#9e26c63d30f53443e9489495b2105d37b67a85d9"
   integrity sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==
@@ -15034,7 +14964,7 @@ wrangler@3.39.0, wrangler@^3.39.0:
   optionalDependencies:
     fsevents "~2.3.2"
 
-"wrap-ansi-cjs@npm:wrap-ansi@^7.0.0":
+"wrap-ansi-cjs@npm:wrap-ansi@^7.0.0", wrap-ansi@^7.0.0:
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"
   integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==
@@ -15047,15 +14977,6 @@ wrap-ansi@^6.2.0:
   version "6.2.0"
   resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-6.2.0.tgz#e9393ba07102e6c91a3b221478f0257cd2856e53"
   integrity sha512-r6lPcBGxZXlIcymEu7InxDMhdW0KDxpLgoFLcguasxCaJ/SOIZwINatK9KY/tf+ZrlywOKU0UDj3ATXUBfxJXA==
-  dependencies:
-    ansi-styles "^4.0.0"
-    string-width "^4.1.0"
-    strip-ansi "^6.0.0"
-
-wrap-ansi@^7.0.0:
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"
-  integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==
   dependencies:
     ansi-styles "^4.0.0"
     string-width "^4.1.0"

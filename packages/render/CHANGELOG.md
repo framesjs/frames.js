@@ -1,5 +1,17 @@
 # @frames.js/render
 
+## 0.1.0
+
+### Minor Changes
+
+- 84283a8: feat: rename types
+
+### Patch Changes
+
+- bdfad03: fix: correctly detect image change in order to properly indicate loading state
+- Updated dependencies [7d22df3]
+  - frames.js@0.11.3
+
 ## 0.0.3
 
 ### Patch Changes

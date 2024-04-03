@@ -1,5 +1,13 @@
 # framesjs-starter
 
+## 0.2.11
+
+### Patch Changes
+
+- b4c6de9: fix: state management generic type demo
+- Updated dependencies [7d22df3]
+  - frames.js@0.11.3
+
 ## 0.2.10
 
 ### Patch Changes
