@@ -1,19 +1,19 @@
-import {
+import type {
   CastId,
+  FrameActionMessage
+} from "@farcaster/core";
+import {
   NobleEd25519Signer,
   makeFrameAction,
   FarcasterNetwork,
   Message,
-  FrameActionBody,
-  FrameActionMessage,
+  FrameActionBody
 } from "@farcaster/core";
-import { FrameButton } from "frames.js";
-import { FrameActionBodyPayload, FrameContext } from "../types.js";
-import { FarcasterSignerState } from "./signers.js";
 import { hexToBytes } from "viem";
+import type { FrameButton } from "frames.js";
+import type { FrameContext } from "../types";
+import type { FarcasterSignerState } from "./signers";
 
-export interface FarcasterFrameActionBodyPayload
-  extends FrameActionBodyPayload {}
 
 export type FarcasterFrameContext = {
   /** Connected address of user, only sent with transaction data request */
@@ -80,16 +80,16 @@ export const signFrameAction = async ({
   }
 
   const searchParams = new URLSearchParams({
-    postType: transactionId ? "post" : frameButton?.action || "post",
+    postType: transactionId ? "post" : frameButton.action,
     postUrl: target ?? "",
   });
 
   return {
-    searchParams: searchParams,
+    searchParams,
     body: {
       untrustedData: {
         fid: signer.fid,
-        url: url,
+        url,
         messageHash: `0x${Buffer.from(message.hash).toString("hex")}`,
         timestamp: message.data.timestamp,
         network: 1,
@@ -169,5 +169,5 @@ export async function createFrameActionMessageWithSignerKey(
     Message.encode(message._unsafeUnwrap()).finish()
   ).toString("hex");
 
-  return { message: message.unwrapOr(null), trustedBytes: trustedBytes };
+  return { message: message.unwrapOr(null), trustedBytes };
 }
