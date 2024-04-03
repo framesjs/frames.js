@@ -58,7 +58,7 @@ export function getFrameHtmlHead(frame: Frame): string {
       button.target
         ? `<meta name="fc:frame:button:${index + 1}:target" content="${button.target}"/>`
         : "",
-      button.post_url
+      button.action === "tx" && button.post_url
         ? `<meta name="fc:frame:button:${index + 1}:post_url" content="${button.post_url}"/>`
         : "",
     ]) ?? []),
@@ -83,7 +83,7 @@ export function getFrameHtmlHead(frame: Frame): string {
           button.target
             ? `<meta name="of:button:${index + 1}:target" content="${button.target}"/>`
             : "",
-          button.post_url
+          button.action === "tx" && button.post_url
             ? `<meta name="of:button:${index + 1}:post_url" content="${button.post_url}"/>`
             : "",
         ]) ?? []),

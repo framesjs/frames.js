@@ -11,7 +11,7 @@ export type Frame = {
   /** A valid frame version string. The string must be a release date (e.g. 2020-01-01 ) or vNext. Apps must ignore versions they do not understand. Currently, the only valid version is vNext.  */
   version: FrameVersion;
   /** A 256-byte string which contains a valid URL to send the Signature Packet to. If this prop is not present, apps must POST to the frame URL. */
-  postUrl: string;
+  postUrl?: string;
   /** A page may contain 0 to 4 buttons. If more than 1 button is present, the idx values must be in sequence starting from 1 (e.g. 1, 2 3). If a broken sequence is present (e.g 1, 2, 4), apps must not render the frame and instead render an OG embed. */
   buttons?: FrameButtonsType;
   /** An image which should have an aspect ratio of 1.91:1 or 1:1 */
@@ -34,6 +34,7 @@ type FrameOptionalStringKeys =
   | "fc:frame:image:aspect_ratio"
   | "fc:frame:input:text"
   | "fc:frame:state"
+  | "fc:frame:post_url"
   | keyof OpenFramesProperties;
 type FrameOptionalActionButtonTypeKeys =
   `fc:frame:button:${1 | 2 | 3 | 4}:action`;
@@ -56,7 +57,6 @@ type MapFrameOptionalKeyToValueType<K extends FrameKeys> =
 type FrameRequiredProperties = {
   "fc:frame": FrameVersion;
   "fc:frame:image": string;
-  "fc:frame:post_url": string;
 };
 
 export type OpenFramesProperties = {
@@ -90,8 +90,6 @@ export interface FrameButtonLink {
   action: "link";
   /** required for action type 'link' */
   target: string;
-  post_url?: undefined;
-
   /** A 256-byte string which is label of the button */
   label: string;
 }
@@ -108,8 +106,6 @@ export interface FrameButtonMint {
   action: "mint";
   /** The target  property MUST be a valid [CAIP-10](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md) address, plus an optional token_id . */
   target: string;
-  post_url?: undefined;
-
   /** A 256-byte string which is label of the button */
   label: string;
 }
@@ -124,7 +120,6 @@ export interface FrameButtonPost {
    * POST the packet to fc:frame:post_url if target was not present.
    */
   target?: string;
-  post_url?: undefined;
   /** A 256-byte string which is label of the button */
   label: string;
 }

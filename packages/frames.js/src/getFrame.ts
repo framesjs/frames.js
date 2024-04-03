@@ -246,7 +246,6 @@ export function getFrame({
         return {
           label: button.label,
           action: button.action,
-          post_url: button.post_url,
           target: button.target,
         };
 
@@ -261,7 +260,6 @@ export function getFrame({
       return {
         label: button.label,
         action: button.action,
-        post_url: button.post_url,
         target: button.target,
       };
     });
