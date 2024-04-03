@@ -20,9 +20,12 @@ import { FrameDebugger } from "./components/frame-debugger";
 import pkg from "../package.json";
 import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
 import { MockHubActionContext } from "./utils/mock-hub-utils";
+
 const LoginWindow = dynamic(() => import("./components/create-signer"), {
   ssr: false,
 });
+
+const FALLBACK_URL = process.env.NEXT_PUBLIC_HOST || 'http://localhost:3000';
 
 export default function App({
   searchParams,
@@ -30,16 +33,21 @@ export default function App({
   searchParams: Record<string, string>;
 }): JSX.Element {
   const router = useRouter();
+  /**
+   * Parse the URL from the query string. This will also cause debugger to automatically load the frame.
+   */
   const url = useMemo(() => {
-    const fallbackURL = process.env.NEXT_PUBLIC_HOST || 'http://localhost:3000';
-
     try {
-      const parsedUrl = new URL(searchParams.url || fallbackURL);
+      if (!searchParams.url) {
+        return undefined;
+      }
+
+      const parsedUrl = new URL(searchParams.url);
 
       return parsedUrl.toString();
     } catch (e) {
       console.error(e);
-      return fallbackURL
+      return undefined;
     }
   }, [searchParams.url]);
   const [mockHubContext, setMockHubContext] = useState<
@@ -209,7 +217,7 @@ export default function App({
               type="text"
               name="url"
               className="w-[400px] px-2 py-1 border border-gray-400 rounded-l rounded-r-none"
-              defaultValue={url}
+              defaultValue={url ?? FALLBACK_URL}
               placeholder="Enter URL"
             />
             <Button className="rounded-l-none">Debug</Button>
