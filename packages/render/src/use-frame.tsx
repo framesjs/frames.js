@@ -157,6 +157,11 @@ export function useFrame<
       let response;
       try {
         response = await fetch(proxiedUrl);
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch frame: ${response.statusText}`);
+        }
+        
         newFrame = (await response.json()) as ReturnType<typeof getFrame>;
         const tend = new Date();
 
