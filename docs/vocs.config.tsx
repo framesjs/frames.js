@@ -23,6 +23,10 @@ const sidebar = [
         link: "/guides/multiple-frames",
       },
       {
+        text: "State Management",
+        link: "/guides/state-management",
+      },
+      {
         text: "Deploying your Frame",
         link: "/guides/deployment",
       },
@@ -87,9 +91,9 @@ const sidebar = [
         link: "/reference/core/remix",
       },
       {
-        text: 'Cloudflare Workers',
-        link: '/reference/core/cloudflare-workers'
-      }
+        text: "Cloudflare Workers",
+        link: "/reference/core/cloudflare-workers",
+      },
     ],
   },
   {
