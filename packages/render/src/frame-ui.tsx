@@ -36,18 +36,32 @@ export function FrameUI({
   const isLoading = !!frameState.isLoading || isImageLoading;
 
   useEffect(() => {
-    if (frameState.frame?.image) setIsImageLoading(true);
-  }, [frameState]);
+    if (frameState.frame?.image) {
+      setIsImageLoading(true);
+    }
+  }, [frameState.frame?.image]);
 
   const resolvedTheme = getThemeWithDefaults(theme ?? {});
-  if (!frameState.homeframeUrl) return <div>Missing frame url</div>;
+
+  if (!frameState.homeframeUrl) {
+    return <div>Missing frame url</div>;
+  }
+
   if (frameState.error) {
     return <div>Failed to load Frame</div>;
   }
-  if (frameState.homeframeUrl && !frameState.frame && !frameState.isLoading)
+
+  if (frameState.homeframeUrl && !frameState.frame && !frameState.isLoading) {
     return <div>Failed to load Frame</div>;
-  if (!frameState.frame) return null;
-  if (!frameState.isFrameValid) return <div>Invalid frame</div>;
+  }
+
+  if (!frameState.frame) {
+    return null;
+  }
+
+  if (!frameState.isFrameValid) {
+    return <div>Invalid frame</div>;
+  }
 
   const ImageEl = FrameImage ? FrameImage : "img";
   return (
