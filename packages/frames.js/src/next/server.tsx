@@ -1,10 +1,11 @@
-import { FrameActionMessage } from "../farcaster";
 import { headers } from "next/headers";
+import { ImageResponse } from "@vercel/og";
 import {
   type NextRequest,
   NextResponse as NextResponseBase,
 } from "next/server";
-import React from "react";
+import React, {Children, isValidElement} from "react";
+import type { FrameActionMessage } from "../farcaster";
 import {
   type FrameMessageReturnType,
   type GetFrameMessageOptions,
@@ -31,10 +32,9 @@ import type {
   RedirectMap,
   RedirectHandler,
 } from "./types";
+
 export * from "./types";
 
-import { ImageResponse } from "@vercel/og";
-import type { SatoriOptions } from "satori";
 
 // this is ugly hack to go around the issue https://github.com/vercel/next.js/pull/61721
 const NextResponse = (
@@ -60,7 +60,7 @@ export async function validateActionSignature(
   if (options?.hubHttpUrl) {
     if (!options.hubHttpUrl.startsWith("http")) {
       throw new Error(
-        `frames.js: Invalid Hub URL: ${options?.hubHttpUrl}, ensure you have included the protocol (e.g. https://)`
+        `frames.js: Invalid Hub URL: ${options.hubHttpUrl}, ensure you have included the protocol (e.g. https://)`
       );
     }
   }
@@ -95,12 +95,13 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
   if (options?.hubHttpUrl) {
     if (!options.hubHttpUrl.startsWith("http")) {
       throw new Error(
-        `frames.js: Invalid Hub URL: ${options?.hubHttpUrl}, ensure you have included the protocol (e.g. https://)`
+        `frames.js: Invalid Hub URL: ${options.hubHttpUrl}, ensure you have included the protocol (e.g. https://)`
       );
     }
   }
 
   if (!frameActionPayload) {
+    // eslint-disable-next-line no-console -- provide a feedback to user on server
     console.log(
       "info: no frameActionPayload, this is expected for the homeframe"
     );
@@ -109,10 +110,6 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
   }
 
   const result = await _getFrameMessage(frameActionPayload, options);
-
-  if (!result) {
-    throw new Error("frames.js: something went wrong getting frame message");
-  }
 
   return result;
 }
@@ -149,11 +146,11 @@ export function createPreviousFrame<T extends FrameState = FrameState>(
     PreviousFrame<T>,
     "postBody" | "prevState" | "pathname" | "prevRedirects"
   >,
-  headers: HeadersList
+  headersList: HeadersList
 ): PreviousFrame<T> {
   return {
     ...previousFrameFromParams,
-    headers: headers,
+    headers: headersList,
   };
 }
 
@@ -169,39 +166,39 @@ export function parseFrameParams<T extends FrameState = FrameState>(
   "postBody" | "prevState" | "pathname" | "prevRedirects"
 > {
   const frameActionReceived =
-    searchParams?.postBody && typeof searchParams?.postBody === "string"
-      ? (JSON.parse(searchParams?.postBody) as FrameActionPayload)
+    searchParams?.postBody && typeof searchParams.postBody === "string"
+      ? (JSON.parse(searchParams.postBody) as FrameActionPayload)
       : null;
 
   const framePrevState =
-    searchParams?.prevState && typeof searchParams?.prevState === "string"
-      ? (JSON.parse(searchParams?.prevState) as T)
+    searchParams?.prevState && typeof searchParams.prevState === "string"
+      ? (JSON.parse(searchParams.prevState) as T)
       : null;
 
   const framePrevRedirects =
     searchParams?.prevRedirects &&
-    typeof searchParams?.prevRedirects === "string"
-      ? (JSON.parse(searchParams?.prevRedirects) as RedirectMap)
+    typeof searchParams.prevRedirects === "string"
+      ? (JSON.parse(searchParams.prevRedirects) as RedirectMap)
       : null;
 
   const pathname =
-    searchParams?.pathname && typeof searchParams?.pathname === "string"
-      ? searchParams?.pathname
+    searchParams?.pathname && typeof searchParams.pathname === "string"
+      ? searchParams.pathname
       : undefined;
 
   return {
     postBody: frameActionReceived,
     prevState: framePrevState,
-    pathname: pathname,
+    pathname,
     prevRedirects: framePrevRedirects,
   };
 }
 
 /**
  *
- * @param reducer a function taking a state and action and returning another action. This reducer is always called in the Frame to compute the state by calling it with the previous Frame + action
- * @param initialState the initial state to use if there was no previous action
- * @param initializerArg the previousFrame object to use to initialize the state
+ * @param reducer - a function taking a state and action and returning another action. This reducer is always called in the Frame to compute the state by calling it with the previous Frame + action
+ * @param initialState - the initial state to use if there was no previous action
+ * @param initializerArg - the previousFrame object to use to initialize the state
  * @returns An array of [State, Dispatch] where State is your reducer state, and dispatch is a function that doesn't do anything atm
  * 
  * @deprecated please upgrade to new API, see https://framesjs.org/reference/core/next.
@@ -219,12 +216,14 @@ export function useFramesReducer<T extends FrameState = FrameState>(
   }
 
   // doesn't do anything right now, but exists to make Button onClicks feel more natural and not magic.
-  function dispatch(actionIndex: ActionIndex) {}
+  function dispatch(_actionIndex: ActionIndex): void {
+    return undefined;
+  }
 
   return [frameReducerInit(initializerArg), dispatch];
 }
 
-function toUrl(req: NextRequest) {
+function toUrl(req: NextRequest): URL {
   const reqUrl = new URL(req.url);
 
   if (process.env.NEXT_PUBLIC_HOST) {
@@ -249,6 +248,7 @@ function toUrl(req: NextRequest) {
   reqUrl.host = host || reqUrl.host;
   reqUrl.port = port;
 
+  // eslint-disable-next-line no-console -- provide feedback to user on server
   console.info(
     `frames.js: NEXT_PUBLIC_HOST not set, using x-forwarded-* headers for redirect (${reqUrl.toString()})`
   );
@@ -259,7 +259,7 @@ function toUrl(req: NextRequest) {
 /**
  * A function ready made for next.js in order to directly export it, which handles all incoming `POST` requests that apps will trigger when users press buttons in your Frame.
  * It handles all the redirecting for you, correctly, based on the <FrameContainer> props defined by the Frame that triggered the user action.
- * @param req a `NextRequest` object from `next/server` (Next.js app router server components)
+ * @param req - a `NextRequest` object from `next/server` (Next.js app router server components)
  * @returns NextResponse
  * 
  * @deprecated please upgrade to new API, see https://framesjs.org/reference/core/next.
@@ -269,15 +269,20 @@ export async function POST(
   /** unused, but will most frequently be passed a res: NextResponse object. Should stay in here for easy consumption compatible with next.js */
   res: typeof NextResponse,
   redirectHandler?: RedirectHandler
-) {
-  const body = await req.json();
+): Promise<Response> {
+  const body = await req.json() as FrameActionPayload;
 
   const url = new URL(req.url);
   let newUrl = toUrl(req);
-  const isFullUrl =
-    url.searchParams.get("p")?.startsWith("http://") ||
-    url.searchParams.get("p")?.startsWith("https://");
-  if (isFullUrl) newUrl = new URL(url.searchParams.get("p")!);
+  const pathFromRequest = url.searchParams.get("p");
+
+  const isFullUrl = typeof pathFromRequest === 'string' && (
+    pathFromRequest.startsWith("http://") ||
+    pathFromRequest.startsWith("https://"));
+
+  if (isFullUrl) {
+    newUrl = new URL(pathFromRequest);
+  }
   else newUrl.pathname = url.searchParams.get("p") || "";
 
   // decompress from 256 bytes limitation of post_url
@@ -293,27 +298,20 @@ export async function POST(
     Object.fromEntries(url.searchParams.entries())
   );
 
+  const clickedButtonIndex = prevFrame.postBody?.untrustedData.buttonIndex;
+  const clickedButtonHref = clickedButtonIndex ? prevFrame.prevRedirects?.[clickedButtonIndex] : null;
+
   // Handle 'post_redirect' buttons with href values
-  if (
-    prevFrame.postBody?.untrustedData.buttonIndex &&
-    prevFrame.prevRedirects?.hasOwnProperty(
-      prevFrame.postBody?.untrustedData.buttonIndex
-    ) &&
-    prevFrame.prevRedirects[prevFrame.postBody?.untrustedData.buttonIndex]
-  ) {
+  if (clickedButtonHref) {
     return NextResponse.redirect(
-      prevFrame.prevRedirects[
-        `${prevFrame.postBody?.untrustedData.buttonIndex}`
-      ]!,
+      clickedButtonHref,
       { status: 302 }
     );
   }
   // Handle 'post_redirect' buttons without defined href values
   if (
     prevFrame.postBody?.untrustedData.buttonIndex &&
-    prevFrame.prevRedirects?.hasOwnProperty(
-      `_${prevFrame.postBody?.untrustedData.buttonIndex}`
-    )
+    prevFrame.prevRedirects && `_${prevFrame.postBody.untrustedData.buttonIndex}` in prevFrame.prevRedirects
   ) {
     if (!redirectHandler) {
       // Error!
@@ -398,7 +396,7 @@ function isElementFrameInput(
  * 
  * A React functional component that Wraps a Frame and processes it, validating certain properties of the Frames spec, as well as adding other props. It also generates the postUrl.
  * It throws an error if the Frame is invalid, which can be caught by using an error boundary.
- * @param param0
+ * 
  * @returns React.JSXElement
  */
 export function FrameContainer<T extends FrameState = FrameState>({
@@ -412,7 +410,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
   /** Either a relative e.g. "/frames" or an absolute path, e.g. "https://google.com/frames" */
   postUrl: string;
   /** The elements to include in the Frame */
-  children: Array<ChildType | null> | ChildType;
+  children: (ChildType | null)[] | ChildType;
   /** The current reducer state object, returned from useFramesReducer */
   state: T;
   previousFrame: PreviousFrame<T>;
@@ -420,11 +418,13 @@ export function FrameContainer<T extends FrameState = FrameState>({
   pathname?: string;
   /** Client protocols to accept */
   accepts?: ClientProtocolId[];
-}) {
-  if (!pathname)
+}): React.JSX.Element {
+  if (!pathname) {
+    // eslint-disable-next-line no-console -- provide feedback to user on server
     console.warn(
       "frames.js: warning: You have not specified a `pathname` prop on your <FrameContainer>. This is not recommended, as it will default to the root path and not work if your frame is being rendered at a different path. Please specify a `pathname` prop on your <FrameContainer>."
     );
+  }
 
   const nextIndexByComponentType: Record<
     "button" | "image" | "input",
@@ -434,7 +434,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
     image: 1,
     input: 1,
   };
-  let redirectMap: RedirectMap = {};
+  const redirectMap: RedirectMap = {};
 
   function createURLForPOSTHandler(target: string): URL {
     let url: URL;
@@ -460,10 +460,10 @@ export function FrameContainer<T extends FrameState = FrameState>({
 
   const newTree = (
     <>
-      {React.Children.map(children, (child) => {
+      {Children.map(children, (child) => {
         if (child === null) return;
 
-        if (!React.isValidElement(child)) {
+        if (!isValidElement(child)) {
           return child;
         }
 
@@ -526,7 +526,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
 
           const rewrittenProps: React.ComponentProps<typeof FFrameButtonShim> =
             {
-              ...(child.props as React.ComponentProps<typeof FrameButton>),
+              ...child.props,
               ...(target ? { target: target.toString() } : {}),
               actionIndex: nextIndexByComponentType.button++ as ActionIndex,
             };
@@ -574,6 +574,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
 
   const postUrlFull = `${postUrlRoute}?${searchParams.toString()}`;
   if (getByteLength(postUrlFull) > 256) {
+    // eslint-disable-next-line no-console -- provide feedback to user on server
     console.error(
       `post_url is too long. ${postUrlFull.length} bytes, max is 256. The url is generated to include your state and the redirect urls in <FrameButton href={s. In order to shorten your post_url, you could try storing less in state, or providing redirects via the POST handler's second optional argument instead, which saves url space. The generated post_url was: `,
       postUrlFull
@@ -586,7 +587,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
       <meta name="fc:frame" content="vNext" />
       <meta name="fc:frame:post_url" content={postUrlFull} />
       {...accepts?.map(({ id, version }) => (
-        <meta name={`of:accepts:${id}`} content={version} />
+        <meta name={`of:accepts:${id}`} key={id} content={version} />
       )) ?? []}
       {newTree}
     </>
@@ -598,7 +599,7 @@ export function FrameContainer<T extends FrameState = FrameState>({
  * 
  * @deprecated please upgrade to new API, see https://framesjs.org/reference/core/next
  */
-export function FrameButton(props: FrameButtonProvidedProps) {
+export function FrameButton(_props: FrameButtonProvidedProps): React.JSX.Element | null {
   return null;
 }
 
@@ -607,9 +608,9 @@ function FFrameButtonShim({
   actionIndex,
   target,
   action = "post",
-  post_url,
+  post_url: postUrl,
   children,
-}: FrameButtonProvidedProps & FrameButtonAutomatedProps) {
+}: FrameButtonProvidedProps & FrameButtonAutomatedProps): React.JSX.Element {
   return (
     <>
       <meta
@@ -620,10 +621,11 @@ function FFrameButtonShim({
       {target ? (
         <meta name={`fc:frame:button:${actionIndex}:target`} content={target} />
       ) : null}
-      {post_url ? (
+      {
+      postUrl ? (
         <meta
           name={`fc:frame:button:${actionIndex}:post_url`}
-          content={post_url}
+          content={postUrl}
         />
       ) : null}
     </>
@@ -635,11 +637,9 @@ function FFrameButtonShim({
  * 
  * @deprecated please upgrade to new API, see https://framesjs.org/reference/core/next
  */
-export function FrameInput({ text }: { text: string }) {
+export function FrameInput({ text }:{ text: string }): React.JSX.Element {
   return (
-    <>
-      <meta name="fc:frame:input:text" content={text} />
-    </>
+    <meta name="fc:frame:input:text" content={text} />
   );
 }
 
@@ -659,10 +659,10 @@ export async function FrameImage(
     | {
         /** Children to pass to satori to render to PNG. [Supports tailwind](https://vercel.com/blog/introducing-vercel-og-image-generation-fast-dynamic-social-card-images#tailwind-css-support) via the `tw=` prop instead of `className` */
         children: React.ReactNode;
-        options?: SatoriOptions;
+        options?: ConstructorParameters<typeof ImageResponse>[1];
       }
   )
-) {
+): Promise<React.JSX.Element> {
   let imgSrc: string;
 
   if ("children" in props) {
@@ -710,7 +710,7 @@ export async function FrameImage(
       ),
       imageOptions
     );
-    const imgBuffer = await imageResponse?.arrayBuffer();
+    const imgBuffer = await imageResponse.arrayBuffer();
     imgSrc = `data:image/png;base64,${Buffer.from(imgBuffer).toString("base64")}`;
   } else {
     imgSrc = props.src;
@@ -720,11 +720,11 @@ export async function FrameImage(
     <>
       <meta name="fc:frame:image" content={imgSrc} />
       <meta property="og:image" content={imgSrc} />
-      {props.aspectRatio && (
+      {Boolean(props.aspectRatio) && (
         <meta
           name="fc:frame:image:aspect_ratio"
           content={props.aspectRatio}
-        ></meta>
+        />
       )}
     </>
   );

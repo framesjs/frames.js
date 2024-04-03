@@ -20,8 +20,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-import type { UrlObject } from "url";
-import type { ParsedUrlQuery } from "querystring";
+import type { UrlObject } from "node:url";
+import type { ParsedUrlQuery } from "node:querystring";
 
 // function searchParamsToUrlQuery(searchParams: URLSearchParams): ParsedUrlQuery {
 //   const query: ParsedUrlQuery = {};
@@ -44,16 +44,18 @@ function stringifyUrlQueryParam(param: unknown): string {
     typeof param === "boolean"
   ) {
     return String(param);
-  } else {
-    return "";
   }
+
+  return "";
 }
 
 function urlQueryToSearchParams(urlQuery: ParsedUrlQuery): URLSearchParams {
   const result = new URLSearchParams();
   Object.entries(urlQuery).forEach(([key, value]) => {
     if (Array.isArray(value)) {
-      value.forEach((item) => result.append(key, stringifyUrlQueryParam(item)));
+      value.forEach((item) => {
+        result.append(key, stringifyUrlQueryParam(item));
+      });
     } else {
       result.set(key, stringifyUrlQueryParam(value));
     }
@@ -74,22 +76,23 @@ function urlQueryToSearchParams(urlQuery: ParsedUrlQuery): URLSearchParams {
 
 const slashedProtocols = /https?|ftp|gopher|file/;
 
-export function formatUrl(urlObj: UrlObject) {
-  let { auth, hostname } = urlObj;
+export function formatUrl(urlObj: UrlObject): string {
+  let { auth } = urlObj;
+  const { hostname } = urlObj;
   let protocol = urlObj.protocol || "";
   let pathname = urlObj.pathname || "";
   let hash = urlObj.hash || "";
   let query = urlObj.query || "";
   let host: string | false = false;
 
-  auth = auth ? encodeURIComponent(auth).replace(/%3A/i, ":") + "@" : "";
+  auth = auth ? `${encodeURIComponent(auth).replace(/%3A/i, ":")}@` : "";
 
   if (urlObj.host) {
     host = auth + urlObj.host;
   } else if (hostname) {
-    host = auth + (~hostname.indexOf(":") ? `[${hostname}]` : hostname);
+    host = auth + (hostname.includes(":") ? `[${hostname}]` : hostname);
     if (urlObj.port) {
-      host += ":" + urlObj.port;
+      host += `:${urlObj.port}`;
     }
   }
 
@@ -105,14 +108,16 @@ export function formatUrl(urlObj: UrlObject) {
     urlObj.slashes ||
     ((!protocol || slashedProtocols.test(protocol)) && host !== false)
   ) {
-    host = "//" + (host || "");
-    if (pathname && pathname[0] !== "/") pathname = "/" + pathname;
+    host = `//${host || ""}`;
+    if (pathname && !pathname.startsWith("/")) {
+      pathname = `/${pathname}`;
+    }
   } else if (!host) {
     host = "";
   }
 
-  if (hash && hash[0] !== "#") hash = "#" + hash;
-  if (search && search[0] !== "?") search = "?" + search;
+  if (hash && !hash.startsWith("#")) hash = `#${hash}`;
+  if (search && !search.startsWith("?")) search = `?${search}`;
 
   pathname = pathname.replace(/[?#]/g, encodeURIComponent);
   search = search.replace("#", "%23");

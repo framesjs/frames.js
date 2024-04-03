@@ -1,20 +1,26 @@
 import type { Metadata, NextApiRequest, NextApiResponse } from "next";
+import React from "react";
+import type { types } from "../core";
 import { createFrames as coreCreateFrames } from "../core";
 import {
   createReadableStreamFromReadable,
   writeReadableStreamToWritable,
 } from "../lib/stream-pump";
+
 export { Button, type types } from "../core";
-import React from "react";
 
 export { fetchMetadata } from "./fetchMetadata";
 
 export const createFrames: typeof coreCreateFrames =
-  function createFramesForNextJSPagesRouter(options: any) {
+  function createFramesForNextJSPagesRouter(options: types.FramesOptions<any, any>) {
     const frames = coreCreateFrames(options);
 
-    // @ts-expect-error
-    return function createHandler(handler, handlerOptions) {
+    return function createHandler<
+      TPerRouteMiddleware extends types.FramesMiddleware<any, any>[],
+    >(
+      handler: types.FrameHandlerFunction<any, any>,
+      handlerOptions?: types.FramesRequestHandlerFunctionOptions<TPerRouteMiddleware>
+    ) {
       const requestHandler = frames(handler, handlerOptions);
 
       return async function handleNextJSApiRequest(
@@ -31,6 +37,7 @@ export const createFrames: typeof coreCreateFrames =
  * Converts metadata returned from fetchMetadata() call to Next.js <Head /> compatible components.
  *
  * @example
+ * ```tsx
  * import { fetchMetadata, metadataToMetaTags } from "frames.js/next/pages-router";
  *
  * export const getServerSideProps = async function getServerSideProps() {
@@ -54,8 +61,9 @@ export const createFrames: typeof coreCreateFrames =
  *    </>
  *  );
  * }
+ * ```
  */
-export function metadataToMetaTags(metadata: NonNullable<Metadata["other"]>) {
+export function metadataToMetaTags(metadata: NonNullable<Metadata["other"]>): React.JSX.Element {
   return (
     <>
       {Object.entries(metadata).map(([key, value]) => {
@@ -76,21 +84,21 @@ function createRequest(req: NextApiRequest, res: NextApiResponse): Request {
   const normalizedXForwardedHost = Array.isArray(xForwardedHost)
     ? xForwardedHost[0]
     : xForwardedHost;
-  let [, hostnamePort] = normalizedXForwardedHost?.split(":") ?? [];
-  let [, hostPort] = req.headers["host"]?.split(":") ?? [];
-  let port = hostnamePort || hostPort;
+  const [, hostnamePort] = normalizedXForwardedHost?.split(":") ?? [];
+  const [, hostPort] = req.headers.host?.split(":") ?? [];
+  const port = hostnamePort || hostPort;
   // Use req.hostname here as it respects the "trust proxy" setting
-  let resolvedHost = `${req.headers["host"]}${!hostPort ? `:${port}` : ""}`;
+  const resolvedHost = `${req.headers.host}${!hostPort ? `:${port}` : ""}`;
   // Use `req.url` so NextJS is aware of the full path
-  let url = new URL(
+  const url = new URL(
     `${"encrypted" in req.socket && req.socket.encrypted ? "https" : "http"}://${resolvedHost}${req.url}`
   );
 
   // Abort action/loaders once we can no longer write a response
-  let controller = new AbortController();
-  res.on("close", () => controller.abort());
+  const controller = new AbortController();
+  res.on("close", () => { controller.abort(); });
 
-  let init: RequestInit = {
+  const init: RequestInit = {
     method: req.method,
     headers: createRequestHeaders(req.headers),
     signal: controller.signal,
@@ -107,12 +115,12 @@ function createRequest(req: NextApiRequest, res: NextApiResponse): Request {
 export function createRequestHeaders(
   requestHeaders: NextApiRequest["headers"]
 ): Headers {
-  let headers = new Headers();
+  const headers = new Headers();
 
-  for (let [key, values] of Object.entries(requestHeaders)) {
+  for (const [key, values] of Object.entries(requestHeaders)) {
     if (values) {
       if (Array.isArray(values)) {
-        for (let value of values) {
+        for (const value of values) {
           headers.append(key, value);
         }
       } else {
@@ -124,11 +132,11 @@ export function createRequestHeaders(
   return headers;
 }
 
-async function sendResponse(res: NextApiResponse, response: Response) {
+async function sendResponse(res: NextApiResponse, response: Response): Promise<void> {
   res.statusMessage = response.statusText;
   res.status(response.status);
 
-  for (let [key, value] of response.headers.entries()) {
+  for (const [key, value] of response.headers.entries()) {
     res.setHeader(key, value);
   }
 

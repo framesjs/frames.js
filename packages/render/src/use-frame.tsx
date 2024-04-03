@@ -1,9 +1,19 @@
+/* eslint-disable @typescript-eslint/require-await -- we expect async functions */
+/* eslint-disable no-console -- provide feedback */
+/* eslint-disable no-alert -- provide feedback */
 "use client";
 
-import { useEffect, useState } from "react";
-import {
+import { useEffect, useMemo, useRef, useState } from "react";
+import type {
+  FrameActionPayload,
+  FrameButton,
+  TransactionTargetResponse,
+  getFrame,
+} from "frames.js";
+import { getFarcasterTime } from "@farcaster/core";
+import type {
   FrameState,
-  onMintArgs,
+  OnMintArgs,
   FrameContext,
   SignerStateInstance,
   FrameActionBodyPayload,
@@ -11,14 +21,11 @@ import {
   FrameStackPending,
   FrameRequest,
   UseFrameReturn,
-  onTransactionArgs,
-} from "./types.js";
-import type { FrameButton, TransactionTargetResponse } from "frames.js";
-import { getFrame } from "frames.js";
-import { getFarcasterTime } from "@farcaster/core";
+  OnTransactionArgs,
+} from "./types";
 
-function onMintFallback({ target }: onMintArgs) {
-  window.alert("Mint requested: " + target!);
+function onMintFallback({ target }: OnMintArgs): void {
+  window.alert(`Mint requested: ${target}`);
 }
 
 export const unsignedFrameAction: SignerStateInstance["signFrameAction"] =
@@ -32,18 +39,18 @@ export const unsignedFrameAction: SignerStateInstance["signFrameAction"] =
     url,
   }) => {
     const searchParams = new URLSearchParams({
-      postType: frameButton?.action || "post",
+      postType: frameButton.action,
       postUrl: target ?? "",
     });
 
     return {
-      searchParams: searchParams,
+      searchParams,
       body: {
         untrustedData: {
-          url: url,
+          url,
           timestamp: getFarcasterTime()._unsafeUnwrap(),
           network: 1,
-          buttonIndex: buttonIndex,
+          buttonIndex,
           castId: {
             fid: frameContext.castId.fid,
             hash: frameContext.castId.hash,
@@ -58,7 +65,10 @@ export const unsignedFrameAction: SignerStateInstance["signFrameAction"] =
       },
     };
   };
-async function onTransactionFallback({ transactionData }: onTransactionArgs) {
+
+async function onTransactionFallback({
+  transactionData,
+}: OnTransactionArgs): Promise<null> {
   window.alert(
     `Requesting a transaction on chain with ID ${transactionData.chainId} with the following params: ${JSON.stringify(transactionData.params, null, 2)}`
   );
@@ -75,7 +85,7 @@ export const fallbackFrameContext: FrameContext = {
 
 export function useFrame<
   T = object,
-  B extends FrameActionBodyPayload = FrameActionBodyPayload,
+  B extends FrameActionBodyPayload = FrameActionPayload,
 >({
   homeframeUrl,
   frameContext,
@@ -91,14 +101,18 @@ export function useFrame<
   extraButtonRequestPayload,
 }: UseFrameReturn<T, B>): FrameState {
   const [inputText, setInputText] = useState("");
-  const initialFrame = frame ? { frame: frame, errors: null } : undefined;
+  const initialFrame = useMemo(() => {
+    if (frame) {
+      return { frame, errors: null };
+    }
+    return undefined;
+  }, [frame]);
 
   const [framesStack, setFramesStack] = useState<FramesStack>(
     initialFrame
       ? [
           {
             method: "GET",
-            request: {},
             responseStatus: 200,
             timestamp: new Date(),
             url: homeframeUrl ?? "",
@@ -115,35 +129,39 @@ export function useFrame<
     // prevent flash of empty if will shortly set this in first rerender
     homeframeUrl && !initialFrame
       ? {
-          request: {},
           method: "GET" as const,
           timestamp: new Date(),
-          url: homeframeUrl ?? "",
+          url: homeframeUrl,
         }
       : null
   );
 
-  async function fetchFrame({ method, url, request }: FrameRequest) {
-    if (method === "GET") {
+  async function fetchFrame(frameRequest: FrameRequest): Promise<void> {
+    if (frameRequest.method === "GET") {
       const tstart = new Date();
 
       const frameStackBase = {
         request: {},
         method: "GET" as const,
         timestamp: tstart,
-        url: url ?? "",
+        url: frameRequest.url,
       };
       setIsLoading(frameStackBase);
 
-      let requestError: unknown | null = null;
+      let requestError: unknown = null;
       let newFrame: ReturnType<typeof getFrame> | null = null;
-      const searchParams = new URLSearchParams({ url });
+      const searchParams = new URLSearchParams({ url: frameRequest.url });
       const proxiedUrl = `${frameGetProxy}?${searchParams.toString()}`;
 
       let stackItem: FramesStack[number];
       let response;
       try {
         response = await fetch(proxiedUrl);
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch frame: ${response.statusText}`);
+        }
+        
         newFrame = (await response.json()) as ReturnType<typeof getFrame>;
         const tend = new Date();
 
@@ -151,7 +169,9 @@ export function useFrame<
           ...frameStackBase,
           frame: newFrame.frame,
           frameValidationErrors: newFrame.errors,
-          speed: +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2),
+          speed: Number(
+            ((tend.getTime() - tstart.getTime()) / 1000).toFixed(2)
+          ),
           responseStatus: response.status,
           isValid: Object.keys(newFrame.errors ?? {}).length === 0,
         };
@@ -160,10 +180,12 @@ export function useFrame<
 
         stackItem = {
           ...frameStackBase,
-          url: url ?? "",
+          url: frameRequest.url,
           responseStatus: response?.status ?? 500,
           requestError,
-          speed: +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2),
+          speed: Number(
+            ((tend.getTime() - tstart.getTime()) / 1000).toFixed(2)
+          ),
         };
 
         requestError = err;
@@ -174,15 +196,15 @@ export function useFrame<
       const frameStackBase = {
         method: "POST" as const,
         request: {
-          searchParams: request.searchParams,
-          body: request.body,
+          searchParams: frameRequest.request.searchParams,
+          body: frameRequest.request.body,
         },
         timestamp: tstart,
-        url: url,
+        url: frameRequest.url,
       };
       setIsLoading(frameStackBase);
       let stackItem: FramesStack[number] | undefined;
-      const proxiedUrl = `${frameActionProxy}?${request.searchParams.toString()}`;
+      const proxiedUrl = `${frameActionProxy}?${frameRequest.request.searchParams.toString()}`;
 
       let response;
       try {
@@ -193,9 +215,14 @@ export function useFrame<
           },
           body: JSON.stringify({
             ...extraButtonRequestPayload,
-            ...request.body,
+            ...frameRequest.request.body,
           }),
         });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch frame: ${response.statusText}`);
+        }
+
         const dataRes = (await response.json()) as
           | ReturnType<typeof getFrame>
           | { location: string };
@@ -204,16 +231,16 @@ export function useFrame<
         if ("location" in dataRes) {
           const location = dataRes.location;
 
-          if (
-            window.confirm("You are about to be redirected to " + location!)
-          ) {
-            window.open(location!, "_blank")?.focus();
+          if (window.confirm(`You are about to be redirected to ${location}`)) {
+            window.open(location, "_blank")?.focus();
           }
         } else {
           stackItem = {
             ...frameStackBase,
             responseStatus: response.status,
-            speed: +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2),
+            speed: Number(
+              ((tend.getTime() - tstart.getTime()) / 1000).toFixed(2)
+            ),
             frame: dataRes.frame,
             frameValidationErrors: dataRes.errors,
             isValid: Object.keys(dataRes.errors ?? {}).length === 0,
@@ -225,7 +252,9 @@ export function useFrame<
           ...frameStackBase,
           responseStatus: response?.status ?? 500,
           requestError: err,
-          speed: +((tend.getTime() - tstart.getTime()) / 1000).toFixed(2),
+          speed: Number(
+            ((tend.getTime() - tstart.getTime()) / 1000).toFixed(2)
+          ),
         };
 
         console.error(err);
@@ -236,46 +265,60 @@ export function useFrame<
     setIsLoading(null);
   }
 
+  const fetchFrameRef = useRef(fetchFrame);
+  fetchFrameRef.current = fetchFrame;
+
   // Load initial frame if not defined
   useEffect(() => {
     if (!initialFrame && homeframeUrl) {
-      fetchFrame({
-        url: homeframeUrl,
-        method: "GET",
-        request: {},
-      });
+      fetchFrameRef
+        .current({
+          url: homeframeUrl,
+          method: "GET",
+        })
+        .catch((e) => {
+          console.error(e);
+        });
     }
   }, [initialFrame, homeframeUrl]);
 
-  function getCurrentFrame() {
-    const [frame] = framesStack;
+  function getCurrentFrame(): ReturnType<typeof getFrame>["frame"] | null {
+    const [latestFrame] = framesStack;
 
-    return frame && "frame" in frame ? frame.frame : null;
+    return latestFrame && "frame" in latestFrame ? latestFrame.frame : null;
   }
 
-  function isCurrentFrameValid() {
-    const [frame] = framesStack;
+  function isCurrentFrameValid(): boolean | undefined {
+    const [latestFrame] = framesStack;
 
-    return frame && "frameValidationErrors" in frame
-      ? Object.keys(frame.frameValidationErrors ?? {}).length === 0
+    return latestFrame && "frameValidationErrors" in latestFrame
+      ? Object.keys(latestFrame.frameValidationErrors ?? {}).length === 0
       : undefined;
   }
 
-  function getCurrentFrameValidationErrors() {
-    const [frame] = framesStack;
+  function getCurrentFrameValidationErrors():
+    | Record<string, string[]>
+    | null
+    | undefined {
+    const [latestFrame] = framesStack;
 
-    return frame && "frameValidationErrors" in frame
-      ? frame.frameValidationErrors
+    return latestFrame && "frameValidationErrors" in latestFrame
+      ? latestFrame.frameValidationErrors
       : null;
   }
 
-  function getCurrentFrameRequestError() {
-    const [frame] = framesStack;
+  function getCurrentFrameRequestError(): unknown {
+    const [latestFrame] = framesStack;
 
-    return frame && "requestError" in frame ? frame.requestError : null;
+    return latestFrame && "requestError" in latestFrame
+      ? latestFrame.requestError
+      : null;
   }
 
-  const onButtonPress = async (frameButton: FrameButton, index: number) => {
+  async function onButtonPress(
+    frameButton: FrameButton,
+    index: number
+  ): Promise<void> {
     const currentFrame = getCurrentFrame();
 
     if (!currentFrame) {
@@ -288,74 +331,101 @@ export function useFrame<
       // don't continue, let the app handle
       return;
     }
-    const target = frameButton.target ?? currentFrame.postUrl ?? homeframeUrl;
-    if (frameButton.action === "link") {
-      if (window.confirm("You are about to be redirected to " + target!)) {
-        parent.window.open(target!, "_blank");
-      }
-    } else if (frameButton.action === "mint") {
-      onMint({ frameButton, target, frame: currentFrame });
-    } else if (frameButton.action === "tx") {
-      const transactionData = await onTransactionRequest({
-        frameButton: frameButton,
-        target: target,
-        buttonIndex: index + 1,
-        postInputText:
-          currentFrame.inputText !== undefined ? inputText : undefined,
-        state: currentFrame.state,
-      });
-      if (transactionData) {
-        const transactionId = await onTransaction({
-          frame: currentFrame,
-          frameButton: frameButton,
-          transactionData,
-        });
-        if (transactionId) {
-          await onPostButton({
-            frameButton: frameButton,
-            target: frameButton.post_url || currentFrame.postUrl, // transaction_ids must be posted to post_url or button post_url
-            buttonIndex: index + 1,
-            postInputText:
-              currentFrame.inputText !== undefined ? inputText : undefined,
-            state: currentFrame.state,
-            transactionId,
-          });
+
+    switch (frameButton.action) {
+      case "link": {
+        if (
+          window.confirm(
+            `You are about to be redirected to ${frameButton.target}`
+          )
+        ) {
+          parent.window.open(frameButton.target, "_blank");
         }
+        break;
       }
-    } else if (
-      frameButton.action === "post" ||
-      frameButton.action === "post_redirect"
-    ) {
-      try {
-        await onPostButton({
-          frameButton: frameButton,
-          target: target,
-          dangerousSkipSigning: dangerousSkipSigning,
-
+      case "mint": {
+        onMint({
+          frameButton,
+          target: frameButton.target,
+          frame: currentFrame,
+        });
+        break;
+      }
+      case "tx": {
+        const transactionData = await onTransactionRequest({
+          frameButton,
+          target: frameButton.target,
           buttonIndex: index + 1,
-          /** https://docs.farcaster.xyz/reference/frames/spec#handling-clicks
-
-        POST the packet to fc:frame:button:$idx:action:target if present
-        POST the packet to fc:frame:post_url if target was not present.
-        POST the packet to or the frame's embed URL if neither target nor action were present.
-        */
           postInputText:
             currentFrame.inputText !== undefined ? inputText : undefined,
           state: currentFrame.state,
         });
-        setInputText("");
-      } catch (err) {
-        alert("error: check the console");
-        console.error(err);
-      }
-    }
-  };
+        if (transactionData) {
+          const transactionId = await onTransaction({
+            frame: currentFrame,
+            frameButton,
+            transactionData,
+          });
 
-  const onPostButton = async ({
+          if (transactionId) {
+            await onPostButton({
+              frameButton,
+              target:
+                frameButton.post_url ||
+                currentFrame.postUrl ||
+                frameButton.target, // transaction_ids must be posted to post_url or button post_url
+              buttonIndex: index + 1,
+              postInputText:
+                currentFrame.inputText !== undefined ? inputText : undefined,
+              state: currentFrame.state,
+              transactionId,
+            });
+          }
+        }
+        break;
+      }
+      case "post":
+      case "post_redirect": {
+        try {
+          const target =
+            frameButton.target || currentFrame.postUrl || homeframeUrl;
+
+          if (!target) {
+            throw new Error("missing target");
+          }
+
+          await onPostButton({
+            frameButton,
+            /** https://docs.farcaster.xyz/reference/frames/spec#handling-clicks
+    
+            POST the packet to fc:frame:button:$idx:action:target if present
+            POST the packet to fc:frame:post_url if target was not present.
+            POST the packet to or the frame's embed URL if neither target nor action were present.
+            */
+            target,
+            dangerousSkipSigning,
+            buttonIndex: index + 1,
+            postInputText:
+              currentFrame.inputText !== undefined ? inputText : undefined,
+            state: currentFrame.state,
+          });
+          setInputText("");
+        } catch (err) {
+          alert("error: check the console");
+          console.error(err);
+        }
+        break;
+      }
+      default:
+        throw new Error("Unrecognized frame button action");
+    }
+  }
+
+  async function onPostButton({
     buttonIndex,
     postInputText,
     frameButton,
-    dangerousSkipSigning,
+    dangerousSkipSigning: isDangerousSkipSigning,
     target,
     state,
     transactionId,
@@ -368,14 +438,14 @@ export function useFrame<
     transactionId?: `0x${string}`;
 
     target: string;
-  }) => {
+  }): Promise<void> {
     const currentFrame = getCurrentFrame();
 
-    if (!dangerousSkipSigning && !signerState.hasSigner) {
+    if (!isDangerousSkipSigning && !signerState.hasSigner) {
       console.error("frames.js: missing required auth state");
       return;
     }
-    if (!currentFrame || !currentFrame || !homeframeUrl || !frameButton) {
+    if (!currentFrame || !homeframeUrl) {
       console.error("frames.js: missing required value for post");
       return;
     }
@@ -393,7 +463,7 @@ export function useFrame<
       state,
       transactionId,
     };
-    const { searchParams, body } = dangerousSkipSigning
+    const { searchParams, body } = isDangerousSkipSigning
       ? await unsignedFrameAction(frameSignatureContext)
       : await signerState.signFrameAction(frameSignatureContext);
 
@@ -406,21 +476,17 @@ export function useFrame<
         body,
       },
     });
-  };
+  }
 
-  const onTransactionRequest = async ({
-    buttonIndex,
-    postInputText,
-    frameButton,
-    target,
-    state,
+  async function onTransactionRequest({
+    buttonIndex, postInputText, frameButton, target, state,
   }: {
     frameButton: FrameButton;
     buttonIndex: number;
     postInputText: string | undefined;
     state?: string;
     target: string;
-  }) => {
+  }): Promise<TransactionTargetResponse | undefined> {
     // Send post request to get calldata
     const currentFrame = getCurrentFrame();
 
@@ -428,7 +494,7 @@ export function useFrame<
       console.error("frames.js: missing required auth state");
       return;
     }
-    if (!currentFrame || !currentFrame || !homeframeUrl || !frameButton) {
+    if (!currentFrame || !homeframeUrl) {
       console.error("frames.js: missing required value for post");
       return;
     }
@@ -442,8 +508,8 @@ export function useFrame<
       },
       url: homeframeUrl,
       target,
-      frameButton: frameButton,
-      buttonIndex: buttonIndex,
+      frameButton,
+      buttonIndex,
       state,
     });
     searchParams.append("postType", "tx");
@@ -461,25 +527,26 @@ export function useFrame<
           ...body,
         }),
       });
-      const transactionResponse =
-        (await response.json()) as TransactionTargetResponse;
+      const transactionResponse = (await response.json()) as TransactionTargetResponse;
       return transactionResponse;
     } catch {
       throw new Error(
         `frames.js: Could not fetch transaction data from "${searchParams.get("postUrl")}"`
       );
     }
-  };
+  }
 
   return {
-    isLoading: isLoading,
+    isLoading,
     inputText,
     setInputText,
-    clearFrameStack: () => setFramesStack([]),
+    clearFrameStack: () => {
+      setFramesStack([]);
+    },
     onButtonPress,
     fetchFrame,
     homeframeUrl,
-    framesStack: framesStack,
+    framesStack,
     frame: getCurrentFrame() ?? null,
     isFrameValid: isCurrentFrameValid(),
     frameValidationErrors: getCurrentFrameValidationErrors(),

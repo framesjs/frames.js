@@ -1,6 +1,6 @@
 import { getFrame } from "./getFrame";
 import { getFrameHtml } from "./getFrameHtml";
-import { Frame } from "./types";
+import type { Frame } from "./types";
 
 describe("getFrame", () => {
   const sampleHtml = `
@@ -21,25 +21,21 @@ describe("getFrame", () => {
       {
         label: "Green",
         action: "post",
-        post_url: undefined,
         target: undefined,
       },
       {
         label: "Purple",
         action: "post",
-        post_url: undefined,
         target: undefined,
       },
       {
         label: "Red",
         action: "post",
-        post_url: undefined,
         target: undefined,
       },
       {
         label: "Blue",
         action: "post",
-        post_url: undefined,
         target: undefined,
       },
     ],
@@ -144,7 +140,7 @@ describe("getFrame", () => {
       url: "https://example.com",
     });
 
-    expect(frame?.imageAspectRatio).toEqual("1:91");
+    expect(frame.imageAspectRatio).toEqual("1:91");
 
     const html2 = `
     <meta name="fc:frame" content="vNext"/>
@@ -158,7 +154,7 @@ describe("getFrame", () => {
       url: "https://example.com",
     });
 
-    expect(frame2?.imageAspectRatio).toEqual("1:1");
+    expect(frame2.imageAspectRatio).toEqual("1:1");
   });
 
   it("should reject invalid aspect ratio", () => {
@@ -194,25 +190,21 @@ describe("getFrame", () => {
         {
           action: "post",
           label: "1",
-          post_url: undefined,
           target: undefined,
         },
         {
           action: "post_redirect",
           label: "2",
-          post_url: undefined,
           target: undefined,
         },
         {
           action: "link",
           label: "3",
-          post_url: undefined,
           target: "https://example.com",
         },
         {
           action: "mint",
           label: "Mint",
-          post_url: undefined,
           target: "eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df",
         },
       ],
@@ -244,7 +236,7 @@ describe("getFrame", () => {
       url: "https://example.com",
     });
 
-    expect(frame?.accepts).toEqual([
+    expect(frame.accepts).toEqual([
       { id: "xmtp", version: "vNext" },
       { id: "lens", version: "1.5" },
     ]);

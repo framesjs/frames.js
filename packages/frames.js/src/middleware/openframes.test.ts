@@ -1,35 +1,32 @@
 import { FramesClient } from "@xmtp/frames-client";
-import { XmtpValidator } from "@xmtp/frames-validator";
-import { Client, Signer } from "@xmtp/xmtp-js";
-import { WalletClient, createWalletClient, http } from "viem";
+import type { Signer } from "@xmtp/xmtp-js";
+import { Client } from "@xmtp/xmtp-js";
+import type { WalletClient } from "viem";
+import { createWalletClient, http } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { mainnet } from "viem/chains";
-import {
-  XmtpFrameMessageReturnType,
-  getXmtpFrameMessage,
-  isXmtpFrameActionPayload,
-} from "../xmtp";
+import type { XmtpFrameMessageReturnType } from "../xmtp";
+import { getXmtpFrameMessage, isXmtpFrameActionPayload } from "../xmtp";
 import { redirect } from "../core/redirect";
-import {
+import type {
   FrameDefinition,
   FramesContext,
   FramesMiddleware,
 } from "../core/types";
 import { isFrameDefinition } from "../core/utils";
-import { OpenFramesMessageContext, openframes } from "./openframes";
-import { renderResponse } from "./renderResponse";
 import { createFrames } from "../core";
+import type { OpenFramesMessageContext } from "./openframes";
+import { openframes } from "./openframes";
+import { renderResponse } from "./renderResponse";
 
-export function convertWalletClientToSigner(
-  walletClient: WalletClient
-): Signer {
+function convertWalletClientToSigner(walletClient: WalletClient): Signer {
   const { account } = walletClient;
-  if (!account || !account.address) {
+  if (!account) {
     throw new Error("WalletClient is not configured");
   }
 
   return {
-    getAddress: async () => account.address,
+    getAddress: () => Promise.resolve(account.address),
     signMessage: async (message: string | Uint8Array) =>
       walletClient.signMessage({
         message: typeof message === "string" ? message : { raw: message },
@@ -41,7 +38,6 @@ export function convertWalletClientToSigner(
 describe("openframes middleware", () => {
   let xmtpClient: Client;
   let framesClient: FramesClient;
-  let xmtpValidator: XmtpValidator;
 
   let xmtpMiddleware: FramesMiddleware<
     any,
@@ -66,8 +62,6 @@ describe("openframes middleware", () => {
     xmtpClient = await Client.create(signer, { env: "dev" });
     framesClient = new FramesClient(xmtpClient);
 
-    xmtpValidator = new XmtpValidator();
-
     xmtpMiddleware = openframes({
       clientProtocol: {
         id: "xmtp",
@@ -81,10 +75,12 @@ describe("openframes middleware", () => {
           }
           const result = await getXmtpFrameMessage(body);
 
-          let state: any;
+          let state: (typeof result)["state"] | undefined;
+
           try {
-            state = JSON.parse(result.state);
+            state = JSON.parse(result.state) as typeof state;
           } catch (error) {
+            // eslint-disable-next-line no-console -- we are expecting invalid state
             console.error("openframes: Could not parse state");
           }
 
@@ -111,21 +107,21 @@ describe("openframes middleware", () => {
       state: JSON.stringify({ test: true }),
     });
 
-    const context: FramesContext = {
+    const context = {
       request: new Request("https://example.com", {
         method: "POST",
         body: JSON.stringify(signedPayload),
       }),
       url: new URL("https://example.com").toString(),
       basePath: "/",
-    } as any;
+    } as unknown as FramesContext;
 
     const mw1 = openframes({
       clientProtocol: "foo@vNext",
       handler: {
         isValidPayload: () => false,
-        getFrameMessage: async () => {
-          return {};
+        getFrameMessage: () => {
+          return Promise.resolve({});
         },
       },
     });
@@ -133,14 +129,13 @@ describe("openframes middleware", () => {
       clientProtocol: "bar@vNext",
       handler: {
         isValidPayload: () => false,
-        getFrameMessage: async () => {
-          return {};
+        getFrameMessage: () => {
+          return Promise.resolve({});
         },
       },
     });
 
-    // eslint-disable-next-line no-unused-vars
-    const next1 = jest.fn((...args) =>
+    const next1 = jest.fn(() =>
       Promise.resolve({
         image: "/test.png",
       } as FrameDefinition<any>)
@@ -154,8 +149,7 @@ describe("openframes middleware", () => {
       version: "vNext",
     });
 
-    // eslint-disable-next-line no-unused-vars
-    const next2 = jest.fn((...args) => Promise.resolve(nextResult1));
+    const next2 = jest.fn(() => Promise.resolve(nextResult1));
 
     const nextResult2 = await mw2(context, next2);
 
@@ -169,9 +163,9 @@ describe("openframes middleware", () => {
       version: "vNext",
     });
 
+    // eslint-disable-next-line testing-library/render-result-naming-convention -- this is not a react renderer
     const responseMw = renderResponse();
-    // eslint-disable-next-line no-unused-vars
-    const responseNext = jest.fn((...args) => Promise.resolve(nextResult2));
+    const responseNext = jest.fn(() => Promise.resolve(nextResult2));
     const response = (await responseMw(context, responseNext)) as Response;
     const responseText = await response.text();
     expect(responseText).toContain(
@@ -183,9 +177,9 @@ describe("openframes middleware", () => {
   });
 
   it("moves to next middleware without parsing if request is not POST request", async () => {
-    const context: FramesContext = {
+    const context = {
       request: new Request("https://example.com"),
-    } as any;
+    } as unknown as FramesContext;
 
     const mw = xmtpMiddleware;
     const response = redirect("http://test.com");
@@ -196,12 +190,12 @@ describe("openframes middleware", () => {
   });
 
   it("moves to next middleware if request is POST but does not have a valid JSON body", async () => {
-    const context: FramesContext = {
+    const context = {
       request: new Request("https://example.com", {
         method: "POST",
         body: "invalid json",
       }),
-    } as any;
+    } as unknown as FramesContext;
 
     const mw = xmtpMiddleware;
     const response = redirect("http://test.com");
@@ -216,8 +210,8 @@ describe("openframes middleware", () => {
       clientProtocol: "foo@vNext",
       handler: {
         isValidPayload: () => false,
-        getFrameMessage: async () => {
-          return { test1: true };
+        getFrameMessage: () => {
+          return Promise.resolve({ test1: true });
         },
       },
     });
@@ -225,8 +219,8 @@ describe("openframes middleware", () => {
       clientProtocol: "bar@vNext",
       handler: {
         isValidPayload: () => true,
-        getFrameMessage: async () => {
-          return { test2: true };
+        getFrameMessage: () => {
+          return Promise.resolve({ test2: true });
         },
       },
     });
@@ -235,7 +229,7 @@ describe("openframes middleware", () => {
       middleware: [mw1, mw2],
     });
 
-    const routeHandler = handler(async (ctx) => {
+    const routeHandler = handler((ctx) => {
       return {
         image: `/?test1=${ctx.message?.test1}&test2=${ctx.message?.test2}`,
       };
@@ -254,12 +248,12 @@ describe("openframes middleware", () => {
   });
 
   it("moves to next middleware if request is POST with valid JSON but invalid body shape", async () => {
-    const context: FramesContext = {
+    const context = {
       request: new Request("https://example.com", {
         method: "POST",
         body: JSON.stringify({}),
       }),
-    } as any;
+    } as unknown as FramesContext;
 
     const mw = xmtpMiddleware;
     const response = redirect("http://test.com");
@@ -282,28 +276,30 @@ describe("openframes middleware", () => {
       state: JSON.stringify({ test: true }),
     });
 
-    const context: FramesContext = {
+    const context = {
       request: new Request("https://example.com", {
         method: "POST",
         body: JSON.stringify(signedPayload),
       }),
-    } as any;
+    } as unknown as FramesContext;
 
     const mw = xmtpMiddleware;
-    // eslint-disable-next-line no-unused-vars
-    const next = jest.fn((...args) => Promise.resolve(new Response()));
+    const next = jest.fn(() => Promise.resolve(new Response()));
 
     await mw(context, next);
 
-    const calledArg: { clientProtocol: string; message: any } =
-      next.mock.calls[0]![0];
-
-    expect(calledArg.message.buttonIndex).toBe(buttonIndex);
-    expect(calledArg.message.inputText).toBe("hello");
-    expect(calledArg.message.state).toMatchObject({ test: true });
-    expect(calledArg.clientProtocol).toEqual({
-      id: "xmtp",
-      version: "2024-02-09",
-    });
+    expect(next).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.objectContaining({
+          buttonIndex: 1,
+          inputText: "hello",
+          state: { test: true },
+        }) as unknown,
+        clientProtocol: {
+          id: "xmtp",
+          version: "2024-02-09",
+        },
+      })
+    );
   });
 });

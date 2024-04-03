@@ -1,4 +1,4 @@
-import { Chain } from "viem/chains";
+import type { Chain } from "viem/chains";
 
 type GetTokenUrlParameters = {
   /** Address of smart contract on the given chain */

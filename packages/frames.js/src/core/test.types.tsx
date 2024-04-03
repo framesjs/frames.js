@@ -1,6 +1,8 @@
-import { createFrames, types } from '.';
+/* eslint-disable @typescript-eslint/require-await  -- we are checking compatibility with promises */
+import type { types } from '.';
+import { createFrames } from '.';
 
-type Handler = (req: Request) => Promise<Response>;
+type Handler = (req: Request) => Promise<Response> | Response;
 
 const framesWithoutState = createFrames();
 framesWithoutState(async (ctx) => {
@@ -27,7 +29,7 @@ framesWithInferredState(async (ctx) => {
 const framesWithExplicitState = createFrames<{ test: boolean }>({});
 framesWithExplicitState(async (ctx) => {
   ctx.state satisfies { test: boolean };
-  ctx satisfies { initialState?: {test: boolean}; message?: any, pressedButton?: any };
+  ctx satisfies { initialState?: {test: boolean}; message?: unknown, pressedButton?: unknown };
 
   return {
     image: 'http://test.png',
@@ -37,7 +39,18 @@ framesWithExplicitState(async (ctx) => {
 const framesWithExplicitStateAndEnv = createFrames<{ test: boolean }>({});
 framesWithExplicitStateAndEnv(async (ctx) => {
   ctx.state satisfies { test: boolean };
-  ctx satisfies { initialState?: { test: boolean }; message?: any, pressedButton?: any; request: Request; };
+  ctx satisfies { initialState?: { test: boolean }; message?: unknown, pressedButton?: unknown; request: Request; };
+
+
+  return {
+    image: 'http://test.png',
+  };
+}) satisfies Handler;
+
+const framesWithExplicitStateAndEnvNoPromise = createFrames<{ test: boolean }>({});
+framesWithExplicitStateAndEnvNoPromise((ctx) => {
+  ctx.state satisfies { test: boolean };
+  ctx satisfies { initialState?: { test: boolean }; message?: unknown, pressedButton?: unknown; request: Request; };
 
 
   return {

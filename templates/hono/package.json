@@ -6,11 +6,11 @@
   "dependencies": {
     "@hono/node-server": "^1.9.0",
     "hono": "^4.1.3",
-    "frames.js": "^0.9.6",
+    "frames.js": "^0.11.2",
     "react": "^18.2.0"
   },
   "devDependencies": {
-    "@frames.js/debugger": "^0.1.9",
+    "@frames.js/debugger": "^0.1.13",
     "@hono/vite-dev-server": "^0.10.0",
     "@types/node": "^18.17.0",
     "@types/react": "^18.2.45",

@@ -18,7 +18,7 @@ function isValidFrameActionPayload(
 ): value is FrameActionPayload {
   return (
     typeof value === "object" &&
-    !!value &&
+    value !== null &&
     "trustedData" in value &&
     "untrustedData" in value
   );
@@ -29,12 +29,12 @@ async function decodeFrameActionPayloadFromRequest(
 ): Promise<FrameActionPayload | undefined> {
   try {
     // use clone just in case someone wants to read body somewhere along the way
-    const body = await request
+    const body = (await request
       .clone()
       .json()
       .catch(() => {
         throw new RequestBodyNotJSONError();
-      });
+      })) as JSON;
 
     if (!isValidFrameActionPayload(body)) {
       throw new InvalidFrameActionPayloadError();
@@ -49,6 +49,7 @@ async function decodeFrameActionPayloadFromRequest(
       return undefined;
     }
 
+    // eslint-disable-next-line no-console -- provide feedback to the developer
     console.error(e);
 
     return undefined;

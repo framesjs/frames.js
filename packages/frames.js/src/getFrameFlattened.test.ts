@@ -1,8 +1,8 @@
-import { Frame, getFrameFlattened, getTokenUrl } from ".";
-import { zora } from "viem/chains";
+import type { Frame } from ".";
+import { getFrameFlattened } from ".";
 
 describe("getFrameFlattened", () => {
-  it("should get flattened frame", async () => {
+  it("should get flattened frame", () => {
     const frame: Frame = {
       version: "vNext",
       image: "https://example.com/image.png",

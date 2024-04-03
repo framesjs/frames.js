@@ -18,7 +18,7 @@ describe("remix adapter", () => {
       },
     });
 
-    const handleRequest = frames(async (ctx) => {
+    const handleRequest = frames((ctx) => {
       expect(ctx.state).toEqual({ test: false });
 
       return {

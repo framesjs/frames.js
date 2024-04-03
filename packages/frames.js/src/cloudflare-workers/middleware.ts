@@ -3,7 +3,7 @@ import type {
   IncomingRequestCfProperties,
   Request,
 } from "@cloudflare/workers-types";
-import type { FramesMiddleware } from "../core/types";
+import type { FramesMiddleware, JsonValue } from "../core/types";
 
 type CloudflareWorkersMiddlewareContext<TEnv> = {
   /**
@@ -34,7 +34,7 @@ type CloudflareWorkersMiddlewareOptions<TEnv> = {
 };
 
 export type CloudflareWorkersMiddleware<TEnv> = FramesMiddleware<
-  any,
+  JsonValue | undefined,
   CloudflareWorkersMiddlewareContext<TEnv>
 >;
 

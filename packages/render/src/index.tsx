@@ -1,4 +1,4 @@
-import { FrameContext } from "./types.js";
+import type { FrameContext } from "./types";
 
 export const fallbackFrameContext: FrameContext = {
   castId: {
@@ -10,6 +10,6 @@ export const fallbackFrameContext: FrameContext = {
 
 export * from "./frame-ui.js";
 export * from "./types.js";
-export * from "./farcaster/index.js";
+export * from "./farcaster";
 
 /** don't export use-frame from here, as it's a client component */

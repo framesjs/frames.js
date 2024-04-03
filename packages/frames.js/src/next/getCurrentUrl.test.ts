@@ -1,9 +1,8 @@
-/* eslint-disable turbo/no-undeclared-env-vars */
 import { getCurrentUrl } from "./getCurrentUrl";
 
 describe("getCurrentUrl", () => {
   beforeEach(() => {
-    // @ts-expect-error
+    // @ts-expect-error -- this works
     process.env.NODE_ENV = "test";
   });
 
@@ -38,7 +37,7 @@ describe("getCurrentUrl", () => {
 
   it("takes value from process.env.VERCEL_URL and uses https if NODE_ENV=production if available", () => {
     process.env.VERCEL_URL = "test.com";
-    // @ts-expect-error
+    // @ts-expect-error -- this works
     process.env.NODE_ENV = "production";
 
     expect(
@@ -66,7 +65,7 @@ describe("getCurrentUrl", () => {
 
   it("takes value from process.env.APP_URL and uses https if NODE_ENV=production if available", () => {
     process.env.APP_URL = "test.com";
-    // @ts-expect-error
+    // @ts-expect-error -- this works
     process.env.NODE_ENV = "production";
 
     expect(

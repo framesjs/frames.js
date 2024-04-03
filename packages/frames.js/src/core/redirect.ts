@@ -1,4 +1,4 @@
-import { FrameRedirect } from "./types";
+import type { FrameRedirect } from "./types";
 
 /**
  * Creates a redirect with 302 as default status

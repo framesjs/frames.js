@@ -1,6 +1,7 @@
 import type { ClientProtocolId } from "../types";
 import { RequestBodyNotJSONError } from "../core/errors";
 import type {
+  FramesHandlerFunctionReturnType,
   FramesMiddleware,
   FramesMiddlewareReturnType,
 } from "../core/types";
@@ -14,21 +15,19 @@ export type OpenFramesMessageContext<T = OpenFrameMessage> = {
 };
 
 export type ClientProtocolHandler<T = OpenFrameMessage> = {
-  // eslint-disable-next-line no-unused-vars
   getFrameMessage: (body: JSON) => Promise<T | undefined> | undefined;
-  // eslint-disable-next-line no-unused-vars
   isValidPayload: (body: JSON) => boolean;
 };
 
 async function cloneJsonBody(request: Request): Promise<JSON | undefined> {
   try {
     // use clone just in case someone wants to read body somewhere along the way
-    const body = await request
+    const body = (await request
       .clone()
       .json()
       .catch(() => {
         throw new RequestBodyNotJSONError();
-      });
+      })) as JSON;
 
     return body;
   } catch (e) {
@@ -36,6 +35,7 @@ async function cloneJsonBody(request: Request): Promise<JSON | undefined> {
       return undefined;
     }
 
+    // eslint-disable-next-line no-console -- provide feedback to the developer
     console.error(e);
 
     return undefined;
@@ -48,11 +48,13 @@ async function nextInjectAcceptedClient({
 }: {
   nextResult: FramesMiddlewareReturnType<any>;
   clientProtocol: ClientProtocolId;
-}) {
+}): Promise<FramesHandlerFunctionReturnType<any> | Response> {
   const result = await nextResult;
+
   if (isFrameDefinition(result)) {
     return { ...result, accepts: [...(result.accepts || []), clientProtocol] };
   }
+
   return result;
 }
 
@@ -70,19 +72,30 @@ export function openframes<T = OpenFrameMessage>({
   handler: ClientProtocolHandler<T>;
 }): FramesMiddleware<any, OpenFramesMessageContext<T>> {
   return async (context, next) => {
-    const clientProtocol: ClientProtocolId =
-      typeof clientProtocolRaw === "string"
-        ? {
-            id: clientProtocolRaw.split("@")[0]!,
-            version: clientProtocolRaw.split("@")[1]!,
-          }
-        : clientProtocolRaw;
+    let clientProtocol: ClientProtocolId;
+
+    if (typeof clientProtocolRaw === "string") {
+      const [id, version] = clientProtocolRaw.split("@");
+
+      if (!id || !version) {
+        throw new Error(
+          `Invalid client protocol string. Expected format is "id@version"`
+        );
+      }
+
+      clientProtocol = {
+        id,
+        version,
+      };
+    } else {
+      clientProtocol = clientProtocolRaw;
+    }
 
     // frame message is available only if the request is a POST request
     if (context.request.method !== "POST") {
       return nextInjectAcceptedClient({
         nextResult: next(),
-        clientProtocol: clientProtocol,
+        clientProtocol,
       });
     }
 

@@ -1,7 +1,7 @@
-import { createFrames } from "./createFrames";
 import { concurrentMiddleware } from "../middleware/concurrentMiddleware";
+import { createFrames } from "./createFrames";
 import { redirect } from "./redirect";
-import { FramesMiddleware } from "./types";
+import type { FramesMiddleware } from "./types";
 
 describe("createFrames", () => {
   it("returns a handler function", () => {
@@ -13,7 +13,7 @@ describe("createFrames", () => {
   it("provides default properties on context based on default middleware and internal logic", async () => {
     const handler = createFrames();
 
-    const routeHandler = handler(async (ctx) => {
+    const routeHandler = handler((ctx) => {
       expect(ctx.url).toBeInstanceOf(URL);
       expect(ctx.url.href).toBe("http://test.com/");
 
@@ -32,7 +32,7 @@ describe("createFrames", () => {
   it("passes initialState to context", async () => {
     const handler = createFrames({ initialState: { test: true } });
 
-    const routeHandler = handler(async (ctx) => {
+    const routeHandler = handler((ctx) => {
       expect(ctx.initialState).toEqual({ test: true });
       return redirect("http://test.com");
     });
@@ -54,7 +54,7 @@ describe("createFrames", () => {
       middleware: [customMiddleware],
     });
 
-    const routeHandler = handler(async (ctx) => {
+    const routeHandler = handler((ctx) => {
       return redirect(ctx.custom);
     });
 
@@ -75,7 +75,7 @@ describe("createFrames", () => {
     const handler = createFrames();
 
     const routeHandler = handler(
-      async (ctx) => {
+      (ctx) => {
         return redirect(ctx.custom);
       },
       {
@@ -90,16 +90,28 @@ describe("createFrames", () => {
   });
 
   it("works with parallel middleware", async () => {
-    const middleware0 = async (context: any, next: any) => {
+    const middleware0: FramesMiddleware<any, { test0: boolean }> = async (
+      context,
+      next
+    ) => {
       return next({ test0: true });
     };
-    const middleware1 = async (context: any, next: any) => {
+    const middleware1: FramesMiddleware<any, { test1: boolean }> = async (
+      context,
+      next
+    ) => {
       return next({ test1: true });
     };
-    const middleware2 = async (context: any, next: any) => {
+    const middleware2: FramesMiddleware<any, { test2: boolean }> = async (
+      context,
+      next
+    ) => {
       return next({ test2: true });
     };
-    const middleware3 = async (context: any, next: any) => {
+    const middleware3: FramesMiddleware<any, { test3: boolean }> = async (
+      context,
+      next
+    ) => {
       return next({ test3: true });
     };
 
@@ -111,7 +123,7 @@ describe("createFrames", () => {
       ],
     });
 
-    const routeHandler = handler(async (ctx) => {
+    const routeHandler = handler((ctx) => {
       expect(ctx).toMatchObject({
         test0: true,
         test1: true,

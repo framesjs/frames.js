@@ -1,5 +1,7 @@
-import { Handler } from 'express';
-import { createFrames, types } from '.';
+/* eslint-disable @typescript-eslint/require-await -- we want to test if the types are compatible */
+import type { Handler } from 'express';
+import type { types } from '.';
+import { createFrames } from '.';
 
 const framesWithoutState = createFrames();
 framesWithoutState(async ctx => {
@@ -38,8 +40,29 @@ framesWithExplicitState(async ctx => {
     test: boolean;
   };
   ctx satisfies {
-    message?: any;
-    pressedButton?: any;
+    message?: unknown;
+    pressedButton?: unknown;
+    request: Request;
+  }
+
+  return {
+    image: 'http://test.png'
+  };
+}) satisfies Handler;
+
+const framesWithExplicitStateNoPromise = createFrames<{
+  test: boolean;
+}>({});
+framesWithExplicitStateNoPromise(ctx => {
+  ctx.state satisfies {
+    test: boolean;
+  };
+  ctx.initialState satisfies {
+    test: boolean;
+  };
+  ctx satisfies {
+    message?: unknown;
+    pressedButton?: unknown;
     request: Request;
   }
 

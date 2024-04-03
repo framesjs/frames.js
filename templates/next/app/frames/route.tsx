@@ -2,6 +2,7 @@ import { farcasterHubContext } from "frames.js/middleware";
 import { createFrames, Button } from "frames.js/next";
 
 const frames = createFrames({
+  basePath: '/frames',
   middleware: [
     farcasterHubContext({
       // remove if you aren't using @frames.js/debugger or you just don't want to use the debugger hub

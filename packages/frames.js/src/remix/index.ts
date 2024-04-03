@@ -1,6 +1,8 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { createFrames as coreCreateFrames, types } from "../core";
+import type { types } from "../core";
+import { createFrames as coreCreateFrames } from "../core";
 import type { CoreMiddleware } from "../middleware";
+
 export { Button, type types } from "../core";
 
 export { fetchMetadata } from "./fetchMetadata";
@@ -14,6 +16,7 @@ type CreateFramesForRemix = types.CreateFramesFunctionDefinition<
  * Creates Frames instance to use with you Remix server
  *
  * @example
+ * ```tsx
  * import { createFrames, Button } from 'frames.js/remix';
  * import type { LoaderFunction, ActionFunction } from '@remix-run/node';
  *
@@ -31,8 +34,9 @@ type CreateFramesForRemix = types.CreateFramesFunctionDefinition<
  *
  * export const loader: LoaderFunction = remixHandler;
  * export const action: ActionFunction = remixHandler;
+ * ```
  */
-// @ts-expect-error
+// @ts-expect-error -- the function works fine but somehow it does not satisfy the expected type
 export const createFrames: CreateFramesForRemix = function createFramesForRemix(
   options?: types.FramesOptions<any, any>
 ) {

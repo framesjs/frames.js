@@ -1,9 +1,10 @@
 import Image from "next/image";
-import React, { ImgHTMLAttributes } from "react";
+import type { ImgHTMLAttributes } from "react";
+import React from "react";
 
 export function FrameImageNext(
   props: ImgHTMLAttributes<HTMLImageElement> & { src: string }
-) {
+): React.JSX.Element {
   return (
     <Image
       {...props}
