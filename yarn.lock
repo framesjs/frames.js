@@ -7648,7 +7648,7 @@ fraction.js@^4.3.7:
   resolved "https://registry.yarnpkg.com/fraction.js/-/fraction.js-4.3.7.tgz#06ca0085157e42fda7f9e726e79fefc4068840f7"
   integrity sha512-ZsDfxO51wGAXREY55a7la9LScWpwv9RxIrYABrlvOFBlH/ShPnrtsXeuUIfXKKOVicNxQ+o8JTbJvjS4M89yew==
 
-frames.js@^0.9.0, frames.js@^0.9.3, frames.js@^0.9.6:
+frames.js@^0.9.0:
   version "0.9.6"
   resolved "https://registry.yarnpkg.com/frames.js/-/frames.js-0.9.6.tgz#dcf68f88a0237451dba11fbebcfd7df5a004c649"
   integrity sha512-NtIs9kWdLnXBB3a7IAnYP3Iv4V+x1dHsKEwacVfWVaFd+3jnzBfiIbvo9dnMuYzFOOyaiPWmZYrff0aTygJP7A==
