@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/require-await -- we expect promises */
 import { composeMiddleware } from "./composeMiddleware";
 
 describe("composeMiddleware", () => {
@@ -11,7 +12,7 @@ describe("composeMiddleware", () => {
     const context = { a: 1 };
 
     const composedMiddleware = composeMiddleware<typeof context, unknown>([
-      (ctx, next) => {
+      async (ctx, next) => {
         ctx.a = 2;
         return next();
       },

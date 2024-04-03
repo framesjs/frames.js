@@ -51,7 +51,7 @@ export async function getAddressesForFid({
       throw new Error(
         `Failed to parse response body as JSON because server hub returned response with status "${verificationsResponse.status}" and body "${await verificationsResponse.clone().text()}"`
       );
-    })) as { messages?: Record<string, any>[] };
+    })) as { messages?: Record<string, unknown>[] };
 
   if (messages) {
     const verifiedAddresses = messages

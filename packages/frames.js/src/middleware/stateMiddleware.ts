@@ -27,8 +27,12 @@ export function stateMiddleware<
 
       // since we are stringifyng state to JSON in renderResponse middleware, we need to parse decode JSON here
       // so it is easy to use in middleware chain and frames handler
-      if (typeof ctx.message.state === "string") {
+      if (ctx.message.state) {
         try {
+          if (typeof ctx.message.state !== "string") {
+            throw new Error("State is not a string");
+          }
+
           state = JSON.parse(ctx.message.state) as TState;
         } catch (e) {
           // eslint-disable-next-line no-console -- provide feedback

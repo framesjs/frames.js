@@ -105,21 +105,21 @@ describe("farcaster middleware", () => {
     await mw(context, next);
     enableNetConnect();
 
-    expect(next).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: {
-          buttonIndex: 1,
-          castId: {
-            fid: 456,
-            hash: "0x",
-          },
-          connectedAddress: "0x789",
-          inputText: "hello",
-          requesterFid: 123,
-          state: JSON.stringify({ test: true }),
+    expect(next).toHaveBeenCalledWith({
+      clientProtocol: { id: "farcaster", version: "vNext" },
+      message: {
+        buttonIndex: 1,
+        castId: {
+          fid: 456,
+          hash: "0x",
         },
-      })
-    );
+        connectedAddress: "0x89",
+        inputText: "hello",
+        requesterFid: 123,
+        state: JSON.stringify({ test: true }),
+        transactionId: undefined,
+      },
+    });
   });
 
   it("supports custom global typed context", async () => {

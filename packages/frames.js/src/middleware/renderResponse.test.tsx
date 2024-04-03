@@ -21,8 +21,9 @@ jest.mock("@vercel/og", () => {
     arrayBufferMock,
     constructorMock,
     ImageResponse: class {
-      constructor() {
-        constructorMock();
+      constructor(...args: unknown[]) {
+        // @ts-expect-error -- we are mocking the constructor
+        constructorMock(...args);
       }
       arrayBuffer = arrayBufferMock;
     },

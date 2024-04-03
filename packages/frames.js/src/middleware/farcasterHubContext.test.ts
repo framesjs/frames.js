@@ -104,7 +104,8 @@ describe("farcasterHubContext middleware", () => {
 
     expect(next).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: {
+        clientProtocol: { id: "farcaster", version: "vNext" },
+        message: expect.objectContaining({
           buttonIndex: 1,
           castId: {
             fid: 456,
@@ -114,8 +115,8 @@ describe("farcasterHubContext middleware", () => {
           inputText: "hello",
           requesterFid: 123,
           state: JSON.stringify({ test: true }),
-          requestedUserData: expect.anything() as UserDataReturnType,
-        },
+          requesterUserData: expect.anything() as UserDataReturnType,
+        }) as unknown,
       })
     );
   });

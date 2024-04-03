@@ -131,5 +131,16 @@ export function extractAddressFromJSONMessage(
     return null;
   }
 
-  return bytesToHexString(data.verificationAddAddressBody.address);
+  /**
+   * This is ugly hack but we want to return the address as a string that is expected by the users ( essentially what they see in the response from the hub ).
+   * We could use Buffer.from(data.verificationAddAddressBody.address).toString('base64') here but that results in different base64.
+   * Therefore we return address from source message and not from decoded message.
+   *
+   * For example for value 0x8d25687829d6b85d9e0020b8c89e3ca24de20a89 from API we get 0x8d25687829d6b85d9e0020b8c89e3ca24de20a8w== from Buffer.from(...).toString('base64').
+   * The values are the same if you compare them as Buffer.from(a).equals(Buffer.from(b)).
+   */
+  // @TODO type message properly or handle the return type properly
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- we know the data is there
+  return (message as Record<string, any>).data.verificationAddAddressBody
+    .address as `0x${string}`;
 }

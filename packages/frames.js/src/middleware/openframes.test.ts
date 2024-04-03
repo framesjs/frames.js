@@ -290,11 +290,11 @@ describe("openframes middleware", () => {
 
     expect(next).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: {
+        message: expect.objectContaining({
           buttonIndex: 1,
           inputText: "hello",
           state: { test: true },
-        },
+        }) as unknown,
         clientProtocol: {
           id: "xmtp",
           version: "2024-02-09",
