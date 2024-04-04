@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.11.4
+
+### Patch Changes
+
+- 8634f7d: fix: validateFrameMessage bug
+
 ## 0.11.3
 
 ### Patch Changes
