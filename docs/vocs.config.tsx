@@ -58,6 +58,10 @@ const sidebar = [
         text: "Open Frames",
         link: "/guides/open-frames",
       },
+      {
+        text: "Cast Actions",
+        link: "/guides/cast-actions",
+      },
     ],
   },
   {
