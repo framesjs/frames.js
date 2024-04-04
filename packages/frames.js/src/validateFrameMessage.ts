@@ -19,7 +19,7 @@ function isValidateMessageJson(value: unknown): value is ValidateMessageJson {
   return (
     typeof validateMessageJson.valid === "boolean" &&
     validateMessageJson.valid &&
-    typeof validateMessageJson.message === "string"
+    typeof validateMessageJson.message === "object"
   );
 }
 
