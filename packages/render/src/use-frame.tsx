@@ -23,6 +23,7 @@ import type {
   UseFrameReturn,
   OnTransactionArgs,
 } from "./types";
+import { PresentableError } from "./errors";
 
 function onMintFallback({ target }: OnMintArgs): void {
   window.alert(`Mint requested: ${target}`);
@@ -161,7 +162,7 @@ export function useFrame<
         if (!response.ok) {
           throw new Error(`Failed to fetch frame: ${response.statusText}`);
         }
-        
+
         newFrame = (await response.json()) as ReturnType<typeof getFrame>;
         const tend = new Date();
 
@@ -220,7 +221,16 @@ export function useFrame<
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to fetch frame: ${response.statusText}`);
+          if (response.status >= 400 && response.status < 500) {
+            const data = (await response.clone().json()) as {
+              message?: string;
+            };
+            // Show error message if available
+            throw new PresentableError(data.message);
+          }
+
+          if (response.status >= 500)
+            throw new Error(`Failed to fetch frame: ${response.statusText}`);
         }
 
         const dataRes = (await response.json()) as
@@ -248,8 +258,12 @@ export function useFrame<
         }
       } catch (err) {
         const tend = new Date();
+        const baseItem =
+          err instanceof PresentableError
+            ? { ...framesStack[0], ...frameStackBase }
+            : frameStackBase;
         stackItem = {
-          ...frameStackBase,
+          ...baseItem,
           responseStatus: response?.status ?? 500,
           requestError: err,
           speed: Number(
@@ -479,7 +493,11 @@ export function useFrame<
   }
 
   async function onTransactionRequest({
-    buttonIndex, postInputText, frameButton, target, state,
+    buttonIndex,
+    postInputText,
+    frameButton,
+    target,
+    state,
   }: {
     frameButton: FrameButton;
     buttonIndex: number;
@@ -527,7 +545,8 @@ export function useFrame<
           ...body,
         }),
       });
-      const transactionResponse = (await response.json()) as TransactionTargetResponse;
+      const transactionResponse =
+        (await response.json()) as TransactionTargetResponse;
       return transactionResponse;
     } catch {
       throw new Error(

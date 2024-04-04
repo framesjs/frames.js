@@ -194,11 +194,7 @@ export function FrameDebugger({
   useEffect(() => {
     if (!frameState.isLoading) {
       // make sure the first frame is open
-      if (
-        !openAccordions.includes(
-          String(latestFrame?.timestamp.getTime())
-        )
-      )
+      if (!openAccordions.includes(String(latestFrame?.timestamp.getTime())))
         setOpenAccordions((v) => [
           ...v,
           String(latestFrame?.timestamp.getTime()),
@@ -275,16 +271,20 @@ export function FrameDebugger({
               return (
                 <button
                   className={`px-4 py-3 flex flex-col gap-2 ${i !== 0 ? "border-t" : "bg-slate-50"} hover:bg-slate-50 w-full`}
-                  key={frameStackItem.timestamp.getTime()}
+                  key={i}
                   onClick={() => {
-                    frameState.fetchFrame(frameStackItem.method === 'GET' ? {
-                      method: 'GET',
-                      url: frameStackItem.url,
-                    } : {
-                      url: frameStackItem.url,
-                      method: frameStackItem.method,
-                      request: frameStackItem.request,
-                    });
+                    frameState.fetchFrame(
+                      frameStackItem.method === "GET"
+                        ? {
+                            method: "GET",
+                            url: frameStackItem.url,
+                          }
+                        : {
+                            url: frameStackItem.url,
+                            method: frameStackItem.method,
+                            request: frameStackItem.request,
+                          }
+                    );
                   }}
                 >
                   <span className="flex text-left flex-row w-full">

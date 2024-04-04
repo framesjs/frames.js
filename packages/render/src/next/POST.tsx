@@ -1,10 +1,10 @@
-import type { FrameActionPayload} from "frames.js";
+import type { FrameActionPayload } from "frames.js";
 import { getFrame } from "frames.js";
 import type { NextRequest } from "next/server";
 
 /** Proxies frame actions to avoid CORS issues and preserve user IP privacy */
 export async function POST(req: NextRequest): Promise<Response> {
-  const body = await req.json() as FrameActionPayload;
+  const body = (await req.json()) as FrameActionPayload;
   const isPostRedirect =
     req.nextUrl.searchParams.get("postType") === "post_redirect";
   const isTransactionRequest =
@@ -35,8 +35,15 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
     }
 
+    if (r.status >= 400 && r.status < 500) {
+      const json = (await r.json()) as { message?: string };
+      if ("message" in json) {
+        return Response.json({ message: json.message }, { status: r.status });
+      }
+    }
+
     if (isTransactionRequest) {
-      const transaction = await r.json() as JSON;
+      const transaction = (await r.json()) as JSON;
       return Response.json(transaction);
     }
 
