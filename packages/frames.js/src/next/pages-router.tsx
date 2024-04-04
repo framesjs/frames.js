@@ -2,16 +2,43 @@ import type { Metadata, NextApiRequest, NextApiResponse } from "next";
 import React from "react";
 import type { types } from "../core";
 import { createFrames as coreCreateFrames } from "../core";
-import {
-  createReadableStreamFromReadable,
-  writeReadableStreamToWritable,
-} from "../lib/stream-pump";
+import type { CoreMiddleware } from "../middleware";
+import { convertNodeJSRequestToWebAPIRequest, sendWebAPIResponseToNodeJSResponse } from "../lib/node-server-helpers";
 
 export { Button, type types } from "../core";
 
 export { fetchMetadata } from "./fetchMetadata";
 
-export const createFrames: typeof coreCreateFrames =
+
+type CreateFramesForNextJSApiHandler = types.CreateFramesFunctionDefinition<
+  CoreMiddleware,
+  (req: NextApiRequest, res: NextApiResponse) => Promise<void>
+>;
+
+/**
+ * Creates Frames instance to use with you Next.js server API handler
+ *
+ * @example
+ * ```tsx
+ * import { createFrames, Button } from 'frames.js/next/pages-router';
+ *
+ * const frames = createFrames();
+ * const nextHandler = frames(async (ctx) => {
+ *  return {
+ *    image: <span>Test</span>,
+ *    buttons: [
+ *     <Button action="post">
+ *        Click me
+ *      </Button>,
+ *    ],
+ *  };
+ * });
+ *
+ * export default nextHandler;
+ * ```
+ */
+// @ts-expect-error -- this code is correct just function doesn't satisfy the type
+export const createFrames: CreateFramesForNextJSApiHandler =
   function createFramesForNextJSPagesRouter(options: types.FramesOptions<any, any>) {
     const frames = coreCreateFrames(options);
 
@@ -27,11 +54,11 @@ export const createFrames: typeof coreCreateFrames =
         req: NextApiRequest,
         res: NextApiResponse
       ) {
-        const response = await requestHandler(createRequest(req, res));
-        await sendResponse(res, response);
+        const response = await requestHandler(convertNodeJSRequestToWebAPIRequest(req, res));
+        await sendWebAPIResponseToNodeJSResponse(res, response);
       };
     };
-  } as unknown as typeof coreCreateFrames;
+  }
 
 /**
  * Converts metadata returned from fetchMetadata() call to Next.js <Head /> compatible components.
@@ -63,7 +90,7 @@ export const createFrames: typeof coreCreateFrames =
  * }
  * ```
  */
-export function metadataToMetaTags(metadata: NonNullable<Metadata["other"]>): React.JSX.Element {
+export function metadataToMetaTags(metadata: NonNullable<Metadata["other"]>): JSX.Element {
   return (
     <>
       {Object.entries(metadata).map(([key, value]) => {
@@ -75,74 +102,4 @@ export function metadataToMetaTags(metadata: NonNullable<Metadata["other"]>): Re
       })}
     </>
   );
-}
-
-function createRequest(req: NextApiRequest, res: NextApiResponse): Request {
-  // req.hostname doesn't include port information so grab that from
-  // `X-Forwarded-Host` or `Host`
-  const xForwardedHost = req.headers["x-forwarded-host"];
-  const normalizedXForwardedHost = Array.isArray(xForwardedHost)
-    ? xForwardedHost[0]
-    : xForwardedHost;
-  const [, hostnamePort] = normalizedXForwardedHost?.split(":") ?? [];
-  const [, hostPort] = req.headers.host?.split(":") ?? [];
-  const port = hostnamePort || hostPort;
-  // Use req.hostname here as it respects the "trust proxy" setting
-  const resolvedHost = `${req.headers.host}${!hostPort ? `:${port}` : ""}`;
-  // Use `req.url` so NextJS is aware of the full path
-  const url = new URL(
-    `${"encrypted" in req.socket && req.socket.encrypted ? "https" : "http"}://${resolvedHost}${req.url}`
-  );
-
-  // Abort action/loaders once we can no longer write a response
-  const controller = new AbortController();
-  res.on("close", () => { controller.abort(); });
-
-  const init: RequestInit = {
-    method: req.method,
-    headers: createRequestHeaders(req.headers),
-    signal: controller.signal,
-  };
-
-  if (req.method !== "GET" && req.method !== "HEAD") {
-    init.body = createReadableStreamFromReadable(req);
-    (init as { duplex: "half" }).duplex = "half";
-  }
-
-  return new Request(url.href, init);
-}
-
-export function createRequestHeaders(
-  requestHeaders: NextApiRequest["headers"]
-): Headers {
-  const headers = new Headers();
-
-  for (const [key, values] of Object.entries(requestHeaders)) {
-    if (values) {
-      if (Array.isArray(values)) {
-        for (const value of values) {
-          headers.append(key, value);
-        }
-      } else {
-        headers.set(key, values);
-      }
-    }
-  }
-
-  return headers;
-}
-
-async function sendResponse(res: NextApiResponse, response: Response): Promise<void> {
-  res.statusMessage = response.statusText;
-  res.status(response.status);
-
-  for (const [key, value] of response.headers.entries()) {
-    res.setHeader(key, value);
-  }
-
-  if (response.body) {
-    await writeReadableStreamToWritable(response.body, res);
-  } else {
-    res.end();
-  }
 }
