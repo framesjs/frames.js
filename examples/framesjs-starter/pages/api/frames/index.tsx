@@ -11,8 +11,9 @@ const handleRequest = frames(async (ctx) => {
       </span>
     ),
     buttons: [
-      <Button action="post" target="/">
-        Click me
+      <Button action="post">Click me</Button>,
+      <Button action="post" target="/next">
+        Next frame
       </Button>,
     ],
     textInput: "Type something!",
