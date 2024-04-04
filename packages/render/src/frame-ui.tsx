@@ -2,6 +2,7 @@ import type { ImgHTMLAttributes } from "react";
 import React, { useEffect, useState } from "react";
 import type { FrameButton } from "frames.js";
 import type { FrameTheme, FrameState } from "./types";
+import { PresentableError } from "./errors";
 
 export const defaultTheme: Required<FrameTheme> = {
   buttonBg: "#fff",
@@ -47,7 +48,7 @@ export function FrameUI({
     return <div>Missing frame url</div>;
   }
 
-  if (frameState.error) {
+  if (frameState.error && !(frameState.error instanceof PresentableError)) {
     return <div>Failed to load Frame</div>;
   }
 
@@ -69,29 +70,45 @@ export function FrameUI({
       style={{ backgroundColor: resolvedTheme.bg }}
       className="flex flex-col w-full gap-2 rounded-br rounded-bl"
     >
-      <ImageEl
-        src={frameState.frame.image}
-        alt="Frame image"
-        width="100%"
-        style={{
-          filter: isLoading ? "blur(4px)" : undefined,
-          borderTopLeftRadius: `${resolvedTheme.buttonRadius}px`,
-          borderTopRightRadius: `${resolvedTheme.buttonRadius}px`,
-          border: `1px solid ${resolvedTheme.buttonBorderColor}`,
-          objectFit: "cover",
-          width: "100%",
-          aspectRatio:
-            (frameState.frame.imageAspectRatio ?? "1.91:1") === "1:1"
-              ? "1/1"
-              : "1.91/1",
-        }}
-        onLoad={() => {
-          setIsImageLoading(false);
-        }}
-        onError={() => {
-          setIsImageLoading(false);
-        }}
-      />
+      <div className="relative w-full" style={{ height: "100%" }}>
+        {" "}
+        {/* Ensure the container fills the height */}
+        {frameState.error ? (
+          <div
+            className="absolute px-4 py-2 rounded-sm"
+            style={{
+              zIndex: 2,
+              backgroundColor: "rgba(0, 0, 0, 0.7)",
+              color: "white",
+            }}
+          >
+            {(frameState.error as PresentableError).message}
+          </div>
+        ) : null}
+        <ImageEl
+          src={frameState.frame.image}
+          alt="Frame image"
+          width="100%"
+          style={{
+            filter: isLoading ? "blur(4px)" : undefined,
+            borderTopLeftRadius: `${resolvedTheme.buttonRadius}px`,
+            borderTopRightRadius: `${resolvedTheme.buttonRadius}px`,
+            border: `1px solid ${resolvedTheme.buttonBorderColor}`,
+            objectFit: "cover",
+            width: "100%",
+            aspectRatio:
+              (frameState.frame.imageAspectRatio ?? "1.91:1") === "1:1"
+                ? "1/1"
+                : "1.91/1",
+          }}
+          onLoad={() => {
+            setIsImageLoading(false);
+          }}
+          onError={() => {
+            setIsImageLoading(false);
+          }}
+        />
+      </div>
       {frameState.frame.inputText ? (
         <input
           className="p-[6px] mx-2 border box-border"
@@ -132,7 +149,9 @@ export function FrameUI({
                 cursor: isLoading ? undefined : "pointer",
               }}
               onClick={() => {
-                Promise.resolve(frameState.onButtonPress(frameButton, index)).catch((e: unknown) => {
+                Promise.resolve(
+                  frameState.onButtonPress(frameButton, index)
+                ).catch((e: unknown) => {
                   // eslint-disable-next-line no-console -- provide feedback to the user
                   console.error(e);
                 });

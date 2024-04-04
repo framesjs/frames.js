@@ -135,6 +135,10 @@ const sidebar = [
             text: "redirect",
             link: "/reference/core/redirect",
           },
+          {
+            text: "error",
+            link: "/reference/core/error",
+          },
         ],
       },
       {
@@ -294,6 +298,7 @@ const sidebar = [
   },
 ];
 
+// eslint-disable-next-line import/no-default-export -- default export is required
 export default defineConfig({
   ogImageUrl: "https://framesjs.org/og.png",
   title: "frames.js",

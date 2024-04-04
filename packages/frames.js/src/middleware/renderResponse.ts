@@ -15,6 +15,7 @@ import {
   isFrameRedirect,
 } from "../core/utils";
 import { FRAMES_META_TAGS_HEADER } from "../core/constants";
+import { FrameMessageError } from "../core/errors";
 
 class InvalidButtonShapeError extends Error {}
 
@@ -39,6 +40,17 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
     try {
       result = await next(context);
     } catch (e) {
+      if (e instanceof FrameMessageError) {
+        return Response.json(
+          {
+            message: e.message,
+          },
+          {
+            status: e.status,
+          }
+        );
+      }
+
       // eslint-disable-next-line no-console -- provide feedback to the user
       console.error(e);
 
