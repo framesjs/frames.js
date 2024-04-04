@@ -239,6 +239,7 @@ describe("renderResponse middleware", () => {
 
   it("does not allow application errors with status codes other than 4XX", async () => {
     const result1 = await render(context, async () => {
+      // @ts-expect-error -- we are providing invalid status code
       error("Custom error message", 200);
     });
 
@@ -252,6 +253,7 @@ describe("renderResponse middleware", () => {
     );
 
     const result2 = await render(context, async () => {
+      // @ts-expect-error -- we are providing invalid status code
       error("Custom error message", 500);
     });
 
