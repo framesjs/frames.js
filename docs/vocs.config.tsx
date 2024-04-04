@@ -79,6 +79,10 @@ const sidebar = [
         link: "/reference/core/next",
       },
       {
+        text: 'Next.js (Pages Router)',
+        link: "/reference/core/next-pages-router",
+      },
+      {
         text: "Express.js",
         link: "/reference/core/express",
       },
