@@ -27,7 +27,7 @@ export default handleRequest;
 
 In order to render the initial frame of your Frames app on some of your pages, you need to render frame metadata. That can be achieved using [`getServerSideProps() API`](https://nextjs.org/docs/pages/building-your-application/data-fetching/get-server-side-props) in combination with `fetchMetadata()` function.
 
-```tsx [./app/page.tsx]
+```tsx [./pages/index.tsx]
 import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
 import Head from "next/head";
 import { fetchMetadata } from "frames.js/next/pages-router";

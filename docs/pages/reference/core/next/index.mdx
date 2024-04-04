@@ -28,7 +28,7 @@ export const POST = handleRequest;
 
 In order to render the initial frame of your Frames app on some of your pages, you need to render frame metadata. That can be achieved using [`generateMetadata() API`](https://nextjs.org/docs/app/api-reference/functions/generate-metadata).
 
-```tsx [./pages/index.tsx]
+```tsx [./app/page.tsx]
 import { fetchMetadata } from "frames.js/next";
 
 export async function generateMetadata() {
