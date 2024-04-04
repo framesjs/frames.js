@@ -19,3 +19,28 @@ An example snippet can be found below.
 ```
 
 Use the [Transactions starter](https://github.com/framesjs/frames.js/tree/main/examples/framesjs-starter/app/examples/new-api-transaction) as a template to build your transaction Frames.
+
+## Use the actual address executing the transaction
+
+The Farcaster Client when calling back for the transaction data, will send the wallet address the user connected to the Frame Button with action="tx" set.
+
+We can use this address which may differ from the connectedAddresses (Validations) the user has attached to his Farcaster Profile (FID).
+
+```tsx
+// ... in your POST handler serving the transaction data
+const json = await re.json();
+const frameMessage = await getFrameMessage(json);
+
+if (!frameMessage) {
+    throw new Error("No message");
+}
+
+const walletAddress = frameMessage.connectedAddress; // this is the address executing the requested transaction
+
+// ...
+
+```
+
+Here `frameMessage.connectedAddress` is the address of the wallet connected by the user after pressing the button to do the transaction.
+
+This is the wallet address the user executes the transaction with.
