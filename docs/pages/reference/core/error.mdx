@@ -1,0 +1,40 @@
+# error
+
+`error()` can be used to return an error response with a message to be presented to the user.
+
+## Parameters
+
+### `message`
+
+Type: `string`
+
+The message to be presented to the user.
+
+### `status`
+
+Type: `number`
+
+Default: `400`
+
+The status code of the response, must be a `4XX` status code.
+
+## Usage
+
+```tsx
+/* eslint-disable react/jsx-key */
+import { Button, createFrames, error } from "frames.js/core";
+
+const frames = createFrames();
+const handleRequest = frames(async (ctx) => {
+  if (ctx.message?.input) {
+    // ...
+
+    // Input is invalid
+    return error("Invalid input"); // Returns a response with status 400 and message "Invalid input"
+  }
+
+  return {
+    buttons: [<Button action="post">Click me</Button>],
+  };
+});
+```

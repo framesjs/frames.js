@@ -4,6 +4,7 @@
 import * as vercelOg from "@vercel/og";
 import { FRAMES_META_TAGS_HEADER } from "../core";
 import { Button } from "../core/components";
+import { error } from "../core/error";
 import { redirect } from "../core/redirect";
 import type { FramesContext } from "../core/types";
 import { renderResponse } from "./renderResponse";
@@ -31,8 +32,12 @@ jest.mock("@vercel/og", () => {
 });
 
 describe("renderResponse middleware", () => {
-  const arrayBufferMock: jest.Mock = (vercelOg as unknown as { arrayBufferMock: jest.Mock }).arrayBufferMock;
-  const constructorMock: jest.Mock = (vercelOg as unknown as { constructorMock: jest.Mock }).constructorMock;
+  const arrayBufferMock: jest.Mock = (
+    vercelOg as unknown as { arrayBufferMock: jest.Mock }
+  ).arrayBufferMock;
+  const constructorMock: jest.Mock = (
+    vercelOg as unknown as { constructorMock: jest.Mock }
+  ).constructorMock;
   const render = renderResponse();
   const context: FramesContext<undefined> = {
     basePath: "/",
@@ -208,17 +213,79 @@ describe("renderResponse middleware", () => {
     );
   });
 
+  it("returns application error if error function is called", async () => {
+    const result = await render(context, async () => {
+      error("Custom error message");
+    });
+
+    expect(result).toBeInstanceOf(Response);
+    expect((result as Response).status).toBe(400);
+    await expect((result as Response).json()).resolves.toEqual({
+      message: "Custom error message",
+    });
+  });
+
+  it("returns application error if error function is called with custom status code", async () => {
+    const result = await render(context, async () => {
+      error("Custom error message", 401);
+    });
+
+    expect(result).toBeInstanceOf(Response);
+    expect((result as Response).status).toBe(401);
+    await expect((result as Response).json()).resolves.toEqual({
+      message: "Custom error message",
+    });
+  });
+
+  it("does not allow application errors with status codes other than 4XX", async () => {
+    const result1 = await render(context, async () => {
+      error("Custom error message", 200);
+    });
+
+    expect(result1).toBeInstanceOf(Response);
+    expect((result1 as Response).headers.get("Content-Type")).toBe(
+      "text/plain"
+    );
+    expect((result1 as Response).status).toBe(500);
+    await expect((result1 as Response).text()).resolves.toBe(
+      "Internal Server Error"
+    );
+
+    const result2 = await render(context, async () => {
+      error("Custom error message", 500);
+    });
+
+    expect(result2).toBeInstanceOf(Response);
+    expect((result2 as Response).headers.get("Content-Type")).toBe(
+      "text/plain"
+    );
+    expect((result2 as Response).status).toBe(500);
+    await expect((result2 as Response).text()).resolves.toBe(
+      "Internal Server Error"
+    );
+  });
+
   it("returns 500 if invalid number of buttons is provided", async () => {
     // @ts-expect-error -- we are providing more than 4 buttons
     const result = await render(context, async () => {
       return {
         image: <div>My image</div>,
         buttons: [
-          <Button action="post" key="1">Click me 1</Button>,
-          <Button action="post" key="2">Click me 2</Button>,
-          <Button action="post" key="3">Click me 3</Button>,
-          <Button action="post" key="4">Click me 4</Button>,
-          <Button action="post" key="5">Click me 5</Button>,
+          <Button action="post" key="1">
+            Click me 1
+          </Button>,
+          <Button action="post" key="2">
+            Click me 2
+          </Button>,
+          <Button action="post" key="3">
+            Click me 3
+          </Button>,
+          <Button action="post" key="4">
+            Click me 4
+          </Button>,
+          <Button action="post" key="5">
+            Click me 5
+          </Button>,
         ],
       };
     });
@@ -237,7 +304,9 @@ describe("renderResponse middleware", () => {
         image: <div>My image</div>,
         buttons: [
           // @ts-expect-error -- props are not matching the expected type
-          <Button action="invalid" key="1">Click me 1</Button>,
+          <Button action="invalid" key="1">
+            Click me 1
+          </Button>,
         ],
       };
     });
@@ -336,7 +405,7 @@ describe("renderResponse middleware", () => {
       };
     });
 
-    const json = await (result as Response).json() as Record<string, string>;
+    const json = (await (result as Response).json()) as Record<string, string>;
 
     expect(json["fc:frame:button:1"]).toBe("Tx button");
     expect(json["fc:frame:button:1:action"]).toBe("tx");
@@ -368,7 +437,7 @@ describe("renderResponse middleware", () => {
 
     expect(console.warn).toHaveBeenCalledTimes(1);
 
-    const json = await (result as Response).json() as Record<string, string>;
+    const json = (await (result as Response).json()) as Record<string, string>;
 
     expect(json.state).toBeUndefined();
   });
@@ -390,7 +459,7 @@ describe("renderResponse middleware", () => {
 
     expect(console.warn).not.toHaveBeenCalled();
 
-    const json = await (result as Response).json() as Record<string, string>;
+    const json = (await (result as Response).json()) as Record<string, string>;
 
     expect(console.warn).not.toHaveBeenCalled();
     expect(json["fc:frame:state"]).toEqual(JSON.stringify({ test: true }));
@@ -463,7 +532,7 @@ describe("renderResponse middleware", () => {
 
     expect(result).toBeInstanceOf(Response);
     expect((result as Response).status).toBe(200);
-    const json = await (result as Response).json() as Record<string, string>;
+    const json = (await (result as Response).json()) as Record<string, string>;
     expect(json["fc:frame:button:1:target"]).toBe(expectedUrl.toString());
   });
 
@@ -496,7 +565,7 @@ describe("renderResponse middleware", () => {
 
     expect(result).toBeInstanceOf(Response);
     expect((result as Response).status).toBe(200);
-    const json = await (result as Response).json() as Record<string, string>;
+    const json = (await (result as Response).json()) as Record<string, string>;
     expect(json).toMatchObject({
       "fc:frame:button:1": "Click me 1",
       "fc:frame:button:1:target": expect.any(String) as string,
