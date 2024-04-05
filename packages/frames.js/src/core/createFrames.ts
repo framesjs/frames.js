@@ -49,7 +49,7 @@ export function createFrames<
     try {
       url = new URL(baseUrl);
     } catch (e) {
-      throw new Error(`Invalid baseURL: ${(e as Error).message}`);
+      throw new Error(`Invalid baseUrl: ${(e as Error).message}`);
     }
   } else {
     url = baseUrl;

@@ -138,13 +138,13 @@ describe("createFrames", () => {
     expect(response).toBeInstanceOf(Response);
   });
 
-  it("fails if invalid URL is set as baseURL", () => {
+  it("fails if invalid URL is set as baseUrl", () => {
     expect(() => createFrames({ baseUrl: "invalid" })).toThrow(
-      "Invalid baseURL: Invalid URL"
+      "Invalid baseUrl: Invalid URL"
     );
   });
 
-  it("overrides context.url and request.url with provided baseURL (string)", async () => {
+  it("overrides context.url and request.url with provided baseUrl (string)", async () => {
     const handler = createFrames({ baseUrl: "http://override.com" });
 
     const routeHandler = handler((ctx) => {
@@ -158,7 +158,7 @@ describe("createFrames", () => {
     ).resolves.toHaveProperty("status", 200);
   });
 
-  it("overrides context.url and request.url with provided baseURL (URL)", async () => {
+  it("overrides context.url and request.url with provided baseUrl (URL)", async () => {
     const handler = createFrames({ baseUrl: new URL("http://override.com") });
 
     const routeHandler = handler((ctx) => {
@@ -172,7 +172,7 @@ describe("createFrames", () => {
     ).resolves.toHaveProperty("status", 200);
   });
 
-  it("clones the request if the baseURL and request.url differ", async () => {
+  it("clones the request if the baseUrl and request.url differ", async () => {
     const handler = createFrames({ baseUrl: new URL("http://override.com") });
     const request = new Request("http://test.com");
     const routeHandler = handler((ctx) => {
@@ -185,7 +185,7 @@ describe("createFrames", () => {
     await expect(routeHandler(request)).resolves.toHaveProperty("status", 200);
   });
 
-  it("overrides the request.url completely with provided baseURL", async () => {
+  it("overrides the request.url completely with provided baseUrl", async () => {
     const handler = createFrames({
       baseUrl: new URL("http://override.com/test.png"),
     });
