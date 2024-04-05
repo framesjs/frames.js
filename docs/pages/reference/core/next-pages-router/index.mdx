@@ -8,8 +8,7 @@ Frames handler is responsible for rendering your Frames and also reacts to user 
 
 ```tsx [./pages/api/frames/index.tsx]
 /* eslint-disable react/jsx-key */
-import { createFrames } from "frames.js/next/pages-router";
-import { Button } from "frames.js/next/pages-router";
+import { createFrames, Button } from "frames.js/next/pages-router/server";
 
 const frames = createFrames({
   basePath: "/api/frames",
