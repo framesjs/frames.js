@@ -114,6 +114,7 @@ describe("openframes middleware", () => {
       }),
       url: new URL("https://example.com").toString(),
       basePath: "/",
+      baseUrl: new URL("https://example.com"),
     } as unknown as FramesContext;
 
     const mw1 = openframes({

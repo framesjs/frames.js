@@ -9,6 +9,7 @@ import type {
   FramesRequestHandlerFunction,
   JsonValue,
 } from "./types";
+import { resolveBaseUrl } from "./utils";
 
 export function createFrames<
   TState extends JsonValue | undefined = JsonValue | undefined,
@@ -17,6 +18,7 @@ export function createFrames<
   basePath = "/",
   initialState,
   middleware,
+  baseUrl,
 }: FramesOptions<TState, TMiddlewares> = {}): FramesRequestHandlerFunction<
   TState,
   typeof coreMiddleware,
@@ -25,6 +27,18 @@ export function createFrames<
 > {
   const globalMiddleware: FramesMiddleware<TState, FramesContext<TState>>[] =
     middleware || [];
+  let url: URL | undefined;
+
+  // validate baseURL
+  if (typeof baseUrl === "string") {
+    try {
+      url = new URL(baseUrl);
+    } catch (e) {
+      throw new Error(`Invalid baseUrl: ${(e as Error).message}`);
+    }
+  } else {
+    url = baseUrl;
+  }
 
   /**
    * This function takes handler function that does the logic with the help of context and returns one of possible results
@@ -65,6 +79,7 @@ export function createFrames<
         initialState: initialState as TState,
         request,
         url: new URL(request.url),
+        baseUrl: resolveBaseUrl(request, url, basePath),
       };
 
       const result = await composedMiddleware(context);

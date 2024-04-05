@@ -18,9 +18,12 @@ describe("next adapter", () => {
         test: false,
       },
     });
+    const request = new NextRequest("http://localhost:3000");
 
     const handleRequest = frames((ctx) => {
       expect(ctx.state).toEqual({ test: false });
+      expect(ctx.url.toString()).toBe("http://localhost:3000/");
+      expect(ctx.request.url).toBe("http://localhost:3000/");
 
       return {
         image: "http://test.png",
@@ -29,8 +32,6 @@ describe("next adapter", () => {
       };
     });
 
-    await expect(
-      handleRequest(new NextRequest("http://localhost:3000"))
-    ).resolves.toHaveProperty("status", 200);
+    await expect(handleRequest(request)).resolves.toHaveProperty("status", 200);
   });
 });

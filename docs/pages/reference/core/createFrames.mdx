@@ -25,7 +25,13 @@ The function passed to `frames` will be called with the context of a frame actio
 
 - Type: `string`
 
-A string that specifies the base path for all relative URLs in the frame definition. It defaults to `/`.
+A string that specifies the base path for all relative URLs in the frame definition. It defaults to `/`. If `baseUrl` is provided, it will be resolved relatively to `baseUrl`. If the `baseUrl` option is not provided, it will use URL of current request and override its path with `basePath` when generating target URLs.
+
+### `baseUrl`
+
+- Type: `string | URL`
+
+A string or URL object that specifies the base URL for all relative URLs in the frame definition. Can be used to override the URL detected from the request.
 
 ### `initialState`
 
@@ -50,10 +56,10 @@ For strong type support in the handler, the middleware should be typed as `Frame
 ```tsx
 import { createFrames, types } from "frames.js/next";
 
-const myMiddleware: types.FramesMiddleware<
-  any,
-  { foo?: string }
-> = async (ctx, next) => {
+const myMiddleware: types.FramesMiddleware<any, { foo?: string }> = async (
+  ctx,
+  next
+) => {
   return next({ foo: "bar" });
 };
 ```
@@ -161,7 +167,7 @@ const handleRequest = frames(async (ctx) => {
       aspectRatio: "1:1",
     },
     buttons: [<Button action="post">Refresh</Button>],
-    headers: {// [!code focus]
+    headers: { // [!code focus]
       // Max cache age in seconds // [!code focus]
       "Cache-Control": "max-age=0", // [!code focus]
     }, // [!code focus]
@@ -207,6 +213,12 @@ Core middleware is included and executed by default and gives you access to the 
 - Type: `string`
 
 Specifies the base path for all relative URLs in the frame definition.
+
+### `baseUrl`
+
+- Type: `URL`
+
+The resolved base URL for all relative URLs in the frame definition. All relative URLs are resolved relatively to this value.
 
 ### `initialState`
 

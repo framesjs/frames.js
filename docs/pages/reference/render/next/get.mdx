@@ -1,7 +1,34 @@
 # GET
 
+Fetches HTML content from a given URL and attempts to extract a frame from it.
+
 ## Usage
 
 ```tsx [./frames/route.tsx]
 export { GET, POST } from "@frames.js/render/next';
 ```
+
+### Request
+
+- **URL Query Parameters:**
+  - `url` (required): The URL from which the HTML content is to be fetched.
+
+### Response
+
+Depending on the outcome of the fetch and frame extraction process, the response can vary:
+
+- **Success:**
+  - Returns a JSON object containing the extracted frame data and any errors encountered during the frame extraction process.
+- **Invalid URL:**
+
+  - If the `url` parameter is missing or invalid, returns a JSON object with a `message` indicating "Invalid URL" and a status code of 400.
+
+- **Fetch or Processing Errors:**
+  - In case of errors during the fetch operation or frame extraction, returns a JSON object with a `message` detailing the error and a status code of 500.
+
+### Errors
+
+Errors are communicated through the status codes and messages in the JSON response:
+
+- **400 Bad Request:** Indicates that the required `url` query parameter is missing or invalid.
+- **500 Internal Server Error:** Indicates an error during the fetch operation or while processing the fetched content.

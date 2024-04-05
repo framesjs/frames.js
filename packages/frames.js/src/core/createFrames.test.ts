@@ -137,4 +137,94 @@ describe("createFrames", () => {
 
     expect(response).toBeInstanceOf(Response);
   });
+
+  it("fails if invalid URL is set as baseUrl", () => {
+    expect(() => createFrames({ baseUrl: "invalid" })).toThrow(
+      "Invalid baseUrl: Invalid URL"
+    );
+  });
+
+  it("sets baseUrl on context if provided", async () => {
+    const handler = createFrames({ baseUrl: "http://override.com" });
+
+    const routeHandler = handler((ctx) => {
+      expect(ctx.baseUrl.toString()).toBe("http://override.com/");
+      return Response.json({ test: true });
+    });
+
+    await expect(
+      routeHandler(new Request("http://test.com"))
+    ).resolves.toHaveProperty("status", 200);
+  });
+
+  it("resolves resolvedUrl against request URL and / if no basePath or baseUrl are provided", async () => {
+    const handler = createFrames();
+
+    const routeHandler = handler((ctx) => {
+      expect(ctx.baseUrl.toString()).toBe("http://test.com/");
+      return Response.json({ test: true });
+    });
+
+    await expect(
+      routeHandler(new Request("http://test.com/this-will-be-removed"))
+    ).resolves.toHaveProperty("status", 200);
+  });
+
+  it("resolves resolvedUrl against request URL when only basePath is provided", async () => {
+    const handler = createFrames({ basePath: "/test" });
+
+    const routeHandler = handler((ctx) => {
+      expect(ctx.baseUrl.toString()).toBe("http://test.com/test");
+      return Response.json({ test: true });
+    });
+
+    await expect(
+      routeHandler(new Request("http://test.com/this-will-be-removed"))
+    ).resolves.toHaveProperty("status", 200);
+  });
+
+  it("resolves resolvedUrl against baseUrl and / when only baseUrl is provided", async () => {
+    const handler = createFrames({ baseUrl: "http://override.com" });
+
+    const routeHandler = handler((ctx) => {
+      expect(ctx.baseUrl.toString()).toBe("http://override.com/");
+      return Response.json({ test: true });
+    });
+
+    await expect(
+      routeHandler(new Request("http://test.com/this-will-be-removed"))
+    ).resolves.toHaveProperty("status", 200);
+  });
+
+  it("resolves resolvedUrl against baseUrl and basePath if both are provided", async () => {
+    const handler = createFrames({
+      baseUrl: "http://override.com",
+      basePath: "/test",
+    });
+
+    const routeHandler = handler((ctx) => {
+      expect(ctx.baseUrl.toString()).toBe("http://override.com/test");
+      return Response.json({ test: true });
+    });
+
+    await expect(
+      routeHandler(new Request("http://test.com/this-will-be-removed"))
+    ).resolves.toHaveProperty("status", 200);
+  });
+
+  it("resolves basePath relatively to baseUrl", async () => {
+    const handler = createFrames({
+      baseUrl: "http://override.com/test",
+      basePath: "/test2",
+    });
+
+    const routeHandler = handler((ctx) => {
+      expect(ctx.baseUrl.toString()).toBe("http://override.com/test/test2");
+      return Response.json({ test: true });
+    });
+
+    await expect(
+      routeHandler(new Request("http://test.com/this-will-be-removed"))
+    ).resolves.toHaveProperty("status", 200);
+  });
 });
