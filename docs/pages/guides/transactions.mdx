@@ -10,37 +10,39 @@ Frames can initiate transactions that apps that integrate Frames can complete, c
 An example snippet can be found below.
 
 ```tsx
-    // ...
-    buttons: [
-      <Button action="tx" target="/txdata" post_url="/frames">
-        Buy a unit
-      </Button>
-    ]
+// ...
+buttons: [
+  <Button action="tx" target="/txdata" post_url="/frames">
+    Buy a unit
+  </Button>,
+];
 ```
 
 Use the [Transactions starter](https://github.com/framesjs/frames.js/tree/main/examples/framesjs-starter/app/examples/new-api-transaction) as a template to build your transaction Frames.
 
-## Use the actual address executing the transaction
+## Using the connected wallet address
 
-The Farcaster Client when calling back for the transaction data, will send the wallet address the user connected to the Frame Button with action="tx" set.
+The client will include the user's connected wallet address that will be executing the transaction in the frame action payload in the when a Frame Button with `action="tx"` set is pressed.
 
-We can use this address which may differ from the connectedAddresses (Validations) the user has attached to his Farcaster Profile (FID).
+The address is available in the context under the key `connectedAddress`.
 
-```tsx
-// ... in your POST handler serving the transaction data
-const json = await re.json();
-const frameMessage = await getFrameMessage(json);
+Note:
 
-if (!frameMessage) {
+- The address is only available when the user has connected a wallet to the client the frame button pressed is has a `tx` action.
+- `connectedAddress` differs from the `requesterVerifiedAddresses` returned by the [`farcasterHubContext`](/middleware/farcasterHubContext) middleware.
+
+```tsx [./app/frames/tx-data/route.tsx]
+import { frames } from "../frames";
+
+export const POST = frames(async (ctx) => {
+  if (!ctx.message) {
     throw new Error("No message");
-}
+  }
 
-const walletAddress = frameMessage.connectedAddress; // this is the address executing the requested transaction
+  const userAddress = ctx.message.connectedAddress;
 
-// ...
+  // Do something with the user's connected address that will be executing the tx
 
+  return txData;
+});
 ```
-
-Here `frameMessage.connectedAddress` is the address of the wallet connected by the user after pressing the button to do the transaction.
-
-This is the wallet address the user executes the transaction with.
