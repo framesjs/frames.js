@@ -89,12 +89,12 @@ export function createFrames<
      * maps Response to frameworks response type.
      */
     return async function handleFramesRequest(request: Request) {
-      const inferedURL = inferURLFromRequestOrBaseURL(request, url);
+      const inferredURL = inferURLFromRequestOrBaseURL(request, url);
       const context: FramesContext<TState> = {
         basePath,
         initialState: initialState as TState,
-        request: cloneRequestWithInferedURL(request, inferedURL),
-        url: inferedURL,
+        request: cloneRequestWithInferedURL(request, inferredURL),
+        url: inferredURL,
       };
 
       const result = await composedMiddleware(context);
