@@ -1,5 +1,19 @@
 # framesjs-starter
 
+## 0.2.12
+
+### Patch Changes
+
+- 64691ad: chore: remove unused packages
+- 424b0ea: feat: cast actions example
+- 7c74f35: feat: error example
+- Updated dependencies [424b0ea]
+- Updated dependencies [e681ce9]
+- Updated dependencies [40934fb]
+- Updated dependencies [2290278]
+- Updated dependencies [e681ce9]
+  - frames.js@0.12.0
+
 ## 0.2.11
 
 ### Patch Changes

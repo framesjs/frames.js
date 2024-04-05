@@ -1,5 +1,17 @@
 # @frames.js/render
 
+## 0.1.1
+
+### Patch Changes
+
+- 7c74f35: feat: frame error message support
+- Updated dependencies [424b0ea]
+- Updated dependencies [e681ce9]
+- Updated dependencies [40934fb]
+- Updated dependencies [2290278]
+- Updated dependencies [e681ce9]
+  - frames.js@0.12.0
+
 ## 0.1.0
 
 ### Minor Changes

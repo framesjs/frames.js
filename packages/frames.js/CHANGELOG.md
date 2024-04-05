@@ -1,5 +1,18 @@
 # frames.js
 
+## 0.12.0
+
+### Minor Changes
+
+- 424b0ea: feat: allow arbitrary response in frames handler
+- e681ce9: feat: split pages router to client and server entrypoints
+
+### Patch Changes
+
+- e681ce9: fix: split pages router bundle to client side and server side to prevent leaks
+- 40934fb: fix: page router adapter for next.js node.js request handling
+- 2290278: feat: application level errors support
+
 ## 0.11.4
 
 ### Patch Changes

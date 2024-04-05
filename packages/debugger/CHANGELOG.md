@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.1.15
+
+### Patch Changes
+
+- 7c74f35: feat: frame error message support
+
 ## 0.1.14
 
 ### Patch Changes
