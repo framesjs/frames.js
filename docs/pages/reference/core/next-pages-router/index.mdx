@@ -8,7 +8,8 @@ Frames handler is responsible for rendering your Frames and also reacts to user 
 
 ```tsx [./pages/api/frames/index.tsx]
 /* eslint-disable react/jsx-key */
-import { createFrames, Button } from "frames.js/next/pages-router";
+import { createFrames } from "frames.js/next/pages-router";
+import { Button } from "frames.js/next/pages-router";
 
 const frames = createFrames({
   basePath: "/api/frames",
@@ -30,9 +31,12 @@ In order to render the initial frame of your Frames app on some of your pages, y
 ```tsx [./pages/index.tsx]
 import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
 import Head from "next/head";
-import { fetchMetadata, metadataToMetaTags } from "frames.js/next/pages-router";
+import {
+  fetchMetadata,
+  metadataToMetaTags,
+} from "frames.js/next/pages-router/client";
 
-export const getServerSideProps = async function getServerSideProps() {
+export async function getServerSideProps() {
   return {
     props: {
       metadata: await fetchMetadata(
