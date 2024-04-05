@@ -1,5 +1,14 @@
 # docs
 
+## 0.0.8
+
+### Patch Changes
+
+- b01df77: docs: render frame nextjs api docs
+- Updated dependencies [0070d1f]
+- Updated dependencies [ef57739]
+  - frames.js@0.12.1
+
 ## 0.0.7
 
 ### Patch Changes

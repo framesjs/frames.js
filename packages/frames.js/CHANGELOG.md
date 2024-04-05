@@ -1,5 +1,12 @@
 # frames.js
 
+## 0.12.1
+
+### Patch Changes
+
+- 0070d1f: chore: remove unnecessary url detection and use nextUrl instead
+- ef57739: feat: add baseURL option
+
 ## 0.12.0
 
 ### Minor Changes
