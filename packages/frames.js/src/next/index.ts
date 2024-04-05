@@ -2,7 +2,6 @@ import type { NextRequest, NextResponse } from "next/server";
 import type { types } from "../core";
 import { createFrames as coreCreateFrames } from "../core";
 import type { CoreMiddleware } from "../middleware";
-import { getCurrentUrl } from "./getCurrentUrl";
 
 export { Button, type types } from "../core";
 
@@ -51,9 +50,7 @@ export const createFrames: CreateFramesForNextJS =
       const handleRequest = frames(handler, handlerOptions);
 
       return (req) => {
-        const url = getCurrentUrl(req) ?? req.url;
-
-        return handleRequest(new Request(url, req));
+        return handleRequest(new Request(req.nextUrl.toString(), req));
       };
     };
   };
