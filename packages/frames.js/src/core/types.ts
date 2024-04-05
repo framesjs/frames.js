@@ -110,7 +110,7 @@ export type FrameRedirect = {
 
 export type FramesHandlerFunctionReturnType<
   TState extends JsonValue | undefined,
-> = FrameDefinition<TState> | FrameRedirect;
+> = FrameDefinition<TState> | FrameRedirect | Response;
 
 type FramesMiddlewareNextFunction<
   TState extends JsonValue | undefined,
