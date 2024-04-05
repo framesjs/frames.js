@@ -1,6 +1,7 @@
 /* eslint-disable */
 import Long from "long";
-import _m0 from "protobufjs/minimal";
+// use minimal.js so it doesn't cause issues for pages-router in next.js
+import _m0 from "protobufjs/minimal.js";
 
 export enum UserNameType {
   USERNAME_TYPE_NONE = 0,
