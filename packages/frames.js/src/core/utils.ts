@@ -9,6 +9,28 @@ const buttonActionToCode = {
 
 const BUTTON_INFORMATION_SEARCH_PARAM_NAME = "__bi";
 
+export function joinPaths(pathA: string, pathB: string): string {
+  return pathB === "/"
+    ? pathA
+    : [pathA, pathB].join("/").replace(/\/{2,}/g, "/");
+}
+
+export function resolveBaseUrl(
+  request: Request,
+  baseUrl: URL | undefined,
+  basePath: string
+): URL {
+  if (baseUrl) {
+    if (basePath === "/" || basePath === "") {
+      return baseUrl;
+    }
+
+    return new URL(joinPaths(baseUrl.pathname, basePath), baseUrl);
+  }
+
+  return new URL(basePath, request.url);
+}
+
 function isValidButtonIndex(index: unknown): index is 1 | 2 | 3 | 4 {
   return (
     typeof index === "number" &&
@@ -28,57 +50,45 @@ function isValidButtonAction(
 }
 
 export function generateTargetURL({
-  currentURL,
+  baseUrl,
   target,
-  basePath,
 }: {
-  currentURL: URL;
-  basePath: string;
+  baseUrl: URL;
   target: string | UrlObject | undefined;
-}): string {
-  let url = new URL(currentURL);
+}): URL {
+  if (!target) {
+    return new URL(baseUrl);
+  }
 
-  if (
-    target &&
-    typeof target === "string" &&
-    (target.startsWith("http://") || target.startsWith("https://"))
-  ) {
-    // handle absolute urls
-    url = new URL(target);
-  } else if (target && typeof target === "string") {
-    // resolve target relatively to basePath
-    const baseUrl = new URL(basePath, currentURL);
-    const preformatted = `${baseUrl.pathname}/${target}`;
-    const parts = preformatted.split("/").filter(Boolean);
-    const finalPathname = parts.join("/");
-
-    url = new URL(`/${finalPathname}`, currentURL);
-  } else if (target && typeof target === "object") {
-    // resolve target relatively to basePath
-
-    url = new URL(
+  if (typeof target === "object") {
+    return new URL(
       formatUrl({
-        host: url.host,
-        hash: url.hash,
-        hostname: url.hostname,
-        href: url.href,
+        host: baseUrl.host,
+        hash: baseUrl.hash,
+        hostname: baseUrl.hostname,
+        href: baseUrl.href,
         // pathname: url.pathname,
-        protocol: url.protocol,
+        protocol: baseUrl.protocol,
         // we ignore existing search params and uses only new ones
         // search: url.search,
-        port: url.port,
+        port: baseUrl.port,
         // query: url.searchParams,
         ...target,
-        pathname: `/${[basePath, "/", target.pathname ?? ""]
-          .join("")
-          .split("/")
-          .filter(Boolean)
-          .join("/")}`,
+        pathname: joinPaths(baseUrl.pathname, target.pathname ?? ""),
       })
     );
   }
 
-  return url.toString();
+  try {
+    // check if target is absolute url
+    return new URL(target);
+  } catch {
+    // resolve target relatively to basePath
+    const url = new URL(baseUrl);
+    const finalPathname = joinPaths(url.pathname, target);
+
+    return new URL(finalPathname, url);
+  }
 }
 
 /**
@@ -88,17 +98,15 @@ export function generateTargetURL({
 export function generatePostButtonTargetURL({
   buttonIndex,
   buttonAction,
-  currentURL,
   target,
-  basePath,
+  baseUrl,
 }: {
   buttonIndex: 1 | 2 | 3 | 4;
   buttonAction: "post" | "post_redirect";
-  currentURL: URL;
-  basePath: string;
   target: string | UrlObject | undefined;
+  baseUrl: URL;
 }): string {
-  const url = new URL(generateTargetURL({ currentURL, basePath, target }));
+  const url = new URL(generateTargetURL({ baseUrl, target }));
 
   // Internal param, store what button has been clicked in the URL.
   url.searchParams.set(

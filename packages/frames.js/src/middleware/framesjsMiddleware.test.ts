@@ -1,14 +1,16 @@
 /* eslint-disable no-console -- we are expecting console.log usage */
 import { redirect } from "../core/redirect";
 import type { FramesContext } from "../core/types";
-import { generatePostButtonTargetURL } from "../core/utils";
+import { generatePostButtonTargetURL, resolveBaseUrl } from "../core/utils";
 import { framesjsMiddleware } from "./framesjsMiddleware";
 
 describe("framesjsMiddleware middleware", () => {
   it("does not provide pressedButton to context if no supported button is detected", async () => {
+    const request = new Request("https://example.com", { method: "POST" });
     const context = {
       url: new URL("https://example.com"),
-      request: new Request("https://example.com", { method: "POST" }),
+      request,
+      baseUrl: resolveBaseUrl(request, undefined, "/"),
     } as unknown as FramesContext;
     const next = jest.fn();
     const middleware = framesjsMiddleware();
@@ -25,8 +27,7 @@ describe("framesjsMiddleware middleware", () => {
     const url = generatePostButtonTargetURL({
       buttonAction: "post",
       buttonIndex: 1,
-      basePath: "/",
-      currentURL: new URL("https://example.com"),
+      baseUrl: new URL("https://example.com"),
       target: {
         pathname: "/test",
         query: { test: true },
@@ -54,8 +55,7 @@ describe("framesjsMiddleware middleware", () => {
     const url = generatePostButtonTargetURL({
       buttonAction: "post_redirect",
       buttonIndex: 1,
-      basePath: "/",
-      currentURL: new URL("https://example.com"),
+      baseUrl: new URL("https://example.com"),
       target: "/test",
     });
     const context = {
@@ -83,8 +83,7 @@ describe("framesjsMiddleware middleware", () => {
     const url = generatePostButtonTargetURL({
       buttonAction: "post_redirect",
       buttonIndex: 1,
-      basePath: "/",
-      currentURL: new URL("https://example.com"),
+      baseUrl: new URL("https://example.com"),
       target: "/test",
     });
     const context = {
@@ -108,8 +107,7 @@ describe("framesjsMiddleware middleware", () => {
     const url = generatePostButtonTargetURL({
       buttonAction: "post",
       buttonIndex: 1,
-      basePath: "/",
-      currentURL: new URL("https://example.com"),
+      baseUrl: new URL("https://example.com"),
       target: {
         pathname: "/test",
         query: { test: true },
@@ -134,8 +132,7 @@ describe("framesjsMiddleware middleware", () => {
     const url = generatePostButtonTargetURL({
       buttonAction: "post",
       buttonIndex: 1,
-      basePath: "/",
-      currentURL: new URL("https://example.com"),
+      baseUrl: new URL("https://example.com"),
       target: {
         pathname: "/test",
         query: { test: true },
@@ -161,8 +158,7 @@ describe("framesjsMiddleware middleware", () => {
     const url = generatePostButtonTargetURL({
       buttonAction: "post",
       buttonIndex: 1,
-      basePath: "/",
-      currentURL: new URL("https://example.com"),
+      baseUrl: new URL("https://example.com"),
       target: {
         pathname: "/test",
         query: { test: true },

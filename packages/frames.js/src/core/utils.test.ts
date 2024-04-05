@@ -1,20 +1,74 @@
 import {
   generatePostButtonTargetURL,
   parseButtonInformationFromTargetURL,
+  resolveBaseUrl,
 } from "./utils";
+
+describe("resolveBaseUrl", () => {
+  it("uses URL from request if no baseUrl is provided", () => {
+    const request = new Request("http://test.com");
+    const basePath = "/";
+
+    expect(resolveBaseUrl(request, undefined, basePath).toString()).toBe(
+      "http://test.com/"
+    );
+  });
+
+  it('uses baseUrl if it is provided and basePath is "/"', () => {
+    const request = new Request("http://test.com");
+    const basePath = "/";
+
+    expect(
+      resolveBaseUrl(
+        request,
+        new URL("http://override.com"),
+        basePath
+      ).toString()
+    ).toBe("http://override.com/");
+
+    expect(
+      resolveBaseUrl(
+        request,
+        new URL("http://override.com/test"),
+        basePath
+      ).toString()
+    ).toBe("http://override.com/test");
+  });
+
+  it("resolves basePath relatively to baseUrl", () => {
+    const request = new Request("http://test.com");
+    const basePath = "/test";
+
+    expect(
+      resolveBaseUrl(
+        request,
+        new URL("http://override.com"),
+        basePath
+      ).toString()
+    ).toBe("http://override.com/test");
+  });
+
+  it("overrides path on request URL with basePath", () => {
+    const request = new Request("http://test.com/this-will-be-removed");
+    const basePath = "/test";
+
+    expect(resolveBaseUrl(request, undefined, basePath).toString()).toBe(
+      "http://test.com/test"
+    );
+  });
+});
 
 describe("generatePostButtonTargetURL", () => {
   it("generates an URL for post button without target and without state", () => {
-    const expected = new URL("/test", "http://test.com");
+    const expected = new URL("/", "http://test.com");
     expected.searchParams.set("__bi", "1-p");
 
     expect(
       generatePostButtonTargetURL({
         target: undefined,
-        basePath: "/",
         buttonAction: "post",
         buttonIndex: 1,
-        currentURL: new URL("http://test.com/test"),
+        baseUrl: new URL("http://test.com"),
       })
     ).toBe(expected.toString());
   });
@@ -26,10 +80,9 @@ describe("generatePostButtonTargetURL", () => {
 
     expect(
       generatePostButtonTargetURL({
-        basePath: "/",
         buttonAction: "post",
         buttonIndex: 1,
-        currentURL: new URL("http://test.com/test"),
+        baseUrl: new URL("http://test.com"),
         target: { query: { test: "test" } },
       })
     ).toBe(expected.toString());
@@ -42,10 +95,9 @@ describe("generatePostButtonTargetURL", () => {
     expect(
       generatePostButtonTargetURL({
         target: "/test",
-        basePath: "/",
         buttonAction: "post",
         buttonIndex: 1,
-        currentURL: new URL("http://test.com"),
+        baseUrl: new URL("http://test.com"),
       })
     ).toBe(expected.toString());
   });
@@ -57,32 +109,13 @@ describe("generatePostButtonTargetURL", () => {
 
     expect(
       generatePostButtonTargetURL({
-        basePath: "/",
         buttonAction: "post",
         buttonIndex: 1,
-        currentURL: new URL("http://test.com"),
+        baseUrl: new URL("http://test.com"),
         target: { query: { test: "test" }, pathname: "/test" },
       })
     ).toBe(expected.toString());
   });
-
-  it.each(["/", "/test", "/test/test"])(
-    "resolves target relatively to basePath and current path %s",
-    (currentPath) => {
-      const expected = new URL("/prefixed/test/my-target", "http://test.com");
-      expected.searchParams.set("__bi", "1-p");
-
-      expect(
-        generatePostButtonTargetURL({
-          target: "/my-target",
-          basePath: "/prefixed/test",
-          buttonAction: "post",
-          buttonIndex: 1,
-          currentURL: new URL(currentPath, "http://test.com/"),
-        })
-      ).toBe(expected.toString());
-    }
-  );
 
   it("also supports post_redirect button", () => {
     const expected = new URL("/test", "http://test.com");
@@ -90,11 +123,10 @@ describe("generatePostButtonTargetURL", () => {
 
     expect(
       generatePostButtonTargetURL({
-        target: undefined,
-        basePath: "/",
+        target: "/test",
         buttonAction: "post_redirect",
         buttonIndex: 1,
-        currentURL: new URL("http://test.com/test"),
+        baseUrl: new URL("http://test.com"),
       })
     ).toBe(expected.toString());
   });
