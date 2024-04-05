@@ -35,7 +35,7 @@ import {
   metadataToMetaTags,
 } from "frames.js/next/pages-router/client";
 
-export async function getServerSideProps() {
+export const getServerSideProps = async function getServerSideProps() {
   return {
     props: {
       metadata: await fetchMetadata(
