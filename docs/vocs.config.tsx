@@ -58,6 +58,10 @@ const sidebar = [
         text: "Open Frames",
         link: "/guides/open-frames",
       },
+      {
+        text: "Cast Actions",
+        link: "/guides/cast-actions",
+      },
     ],
   },
   {
@@ -77,6 +81,10 @@ const sidebar = [
       {
         text: "Next.js",
         link: "/reference/core/next",
+      },
+      {
+        text: 'Next.js (Pages Router)',
+        link: "/reference/core/next-pages-router",
       },
       {
         text: "Express.js",
@@ -134,6 +142,10 @@ const sidebar = [
           {
             text: "redirect",
             link: "/reference/core/redirect",
+          },
+          {
+            text: "error",
+            link: "/reference/core/error",
           },
         ],
       },
@@ -294,6 +306,7 @@ const sidebar = [
   },
 ];
 
+// eslint-disable-next-line import/no-default-export -- default export is required
 export default defineConfig({
   ogImageUrl: "https://framesjs.org/og.png",
   title: "frames.js",

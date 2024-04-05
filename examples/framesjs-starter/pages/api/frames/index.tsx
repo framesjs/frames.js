@@ -1,9 +1,7 @@
 /* eslint-disable react/jsx-key */
-import { createFrames, Button } from "frames.js/next/pages-router";
+import { Button } from "frames.js/next/pages-router/server";
+import { frames } from "./frames";
 
-const frames = createFrames({
-  basePath: "/api/frames",
-});
 const handleRequest = frames(async (ctx) => {
   return {
     image: (
@@ -13,8 +11,9 @@ const handleRequest = frames(async (ctx) => {
       </span>
     ),
     buttons: [
-      <Button action="post" target="/">
-        Click me
+      <Button action="post">Click me</Button>,
+      <Button action="post" target="/next">
+        Next frame
       </Button>,
     ],
     textInput: "Type something!",

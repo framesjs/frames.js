@@ -1,4 +1,4 @@
-import express from "express";
+import express, { json } from "express";
 import request from "supertest";
 import { FRAMES_META_TAGS_HEADER } from "../core";
 import * as lib from ".";
@@ -96,13 +96,13 @@ describe("express adapter", () => {
       .expect(200)
       .expect("Content-type", "application/json")
       .expect((res) => {
-        expect((res.body as Record<string, string>)["fc:frame:button:1:target"]).toMatch(
-          /http:\/\/127\.0\.0\.1:\d+\/api\/nested/
-        );
+        expect(
+          (res.body as Record<string, string>)["fc:frame:button:1:target"]
+        ).toMatch(/http:\/\/127\.0\.0\.1:\d+\/api\/nested/);
       });
   });
 
-  it('works properly with state', async () => {
+  it("works properly with state", async () => {
     type State = {
       test: boolean;
     };
@@ -117,15 +117,38 @@ describe("express adapter", () => {
       expect(ctx.state).toEqual({ test: false });
 
       return {
-        image: 'http://test.png',
+        image: "http://test.png",
         state: ctx.state satisfies State,
       };
     });
 
     app.use("/", expressHandler);
 
+    await request(app).get("/").expect("Content-Type", "text/html").expect(200);
+  });
+
+  it("works properly with body parser", async () => {
+    const app = express();
+    const frames = lib.createFrames();
+    const expressHandler = frames(async ({ request: req }) => {
+      await expect(req.clone().json()).resolves.toEqual({ test: "test" });
+
+      return {
+        image: <span>Nehehe</span>,
+        buttons: [
+          <lib.Button action="post" key="1">
+            Click me
+          </lib.Button>,
+        ],
+      };
+    });
+
+    app.use("/", json(), expressHandler);
+
     await request(app)
-      .get("/")
+      .post("/")
+      .set("Host", "localhost:3000")
+      .send({ test: "test" })
       .expect("Content-Type", "text/html")
       .expect(200);
   });

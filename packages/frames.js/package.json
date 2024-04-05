@@ -207,14 +207,24 @@
         "default": "./dist/next/index.cjs"
       }
     },
-    "./next/pages-router": {
+    "./next/pages-router/server": {
       "import": {
-        "types": "./dist/next/pages-router.d.ts",
-        "default": "./dist/next/pages-router.js"
+        "types": "./dist/next/pages-router/server.d.ts",
+        "default": "./dist/next/pages-router/server.js"
       },
       "require": {
-        "types": "./dist/next/pages-router.d.cts",
-        "default": "./dist/next/pages-router.cjs"
+        "types": "./dist/next/pages-router/server.d.cts",
+        "default": "./dist/next/pages-router/server.cjs"
+      }
+    },
+    "./next/pages-router/client": {
+      "import": {
+        "types": "./dist/next/pages-router/client.d.ts",
+        "default": "./dist/next/pages-router/client.js"
+      },
+      "require": {
+        "types": "./dist/next/pages-router/client.d.cts",
+        "default": "./dist/next/pages-router/client.cjs"
       }
     },
     "./express": {
@@ -252,7 +262,7 @@
     "@xmtp/frames-validator": "^0.5.2",
     "@xmtp/proto": "3.45.0",
     "@xmtp/xmtp-js": "^11.5.0",
-    "express": "^4.19.1",
+    "express": "^4.19.2",
     "hono": "^4.1.3",
     "supertest": "^6.3.4",
     "tsup": "^8.0.1",

@@ -1,4 +1,3 @@
-import { STORAGE_REGISTRY_ADDRESS } from "@farcaster/core";
 import { TransactionTargetResponse } from "frames.js";
 import { getFrameMessage } from "frames.js/next/server";
 import { NextRequest, NextResponse } from "next/server";
@@ -36,6 +35,8 @@ export async function POST(
     chain: optimism,
     transport: http(),
   });
+
+  const STORAGE_REGISTRY_ADDRESS = "0x00000000fcCe7f938e7aE6D3c335bD6a1a7c593D";
 
   const storageRegistry = getContract({
     address: STORAGE_REGISTRY_ADDRESS,

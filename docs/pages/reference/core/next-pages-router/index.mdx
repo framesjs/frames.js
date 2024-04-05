@@ -1,0 +1,65 @@
+# Next.js Pages Router integration
+
+Frames.js can be easily integrated with [Next.js](https://nextjs.org) application that uses [Pages Router](https://nextjs.org/docs/pages).
+
+## Create Frames handler
+
+Frames handler is responsible for rendering your Frames and also reacts to user interactions with buttons.
+
+```tsx [./pages/api/frames/index.tsx]
+/* eslint-disable react/jsx-key */
+import { createFrames, Button } from "frames.js/next/pages-router/server";
+
+const frames = createFrames({
+  basePath: "/api/frames",
+});
+const handleRequest = frames(async () => {
+  return {
+    image: <span>Test</span>,
+    buttons: [<Button action="post">Click me</Button>],
+  };
+});
+
+export default handleRequest;
+```
+
+## Render initial frame on your existing page
+
+In order to render the initial frame of your Frames app on some of your pages, you need to render frame metadata. That can be achieved using [`getServerSideProps() API`](https://nextjs.org/docs/pages/building-your-application/data-fetching/get-server-side-props) in combination with `fetchMetadata()` function.
+
+```tsx [./pages/index.tsx]
+import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
+import Head from "next/head";
+import {
+  fetchMetadata,
+  metadataToMetaTags,
+} from "frames.js/next/pages-router/client";
+
+export const getServerSideProps = async function getServerSideProps() {
+  return {
+    props: {
+      metadata: await fetchMetadata(
+        new URL(
+          "/api/frames",
+          process.env.VERCEL_URL || "http://localhost:3000"
+        )
+      ),
+    },
+  };
+} satisfies GetServerSideProps<{
+  metadata: Awaited<ReturnType<typeof fetchMetadata>>;
+}>;
+
+export default function Page({
+  metadata,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  return (
+    <>
+      <Head>
+        <title>Frames.js app</title>
+        {metadataToMetaTags(metadata)}
+      </Head>
+    </>
+  );
+}
+```

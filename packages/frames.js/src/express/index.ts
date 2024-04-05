@@ -1,4 +1,3 @@
-import type { IncomingHttpHeaders } from "node:http";
 import type {
   Handler as ExpressHandler,
   Request as ExpressRequest,
@@ -6,11 +5,11 @@ import type {
 } from "express";
 import type { types } from "../core";
 import { createFrames as coreCreateFrames } from "../core";
-import {
-  createReadableStreamFromReadable,
-  writeReadableStreamToWritable,
-} from "../lib/stream-pump";
 import type { CoreMiddleware } from "../middleware";
+import {
+  convertNodeJSRequestToWebAPIRequest,
+  sendWebAPIResponseToNodeJSResponse,
+} from "../lib/node-server-helpers";
 
 export { Button, type types } from "../core";
 
@@ -60,10 +59,14 @@ export const createFrames: CreateFramesForExpress =
         res: ExpressResponse
       ) {
         // convert express.js req to Web API Request
-        const response = framesHandler(createRequest(req, res));
+        const response = framesHandler(
+          convertNodeJSRequestToWebAPIRequest(req, res)
+        );
 
         Promise.resolve(response)
-          .then((resolvedResponse) => sendResponse(res, resolvedResponse))
+          .then((resolvedResponse) =>
+            sendWebAPIResponseToNodeJSResponse(res, resolvedResponse)
+          )
           .catch((error) => {
             // eslint-disable-next-line no-console -- provide feedback
             console.error(error);
@@ -73,70 +76,3 @@ export const createFrames: CreateFramesForExpress =
       };
     };
   };
-
-function createRequest(req: ExpressRequest, res: ExpressResponse): Request {
-  // req.hostname doesn't include port information so grab that from
-  // `X-Forwarded-Host` or `Host`
-  const [, hostnamePort] = req.get("X-Forwarded-Host")?.split(":") ?? [];
-  const [, hostPort] = req.get("Host")?.split(":") ?? [];
-  const port = hostnamePort || hostPort;
-  // Use req.hostname here as it respects the "trust proxy" setting
-  const resolvedHost = `${req.hostname}${port ? `:${port}` : ""}`;
-  // Use `req.originalUrl` so Remix is aware of the full path
-  const url = new URL(`${req.protocol}://${resolvedHost}${req.originalUrl}`);
-
-  // Abort action/loaders once we can no longer write a response
-  const controller = new AbortController();
-  res.on("close", () => {
-    controller.abort();
-  });
-
-  const init: RequestInit = {
-    method: req.method,
-    headers: convertIncomingHTTPHeadersToHeaders(req.headers),
-    signal: controller.signal,
-  };
-
-  if (req.method !== "GET" && req.method !== "HEAD") {
-    init.body = createReadableStreamFromReadable(req);
-    (init as { duplex: "half" }).duplex = "half";
-  }
-
-  return new Request(url.href, init);
-}
-
-function convertIncomingHTTPHeadersToHeaders(
-  incomingHeaders: IncomingHttpHeaders
-): Headers {
-  const headers = new Headers();
-
-  for (const [key, value] of Object.entries(incomingHeaders)) {
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        headers.append(key, item);
-      }
-    } else if (value != null) {
-      headers.append(key, value);
-    }
-  }
-
-  return headers;
-}
-
-async function sendResponse(
-  res: ExpressResponse,
-  response: Response
-): Promise<void> {
-  res.statusMessage = response.statusText;
-  res.status(response.status);
-
-  for (const [key, value] of response.headers.entries()) {
-    res.setHeader(key, value);
-  }
-
-  if (response.body) {
-    await writeReadableStreamToWritable(response.body, res);
-  } else {
-    res.end();
-  }
-}

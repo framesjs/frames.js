@@ -92,7 +92,7 @@ export type FrameStackSuccess = FrameStackBase & {
   isValid: boolean;
 };
 
-export type FrameStackError = FrameStackBase & {
+export type FrameStackError = (FrameStackBase | FrameStackSuccess) & {
   requestError: unknown;
 };
 
