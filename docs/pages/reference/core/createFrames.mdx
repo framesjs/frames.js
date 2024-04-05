@@ -25,13 +25,13 @@ The function passed to `frames` will be called with the context of a frame actio
 
 - Type: `string`
 
-A string that specifies the base path for all relative URLs in the frame definition. It defaults to `/`.
+A string that specifies the base path for all relative URLs in the frame definition. It defaults to `/`. If `baseUrl` is provided, it will be resolved relatively to `baseUrl`. If the `baseUrl` option is not provided, it will overwrite the path of current request's URL.
 
 ### `baseUrl`
 
 - Type: `string | URL`
 
-A string or URL object that specifies the base URL for all relative URLs in the frame definition. It defaults to the current URL of the request. Can be used to override the URL detected from the request.
+A string or URL object that specifies the base URL for all relative URLs in the frame definition. Can be used to override the URL detected from the request.
 
 ### `initialState`
 
@@ -214,6 +214,12 @@ Core middleware is included and executed by default and gives you access to the 
 
 Specifies the base path for all relative URLs in the frame definition.
 
+### `baseUrl`
+
+- Type: `URL | undefined`
+
+Specifies the base URL for all relative URLs in the frame definition. `baseUrl` is resolved relatively to this value.
+
 ### `initialState`
 
 - Type: generic
@@ -225,6 +231,12 @@ A JSON serializable value that is used if no state is provided in the message or
 - Type: [Web API `Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request)
 
 The request object that was passed to the request handler.
+
+### `resolvedBaseUrl`
+
+- Type: `URL`
+
+The resolved base URL for all relative URLs in the frame definition. All relative URLs are resolved relatively to this value.
 
 ### `url`
 

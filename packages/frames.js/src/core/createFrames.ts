@@ -9,22 +9,7 @@ import type {
   FramesRequestHandlerFunction,
   JsonValue,
 } from "./types";
-
-function inferURLFromRequestOrBaseURL(request: Request, baseURL?: URL): URL {
-  if (baseURL) {
-    return baseURL;
-  }
-
-  return new URL(request.url);
-}
-
-function cloneRequestWithInferedURL(request: Request, url: URL): Request {
-  if (request.url === url.toString()) {
-    return request;
-  }
-
-  return new Request(url, request);
-}
+import { resolveBaseUrl } from "./utils";
 
 export function createFrames<
   TState extends JsonValue | undefined = JsonValue | undefined,
@@ -89,12 +74,13 @@ export function createFrames<
      * maps Response to frameworks response type.
      */
     return async function handleFramesRequest(request: Request) {
-      const inferredURL = inferURLFromRequestOrBaseURL(request, url);
       const context: FramesContext<TState> = {
+        baseUrl: url,
         basePath,
         initialState: initialState as TState,
-        request: cloneRequestWithInferedURL(request, inferredURL),
-        url: inferredURL,
+        request,
+        url: new URL(request.url),
+        resolvedBaseUrl: resolveBaseUrl(request, url, basePath),
       };
 
       const result = await composedMiddleware(context);

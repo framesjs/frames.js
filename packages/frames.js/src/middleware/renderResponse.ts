@@ -126,9 +126,8 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
           typeof result.image === "string"
             ? generateTargetURL({
                 target: result.image,
-                currentURL: context.url,
-                basePath: context.basePath,
-              })
+                resolvedBaseUrl: context.resolvedBaseUrl,
+              }).toString()
             : await renderImage(result.image, result.imageOptions).catch(
                 (e) => {
                   // eslint-disable-next-line no-console -- provide feedback to the user
@@ -160,9 +159,8 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
                   label: props.children,
                   target: generateTargetURL({
                     target: props.target,
-                    currentURL: context.url,
-                    basePath: context.basePath,
-                  }),
+                    resolvedBaseUrl: context.resolvedBaseUrl,
+                  }).toString(),
                 };
               case "mint":
                 return {
@@ -178,16 +176,14 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
                     buttonIndex: (i + 1) as 1 | 2 | 3 | 4,
                     buttonAction: "post",
                     target: props.target,
-                    currentURL: context.url,
-                    basePath: context.basePath,
-                  }),
+                    resolvedBaseUrl: context.resolvedBaseUrl,
+                  }).toString(),
                   post_url: props.post_url
                     ? generatePostButtonTargetURL({
                         buttonIndex: (i + 1) as 1 | 2 | 3 | 4,
                         buttonAction: "post",
                         target: props.post_url,
-                        currentURL: context.url,
-                        basePath: context.basePath,
+                        resolvedBaseUrl: context.resolvedBaseUrl,
                       })
                     : undefined,
                 };
@@ -200,8 +196,7 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
                     buttonIndex: (i + 1) as 1 | 2 | 3 | 4,
                     buttonAction: props.action,
                     target: props.target,
-                    currentURL: context.url,
-                    basePath: context.basePath,
+                    resolvedBaseUrl: context.resolvedBaseUrl,
                   }),
                 };
               default:

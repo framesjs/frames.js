@@ -7,6 +7,7 @@ import { Button } from "../core/components";
 import { error } from "../core/error";
 import { redirect } from "../core/redirect";
 import type { FramesContext } from "../core/types";
+import { resolveBaseUrl } from "../core/utils";
 import { renderResponse } from "./renderResponse";
 
 jest.mock("@vercel/og", () => {
@@ -39,18 +40,22 @@ describe("renderResponse middleware", () => {
     vercelOg as unknown as { constructorMock: jest.Mock }
   ).constructorMock;
   const render = renderResponse();
+  const request =new Request("https://example.com"); 
   const context: FramesContext<undefined> = {
     basePath: "/",
     initialState: undefined,
-    request: new Request("https://example.com"),
+    request,
     url: new URL("https://example.com"),
+    resolvedBaseUrl: resolveBaseUrl(request, undefined, '/'),
   };
 
   beforeEach(() => {
     arrayBufferMock.mockClear();
     constructorMock.mockClear();
+    context.basePath = "/";
     context.request = new Request("https://example.com");
     context.url = new URL("https://example.com");
+    context.resolvedBaseUrl = resolveBaseUrl(context.request, undefined, "/");
   });
 
   it("returns redirect Response if redirect is returned from handler", async () => {
@@ -158,8 +163,8 @@ describe("renderResponse middleware", () => {
     await expect((result as Response).text()).resolves.toMatchSnapshot();
   });
 
-  it("properly resolves against basePath", async () => {
-    const newContext = { ...context, basePath: "/prefixed" };
+  it("properly resolves against resolvedBaseUrl", async () => {
+    const newContext = { ...context, resolveBaseUrl: new URL("https://example.com/prefixed") };
     const result = await render(newContext, async () => {
       return {
         image: <div>My image</div>,
@@ -501,7 +506,7 @@ describe("renderResponse middleware", () => {
     );
   });
 
-  it("properly renders button with targer object containing query", async () => {
+  it("properly renders button with target object containing query", async () => {
     const url = new URL("https://example.com");
     url.searchParams.set("some_existing_param", "1");
 
@@ -512,7 +517,7 @@ describe("renderResponse middleware", () => {
       },
     });
     context.url = url;
-    context.basePath = "/test";
+    context.resolvedBaseUrl = new URL("https://example.com/test");
     const result = await render(context, async () => {
       return {
         image: <div>My image</div>,

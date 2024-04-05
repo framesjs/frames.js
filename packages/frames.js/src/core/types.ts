@@ -42,6 +42,15 @@ export type FramesContext<TState extends JsonValue | undefined = JsonValue> = {
    */
   basePath: string;
   /**
+   * All frame relative targets will be resolved against this url if provided.
+   * basePath is always resolved relatively to this URL (if provided).
+   */
+  baseUrl?: URL;
+  /**
+   * URL resolved based on current request URL, baseUrl and basePath. This URL is used to generate target URLs.
+   */
+  resolvedBaseUrl: URL;
+  /**
    * Values passed to createFrames()
    */
   readonly initialState: TState;
@@ -192,13 +201,44 @@ export type FramesOptions<
   TFrameMiddleware extends FramesMiddleware<any, any>[] | undefined,
 > = {
   /**
-   * All frame relative targets will be resolved relative to this
+   * All frame relative targets will be resolved relative to this. `basePath` is always resolved relatively to baseUrl (if provided). If `baseUrl` is not provided then `basePath` overrides the path part of current request's URL.
+   *
+   * @example
+   * ```ts
+   * {
+   *  basePath: '/foo'
+   * }
+   *
+   * // if the request URL is http://mydomain.dev/bar then context.url will be set to http://mydomain.dev/foo
+   * // if the request URL is http://mydomain.dev/ then context.url will be set to http://mydomain.dev/foo
+   * ```
+   *
+   * @example
+   * ```ts
+   * {
+   *  basePath: '/foo',
+   *  baseUrl: 'http://mydomain.dev'
+   * }
+   *
+   * // context.url will be set to http://mydomain.dev/foo
+   * ```
+   *
+   * @example
+   * ```ts
+   * {
+   *  basePath: '/foo',
+   *  baseUrl: 'http://localhost:3000/test'
+   * }
+   *
+   * // context.url will be set to http://localhost:3000/test/foo
+   * ```
+   *
    * @defaultValue '/'
    */
   basePath?: string;
   /**
    * Overrides the detected URL of the request. URL is used in combination with `basePath` to generate target URLs for Buttons.
-   * Provided value must be full URL with protocol and domain.
+   * Provided value must be full valid URL with protocol and domain. `basePath` if provided is resolved relatively to this URL.
    * This is useful if the URL detection fails to recognize the correct URL or if you want to override it.
    *
    * This URL also overrides the request.url value with the provided value.
