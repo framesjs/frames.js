@@ -137,4 +137,85 @@ describe("createFrames", () => {
 
     expect(response).toBeInstanceOf(Response);
   });
+
+  it("fails if invalid URL is set as baseURL", () => {
+    expect(() => createFrames({ baseURL: "invalid" })).toThrow(
+      "Invalid baseURL: Invalid URL"
+    );
+  });
+
+  it("overrides context.url and request.url with provided baseURL (string)", async () => {
+    const handler = createFrames({ baseURL: "http://override.com" });
+
+    const routeHandler = handler((ctx) => {
+      expect(ctx.url.href).toBe("http://override.com/");
+      expect(ctx.request.url).toBe("http://override.com/");
+      return Response.json({ test: true });
+    });
+
+    await expect(
+      routeHandler(new Request("http://test.com"))
+    ).resolves.toHaveProperty("status", 200);
+  });
+
+  it("overrides context.url and request.url with provided baseURL (URL)", async () => {
+    const handler = createFrames({ baseURL: new URL("http://override.com") });
+
+    const routeHandler = handler((ctx) => {
+      expect(ctx.url.href).toBe("http://override.com/");
+      expect(ctx.request.url).toBe("http://override.com/");
+      return Response.json({ test: true });
+    });
+
+    await expect(
+      routeHandler(new Request("http://test.com"))
+    ).resolves.toHaveProperty("status", 200);
+  });
+
+  it("clones the request if the baseURL and request.url differ", async () => {
+    const handler = createFrames({ baseURL: new URL("http://override.com") });
+    const request = new Request("http://test.com");
+    const routeHandler = handler((ctx) => {
+      expect(ctx.url.href).toBe("http://override.com/");
+      expect(ctx.request.url).toBe("http://override.com/");
+      expect(ctx.request).not.toBe(request);
+      return Response.json({ test: true });
+    });
+
+    await expect(routeHandler(request)).resolves.toHaveProperty("status", 200);
+  });
+
+  it("overrides the request.url completely with provided baseURL", async () => {
+    const handler = createFrames({
+      baseURL: new URL("http://override.com/test.png"),
+    });
+    const request = new Request(
+      "http://test.com/this-path-will-be-also-removed"
+    );
+    const routeHandler = handler((ctx) => {
+      expect(ctx.url.href).toBe("http://override.com/test.png");
+      expect(ctx.request.url).toBe("http://override.com/test.png");
+      expect(ctx.request).not.toBe(request);
+      return Response.json({ test: true });
+    });
+
+    await expect(routeHandler(request)).resolves.toHaveProperty("status", 200);
+  });
+
+  it("properly clones the request with body", async () => {
+    const handler = createFrames({ baseURL: new URL("http://override.com") });
+    const request = new Request("http://test.com", {
+      method: "POST",
+      body: JSON.stringify({ test: true }),
+    });
+    const routeHandler = handler(async (ctx) => {
+      expect(ctx.request).not.toBe(request);
+      expect(ctx.request.method).toBe("POST");
+      await expect(ctx.request.json()).resolves.toEqual({ test: true });
+
+      return Response.json({ test: true });
+    });
+
+    await expect(routeHandler(request)).resolves.toHaveProperty("status", 200);
+  });
 });

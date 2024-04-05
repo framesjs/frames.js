@@ -197,6 +197,30 @@ export type FramesOptions<
    */
   basePath?: string;
   /**
+   * Overrides the detected URL of the request. URL is used in combination with `basePath` to generate target URLs for Buttons.
+   * Provided value must be full URL with protocol and domain.
+   * This is useful if the URL detection fails to recognize the correct URL or if you want to override it.
+   *
+   * This URL also overrides the request.url value with the provided value.
+   *
+   * @example
+   * ```ts
+   * // using string, the value of ctx.url and request.url will be set to this value
+   * {
+   *  baseURL: 'https://example.com',
+   * }
+   * ```
+   *
+   * @example
+   * ```ts
+   * // using URL, the value of ctx.url and request.url will be set to this value
+   * {
+   * baseURL: new URL('https://example.com'),
+   * }
+   * ```
+   */
+  baseURL?: string | URL;
+  /**
    * Initial state, used if no state is provided in the message or you are on initial frame.
    *
    * Value must be JSON serializable

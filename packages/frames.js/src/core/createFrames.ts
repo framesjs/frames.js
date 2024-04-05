@@ -10,6 +10,22 @@ import type {
   JsonValue,
 } from "./types";
 
+function inferURLFromRequestOrBaseURL(request: Request, baseURL?: URL): URL {
+  if (baseURL) {
+    return baseURL;
+  }
+
+  return new URL(request.url);
+}
+
+function cloneRequestWithInferedURL(request: Request, url: URL): Request {
+  if (request.url === url.toString()) {
+    return request;
+  }
+
+  return new Request(url, request);
+}
+
 export function createFrames<
   TState extends JsonValue | undefined = JsonValue | undefined,
   TMiddlewares extends FramesMiddleware<any, any>[] | undefined = undefined,
@@ -17,6 +33,7 @@ export function createFrames<
   basePath = "/",
   initialState,
   middleware,
+  baseURL,
 }: FramesOptions<TState, TMiddlewares> = {}): FramesRequestHandlerFunction<
   TState,
   typeof coreMiddleware,
@@ -25,6 +42,18 @@ export function createFrames<
 > {
   const globalMiddleware: FramesMiddleware<TState, FramesContext<TState>>[] =
     middleware || [];
+  let url: URL | undefined;
+
+  // validate baseURL
+  if (typeof baseURL === "string") {
+    try {
+      url = new URL(baseURL);
+    } catch (e) {
+      throw new Error(`Invalid baseURL: ${(e as Error).message}`);
+    }
+  } else {
+    url = baseURL;
+  }
 
   /**
    * This function takes handler function that does the logic with the help of context and returns one of possible results
@@ -60,11 +89,12 @@ export function createFrames<
      * maps Response to frameworks response type.
      */
     return async function handleFramesRequest(request: Request) {
+      const inferedURL = inferURLFromRequestOrBaseURL(request, url);
       const context: FramesContext<TState> = {
         basePath,
         initialState: initialState as TState,
-        request,
-        url: new URL(request.url),
+        request: cloneRequestWithInferedURL(request, inferedURL),
+        url: inferedURL,
       };
 
       const result = await composedMiddleware(context);
