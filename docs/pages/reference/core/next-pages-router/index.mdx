@@ -30,7 +30,7 @@ In order to render the initial frame of your Frames app on some of your pages, y
 ```tsx [./pages/index.tsx]
 import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
 import Head from "next/head";
-import { fetchMetadata } from "frames.js/next/pages-router";
+import { fetchMetadata, metadataToMetaTags } from "frames.js/next/pages-router";
 
 export const getServerSideProps = async function getServerSideProps() {
   return {
