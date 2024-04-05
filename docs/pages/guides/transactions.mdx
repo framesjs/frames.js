@@ -10,12 +10,39 @@ Frames can initiate transactions that apps that integrate Frames can complete, c
 An example snippet can be found below.
 
 ```tsx
-    // ...
-    buttons: [
-      <Button action="tx" target="/txdata" post_url="/frames">
-        Buy a unit
-      </Button>
-    ]
+// ...
+buttons: [
+  <Button action="tx" target="/txdata" post_url="/frames">
+    Buy a unit
+  </Button>,
+];
 ```
 
 Use the [Transactions starter](https://github.com/framesjs/frames.js/tree/main/examples/framesjs-starter/app/examples/new-api-transaction) as a template to build your transaction Frames.
+
+## Using the connected wallet address
+
+The client will include the user's connected wallet address that will be executing the transaction in the frame action payload in the when a frame button with `action="tx"` set is pressed.
+
+The address is available in the context under the key `connectedAddress`.
+
+Note:
+
+- The address is only available when the user has connected a wallet to the client the frame button pressed is has a `tx` action.
+- `connectedAddress` differs from the `requesterVerifiedAddresses` returned by the [`farcasterHubContext`](/middleware/farcasterHubContext) middleware.
+
+```tsx [./app/frames/tx-data/route.tsx]
+import { frames } from "../frames";
+
+export const POST = frames(async (ctx) => {
+  if (!ctx.message) {
+    throw new Error("No message");
+  }
+
+  const userAddress = ctx.message.connectedAddress;
+
+  // Do something with the user's connected address that will be executing the tx
+
+  return txData;
+});
+```

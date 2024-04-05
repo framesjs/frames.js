@@ -5,7 +5,7 @@ Returns a `FrameActionData` object from the message trusted data, as well as `Fr
 ## Usage
 
 ```ts
-import { frameMessage } from 'frames.js';
+import { getFrameMessage } from 'frames.js';
 
 const frameMessage = await getFrameMessage(frameActionPayload);
 console.log(frameMessage);
@@ -16,6 +16,7 @@ console.log(frameMessage);
   inputText: '',
   requesterFid: 1689,
   isValid: true,
+  connectedAddress: '0x8d25687829d6b85d9e0020b8c89e3ca24de20a89',
   casterFollowsRequester: false,
   requesterFollowsCaster: false,
   likedCast: false,
@@ -42,7 +43,8 @@ console.log(frameMessage);
   buttonIndex: 2,
   castId: { fid: 1, hash: '0x0000000000000000000000000000000000000000' },
   inputText: '',
-  requesterFid: 1689
+  requesterFid: 1689,
+  connectedAddress: '0x8d25687829d6b85d9e0020b8c89e3ca24de20a89'
 }
 **/
 ```
@@ -57,6 +59,8 @@ type FrameActionData = {
     hash: `0x${string}`;
   };
   inputText?: string;
+  /** Only available in payloads of buttons with action `tx` **/
+  connectedAddress: string;
 };
 ```
 
