@@ -139,13 +139,13 @@ describe("createFrames", () => {
   });
 
   it("fails if invalid URL is set as baseURL", () => {
-    expect(() => createFrames({ baseURL: "invalid" })).toThrow(
+    expect(() => createFrames({ baseUrl: "invalid" })).toThrow(
       "Invalid baseURL: Invalid URL"
     );
   });
 
   it("overrides context.url and request.url with provided baseURL (string)", async () => {
-    const handler = createFrames({ baseURL: "http://override.com" });
+    const handler = createFrames({ baseUrl: "http://override.com" });
 
     const routeHandler = handler((ctx) => {
       expect(ctx.url.href).toBe("http://override.com/");
@@ -159,7 +159,7 @@ describe("createFrames", () => {
   });
 
   it("overrides context.url and request.url with provided baseURL (URL)", async () => {
-    const handler = createFrames({ baseURL: new URL("http://override.com") });
+    const handler = createFrames({ baseUrl: new URL("http://override.com") });
 
     const routeHandler = handler((ctx) => {
       expect(ctx.url.href).toBe("http://override.com/");
@@ -173,7 +173,7 @@ describe("createFrames", () => {
   });
 
   it("clones the request if the baseURL and request.url differ", async () => {
-    const handler = createFrames({ baseURL: new URL("http://override.com") });
+    const handler = createFrames({ baseUrl: new URL("http://override.com") });
     const request = new Request("http://test.com");
     const routeHandler = handler((ctx) => {
       expect(ctx.url.href).toBe("http://override.com/");
@@ -187,7 +187,7 @@ describe("createFrames", () => {
 
   it("overrides the request.url completely with provided baseURL", async () => {
     const handler = createFrames({
-      baseURL: new URL("http://override.com/test.png"),
+      baseUrl: new URL("http://override.com/test.png"),
     });
     const request = new Request(
       "http://test.com/this-path-will-be-also-removed"
@@ -203,7 +203,7 @@ describe("createFrames", () => {
   });
 
   it("properly clones the request with body", async () => {
-    const handler = createFrames({ baseURL: new URL("http://override.com") });
+    const handler = createFrames({ baseUrl: new URL("http://override.com") });
     const request = new Request("http://test.com", {
       method: "POST",
       body: JSON.stringify({ test: true }),

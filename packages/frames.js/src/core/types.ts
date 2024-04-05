@@ -207,7 +207,7 @@ export type FramesOptions<
    * ```ts
    * // using string, the value of ctx.url and request.url will be set to this value
    * {
-   *  baseURL: 'https://example.com',
+   *  baseUrl: 'https://example.com',
    * }
    * ```
    *
@@ -215,11 +215,11 @@ export type FramesOptions<
    * ```ts
    * // using URL, the value of ctx.url and request.url will be set to this value
    * {
-   * baseURL: new URL('https://example.com'),
+   *  baseUrl: new URL('https://example.com'),
    * }
    * ```
    */
-  baseURL?: string | URL;
+  baseUrl?: string | URL;
   /**
    * Initial state, used if no state is provided in the message or you are on initial frame.
    *

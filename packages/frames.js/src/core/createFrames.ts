@@ -33,7 +33,7 @@ export function createFrames<
   basePath = "/",
   initialState,
   middleware,
-  baseURL,
+  baseUrl,
 }: FramesOptions<TState, TMiddlewares> = {}): FramesRequestHandlerFunction<
   TState,
   typeof coreMiddleware,
@@ -45,14 +45,14 @@ export function createFrames<
   let url: URL | undefined;
 
   // validate baseURL
-  if (typeof baseURL === "string") {
+  if (typeof baseUrl === "string") {
     try {
-      url = new URL(baseURL);
+      url = new URL(baseUrl);
     } catch (e) {
       throw new Error(`Invalid baseURL: ${(e as Error).message}`);
     }
   } else {
-    url = baseURL;
+    url = baseUrl;
   }
 
   /**
