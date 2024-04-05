@@ -167,8 +167,7 @@ const handleRequest = frames(async (ctx) => {
       aspectRatio: "1:1",
     },
     buttons: [<Button action="post">Refresh</Button>],
-    headers: {
-      // [!code focus]
+    headers: { // [!code focus]
       // Max cache age in seconds // [!code focus]
       "Cache-Control": "max-age=0", // [!code focus]
     }, // [!code focus]
