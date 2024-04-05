@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-key */
-import { Button } from "frames.js/next/pages-router";
+import { Button } from "frames.js/next/pages-router/server";
 import { frames } from "../frames";
 
 const handleRequest = frames(async (ctx) => {
