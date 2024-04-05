@@ -8,6 +8,7 @@ import {
 } from "../../lib/node-server-helpers";
 
 export { type types } from "../../core";
+export { Button } from "../../core/components";
 
 type CreateFramesForNextJSApiHandler = types.CreateFramesFunctionDefinition<
   CoreMiddleware,
@@ -19,8 +20,7 @@ type CreateFramesForNextJSApiHandler = types.CreateFramesFunctionDefinition<
  *
  * @example
  * ```tsx
- * import { createFrames } from 'frames.js/next/pages-router';
- * import { Button } from 'frames.js/next/pages-router/client';
+ * import { createFrames, Button } from 'frames.js/next/pages-router/server';
  *
  * const frames = createFrames();
  * const nextHandler = frames(async (ctx) => {

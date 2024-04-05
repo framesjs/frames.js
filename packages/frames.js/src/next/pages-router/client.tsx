@@ -5,7 +5,6 @@ import React from "react";
 // produces unnecessary imports that can break next.js client side build because server side stuff leaks
 // into the build and tree shaking is not able to get rid of it
 export type * as types from "../../core/types";
-export { Button } from "../../core/components";
 export { fetchMetadata } from "../fetchMetadata";
 
 /**

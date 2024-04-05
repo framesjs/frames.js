@@ -207,14 +207,14 @@
         "default": "./dist/next/index.cjs"
       }
     },
-    "./next/pages-router": {
+    "./next/pages-router/server": {
       "import": {
-        "types": "./dist/next/pages-router/index.d.ts",
-        "default": "./dist/next/pages-router/index.js"
+        "types": "./dist/next/pages-router/server.d.ts",
+        "default": "./dist/next/pages-router/server.js"
       },
       "require": {
-        "types": "./dist/next/pages-router/index.d.cts",
-        "default": "./dist/next/pages-router/index.cjs"
+        "types": "./dist/next/pages-router/server.d.cts",
+        "default": "./dist/next/pages-router/server.cjs"
       }
     },
     "./next/pages-router/client": {
