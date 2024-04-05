@@ -10,7 +10,7 @@ describe("framesjsMiddleware middleware", () => {
     const context = {
       url: new URL("https://example.com"),
       request,
-      resolvedBaseUrl: resolveBaseUrl(request, undefined, "/"),
+      baseUrl: resolveBaseUrl(request, undefined, "/"),
     } as unknown as FramesContext;
     const next = jest.fn();
     const middleware = framesjsMiddleware();
@@ -27,7 +27,7 @@ describe("framesjsMiddleware middleware", () => {
     const url = generatePostButtonTargetURL({
       buttonAction: "post",
       buttonIndex: 1,
-      resolvedBaseUrl: new URL("https://example.com"),
+      baseUrl: new URL("https://example.com"),
       target: {
         pathname: "/test",
         query: { test: true },
@@ -55,7 +55,7 @@ describe("framesjsMiddleware middleware", () => {
     const url = generatePostButtonTargetURL({
       buttonAction: "post_redirect",
       buttonIndex: 1,
-      resolvedBaseUrl: new URL("https://example.com"),
+      baseUrl: new URL("https://example.com"),
       target: "/test",
     });
     const context = {
@@ -83,7 +83,7 @@ describe("framesjsMiddleware middleware", () => {
     const url = generatePostButtonTargetURL({
       buttonAction: "post_redirect",
       buttonIndex: 1,
-      resolvedBaseUrl: new URL("https://example.com"),
+      baseUrl: new URL("https://example.com"),
       target: "/test",
     });
     const context = {
@@ -107,7 +107,7 @@ describe("framesjsMiddleware middleware", () => {
     const url = generatePostButtonTargetURL({
       buttonAction: "post",
       buttonIndex: 1,
-      resolvedBaseUrl: new URL("https://example.com"),
+      baseUrl: new URL("https://example.com"),
       target: {
         pathname: "/test",
         query: { test: true },
@@ -132,7 +132,7 @@ describe("framesjsMiddleware middleware", () => {
     const url = generatePostButtonTargetURL({
       buttonAction: "post",
       buttonIndex: 1,
-      resolvedBaseUrl: new URL("https://example.com"),
+      baseUrl: new URL("https://example.com"),
       target: {
         pathname: "/test",
         query: { test: true },
@@ -158,7 +158,7 @@ describe("framesjsMiddleware middleware", () => {
     const url = generatePostButtonTargetURL({
       buttonAction: "post",
       buttonIndex: 1,
-      resolvedBaseUrl: new URL("https://example.com"),
+      baseUrl: new URL("https://example.com"),
       target: {
         pathname: "/test",
         query: { test: true },

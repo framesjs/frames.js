@@ -148,7 +148,7 @@ describe("createFrames", () => {
     const handler = createFrames({ baseUrl: "http://override.com" });
 
     const routeHandler = handler((ctx) => {
-      expect(ctx.baseUrl?.toString()).toBe("http://override.com/");
+      expect(ctx.baseUrl.toString()).toBe("http://override.com/");
       return Response.json({ test: true });
     });
 
@@ -161,7 +161,7 @@ describe("createFrames", () => {
     const handler = createFrames();
 
     const routeHandler = handler((ctx) => {
-      expect(ctx.resolvedBaseUrl.toString()).toBe("http://test.com/");
+      expect(ctx.baseUrl.toString()).toBe("http://test.com/");
       return Response.json({ test: true });
     });
 
@@ -174,7 +174,7 @@ describe("createFrames", () => {
     const handler = createFrames({ basePath: "/test" });
 
     const routeHandler = handler((ctx) => {
-      expect(ctx.resolvedBaseUrl.toString()).toBe("http://test.com/test");
+      expect(ctx.baseUrl.toString()).toBe("http://test.com/test");
       return Response.json({ test: true });
     });
 
@@ -187,7 +187,7 @@ describe("createFrames", () => {
     const handler = createFrames({ baseUrl: "http://override.com" });
 
     const routeHandler = handler((ctx) => {
-      expect(ctx.resolvedBaseUrl.toString()).toBe("http://override.com/");
+      expect(ctx.baseUrl.toString()).toBe("http://override.com/");
       return Response.json({ test: true });
     });
 
@@ -203,7 +203,7 @@ describe("createFrames", () => {
     });
 
     const routeHandler = handler((ctx) => {
-      expect(ctx.resolvedBaseUrl.toString()).toBe("http://override.com/test");
+      expect(ctx.baseUrl.toString()).toBe("http://override.com/test");
       return Response.json({ test: true });
     });
 
@@ -219,9 +219,7 @@ describe("createFrames", () => {
     });
 
     const routeHandler = handler((ctx) => {
-      expect(ctx.resolvedBaseUrl.toString()).toBe(
-        "http://override.com/test/test2"
-      );
+      expect(ctx.baseUrl.toString()).toBe("http://override.com/test/test2");
       return Response.json({ test: true });
     });
 

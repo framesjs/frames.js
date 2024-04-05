@@ -50,31 +50,31 @@ function isValidButtonAction(
 }
 
 export function generateTargetURL({
-  resolvedBaseUrl,
+  baseUrl,
   target,
 }: {
-  resolvedBaseUrl: URL;
+  baseUrl: URL;
   target: string | UrlObject | undefined;
 }): URL {
   if (!target) {
-    return new URL(resolvedBaseUrl);
+    return new URL(baseUrl);
   }
 
   if (typeof target === "object") {
     return new URL(
       formatUrl({
-        host: resolvedBaseUrl.host,
-        hash: resolvedBaseUrl.hash,
-        hostname: resolvedBaseUrl.hostname,
-        href: resolvedBaseUrl.href,
+        host: baseUrl.host,
+        hash: baseUrl.hash,
+        hostname: baseUrl.hostname,
+        href: baseUrl.href,
         // pathname: url.pathname,
-        protocol: resolvedBaseUrl.protocol,
+        protocol: baseUrl.protocol,
         // we ignore existing search params and uses only new ones
         // search: url.search,
-        port: resolvedBaseUrl.port,
+        port: baseUrl.port,
         // query: url.searchParams,
         ...target,
-        pathname: joinPaths(resolvedBaseUrl.pathname, target.pathname ?? ""),
+        pathname: joinPaths(baseUrl.pathname, target.pathname ?? ""),
       })
     );
   }
@@ -84,10 +84,10 @@ export function generateTargetURL({
     return new URL(target);
   } catch {
     // resolve target relatively to basePath
-    const baseUrl = new URL(resolvedBaseUrl);
-    const finalPathname = joinPaths(baseUrl.pathname, target);
+    const url = new URL(baseUrl);
+    const finalPathname = joinPaths(url.pathname, target);
 
-    return new URL(finalPathname, baseUrl);
+    return new URL(finalPathname, url);
   }
 }
 
@@ -99,14 +99,14 @@ export function generatePostButtonTargetURL({
   buttonIndex,
   buttonAction,
   target,
-  resolvedBaseUrl,
+  baseUrl,
 }: {
   buttonIndex: 1 | 2 | 3 | 4;
   buttonAction: "post" | "post_redirect";
   target: string | UrlObject | undefined;
-  resolvedBaseUrl: URL;
+  baseUrl: URL;
 }): string {
-  const url = new URL(generateTargetURL({ resolvedBaseUrl, target }));
+  const url = new URL(generateTargetURL({ baseUrl, target }));
 
   // Internal param, store what button has been clicked in the URL.
   url.searchParams.set(

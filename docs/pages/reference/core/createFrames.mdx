@@ -216,9 +216,9 @@ Specifies the base path for all relative URLs in the frame definition.
 
 ### `baseUrl`
 
-- Type: `URL | undefined`
+- Type: `URL`
 
-Specifies the base URL for all relative URLs in the frame definition. `baseUrl` is resolved relatively to this value.
+The resolved base URL for all relative URLs in the frame definition. All relative URLs are resolved relatively to this value.
 
 ### `initialState`
 
@@ -231,12 +231,6 @@ A JSON serializable value that is used if no state is provided in the message or
 - Type: [Web API `Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request)
 
 The request object that was passed to the request handler.
-
-### `resolvedBaseUrl`
-
-- Type: `URL`
-
-The resolved base URL for all relative URLs in the frame definition. All relative URLs are resolved relatively to this value.
 
 ### `url`
 

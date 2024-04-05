@@ -126,7 +126,7 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
           typeof result.image === "string"
             ? generateTargetURL({
                 target: result.image,
-                resolvedBaseUrl: context.resolvedBaseUrl,
+                baseUrl: context.baseUrl,
               }).toString()
             : await renderImage(result.image, result.imageOptions).catch(
                 (e) => {
@@ -159,7 +159,7 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
                   label: props.children,
                   target: generateTargetURL({
                     target: props.target,
-                    resolvedBaseUrl: context.resolvedBaseUrl,
+                    baseUrl: context.baseUrl,
                   }).toString(),
                 };
               case "mint":
@@ -176,14 +176,14 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
                     buttonIndex: (i + 1) as 1 | 2 | 3 | 4,
                     buttonAction: "post",
                     target: props.target,
-                    resolvedBaseUrl: context.resolvedBaseUrl,
+                    baseUrl: context.baseUrl,
                   }).toString(),
                   post_url: props.post_url
                     ? generatePostButtonTargetURL({
                         buttonIndex: (i + 1) as 1 | 2 | 3 | 4,
                         buttonAction: "post",
                         target: props.post_url,
-                        resolvedBaseUrl: context.resolvedBaseUrl,
+                        baseUrl: context.baseUrl,
                       })
                     : undefined,
                 };
@@ -196,7 +196,7 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
                     buttonIndex: (i + 1) as 1 | 2 | 3 | 4,
                     buttonAction: props.action,
                     target: props.target,
-                    resolvedBaseUrl: context.resolvedBaseUrl,
+                    baseUrl: context.baseUrl,
                   }),
                 };
               default:

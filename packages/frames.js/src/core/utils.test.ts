@@ -68,7 +68,7 @@ describe("generatePostButtonTargetURL", () => {
         target: undefined,
         buttonAction: "post",
         buttonIndex: 1,
-        resolvedBaseUrl: new URL("http://test.com"),
+        baseUrl: new URL("http://test.com"),
       })
     ).toBe(expected.toString());
   });
@@ -82,7 +82,7 @@ describe("generatePostButtonTargetURL", () => {
       generatePostButtonTargetURL({
         buttonAction: "post",
         buttonIndex: 1,
-        resolvedBaseUrl: new URL("http://test.com"),
+        baseUrl: new URL("http://test.com"),
         target: { query: { test: "test" } },
       })
     ).toBe(expected.toString());
@@ -97,7 +97,7 @@ describe("generatePostButtonTargetURL", () => {
         target: "/test",
         buttonAction: "post",
         buttonIndex: 1,
-        resolvedBaseUrl: new URL("http://test.com"),
+        baseUrl: new URL("http://test.com"),
       })
     ).toBe(expected.toString());
   });
@@ -111,7 +111,7 @@ describe("generatePostButtonTargetURL", () => {
       generatePostButtonTargetURL({
         buttonAction: "post",
         buttonIndex: 1,
-        resolvedBaseUrl: new URL("http://test.com"),
+        baseUrl: new URL("http://test.com"),
         target: { query: { test: "test" }, pathname: "/test" },
       })
     ).toBe(expected.toString());
@@ -126,7 +126,7 @@ describe("generatePostButtonTargetURL", () => {
         target: "/test",
         buttonAction: "post_redirect",
         buttonIndex: 1,
-        resolvedBaseUrl: new URL("http://test.com"),
+        baseUrl: new URL("http://test.com"),
       })
     ).toBe(expected.toString());
   });

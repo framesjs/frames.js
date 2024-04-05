@@ -75,12 +75,11 @@ export function createFrames<
      */
     return async function handleFramesRequest(request: Request) {
       const context: FramesContext<TState> = {
-        baseUrl: url,
         basePath,
         initialState: initialState as TState,
         request,
         url: new URL(request.url),
-        resolvedBaseUrl: resolveBaseUrl(request, url, basePath),
+        baseUrl: resolveBaseUrl(request, url, basePath),
       };
 
       const result = await composedMiddleware(context);

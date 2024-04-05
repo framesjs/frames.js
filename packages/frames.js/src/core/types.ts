@@ -42,14 +42,9 @@ export type FramesContext<TState extends JsonValue | undefined = JsonValue> = {
    */
   basePath: string;
   /**
-   * All frame relative targets will be resolved against this url if provided.
-   * basePath is always resolved relatively to this URL (if provided).
-   */
-  baseUrl?: URL;
-  /**
    * URL resolved based on current request URL, baseUrl and basePath. This URL is used to generate target URLs.
    */
-  resolvedBaseUrl: URL;
+  baseUrl: URL;
   /**
    * Values passed to createFrames()
    */

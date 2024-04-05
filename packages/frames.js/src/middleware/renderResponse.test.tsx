@@ -46,7 +46,7 @@ describe("renderResponse middleware", () => {
     initialState: undefined,
     request,
     url: new URL("https://example.com"),
-    resolvedBaseUrl: resolveBaseUrl(request, undefined, '/'),
+    baseUrl: resolveBaseUrl(request, undefined, '/'),
   };
 
   beforeEach(() => {
@@ -55,7 +55,7 @@ describe("renderResponse middleware", () => {
     context.basePath = "/";
     context.request = new Request("https://example.com");
     context.url = new URL("https://example.com");
-    context.resolvedBaseUrl = resolveBaseUrl(context.request, undefined, "/");
+    context.baseUrl = resolveBaseUrl(context.request, undefined, "/");
   });
 
   it("returns redirect Response if redirect is returned from handler", async () => {
@@ -163,8 +163,8 @@ describe("renderResponse middleware", () => {
     await expect((result as Response).text()).resolves.toMatchSnapshot();
   });
 
-  it("properly resolves against resolvedBaseUrl", async () => {
-    const newContext = { ...context, resolveBaseUrl: new URL("https://example.com/prefixed") };
+  it("properly resolves against baseUrl", async () => {
+    const newContext = { ...context, baseUrl: new URL("https://example.com/prefixed") };
     const result = await render(newContext, async () => {
       return {
         image: <div>My image</div>,
@@ -517,7 +517,7 @@ describe("renderResponse middleware", () => {
       },
     });
     context.url = url;
-    context.resolvedBaseUrl = new URL("https://example.com/test");
+    context.baseUrl = new URL("https://example.com/test");
     const result = await render(context, async () => {
       return {
         image: <div>My image</div>,
