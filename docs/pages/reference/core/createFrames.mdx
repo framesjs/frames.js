@@ -25,7 +25,7 @@ The function passed to `frames` will be called with the context of a frame actio
 
 - Type: `string`
 
-A string that specifies the base path for all relative URLs in the frame definition. It defaults to `/`. If `baseUrl` is provided, it will be resolved relatively to `baseUrl`. If the `baseUrl` option is not provided, it will overwrite the path of current request's URL.
+A string that specifies the base path for all relative URLs in the frame definition. It defaults to `/`. If `baseUrl` is provided, it will be resolved relatively to `baseUrl`. If the `baseUrl` option is not provided, it will use URL of current request and override its path with `basePath` when generating target URLs.
 
 ### `baseUrl`
 
