@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import type { FrameFlattened } from "../types";
-import { FRAMES_META_TAGS_HEADER } from "../core";
+import { FRAMES_META_TAGS_HEADER } from "../core/constants";
 
 /**
  * Fetches meta tags from your Frames app that can be used in Next.js generateMetadata() function.
  *
  * @example
  * ```ts
+ * // usage with app router
  * import type { Metadata } from "next";
  * import { fetchMetadata } from "frames.js/next";
  *
@@ -23,6 +24,35 @@ import { FRAMES_META_TAGS_HEADER } from "../core";
  *     ),
  *   },
  * };
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // usage with getServerSideProps (Pages Router)
+ * import { fetchMetadata, metadataToMetaTags } from "frames.js/next/pages-router/client";
+ *
+ * export async function getServerSideProps() {
+ *  return {
+ *    props: {
+ *      metadata: await fetchMetadata(
+ *        new URL("/api", process.env.VERCEL_URL || "http://localhost:3000")
+ *      ),
+ *    },
+ *  };
+ * }
+ *
+ * export default function Page({
+ *  metadata,
+ *  }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+ *  return (
+ *    <>
+ *      <Head>
+ *        <title>Frames.js app</title>
+ *        {metadataToMetaTags(metadata)}
+ *      </Head>
+ *    </>
+ *  );
+ * }
  * ```
  *
  * @param url - Full URL of your Frames app

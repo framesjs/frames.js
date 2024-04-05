@@ -6,7 +6,8 @@ import {
 } from "node:http";
 import supertest from "supertest";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { Button, createFrames } from "./pages-router";
+import { Button } from './client';
+import { createFrames } from ".";
 
 describe("next.js pages router integration", () => {
   it("works with next.js pages router with disabled body parsing", async () => {
