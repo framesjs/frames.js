@@ -29,9 +29,10 @@ import { FRAMES_META_TAGS_HEADER } from "../core/constants";
  * @example
  * ```tsx
  * // usage with getServerSideProps (Pages Router)
+ * import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
  * import { fetchMetadata, metadataToMetaTags } from "frames.js/next/pages-router/client";
  *
- * export async function getServerSideProps() {
+ * export const getServerSideProps = async function getServerSideProps() {
  *  return {
  *    props: {
  *      metadata: await fetchMetadata(
@@ -39,7 +40,9 @@ import { FRAMES_META_TAGS_HEADER } from "../core/constants";
  *      ),
  *    },
  *  };
- * }
+ * } satisfies GetServerSideProps<
+ *   Awaited<ReturnType<typeof fetchMetadata>>
+ * >;
  *
  * export default function Page({
  *  metadata,
