@@ -207,14 +207,24 @@
         "default": "./dist/next/index.cjs"
       }
     },
-    "./next/pages-router": {
+    "./next/pages-router/server": {
       "import": {
-        "types": "./dist/next/pages-router.d.ts",
-        "default": "./dist/next/pages-router.js"
+        "types": "./dist/next/pages-router/server.d.ts",
+        "default": "./dist/next/pages-router/server.js"
       },
       "require": {
-        "types": "./dist/next/pages-router.d.cts",
-        "default": "./dist/next/pages-router.cjs"
+        "types": "./dist/next/pages-router/server.d.cts",
+        "default": "./dist/next/pages-router/server.cjs"
+      }
+    },
+    "./next/pages-router/client": {
+      "import": {
+        "types": "./dist/next/pages-router/client.d.ts",
+        "default": "./dist/next/pages-router/client.js"
+      },
+      "require": {
+        "types": "./dist/next/pages-router/client.d.cts",
+        "default": "./dist/next/pages-router/client.cjs"
       }
     },
     "./express": {
