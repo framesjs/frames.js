@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.1.16
+
+### Patch Changes
+
+- b9bed81: chore: bump frames.js dependency to v0.12.1
+
 ## 0.1.15
 
 ### Patch Changes

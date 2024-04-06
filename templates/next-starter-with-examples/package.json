@@ -1,6 +1,6 @@
 {
   "name": "template-next-starter-with-examples",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "scripts": {
     "dev": "concurrently --kill-others \"next dev\" \"frames --url http://localhost:3000\"",
@@ -26,7 +26,7 @@
     "node": ">=18.17.0"
   },
   "devDependencies": {
-    "@frames.js/debugger": "^0.1.15",
+    "@frames.js/debugger": "^0.1.16",
     "@types/node": "^18.17.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",

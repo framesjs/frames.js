@@ -1,5 +1,11 @@
 # utils-starter
 
+## 1.1.7
+
+### Patch Changes
+
+- b9bed81: chore: bump frames.js dependency to v0.12.1
+
 ## 1.1.6
 
 ### Patch Changes

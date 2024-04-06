@@ -1,6 +1,6 @@
 {
   "name": "utils-starter",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3004",

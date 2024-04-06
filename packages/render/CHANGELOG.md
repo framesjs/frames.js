@@ -1,5 +1,11 @@
 # @frames.js/render
 
+## 0.1.2
+
+### Patch Changes
+
+- b9bed81: chore: bump frames.js dependency to v0.12.1
+
 ## 0.1.1
 
 ### Patch Changes
