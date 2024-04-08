@@ -36,7 +36,7 @@ Run to clone the starter into a new folder called `framesjs-starter`
 npx degit github:framesjs/frames.js/examples/framesjs-starter#main framesjs-starter
 ```
 
-or [clone from github](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examplesth-examples)
+or [clone from github](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples)
 
 ## Alternatively, add frames.js to your existing project manually
 
