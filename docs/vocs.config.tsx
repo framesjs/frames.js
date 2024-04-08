@@ -83,7 +83,7 @@ const sidebar = [
         link: "/reference/core/next",
       },
       {
-        text: 'Next.js (Pages Router)',
+        text: "Next.js (Pages Router)",
         link: "/reference/core/next-pages-router",
       },
       {
@@ -109,8 +109,12 @@ const sidebar = [
     collapsed: false,
     items: [
       {
+        text: "Images Worker",
+        link: "/middleware/images-worker",
+      },
+      {
         text: "Farcaster Hub Context",
-        link: "/middleware/farcasterHubContext",
+        link: "/middleware/farcaster-hub-context",
       },
       {
         text: "Open Frames",

@@ -1,0 +1,61 @@
+# Images Worker
+
+The images worker serializes JSX images in frame definition responses into a URL which is rendered in a separate request and not bound by data URL size limits.
+
+It does this by serializing the JSX component tree into a string which is passed to the image worker route via a query param in a URL. The worker deserializes the JSX and renders it into a PNG image as a separate response.
+
+## Usage
+
+:::steps
+
+### Set up the images worker endpoint
+
+```tsx [./images-worker/route.tsx]
+import { NextRequest } from "next/server";
+import { ImageResponse } from "@vercel/og";
+import { deserializeJsx } from "frames.js/middleware/images-worker";
+
+export async function GET(req: NextRequest) {
+  const serialized = req.nextUrl.searchParams.get("jsx");
+
+  if (!serialized) {
+    throw new Error("No jsx");
+  }
+
+  const json = JSON.parse(serialized);
+  const jsx = deserializeJsx(json);
+
+  return new ImageResponse(<Scaffold>{jsx}</Scaffold>, {
+    width: 1000,
+    height: 1910,
+  });
+}
+
+function Scaffold({ children }: { children: React.ReactNode }) {
+  return (
+    <div tw="flex flex-row items-stretch relative w-full h-screen bg-white overflow-hidden">
+      <div tw="flex flex-col justify-center items-center text-black overflow-hidden">
+        {children}
+      </div>
+    </div>
+  );
+}
+```
+
+### Add the `imagesWorkerMiddleware` middleware to your Frames app
+
+```ts [./frames/frames.ts]
+import { createFrames } from "frames.js/next";
+import { imagesWorkerMiddleware } from "frames.js/middleware/images-worker";  // [!code focus]
+
+export const frames = createFrames({
+  // ...
+  middleware: [ // [!code focus]
+    ImagesWorker.imagesWorker({ // [!code focus]
+      imageRoute: "/image-worker", // [!code focus]
+    }), // [!code focus]
+  ], // [!code focus]
+});
+```
+
+:::
