@@ -65,6 +65,7 @@
   "engineStrict": true,
   "scripts": {
     "dev": "next dev -p 3010",
+    "dev:monorepo": "next dev -p 3010",
     "build": "rimraf .next && next build",
     "start": "next start",
     "lint": "next lint",

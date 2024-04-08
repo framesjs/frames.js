@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently --kill-others \"next dev\" \"frames --url http://localhost:3000\"",
+    "dev:monorepo": "next dev -p $EXAMPLE_PORT",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

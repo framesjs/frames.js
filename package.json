@@ -6,7 +6,7 @@
     "build:ci": "turbo build --filter=!debugger --filter=!framesjs-starter --filter=!utils-starter --filter=!docs --filter=!template-*",
     "dev": "FJS_MONOREPO=true turbo dev --filter=framesjs-starter... --filter=debugger...",
     "dev:custom-redirects": "turbo dev --filter=custom-redirects...",
-    "dev:utils-starter": "turbo dev --filter=utils-starter...",
+    "dev:utils-starter": "cross-env EXAMPLE_PORT=3004 turbo dev:monorepo --filter=template-next-utils-starter... --filter=debugger...",
     "dev:all": "turbo dev",
     "lint": "turbo lint --filter=!template-*",
     "test:ci": "jest --ci",
@@ -27,6 +27,7 @@
     "@swc/core": "^1.4.8",
     "@swc/jest": "^0.2.36",
     "@types/jest": "^29.5.11",
+    "cross-env": "^7.0.3",
     "fast-glob": "^3.3.2",
     "jest": "^29.7.0",
     "nock": "beta",
@@ -41,7 +42,6 @@
   "packageManager": "yarn@1.22.19",
   "workspaces": [
     "docs",
-    "examples/*",
     "packages/*",
     "templates/*"
   ],
