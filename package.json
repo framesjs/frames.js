@@ -5,7 +5,6 @@
     "build": "turbo build --filter=!./templates/* && node ./.scripts/prepare-create-frames.js",
     "build:ci": "turbo build --filter=!debugger --filter=!framesjs-starter --filter=!utils-starter --filter=!docs --filter=!template-*",
     "dev": "FJS_MONOREPO=true turbo dev --filter=framesjs-starter... --filter=debugger...",
-    "dev:custom-redirects": "turbo dev --filter=custom-redirects...",
     "dev:utils-starter": "cross-env EXAMPLE_PORT=3004 turbo dev:monorepo --filter=template-next-utils-starter... --filter=debugger...",
     "dev:all": "turbo dev",
     "lint": "turbo lint --filter=!template-*",
