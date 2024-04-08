@@ -2,7 +2,11 @@ import { frames } from "./frames";
 
 const handler = frames(async (ctx) => {
   return {
-    image: <div>Hello world</div>,
+    image: (
+      <div tw="flex text-[52px]">
+        Hello <span tw="ml-2 font-bold flex">world</span>
+      </div>
+    ),
   };
 });
 

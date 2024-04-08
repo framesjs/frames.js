@@ -1,9 +1,9 @@
 import type { DetailedHTMLProps, HTMLAttributes, ReactElement } from "react";
-import type { FrameDefinition, FramesContext } from "../core/types";
-import { resolveBaseUrl } from "../core/utils";
+import type { FrameDefinition, FramesContext } from "../../core/types";
+import { resolveBaseUrl } from "../../core/utils";
 import * as ImagesWorker from "./imagesWorker";
 
-describe("imageUrlMiddleware", () => {
+describe("imagesWorker", () => {
   const request = new Request("https://example.com");
   const context: FramesContext<undefined> = {
     basePath: "/",
@@ -25,9 +25,12 @@ describe("imageUrlMiddleware", () => {
     )) as FrameDefinition<undefined>;
 
     expect(typeof result.image).toBe("string");
-    expect(
-      (result.image as string).startsWith("https://example.com/image?jsx=")
-    ).toBe(true);
+
+    const url = new URL(result.image as string);
+
+    expect(url.origin).toBe("https://example.com");
+    expect(url.pathname).toBe("/image");
+    expect(url.searchParams.has("jsx")).toBe(true);
   });
 
   it("should not add the image URL to the frame definition if it's already a string", async () => {
@@ -48,6 +51,56 @@ describe("imageUrlMiddleware", () => {
     const result = await mw(context, () => Promise.resolve(response));
 
     expect(result).toEqual(response);
+  });
+
+  it("should include signature in request if secret is provided", async () => {
+    const mwWithAuth = ImagesWorker.imagesWorkerMiddleware({
+      imagesRoute,
+      secret: "MY_SECRET",
+    });
+
+    const frameDefinition: FrameDefinition<undefined> = {
+      image: <div>Test</div>,
+    };
+
+    const result = (await mwWithAuth(context, () =>
+      Promise.resolve(frameDefinition)
+    )) as FrameDefinition<undefined>;
+
+    expect(new URL(result.image as string).searchParams.has("signature")).toBe(
+      true
+    );
+  });
+
+  it("should pass the default aspect ratio in the image URL", async () => {
+    const frameDefinition: FrameDefinition<undefined> = {
+      image: <div>Test</div>,
+    };
+
+    const result = (await mw(context, () =>
+      Promise.resolve(frameDefinition)
+    )) as FrameDefinition<undefined>;
+
+    const url = new URL(result.image as string);
+
+    expect(url.searchParams.get("aspectRatio")).toBe("1:1.91");
+  });
+
+  it("should pass the aspect ratio specified in the Frame Definition in the image URL", async () => {
+    const frameDefinition: FrameDefinition<undefined> = {
+      image: <div>Test</div>,
+      imageOptions: {
+        aspectRatio: "1:1",
+      },
+    };
+
+    const result = (await mw(context, () =>
+      Promise.resolve(frameDefinition)
+    )) as FrameDefinition<undefined>;
+
+    const url = new URL(result.image as string);
+
+    expect(url.searchParams.get("aspectRatio")).toBe("1:1");
   });
 
   it("should serialize a JSX element with props", () => {

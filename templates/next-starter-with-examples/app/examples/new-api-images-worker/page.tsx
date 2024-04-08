@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
     other: {
       ...(await fetchMetadata(
         new URL(
-          "/examples/new-api-image-worker/frames",
+          "/examples/new-api-images-worker/frames",
           vercelURL() || "http://localhost:3000"
         )
       )),
@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const url = currentURL("/examples/new-api-image-worker");
+  const url = currentURL("/examples/new-api-images-worker");
 
   return (
     <div>

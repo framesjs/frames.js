@@ -1,17 +1,21 @@
+import { createHmac } from "node:crypto";
 import type React from "react";
 import {
   createElement,
   Children as ReactChildren,
   type ReactElement,
 } from "react";
-import type { FramesMiddleware } from "../core/types.js";
-import { isFrameDefinition } from "../core/utils.js";
+import type { FramesMiddleware } from "../../core/types.js";
+import { generateTargetURL, isFrameDefinition } from "../../core/utils";
 
 export function imagesWorkerMiddleware({
   imagesRoute,
+  secret,
 }: {
-  /** The absolute URL or URL relative to this server of the image rendering worker */
+  /** The absolute URL or URL relative to the URL of this server of the image rendering worker */
   imagesRoute: string;
+  /** Secret key used to sign JSX payloads */
+  secret?: string;
 }): FramesMiddleware<any, Record<string, never>> {
   const middleware: FramesMiddleware<any, Record<string, never>> = async (
     ctx,
@@ -26,22 +30,39 @@ export function imagesWorkerMiddleware({
       return nextResult;
     }
 
+    const imageJsonString = JSON.stringify(serializeJsx(nextResult.image));
+
     const searchParams = new URLSearchParams({
       time: Date.now().toString(),
+      jsx: imageJsonString,
+      aspectRatio: nextResult.imageOptions?.aspectRatio?.toString() || "1:1.91",
     });
 
-    const image = `${imageUrl(imagesRoute, nextResult.image)}&${searchParams.toString()}`;
+    if (secret) {
+      const signature = createHmac("sha256", secret)
+        .update(imageJsonString)
+        .digest("hex");
+
+      searchParams.append("signature", signature);
+    }
+
+    const imageUrl = generateTargetURL({
+      baseUrl: ctx.baseUrl,
+      target: imagesRoute,
+    });
+
+    imageUrl.search = searchParams.toString();
 
     return {
       ...nextResult,
-      image,
+      image: imageUrl.toString(),
     };
   };
 
   return middleware;
 }
 
-type SerializedNode =
+export type SerializedNode =
   | {
       type: string;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- we need to handle any type
@@ -132,20 +153,23 @@ function serializeChild(
     };
   }
 }
-/* eslint-enable @typescript-eslint/no-unsafe-member-access -- we need to handle any type */
 
 export function serializeJsx(children: ReactElement): SerializedNode[] {
   return ReactChildren.map(children, serializeChild);
 }
 
-/**
- * Get the URL of an image with the given JSX
- * @param imageRoute - The route to the image rendering worker
- * @param image - The JSX to render as an image
- * @returns - The URL of the image
- */
-export function imageUrl(imageRoute: string, image: ReactElement): string {
-  const imageJson = JSON.stringify(serializeJsx(image));
-  const imageUrlString = `${imageRoute}?${new URLSearchParams({ jsx: imageJson }).toString()}`;
-  return imageUrlString;
+export function verifySignature(
+  data: string,
+  signature: string,
+  secret: string
+): boolean {
+  const expectedSignature = createHmac("sha256", secret)
+    .update(data)
+    .digest("hex");
+
+  if (expectedSignature !== signature) {
+    throw new Error("Invalid signature");
+  }
+
+  return true;
 }
