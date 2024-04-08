@@ -36,12 +36,9 @@ Run to clone the starter into a new folder called `framesjs-starter`
 npx degit github:framesjs/frames.js/examples/framesjs-starter#main framesjs-starter
 ```
 
-or [clone from github](https://github.com/framesjs/frames.js/tree/main/examples/framesjs-starter)
-
-
+or [clone from github](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examplesth-examples)
 
 ## Alternatively, add frames.js to your existing project manually
-
 
 ### 1. Add `frames.js` to your project
 
@@ -54,6 +51,7 @@ yarn add frames.js
 Create a `frames` directory in your Next.js app and add the following files:
 
 #### `./app/frames/frames.ts`
+
 ```tsx [./app/frames/frames.ts]
 import { createFrames } from "frames.js/next";
 
@@ -65,6 +63,7 @@ export const frames = createFrames({
 ### 3. Create a Frames route
 
 #### `./app/frames/route.tsx`
+
 ```tsx [./app/frames/route.tsx]
 /* eslint-disable react/jsx-key */
 import { Button } from "frames.js/next";
