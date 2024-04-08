@@ -179,12 +179,12 @@
     },
     "./middleware/images-worker": {
       "import": {
-        "types": "./dist/middleware/images-worker/imagesWorker.d.ts",
-        "default": "./dist/middleware/images-worker/imagesWorker.js"
+        "types": "./dist/middleware/images-worker/index.d.ts",
+        "default": "./dist/middleware/images-worker/index.js"
       },
       "require": {
-        "types": "./dist/middleware/images-worker/imagesWorker.d.cts",
-        "default": "./dist/middleware/images-worker/imagesWorker.cjs"
+        "types": "./dist/middleware/images-worker/index.d.cts",
+        "default": "./dist/middleware/images-worker/index.cjs"
       }
     },
     "./middleware/images-worker/next": {
