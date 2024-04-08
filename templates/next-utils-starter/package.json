@@ -1,10 +1,11 @@
 {
   "name": "template-next-utils-starter",
-  "version": null,
+  "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently --kill-others \"next dev\" \"frames --url http://localhost:3000\"",
+    "dev": "node ./scripts/dev-script.js",
+    "dev:monorepo": "next dev -p 3004",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -23,6 +24,7 @@
     "@types/react": "^18.2.46",
     "@types/react-dom": "^18.2.18",
     "concurrently": "^8.2.2",
+    "dotenv": "^16.4.5",
     "eslint": "^8.56.0",
     "typescript": "^5.3.3"
   },

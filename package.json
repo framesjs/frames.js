@@ -4,10 +4,8 @@
   "scripts": {
     "build": "turbo build --filter=!./templates/* && node ./.scripts/prepare-create-frames.js",
     "build:ci": "turbo build --filter=!debugger --filter=!framesjs-starter --filter=!utils-starter --filter=!docs --filter=!template-*",
-    "dev": "FJS_MONOREPO=true turbo dev --filter=framesjs-starter... --filter=debugger...",
-    "dev:custom-redirects": "turbo dev --filter=custom-redirects...",
-    "dev:utils-starter": "turbo dev --filter=utils-starter...",
-    "dev:all": "turbo dev",
+    "dev": "FJS_MONOREPO=true turbo dev --filter=template-next-starter-with-examples... --filter=debugger...",
+    "dev:utils-starter": "FJS_MONOREPO=true turbo dev --filter=template-next-utils-starter... --filter=debugger...",
     "lint": "turbo lint --filter=!template-*",
     "test:ci": "jest --ci",
     "test": "cd ./packages/frames.js && npm run test:watch",
@@ -41,7 +39,6 @@
   "packageManager": "yarn@1.22.19",
   "workspaces": [
     "docs",
-    "examples/*",
     "packages/*",
     "templates/*"
   ],

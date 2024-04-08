@@ -1,18 +1,8 @@
 /* eslint-disable react/jsx-key */
 import { getTokenUrl } from "frames.js";
-import { farcasterHubContext } from "frames.js/middleware";
-import { Button, createFrames } from "frames.js/next";
+import { Button } from "frames.js/next";
 import { zora } from "viem/chains";
-import { DEFAULT_DEBUGGER_HUB_URL } from "../../../debug";
-
-const frames = createFrames({
-  basePath: "/examples/new-api-only-followers-can-mint/frames",
-  middleware: [
-    farcasterHubContext({
-      hubHttpUrl: DEFAULT_DEBUGGER_HUB_URL,
-    }),
-  ],
-});
+import { frames } from "./frames";
 
 const handleRequest = frames(async (ctx) => {
   const page = ctx.searchParams?.page ?? "initial";
