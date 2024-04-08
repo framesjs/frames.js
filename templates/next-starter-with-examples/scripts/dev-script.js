@@ -1,5 +1,5 @@
-require("dotenv").config();
-const { spawn } = require("child_process");
+import "dotenv/config";
+import { spawn } from "node:child_process";
 
 let command = "npm";
 let args = ["run", "dev:monorepo"];

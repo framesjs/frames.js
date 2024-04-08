@@ -14,10 +14,6 @@
       "cache": false,
       "persistent": true
     },
-    "dev:monorepo": {
-      "cache": false,
-      "persistent": true
-    },
     "check:package-types": {},
     "check:package-lint": {},
     "check:types": {}

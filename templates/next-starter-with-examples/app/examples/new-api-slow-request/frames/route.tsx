@@ -1,11 +1,8 @@
 import { kv } from "@vercel/kv";
 import { types } from "frames.js/core";
-import { createFrames, Button } from "frames.js/next";
+import { Button } from "frames.js/next";
 import { RandomNumberRequestStateValue } from "../slow-fetch/types";
-
-const frames = createFrames({
-  basePath: "/examples/new-api-slow-request/frames",
-});
+import { frames } from "./frames";
 
 const handleRequest = frames(async (ctx) => {
   const initialFrame = {
