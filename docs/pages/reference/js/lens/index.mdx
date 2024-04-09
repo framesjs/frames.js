@@ -1,0 +1,230 @@
+import { HomePage } from "vocs/components";
+
+# Lens Support
+
+Cross-protocol frames are supported by frames.js via familiar APIs. This guide will showcase how to write a simple stateless frame, which returns the Lens profileof the user that interacted with the frame in an OpenFrame supported application.
+
+## Setup
+
+First, you need to install `frames.js` and `@lens-protocol/client`. You can do this by running the following command:
+
+<HomePage.InstallPackage
+  name="frames.js @lens-protocol/client"
+  type="install"
+/>
+
+## Writing a Frame
+
+To write a frame using Next.js, we need to create a page which renders the frame and a route which handles frame action requests.
+
+### API Route
+
+We start by creating a new API route which will handle POST requests to our frame. In your Next.js project, create a new directory `/frames` and inside it, create a `route.ts` file which contains the following code:
+
+```tsx filename="example0.ts"
+export { POST } from "frames.js/next/server";
+```
+
+This will handle POST requests to our frame and redirect them to page we are about to create, which will handle the rendering logic.
+
+### Page
+
+In your Next.js project, create a new `page.tsx` at the root of the project and write the following code:
+
+First import the necessary functions and components from `frames.js`:
+
+```tsx filename="example1.tsx"
+import {
+  FrameButton,
+  FrameContainer,
+  FrameImage,
+  NextServerPageProps,
+  getFrameMessage,
+  getPreviousFrame,
+} from "frames.js/next/server";
+```
+
+`FrameButton`, `FrameContainer`, and `FrameImage` are components that are used to construct Frame metadata tags in HTML. `NextServerPageProps` is a type that you can use to define the props of your page. `getFrameMessage` and `getPreviousFrame` are functions that you can use to get the message and the previous frame of your page to determine the next state to return.
+
+Next, import the Lens validation methods from frames.js
+
+```tsx filename="example2.tsx"
+// [!include example1.tsx]
+import { getLensFrameMessage, isLensFrameActionPayload } from "frames.js/lens"; // [!code focus]
+```
+
+Then define the client protocols that your frame will support. In our case we will support Lens, XMTP, and Farcaster.
+
+```tsx filename="example3.tsx"
+import {
+  FrameButton,
+  FrameContainer,
+  FrameImage,
+  NextServerPageProps,
+  getFrameMessage,
+  getPreviousFrame,
+} from "frames.js/next/server";
+import { getLensFrameMessage, isLensFrameActionPayload } from "frames.js/lens";
+
+const acceptedProtocols: ClientProtocolId[] = [
+  // [!code focus]
+  {
+    // [!code focus]
+    id: "lens", // [!code focus]
+    version: "1.0.0", // [!code focus]
+  }, // [!code focus]
+  {
+    // [!code focus]
+    id: "xmtp", // [!code focus]
+    version: "vNext", // [!code focus]
+  }, // [!code focus]
+  {
+    // [!code focus]
+    id: "farcaster", // [!code focus]
+    version: "vNext", // [!code focus]
+  }, // [!code focus]
+]; // [!code focus]
+```
+
+Now define the render method for your frame. This will take place in a server component, so all the logic will be executed on the server and a plain HTML response containing our frame will be sent to the client.
+
+```tsx filename="example4.tsx"
+// ...
+
+export default async function Home({
+  params,
+  searchParams,
+}: NextServerPageProps) {
+  const previousFrame = getPreviousFrame(searchParams);
+
+  // do some logic to determine the next frame
+
+  // return the frame
+
+  return (
+    <FrameContainer
+      pathname="/"
+      postUrl="/frames"
+      state={{}}
+      previousFrame={previousFrame}
+      accepts={acceptedProtocols}
+    >
+      <FrameImage>Hello world</FrameImage>
+      <FrameButton>Next</FrameButton>
+    </FrameContainer>
+  );
+}
+```
+
+Here we use `previousFrame` to extract the frame action payload and state from the previous frame which are stored in URL params. We then use these to determine the next frame to return, passing the new state and accepted protocols to the `FrameContainer` component. The props of the `FrameContainer` component determine the routing and functionality of the frame. `pathname` is the path of the rendering method of the frame, `postUrl` is the path of the API route that handles frame action requests, `state` is the state of the frame, `previousFrame` is the previous frame, and `accepts` is an array of client protocols that this frame supports.
+
+### Validating a Frame Action
+
+Before returning a frame or doing any processing, you may want to validate the frame and extract the context from which the frame was interacted with e.g. the user that clicked the button in a farcaster in an XMTP chat. This is where the `getFrameMessage`, `getXmtpFrameMessage`, and `isXmtpFrameActionPayload` functions come in.
+
+```tsx filename="example5.tsx"
+const previousFrame = getPreviousFrame(searchParams);
+
+// do some logic to determine the next frame
+
+let fid: number | undefined;
+let walletAddress: string | undefined;
+let lensProfileId: string | undefined;
+
+if (
+  // [!code focus]
+  previousFrame.postBody && // [!code focus]
+  isLensFrameActionPayload(previousFrame.postBody) // [!code focus]
+) {
+  // [!code focus]
+  const frameMessage = await getLensFrameMessage(previousFrame.postBody); // [!code focus]
+  // do something with Lens frame message // [!code focus]
+} else if (
+  // [!code focus]
+  previousFrame.postBody && // [!code focus]
+  isXmtpFrameActionPayload(previousFrame.postBody) // [!code focus]
+) {
+  // [!code focus]
+  const frameMessage = await getXmtpFrameMessage(previousFrame.postBody); // [!code focus]
+  // do something with XMTP frame message // [!code focus]
+} else {
+  // [!code focus]
+  const frameMessage = await getFrameMessage(previousFrame.postBody); // [!code focus]
+  // do something with Farcaster frame message // [!code focus]
+} // [!code focus]
+
+// ...
+```
+
+Here we use `previousFrame.postBody` to extract the frame action payload from the previous frame. We then use `isLensFrameActionPayload` to determine if the frame action payload is a Lens frame action payload. If it is, we use `getLensFrameMessage` to extract the Lens frame message from the frame action payload. If it isn't, we fallback to methods from other supported clients.
+
+Now we can use data from the different message contexts to populate our `fid` and `walletAddress` variables.
+
+```tsx filename="example6.tsx"
+// ...
+
+let fid: number | undefined;
+let walletAddress: string | undefined;
+let lensProfileId: string | undefined;
+
+if (
+  previousFrame.postBody &&
+  isLensFrameActionPayload(previousFrame.postBody)
+) {
+  const frameMessage = await getLensFrameMessage(previousFrame.postBody);
+  lensProfileId = frameMessage?.profileId; // [!code focus]
+} else if (
+  previousFrame.postBody &&
+  isXmtpFrameActionPayload(previousFrame.postBody)
+) {
+  const frameMessage = await getXmtpFrameMessage(previousFrame.postBody);
+  walletAddress = frameMessage?.verifiedWalletAddress; // [!code focus]
+} else {
+  const frameMessage = await getFrameMessage(previousFrame.postBody);
+  if (frameMessage && frameMessage?.isValid) {
+    // [!code focus]
+    fid = frameMessage?.requesterFid; // [!code focus]
+    walletAddress = // [!code focus]
+      frameMessage?.requesterCustodyAddress.length > 0 // [!code focus]
+        ? frameMessage?.requesterCustodyAddress // [!code focus]
+        : frameMessage.requesterCustodyAddress; // [!code focus]
+  } // [!code focus]
+}
+
+// ...
+```
+
+Here we use the `frameMessage` to extract the `verifiedProfileId`, `verifiedWalletAddress` and `requesterFid` from the Lens, XMTP, and Farcaster frame messages respectively. We then use these to populate our `lensProfileId`, `walletAddress` and `fid` variables. You can use this information to execute some action like a database query or an onchain transaction.
+
+### Returning a Frame
+
+Now that we have our `lensProfileId`, `fid` and `walletAddress` variables populated, we can use them to determine the next frame to return.
+
+```tsx filename="example7.tsx"
+// ...
+
+return (
+  <FrameContainer
+    pathname="/"
+    postUrl="/frames"
+    state={{}}
+    previousFrame={previousFrame}
+    accepts={acceptedProtocols}
+  >
+    <FrameImage>
+      <div tw="flex flex-col">
+        <div tw="flex">
+          This frame gets the interactor&apos;s wallet address or FID depending
+          on the client protocol.
+        </div>
+        {lensProfileId && <div tw="flex">Lens Profile ID: {lensProfileId}</div>}
+        {fid && <div tw="flex">FID: {fid}</div>}
+        {walletAddress && <div tw="flex">Wallet Address: {walletAddress}</div>}
+      </div>
+    </FrameImage>
+    <FrameButton>Check</FrameButton>
+  </FrameContainer>
+);
+```
+
+Above, we conditionally render the `lensProfileId`, `fid` and `walletAddress` variables in the frame.

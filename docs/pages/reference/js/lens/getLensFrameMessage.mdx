@@ -1,0 +1,29 @@
+# getLensFrameMessage
+
+Returns a `LensFrameMessageReturnType` object from the message payload. Throws an error if the message is invalid. Requires the `@lens-protocol/client` peer dependency to be installed.
+
+## Usage
+
+```ts
+yarn add @lens-protocol/client
+```
+
+```ts
+import { getLensFrameMessage } from "frames.js/lens";
+
+const frameMessage = await getLensFrameMessage(frameActionPayload);
+console.log(frameMessage);
+/**
+{
+    profileId: "0x123", 
+    pubId: "0x123-0x1",
+    url: "https://example.com";
+    unixTimestamp: 123456789;
+    buttonIndex: 1;
+    inputText: "hello world;
+    state: "";
+    isActionVerified: true,
+    isProfileIdVerified: true,
+}
+**/
+```
