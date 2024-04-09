@@ -33,6 +33,7 @@ export const frames = createFrames({
   middleware: [ // [!code focus]
     ImagesWorker.imagesWorker({ // [!code focus]
       imageRoute: "/images", // [!code focus]
+      secret: "SOME_SECRET_VALUE", // [!code focus]
     }), // [!code focus]
   ], // [!code focus]
 });
@@ -77,9 +78,10 @@ Options passed to the default image renderer which is used to render the JSX int
 
 The `imagesRoute` refers to the return value of `createImagesWorker` and is a Next.js API route handler.
 
-### `jsxToResponse` (optional)
+### `jsxToResponse`
 
 - Type: `(jsx: ReactElement, options?: { aspectRatio: ImageAspectRatio }) => Promise<Response>`
+- Default: `undefined`
 
 A function that takes a JSX element and returns a response. By default, it uses the `@vercel/og` image renderer to render the JSX into a PNG image. The renderer should respect the `aspectRatio` option if it is provided.
 
