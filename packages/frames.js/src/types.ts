@@ -56,6 +56,7 @@ type MapFrameOptionalKeyToValueType<K extends FrameKeys> =
       : string | undefined;
 
 type FrameRequiredProperties = {
+  "og:image": string;
   "fc:frame": FrameVersion;
   "fc:frame:image": string;
 };

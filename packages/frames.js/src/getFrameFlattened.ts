@@ -43,6 +43,7 @@ export function getFrameFlattened(frame: Frame): FrameFlattened {
       : {};
 
   const metadata: FrameFlattened = {
+    [`og:image`]: frame.ogImage || frame.image,
     [`fc:frame`]: frame.version,
     [`fc:frame:image`]: frame.image,
     [`fc:frame:post_url`]: frame.postUrl,
