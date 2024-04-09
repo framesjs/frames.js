@@ -1,8 +1,8 @@
 import type { NextRequest } from "next/server";
 import type { FrameDefinition, FramesContext } from "../../../core/types";
 import { resolveBaseUrl } from "../../../core/utils";
-import { imagesWorkerMiddleware } from "../imagesWorker";
-import { createImagesWorker } from "./createImagesWorker";
+import { imagesWorkerMiddleware } from "..";
+import { createImagesWorker } from ".";
 
 describe("createImagesWorker", () => {
   const frameRequest = new Request("https://example.com");

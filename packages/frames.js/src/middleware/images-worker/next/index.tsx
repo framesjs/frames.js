@@ -2,8 +2,8 @@ import { ImageResponse } from "@vercel/og";
 import type { ImageResponseOptions, NextRequest } from "next/server";
 import type { ReactElement } from "react";
 import React from "react";
-import type { SerializedNode } from "../imagesWorker";
-import { deserializeJsx, verifySignature } from "../imagesWorker";
+import type { SerializedNode } from "..";
+import { deserializeJsx, verifySignature } from "..";
 import type { ImageAspectRatio } from "../../../types";
 
 export function createImagesWorker(

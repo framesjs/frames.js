@@ -1,7 +1,7 @@
 import type { DetailedHTMLProps, HTMLAttributes, ReactElement } from "react";
 import type { FrameDefinition, FramesContext } from "../../core/types";
 import { resolveBaseUrl } from "../../core/utils";
-import * as ImagesWorker from "./imagesWorker";
+import * as ImagesWorker from ".";
 
 describe("imagesWorker", () => {
   const request = new Request("https://example.com");
