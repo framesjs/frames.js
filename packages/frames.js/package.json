@@ -137,6 +137,56 @@
         "default": "./dist/xmtp/index.cjs"
       }
     },
+    "./lens": {
+      "import": {
+        "types": "./dist/lens/index.d.ts",
+        "default": "./dist/lens/index.js"
+      },
+      "require": {
+        "types": "./dist/lens/index.d.cts",
+        "default": "./dist/lens/index.cjs"
+      }
+    },
+    "./render/next": {
+      "import": {
+        "types": "./dist/render/next/index.d.ts",
+        "default": "./dist/render/next/index.js"
+      },
+      "require": {
+        "types": "./dist/render/next/index.d.cts",
+        "default": "./dist/render/next/index.cjs"
+      }
+    },
+    "./render/farcaster": {
+      "import": {
+        "types": "./dist/render/farcaster/index.d.ts",
+        "default": "./dist/render/farcaster/index.js"
+      },
+      "require": {
+        "types": "./dist/render/farcaster/index.d.cts",
+        "default": "./dist/render/farcaster/index.cjs"
+      }
+    },
+    "./render/use-frame": {
+      "import": {
+        "types": "./dist/render/use-frame.d.ts",
+        "default": "./dist/render/use-frame.js"
+      },
+      "require": {
+        "types": "./dist/render/use-frame.d.cts",
+        "default": "./dist/render/use-frame.cjs"
+      }
+    },
+    "./render": {
+      "import": {
+        "types": "./dist/render/index.d.ts",
+        "default": "./dist/render/index.js"
+      },
+      "require": {
+        "types": "./dist/render/index.d.cts",
+        "default": "./dist/render/index.cjs"
+      }
+    },
     "./core": {
       "import": {
         "types": "./dist/core/index.d.ts",
@@ -319,6 +369,7 @@
     "react-dom": "^18.2.0"
   },
   "dependencies": {
+    "@lens-protocol/client": "^2.0.0-alpha.38",
     "@vercel/og": "^0.6.2",
     "cheerio": "^1.0.0-rc.12",
     "protobufjs": "^7.2.6",
