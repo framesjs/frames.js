@@ -5,7 +5,7 @@ Returns a `LensFrameMessageReturnType` object from the message payload. Throws a
 ## Usage
 
 ```ts
-yarn add @lens-protocol/client
+yarn add @lens-protocol/client@alpha
 ```
 
 ```ts
@@ -15,15 +15,24 @@ const frameMessage = await getLensFrameMessage(frameActionPayload);
 console.log(frameMessage);
 /**
 {
-    profileId: "0x123", 
-    pubId: "0x123-0x1",
-    url: "https://example.com";
-    unixTimestamp: 123456789;
+  clientProtocol: "lens@1.0.0";
+  untrustedData: {
+    specVersion: "1.0.0";
+    profileId: "0x01";
+    pubId: "0x02-0x01";
+    url: "https://example.com;
     buttonIndex: 1;
-    inputText: "hello world;
+    unixTimestamp: 123456789;
+    deadline: 123456789;
+    inputText: "";
     state: "";
-    isActionVerified: true,
-    isProfileIdVerified: true,
+    actionResponse: "";
+  };
+  trustedData: {
+    messageBytes: "";
+    identityToken: "";
+  },
+  isActionVerified: true,
 }
 **/
 ```
