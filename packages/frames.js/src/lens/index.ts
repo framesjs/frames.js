@@ -5,6 +5,7 @@ import {
 } from "@lens-protocol/client";
 
 type LensFrameMessageType = {
+  clientProtocol: string;
   untrustedData: {
     specVersion: string;
     profileId: string;
@@ -27,7 +28,9 @@ export type LensFrameMessageReturnType = LensFrameMessageType & {
   isActionVerifed: boolean;
 };
 
-export function isLensFrameActionPayload(frameActionPayload: unknown) {
+export function isLensFrameActionPayload(
+  frameActionPayload: LensFrameMessageType
+) {
   return (
     typeof frameActionPayload === "object" &&
     frameActionPayload !== null &&
