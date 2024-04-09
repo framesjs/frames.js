@@ -31,7 +31,7 @@ import { imagesWorkerMiddleware } from "frames.js/middleware/images-worker";  //
 export const frames = createFrames({
   // ...
   middleware: [ // [!code focus]
-    ImagesWorker.imagesWorker({ // [!code focus]
+    imagesWorkerMiddleware({ // [!code focus]
       imageRoute: "/images", // [!code focus]
       secret: "SOME_SECRET_VALUE", // [!code focus]
     }), // [!code focus]
