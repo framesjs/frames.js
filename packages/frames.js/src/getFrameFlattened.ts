@@ -1,3 +1,4 @@
+import { version as framesjsVersion } from "../package.json";
 import type { Frame, FrameFlattened } from "./types";
 
 /**
@@ -63,6 +64,7 @@ export function getFrameFlattened(frame: Frame): FrameFlattened {
       {}
     ),
     ...openFrames,
+    [`frames.js:version`]: framesjsVersion,
   };
 
   return metadata;

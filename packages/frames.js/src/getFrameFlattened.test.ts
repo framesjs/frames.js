@@ -1,4 +1,5 @@
 import type { Frame } from ".";
+import { version as framesjsVersion } from "../package.json";
 import { getFrameFlattened } from ".";
 
 describe("getFrameFlattened", () => {
@@ -66,6 +67,7 @@ describe("getFrameFlattened", () => {
       "of:post_url": "https://example.com/post",
       "of:state": '{"foo":"bar"}',
       "of:version": "vNext",
+      "frames.js:version": framesjsVersion,
     });
   });
 });
