@@ -5,6 +5,7 @@ import { createFrames } from "frames.js/next";
 import { getXmtpFrameMessage, isXmtpFrameActionPayload } from "frames.js/xmtp";
 import { DEFAULT_DEBUGGER_HUB_URL } from "../../../debug";
 import { appURL } from "../../../utils";
+import { getLensFrameMessage, isLensFrameActionPayload } from "frames.js/lens";
 
 export const frames = createFrames({
   basePath: "/examples/multi-protocol/frames",
@@ -19,22 +20,41 @@ export const frames = createFrames({
     farcasterHubContext({
       hubHttpUrl: DEFAULT_DEBUGGER_HUB_URL,
     }),
-    openframes({
-      clientProtocol: {
-        id: "xmtp",
-        version: "2024-02-09",
-      },
-      handler: {
-        isValidPayload: (body: JSON) => isXmtpFrameActionPayload(body),
-        getFrameMessage: async (body: JSON) => {
-          if (!isXmtpFrameActionPayload(body)) {
-            return undefined;
-          }
-          const result = await getXmtpFrameMessage(body);
+    openframes(
+      {
+        clientProtocol: {
+          id: "xmtp",
+          version: "2024-02-09",
+        },
+        handler: {
+          isValidPayload: (body: JSON) => isXmtpFrameActionPayload(body),
+          getFrameMessage: async (body: JSON) => {
+            if (!isXmtpFrameActionPayload(body)) {
+              return undefined;
+            }
+            const result = await getXmtpFrameMessage(body);
 
-          return { ...result };
+            return { ...result };
+          },
         },
       },
-    }),
+      {
+        clientProtocol: {
+          id: "lens",
+          version: "1.0.0",
+        },
+        handler: {
+          isValidPayload: (body: JSON) => isLensFrameActionPayload(body),
+          getFrameMessage: async (body: JSON) => {
+            if (!isLensFrameActionPayload(body)) {
+              return undefined;
+            }
+            const result = await getLensFrameMessage(body);
+
+            return { ...result };
+          },
+        },
+      }
+    ),
   ],
 });
