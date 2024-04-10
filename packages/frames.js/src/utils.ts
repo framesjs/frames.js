@@ -6,6 +6,7 @@ import type {
   FrameButtonLink,
   FrameButtonMint,
   FrameButtonTx,
+  FrameVersion,
 } from "./types";
 
 export function isFrameButtonLink(
@@ -68,7 +69,7 @@ export function getFrameMessageFromRequestBody(
  * @param version - the version string to validate
  * @returns true if the provided version conforms to the Frames spec
  */
-export function isValidVersion(version: string): boolean {
+export function isValidVersion(version: string): version is FrameVersion {
   // Check if the input is exactly 'vNext'
   if (version === "vNext") {
     return true;
