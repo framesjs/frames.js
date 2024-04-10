@@ -29,8 +29,8 @@ export type LensFrameMessageReturnType = LensFrameMessageType & {
 };
 
 export function isLensFrameActionPayload(
-  frameActionPayload: LensFrameMessageType
-) {
+  frameActionPayload: unknown
+): frameActionPayload is LensFrameMessageType {
   return (
     typeof frameActionPayload === "object" &&
     frameActionPayload !== null &&
@@ -59,7 +59,6 @@ export async function getLensFrameMessage(
 
   return {
     ...frameActionPayload,
-    isActionVerifed:
-      response === FrameVerifySignatureResult.Verified ? true : false,
+    isActionVerifed: response === FrameVerifySignatureResult.Verified,
   };
 }
