@@ -1,17 +1,17 @@
 import type {
-  ParsingIssue,
-  ParsingIssueLevel,
-  ParsingIssueSource,
+  ParsingReport,
+  ParsingReportLevel,
+  ParsingReportSource,
   Reporter,
 } from "./types";
 
-export function createReporter(source: ParsingIssueSource): Reporter {
-  const reports: Record<string, ParsingIssue[]> = {};
+export function createReporter(source: ParsingReportSource): Reporter {
+  const reports: Record<string, ParsingReport[]> = {};
 
   function report(
     key: string,
     message: unknown,
-    level: ParsingIssueLevel,
+    level: ParsingReportLevel,
     issueSource = source
   ): void {
     const issuesList = reports[key] || [];

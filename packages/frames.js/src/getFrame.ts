@@ -2,13 +2,13 @@ import * as cheerio from "cheerio";
 import type { Frame } from "./types";
 import { parseFarcasterFrame } from "./frame-parsers/farcaster";
 import { parseOpenFramesFrame } from "./frame-parsers/open-frames";
-import type { ParsingIssue } from "./frame-parsers/types";
+import type { ParsingReport } from "./frame-parsers/types";
 import { mergeErrors } from "./frame-parsers/utils";
 import { createReporter } from "./frame-parsers/reporter";
 
 type GetFrameResult =
   | { frame: Frame }
-  | { frame: Partial<Frame>; reports: Record<string, ParsingIssue[]> };
+  | { frame: Partial<Frame>; reports: Record<string, ParsingReport[]> };
 
 /**
  * @returns an object, extracting the frame metadata from the given htmlString.
