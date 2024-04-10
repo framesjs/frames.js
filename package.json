@@ -12,7 +12,7 @@
     "check:package-types": "turbo check:package-types",
     "check:package-lint": "turbo check:package-lint",
     "check:types": "turbo check:types",
-    "publish-packages": "yarn build lint && changeset version && changeset publish && git push --follow-tags origin main",
+    "publish-packages": "yarn build lint && changeset version && yarn turbo build --filter=frames.js... && changeset publish && git push --follow-tags origin main",
     "publish-canary": "turbo run build lint && cd ./packages/frames.js && yarn publish --tag canary && git push --follow-tags origin main",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
