@@ -2,7 +2,7 @@ import type { CheerioAPI } from "cheerio";
 import type { FrameButton, ImageAspectRatio } from "../types";
 import { getByteLength } from "../utils";
 import { getTokenFromUrl } from "../getTokenFromUrl";
-import type { ParsingIssue, ParsedButton, Reporter } from "./types";
+import type { ParsingReport, ParsedButton, Reporter } from "./types";
 
 export function validate<TValidator extends (...args: any) => any>(
   reporter: Reporter,
@@ -449,9 +449,9 @@ export function getMetaTag(
 }
 
 export function mergeErrors(
-  a: Record<string, ParsingIssue[]> | undefined,
-  b: Record<string, ParsingIssue[]> | undefined
-): Record<string, ParsingIssue[]> | undefined {
+  a: Record<string, ParsingReport[]> | undefined,
+  b: Record<string, ParsingReport[]> | undefined
+): Record<string, ParsingReport[]> | undefined {
   if (a && !b) {
     return a;
   }
@@ -470,7 +470,7 @@ export function mergeErrors(
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- can't be undefined
   const allKeys = new Set([...Object.keys(a!), ...Object.keys(b!)]);
-  const mergedErrors: Record<string, ParsingIssue[]> = {};
+  const mergedErrors: Record<string, ParsingReport[]> = {};
 
   for (const key of allKeys) {
     const errorsA = a?.[key]?.slice() || [];
