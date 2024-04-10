@@ -1,5 +1,12 @@
 import type { Frame } from "../types";
 
+export interface Reporter {
+  error: (key: string, message: unknown, source?: ParsingIssueSource) => void;
+  warn: (key: string, message: unknown, source?: ParsingIssueSource) => void;
+  hasReports: () => boolean;
+  toObject: () => Record<string, ParsingIssue[]>;
+}
+
 export type ParsedButton = {
   action?: string;
   label?: string;
@@ -18,12 +25,15 @@ export type ParsedFrame = {
   state: string | undefined;
   buttons?: ParsedButton[];
 };
+// @todo rename to reports
+export type ParsingIssueSource = "farcaster" | "openframes";
 
-export type ParseErrorSource = "farcaster" | "openframes";
+export type ParsingIssueLevel = "error" | "warning";
 
-export type ParseError = {
+export type ParsingIssue = {
   message: string;
-  source: ParseErrorSource;
+  source: ParsingIssueSource;
+  level: ParsingIssueLevel;
 };
 
 export type ParseResult =
@@ -32,5 +42,5 @@ export type ParseResult =
     }
   | {
       frame: Partial<Frame>;
-      errors: Record<string, ParseError[]>;
+      reports: Record<string, ParsingIssue[]>;
     };

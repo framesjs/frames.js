@@ -2,12 +2,13 @@ import * as cheerio from "cheerio";
 import type { Frame } from "./types";
 import { parseFarcasterFrame } from "./frame-parsers/farcaster";
 import { parseOpenFramesFrame } from "./frame-parsers/open-frames";
-import type { ParseError } from "./frame-parsers/types";
+import type { ParsingIssue } from "./frame-parsers/types";
 import { mergeErrors } from "./frame-parsers/utils";
+import { createReporter } from "./frame-parsers/reporter";
 
 type GetFrameResult =
   | { frame: Frame }
-  | { frame: Partial<Frame>; errors: Record<string, ParseError[]> };
+  | { frame: Partial<Frame>; reports: Record<string, ParsingIssue[]> };
 
 /**
  * @returns an object, extracting the frame metadata from the given htmlString.
@@ -21,32 +22,28 @@ export function getFrame({
   url: string;
 }): GetFrameResult {
   const $ = cheerio.load(htmlString);
-
-  const farcasterFrame = parseFarcasterFrame($);
+  const reporter = createReporter("farcaster");
+  const openFramesReporter = createReporter("openframes");
+  const farcasterFrame = parseFarcasterFrame($, { reporter });
   const openFramesFrame = parseOpenFramesFrame($, {
     farcasterFrame: farcasterFrame.frame,
+    reporter: openFramesReporter,
   });
-  let errors: Record<string, ParseError[]> | undefined;
   const pageTitle = $("title").text();
 
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- just in case
   if (pageTitle === undefined) {
-    errors = {
-      title: [
-        {
-          message:
-            "A <title> tag is required in order for your frames to work in Warpcast",
-          source: "farcaster",
-        },
-      ],
-    };
+    reporter.warn(
+      "<title>",
+      "A <title> tag is required in order for your frames to work in Warpcast"
+    );
   }
 
   // Future:
   // todo: might need to consider validating that there aren't too many of something, like images
   // todo: validate image dimensions, filetype, size  const image = await fetch(image){}
   // todo: validate post_url is a valid url
-  if ("errors" in farcasterFrame || "errors" in openFramesFrame || errors) {
+  if ("reports" in farcasterFrame || "reporter" in openFramesFrame) {
     return {
       // merge both frame messages to one with farcaster taking precedence
       frame: {
@@ -64,18 +61,17 @@ export function getFrame({
         state: farcasterFrame.frame.state || openFramesFrame.frame.state,
         version: farcasterFrame.frame.version || openFramesFrame.frame.version,
       },
-      errors: {
-        ...errors,
+      reports: {
         ...mergeErrors(
-          "errors" in farcasterFrame ? farcasterFrame.errors : undefined,
-          "errors" in openFramesFrame ? openFramesFrame.errors : undefined
+          "reports" in farcasterFrame ? farcasterFrame.reports : undefined,
+          "reports" in openFramesFrame ? openFramesFrame.reports : undefined
         ),
       },
     };
   }
 
   // return whichever frame is valid (farcaster takes precedence)
-  if (!("error" in farcasterFrame)) {
+  if (!("reports" in farcasterFrame)) {
     return {
       frame: {
         ...farcasterFrame.frame,

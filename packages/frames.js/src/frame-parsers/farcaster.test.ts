@@ -1,7 +1,14 @@
 import { load } from "cheerio";
 import { parseFarcasterFrame } from "./farcaster";
+import { createReporter } from "./reporter";
 
 describe("farcaster frame parser", () => {
+  let reporter = createReporter("farcaster");
+
+  beforeEach(() => {
+    reporter = createReporter("farcaster");
+  });
+
   it("parses basic frame from metatags", () => {
     const document = load(`
       <meta property="fc:frame" content="vNext" />
@@ -9,7 +16,7 @@ describe("farcaster frame parser", () => {
       <meta property="og:image" content="http://example.com/image.png" />
     `);
 
-    expect(parseFarcasterFrame(document)).toEqual({
+    expect(parseFarcasterFrame(document, { reporter })).toEqual({
       frame: {
         image: "http://example.com/image.png",
         ogImage: "http://example.com/image.png",
@@ -25,11 +32,12 @@ describe("farcaster frame parser", () => {
         <meta property="og:image" content="http://example.com/image.png" />
       `);
 
-      expect(parseFarcasterFrame(document)).toMatchObject({
+      expect(parseFarcasterFrame(document, { reporter })).toMatchObject({
         frame: {},
-        errors: expect.objectContaining({
+        reports: expect.objectContaining({
           "fc:frame": [
             {
+              level: "error",
               message: 'Missing required meta tag "fc:frame"',
               source: "farcaster",
             },
@@ -45,11 +53,15 @@ describe("farcaster frame parser", () => {
         <meta property="og:image" content="http://example.com/image.png" />
       `);
 
-      expect(parseFarcasterFrame(document)).toMatchObject({
+      expect(parseFarcasterFrame(document, { reporter })).toMatchObject({
         frame: {},
-        errors: expect.objectContaining({
+        reports: expect.objectContaining({
           "fc:frame": [
-            { message: 'Invalid version "v1"', source: "farcaster" },
+            {
+              level: "error",
+              message: 'Invalid version "v1"',
+              source: "farcaster",
+            },
           ],
         }) as unknown,
       });
@@ -62,7 +74,7 @@ describe("farcaster frame parser", () => {
         <meta property="og:image" content="http://example.com/image.png" />
       `);
 
-      expect(parseFarcasterFrame(document)).toEqual({
+      expect(parseFarcasterFrame(document, { reporter })).toEqual({
         frame: {
           image: "http://example.com/image.png",
           ogImage: "http://example.com/image.png",
@@ -79,10 +91,11 @@ describe("farcaster frame parser", () => {
     <meta name="fc:frame:image" content="http://example.com/image.png"/>
     `);
 
-      expect(parseFarcasterFrame($)).toEqual({
-        errors: {
+      expect(parseFarcasterFrame($, { reporter })).toEqual({
+        reports: {
           "og:image": [
             {
+              level: "error",
               message: 'Missing required meta tag "og:image"',
               source: "farcaster",
             },
@@ -102,7 +115,7 @@ describe("farcaster frame parser", () => {
     <meta name="og:image" content="http://example.com/og-image.png"/>
     `);
 
-      expect(parseFarcasterFrame($)).toEqual({
+      expect(parseFarcasterFrame($, { reporter })).toEqual({
         frame: {
           version: "vNext",
           image: "http://example.com/image.png",
@@ -119,14 +132,15 @@ describe("farcaster frame parser", () => {
         <meta property="og:image" content="http://example.com/image.png" />
       `);
 
-      expect(parseFarcasterFrame(document)).toMatchObject({
+      expect(parseFarcasterFrame(document, { reporter })).toMatchObject({
         frame: {
           version: "vNext",
           ogImage: "http://example.com/image.png",
         },
-        errors: expect.objectContaining({
+        reports: expect.objectContaining({
           "fc:frame:image": [
             {
+              level: "error",
               message: 'Missing required meta tag "fc:frame:image"',
               source: "farcaster",
             },
@@ -142,7 +156,7 @@ describe("farcaster frame parser", () => {
         <meta property="fc:frame:image" content="http://example.com/image.png" />
       `);
 
-      expect(parseFarcasterFrame(document)).toEqual({
+      expect(parseFarcasterFrame(document, { reporter })).toEqual({
         frame: {
           image: "http://example.com/image.png",
           ogImage: "http://example.com/image.png",
@@ -161,7 +175,7 @@ describe("farcaster frame parser", () => {
       <meta property="fc:frame:image:aspect_ratio" content="1:1" />
     `);
 
-      expect(parseFarcasterFrame(document)).toEqual({
+      expect(parseFarcasterFrame(document, { reporter })).toEqual({
         frame: {
           image: "http://example.com/image.png",
           version: "vNext",
@@ -181,7 +195,7 @@ describe("farcaster frame parser", () => {
         <meta property="fc:frame:input:text" content="Enter a message" />
       `);
 
-      expect(parseFarcasterFrame(document)).toEqual({
+      expect(parseFarcasterFrame(document, { reporter })).toEqual({
         frame: {
           image: "http://example.com/image.png",
           version: "vNext",
@@ -202,15 +216,16 @@ describe("farcaster frame parser", () => {
         <meta property="fc:frame:post_url" content="${url.toString()}" />
       `);
 
-      expect(parseFarcasterFrame(document)).toMatchObject({
+      expect(parseFarcasterFrame(document, { reporter })).toMatchObject({
         frame: {
           version: "vNext",
           image: "http://example.com/image.png",
           ogImage: "http://example.com/image.png",
         },
-        errors: expect.objectContaining({
+        reports: expect.objectContaining({
           "fc:frame:post_url": [
             {
+              level: "error",
               message:
                 "Invalid URL. URL size exceeds 256 bytes limit (frames.js generates a longer post_url including system params).",
               source: "farcaster",
@@ -228,7 +243,7 @@ describe("farcaster frame parser", () => {
         <meta property="fc:frame:post_url" content="http://example.com/post" />
       `);
 
-      expect(parseFarcasterFrame(document)).toEqual({
+      expect(parseFarcasterFrame(document, { reporter })).toEqual({
         frame: {
           image: "http://example.com/image.png",
           version: "vNext",
@@ -248,7 +263,7 @@ describe("farcaster frame parser", () => {
         <meta property="fc:frame:state" content="state" />
       `);
 
-      expect(parseFarcasterFrame(document)).toEqual({
+      expect(parseFarcasterFrame(document, { reporter })).toEqual({
         frame: {
           image: "http://example.com/image.png",
           ogImage: "http://example.com/image.png",
@@ -270,7 +285,7 @@ describe("farcaster frame parser", () => {
       <meta property="fc:frame:button:1:target" content="http://example.com" />
     `);
 
-      expect(parseFarcasterFrame(document)).toEqual({
+      expect(parseFarcasterFrame(document, { reporter })).toEqual({
         frame: {
           image: "http://example.com/image.png",
           version: "vNext",
