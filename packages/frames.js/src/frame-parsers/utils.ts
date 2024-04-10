@@ -2,41 +2,11 @@ import type { CheerioAPI } from "cheerio";
 import type { FrameButton, ImageAspectRatio } from "../types";
 import { getByteLength } from "../utils";
 import { getTokenFromUrl } from "../getTokenFromUrl";
-import type { ParseError, ParseErrorSource, ParsedButton } from "./types";
-
-export function addError(
-  errors: Record<string, ParseError[]>,
-  key: string,
-  error: unknown,
-  source: ParseErrorSource
-): void {
-  const errorsList = errors[key] || [];
-
-  let messageString: string;
-
-  if (typeof error === "string") {
-    messageString = error;
-  } else if (error instanceof Error) {
-    messageString = error.message;
-  } else if (
-    typeof error === "object" &&
-    error &&
-    "message" in error &&
-    typeof error.message === "string"
-  ) {
-    messageString = error.message;
-  } else {
-    messageString = String(error);
-  }
-
-  errorsList.push({ message: messageString, source });
-  errors[key] = errorsList;
-}
+import type { ParsingIssue, ParsedButton, Reporter } from "./types";
 
 export function validate<TValidator extends (...args: any) => any>(
-  errors: Record<string, ParseError[]>,
+  reporter: Reporter,
   errorKey: string,
-  source: ParseErrorSource,
   validator: TValidator,
   ...validatorArgs: Parameters<TValidator>
 ): ReturnType<TValidator> | undefined {
@@ -44,16 +14,15 @@ export function validate<TValidator extends (...args: any) => any>(
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- this is correct
     return validator(...validatorArgs);
   } catch (e) {
-    addError(errors, errorKey, e, source);
+    reporter.error(errorKey, e);
 
     return undefined;
   }
 }
 
 export function isValid<TValidator extends (...args: any) => any>(
-  errors: Record<string, ParseError[]>,
+  reporter: Reporter,
   errorKey: string,
-  source: ParseErrorSource,
   validator: TValidator,
   ...validatorArgs: Parameters<TValidator>
 ): boolean {
@@ -61,7 +30,7 @@ export function isValid<TValidator extends (...args: any) => any>(
     validator(...validatorArgs);
     return true;
   } catch (e) {
-    addError(errors, errorKey, e, source);
+    reporter.error(errorKey, e);
 
     return false;
   }
@@ -144,8 +113,7 @@ type ButtonMetaPropertyPrefix = "fc:frame:button" | "of:button";
 
 export function parseButtons(
   $: CheerioAPI,
-  errors: Record<string, ParseError[]>,
-  source: ParseErrorSource,
+  reporter: Reporter,
   metaPropertyPrefix: ButtonMetaPropertyPrefix
 ): FrameButton[] {
   const foundMetaTags = $(
@@ -164,12 +132,12 @@ export function parseButtons(
     const buttonInformation = buttonMetaTagRegex.exec(attributeName);
 
     if (!buttonInformation) {
-      addError(errors, attributeName, "Unrecognized meta tag", source);
+      reporter.error(attributeName, "Unrecognized meta tag");
       continue;
     }
 
     if (visitedProperties.has(attributeName)) {
-      addError(errors, attributeName, "Duplicate meta tag", source);
+      reporter.error(attributeName, "Duplicate meta tag");
       continue;
     } else {
       visitedProperties.add(attributeName);
@@ -178,7 +146,7 @@ export function parseButtons(
     const [, buttonNumber, property] = buttonInformation;
 
     if (!buttonNumber) {
-      addError(errors, attributeName, "Invalid button number", source);
+      reporter.error(attributeName, "Invalid button number");
       continue;
     }
 
@@ -215,7 +183,7 @@ export function parseButtons(
 
   // sort buttons by index and check if there are any gaps
   for (const button of Object.values(buttonsData)) {
-    if (!validateBasicButtonInfo(errors, source, metaPropertyPrefix, button)) {
+    if (!validateBasicButtonInfo(reporter, metaPropertyPrefix, button)) {
       continue;
     }
 
@@ -224,32 +192,17 @@ export function parseButtons(
     // now validate data based on button action
     switch (button.action) {
       case "link": {
-        buttons[index] = parseLinkButton(
-          errors,
-          source,
-          metaPropertyPrefix,
-          button
-        );
+        buttons[index] = parseLinkButton(reporter, metaPropertyPrefix, button);
         assignMinAndMaxIndex(index);
         break;
       }
       case "mint": {
-        buttons[index] = parseMintButton(
-          errors,
-          source,
-          metaPropertyPrefix,
-          button
-        );
+        buttons[index] = parseMintButton(reporter, metaPropertyPrefix, button);
         assignMinAndMaxIndex(index);
         break;
       }
       case "tx": {
-        buttons[index] = parseTxButton(
-          errors,
-          source,
-          metaPropertyPrefix,
-          button
-        );
+        buttons[index] = parseTxButton(reporter, metaPropertyPrefix, button);
         assignMinAndMaxIndex(index);
         break;
       }
@@ -257,8 +210,7 @@ export function parseButtons(
       case "post_redirect":
       default: {
         buttons[index] = parsePostOrPostRedirectButton(
-          errors,
-          source,
+          reporter,
           metaPropertyPrefix,
           {
             ...button,
@@ -279,11 +231,9 @@ export function parseButtons(
   for (const [index, button] of buttons.entries()) {
     if (button) {
       if (index - previousButtonIndex !== 1) {
-        addError(
-          errors,
+        reporter.error(
           `${metaPropertyPrefix}:${index + 1}`,
-          "Button sequence is not continuous",
-          source
+          "Button sequence is not continuous"
         );
       }
 
@@ -295,17 +245,14 @@ export function parseButtons(
 }
 
 function validateBasicButtonInfo(
-  errors: Record<string, ParseError[]>,
-  source: ParseErrorSource,
+  reporter: Reporter,
   metaPropertyPrefix: ButtonMetaPropertyPrefix,
   button: ParsedButton
 ): button is ParsedButtonWithBasicInfo {
   if (!button.label) {
-    addError(
-      errors,
+    reporter.error(
       `${metaPropertyPrefix}:${button.index}`,
-      "Missing button label",
-      source
+      "Missing button label"
     );
     return false;
   }
@@ -314,17 +261,14 @@ function validateBasicButtonInfo(
 }
 
 function parsePostOrPostRedirectButton(
-  errors: Record<string, ParseError[]>,
-  source: ParseErrorSource,
+  reporter: Reporter,
   metaPropertyPrefix: ButtonMetaPropertyPrefix,
   button: ParsedButtonWithBasicInfo
 ): FrameButton | undefined {
   if (!button.action || !["post", "post_redirect"].includes(button.action)) {
-    addError(
-      errors,
+    reporter.error(
       `${metaPropertyPrefix}:${button.index}:action`,
-      "Invalid button action",
-      source
+      "Invalid button action"
     );
 
     return undefined;
@@ -333,9 +277,8 @@ function parsePostOrPostRedirectButton(
   if (
     button.target &&
     !isValid(
-      errors,
+      reporter,
       `${metaPropertyPrefix}:${button.index}:target`,
-      source,
       validateUrl,
       button.target,
       false
@@ -352,28 +295,23 @@ function parsePostOrPostRedirectButton(
 }
 
 function parseLinkButton(
-  errors: Record<string, ParseError[]>,
-  source: ParseErrorSource,
+  reporter: Reporter,
   metaPropertyPrefix: ButtonMetaPropertyPrefix,
   button: ParsedButtonWithBasicInfo
 ): FrameButton | undefined {
   if (button.action !== "link") {
-    addError(
-      errors,
+    reporter.error(
       `${metaPropertyPrefix}:${button.index}:action`,
-      "Invalid button action",
-      source
+      "Invalid button action"
     );
 
     return undefined;
   }
 
   if (!button.target) {
-    addError(
-      errors,
+    reporter.error(
       `${metaPropertyPrefix}:${button.index}:target`,
-      "Missing button target url",
-      source
+      "Missing button target url"
     );
 
     return undefined;
@@ -381,9 +319,8 @@ function parseLinkButton(
 
   if (
     !isValid(
-      errors,
+      reporter,
       `${metaPropertyPrefix}:${button.index}:target`,
-      source,
       validateUrl,
       button.target,
       false
@@ -400,28 +337,23 @@ function parseLinkButton(
 }
 
 function parseMintButton(
-  errors: Record<string, ParseError[]>,
-  source: ParseErrorSource,
+  reporter: Reporter,
   metaPropertyPrefix: ButtonMetaPropertyPrefix,
   button: ParsedButtonWithBasicInfo
 ): FrameButton | undefined {
   if (button.action !== "mint") {
-    addError(
-      errors,
+    reporter.error(
       `${metaPropertyPrefix}:${button.index}:action`,
-      "Invalid button action",
-      source
+      "Invalid button action"
     );
 
     return undefined;
   }
 
   if (!button.target) {
-    addError(
-      errors,
+    reporter.error(
       `${metaPropertyPrefix}:${button.index}:target`,
-      "Missing button target url",
-      source
+      "Missing button target url"
     );
 
     return undefined;
@@ -430,11 +362,9 @@ function parseMintButton(
   try {
     getTokenFromUrl(button.target);
   } catch {
-    addError(
-      errors,
+    reporter.error(
       `${metaPropertyPrefix}:${button.index}:target`,
-      "Invalid CAIP-10 URL",
-      source
+      "Invalid CAIP-10 URL"
     );
 
     return undefined;
@@ -448,36 +378,30 @@ function parseMintButton(
 }
 
 function parseTxButton(
-  errors: Record<string, ParseError[]>,
-  source: ParseErrorSource,
+  reporter: Reporter,
   metaPropertyPrefix: ButtonMetaPropertyPrefix,
   button: ParsedButtonWithBasicInfo
 ): FrameButton | undefined {
   if (button.action !== "tx") {
-    addError(
-      errors,
+    reporter.error(
       `${metaPropertyPrefix}:${button.index}:action`,
-      "Invalid button action",
-      source
+      "Invalid button action"
     );
 
     return undefined;
   }
 
   if (!button.target) {
-    addError(
-      errors,
+    reporter.error(
       `${metaPropertyPrefix}:${button.index}:target`,
-      "Missing button target url",
-      source
+      "Missing button target url"
     );
 
     return undefined;
   } else if (
     !isValid(
-      errors,
+      reporter,
       `${metaPropertyPrefix}:${button.index}:target`,
-      source,
       validateUrl,
       button.target,
       false
@@ -489,9 +413,8 @@ function parseTxButton(
   if (button.post_url) {
     if (
       !isValid(
-        errors,
+        reporter,
         `${metaPropertyPrefix}:${button.index}:post_url`,
-        source,
         validateUrl,
         button.post_url,
         false
@@ -526,9 +449,9 @@ export function getMetaTag(
 }
 
 export function mergeErrors(
-  a: Record<string, ParseError[]> | undefined,
-  b: Record<string, ParseError[]> | undefined
-): Record<string, ParseError[]> | undefined {
+  a: Record<string, ParsingIssue[]> | undefined,
+  b: Record<string, ParsingIssue[]> | undefined
+): Record<string, ParsingIssue[]> | undefined {
   if (a && !b) {
     return a;
   }
@@ -547,7 +470,7 @@ export function mergeErrors(
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- can't be undefined
   const allKeys = new Set([...Object.keys(a!), ...Object.keys(b!)]);
-  const mergedErrors: Record<string, ParseError[]> = {};
+  const mergedErrors: Record<string, ParsingIssue[]> = {};
 
   for (const key of allKeys) {
     const errorsA = a?.[key]?.slice() || [];

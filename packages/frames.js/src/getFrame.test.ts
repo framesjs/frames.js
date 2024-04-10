@@ -52,7 +52,7 @@ describe("getFrame", () => {
         imageAspectRatio: undefined,
         accepts: [],
       },
-      errors: expect.any(Object) as unknown,
+      reports: expect.any(Object) as unknown,
     });
   });
 
@@ -108,7 +108,7 @@ describe("getFrame", () => {
         imageAspectRatio: undefined,
         accepts: [],
       },
-      errors: expect.any(Object) as unknown,
+      reports: expect.any(Object) as unknown,
     });
   });
 
@@ -207,7 +207,7 @@ describe("getFrame", () => {
         accepts: [],
         state: undefined,
       },
-      errors: expect.any(Object) as unknown,
+      reports: expect.any(Object) as unknown,
     });
   });
 

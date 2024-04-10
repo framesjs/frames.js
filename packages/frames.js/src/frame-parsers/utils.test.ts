@@ -1,5 +1,4 @@
 import { load } from "cheerio";
-import type { ParseError } from "./types";
 import {
   parseButtons,
   validateFrameImage,
@@ -8,12 +7,13 @@ import {
   validateState,
   validateUrl,
 } from "./utils";
+import { createReporter } from "./reporter";
 
 describe("parseButtons", () => {
-  let errors: Record<string, ParseError[]> = {};
+  let reporter = createReporter("farcaster");
 
   beforeEach(() => {
-    errors = {};
+    reporter = createReporter("farcaster");
   });
 
   it("fails if unrecognized button meta tag is present", () => {
@@ -25,11 +25,15 @@ describe("parseButtons", () => {
     `);
 
     expect(
-      parseButtons(document, errors, "farcaster", "fc:frame:button")
+      parseButtons(document, reporter, "fc:frame:button")
     ).not.toHaveLength(0);
-    expect(errors).toEqual({
+    expect(reporter.toObject()).toEqual({
       "fc:frame:button:1:extra": [
-        { message: "Unrecognized meta tag", source: "farcaster" },
+        {
+          level: "error",
+          message: "Unrecognized meta tag",
+          source: "farcaster",
+        },
       ],
     });
   });
@@ -43,11 +47,11 @@ describe("parseButtons", () => {
     `);
 
     expect(
-      parseButtons(document, errors, "farcaster", "fc:frame:button")
+      parseButtons(document, reporter, "fc:frame:button")
     ).not.toHaveLength(0);
-    expect(errors).toEqual({
+    expect(reporter.toObject()).toEqual({
       "fc:frame:button:1:target": [
-        { message: "Duplicate meta tag", source: "farcaster" },
+        { level: "error", message: "Duplicate meta tag", source: "farcaster" },
       ],
     });
   });
@@ -57,12 +61,14 @@ describe("parseButtons", () => {
       <meta property="fc:frame:button:0" content="1" />
     `);
 
-    expect(
-      parseButtons(document, errors, "farcaster", "fc:frame:button")
-    ).toHaveLength(0);
-    expect(errors).toEqual({
+    expect(parseButtons(document, reporter, "fc:frame:button")).toHaveLength(0);
+    expect(reporter.toObject()).toEqual({
       "fc:frame:button:0": [
-        { message: "Unrecognized meta tag", source: "farcaster" },
+        {
+          level: "error",
+          message: "Unrecognized meta tag",
+          source: "farcaster",
+        },
       ],
     });
   });
@@ -72,12 +78,14 @@ describe("parseButtons", () => {
       <meta property="fc:frame:button:1:action" content="post" />
     `);
 
-    expect(
-      parseButtons(document, errors, "farcaster", "fc:frame:button")
-    ).toHaveLength(0);
-    expect(errors).toEqual({
+    expect(parseButtons(document, reporter, "fc:frame:button")).toHaveLength(0);
+    expect(reporter.toObject()).toEqual({
       "fc:frame:button:1": [
-        { message: "Missing button label", source: "farcaster" },
+        {
+          level: "error",
+          message: "Missing button label",
+          source: "farcaster",
+        },
       ],
     });
   });
@@ -87,16 +95,14 @@ describe("parseButtons", () => {
       <meta property="fc:frame:button:1" content="1" />
     `);
 
-    expect(
-      parseButtons(document, errors, "farcaster", "fc:frame:button")
-    ).toEqual([
+    expect(parseButtons(document, reporter, "fc:frame:button")).toEqual([
       {
         label: "1",
         action: "post",
         target: undefined,
       },
     ]);
-    expect(errors).toEqual({});
+    expect(reporter.toObject()).toEqual({});
   });
 
   it("fails if button action is unrecognized", () => {
@@ -105,12 +111,14 @@ describe("parseButtons", () => {
       <meta property="fc:frame:button:1:action" content="unknown" />
     `);
 
-    expect(
-      parseButtons(document, errors, "farcaster", "fc:frame:button")
-    ).toHaveLength(0);
-    expect(errors).toEqual({
+    expect(parseButtons(document, reporter, "fc:frame:button")).toHaveLength(0);
+    expect(reporter.toObject()).toEqual({
       "fc:frame:button:1:action": [
-        { message: "Invalid button action", source: "farcaster" },
+        {
+          level: "error",
+          message: "Invalid button action",
+          source: "farcaster",
+        },
       ],
     });
   });
@@ -125,12 +133,14 @@ describe("parseButtons", () => {
       <meta property="fc:frame:button:3:target" content="http://test.com" />
     `);
 
-    expect(
-      parseButtons(document, errors, "farcaster", "fc:frame:button")
-    ).toHaveLength(2);
-    expect(errors).toEqual({
+    expect(parseButtons(document, reporter, "fc:frame:button")).toHaveLength(2);
+    expect(reporter.toObject()).toEqual({
       "fc:frame:button:2": [
-        { message: "Button sequence is not continuous", source: "farcaster" },
+        {
+          level: "error",
+          message: "Button sequence is not continuous",
+          source: "farcaster",
+        },
       ],
     });
   });
@@ -145,12 +155,14 @@ describe("parseButtons", () => {
       <meta property="fc:frame:button:1:action" content="link" />
     `);
 
-    expect(
-      parseButtons(document, errors, "farcaster", "fc:frame:button")
-    ).toEqual([]);
-    expect(errors).toEqual({
+    expect(parseButtons(document, reporter, "fc:frame:button")).toEqual([]);
+    expect(reporter.toObject()).toEqual({
       "fc:frame:button:1:target": [
-        { message: "Missing button target url", source: "farcaster" },
+        {
+          level: "error",
+          message: "Missing button target url",
+          source: "farcaster",
+        },
       ],
     });
   });
@@ -164,12 +176,10 @@ describe("parseButtons", () => {
         <meta property="fc:frame:button:1:target" content="invalid" />
       `);
 
-      expect(
-        parseButtons(document, errors, "farcaster", "fc:frame:button")
-      ).toEqual([]);
-      expect(errors).toEqual({
+      expect(parseButtons(document, reporter, "fc:frame:button")).toEqual([]);
+      expect(reporter.toObject()).toEqual({
         "fc:frame:button:1:target": [
-          { message: "Invalid URL", source: "farcaster" },
+          { level: "error", message: "Invalid URL", source: "farcaster" },
         ],
       });
     }
@@ -182,12 +192,10 @@ describe("parseButtons", () => {
       <meta property="fc:frame:button:1:target" content="invalid" />
     `);
 
-    expect(
-      parseButtons(document, errors, "farcaster", "fc:frame:button")
-    ).toEqual([]);
-    expect(errors).toEqual({
+    expect(parseButtons(document, reporter, "fc:frame:button")).toEqual([]);
+    expect(reporter.toObject()).toEqual({
       "fc:frame:button:1:target": [
-        { message: "Invalid CAIP-10 URL", source: "farcaster" },
+        { level: "error", message: "Invalid CAIP-10 URL", source: "farcaster" },
       ],
     });
   });
@@ -199,16 +207,14 @@ describe("parseButtons", () => {
       <meta property="fc:frame:button:1:target" content="eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df" />
     `);
 
-    expect(
-      parseButtons(document, errors, "farcaster", "fc:frame:button")
-    ).toEqual([
+    expect(parseButtons(document, reporter, "fc:frame:button")).toEqual([
       {
         label: "1",
         action: "mint",
         target: "eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df",
       },
     ]);
-    expect(errors).toEqual({});
+    expect(reporter.toObject()).toEqual({});
   });
 
   it.each(["link", "post", "post_redirect"])("parses %s button", (action) => {
@@ -218,16 +224,14 @@ describe("parseButtons", () => {
         <meta property="fc:frame:button:1:target" content="http://example.com" />
       `);
 
-    expect(
-      parseButtons(document, errors, "farcaster", "fc:frame:button")
-    ).toEqual([
+    expect(parseButtons(document, reporter, "fc:frame:button")).toEqual([
       {
         label: "1",
         action,
         target: "http://example.com",
       },
     ]);
-    expect(errors).toEqual({});
+    expect(reporter.toObject()).toEqual({});
   });
 
   it.each(["post", "post_redirect"])(
@@ -238,9 +242,7 @@ describe("parseButtons", () => {
         <meta property="fc:frame:button:1:action" content="${action}" />
       `);
 
-      expect(
-        parseButtons(document, errors, "farcaster", "fc:frame:button")
-      ).toEqual([
+      expect(parseButtons(document, reporter, "fc:frame:button")).toEqual([
         {
           action,
           label: "1",
@@ -257,16 +259,14 @@ describe("parseButtons", () => {
       <meta property="fc:frame:button:1:target" content="http://example.com" />
     `);
 
-    expect(
-      parseButtons(document, errors, "farcaster", "fc:frame:button")
-    ).toEqual([
+    expect(parseButtons(document, reporter, "fc:frame:button")).toEqual([
       {
         label: "1",
         action: "tx",
         target: "http://example.com",
       },
     ]);
-    expect(errors).toEqual({});
+    expect(reporter.toObject()).toEqual({});
   });
 
   it("parses tx button with target url and post_url", () => {
@@ -277,9 +277,7 @@ describe("parseButtons", () => {
       <meta property="fc:frame:button:1:post_url" content="http://example.com/post" />
     `);
 
-    expect(
-      parseButtons(document, errors, "farcaster", "fc:frame:button")
-    ).toEqual([
+    expect(parseButtons(document, reporter, "fc:frame:button")).toEqual([
       {
         label: "1",
         action: "tx",
@@ -287,7 +285,7 @@ describe("parseButtons", () => {
         post_url: "http://example.com/post",
       },
     ]);
-    expect(errors).toEqual({});
+    expect(reporter.toObject()).toEqual({});
   });
 
   it("parses 4 buttons", () => {
@@ -304,9 +302,7 @@ describe("parseButtons", () => {
       <meta property="fc:frame:button:4:target" content="http://example.com" />
     `);
 
-    expect(
-      parseButtons(document, errors, "farcaster", "fc:frame:button")
-    ).toEqual([
+    expect(parseButtons(document, reporter, "fc:frame:button")).toEqual([
       {
         label: "1",
         action: "link",
@@ -328,7 +324,7 @@ describe("parseButtons", () => {
         target: "http://example.com",
       },
     ]);
-    expect(errors).toEqual({});
+    expect(reporter.toObject()).toEqual({});
   });
 });
 

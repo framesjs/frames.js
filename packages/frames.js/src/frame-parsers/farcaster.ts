@@ -2,7 +2,6 @@ import type { CheerioAPI } from "cheerio";
 import type { Frame } from "../types";
 import { isValidVersion } from "../utils";
 import {
-  addError,
   getMetaTag,
   parseButtons,
   validate,
@@ -12,10 +11,16 @@ import {
   validateState,
   validateUrl,
 } from "./utils";
-import type { ParseError, ParseResult, ParsedFrame } from "./types";
+import type { ParseResult, ParsedFrame, Reporter } from "./types";
 
-export function parseFarcasterFrame($: CheerioAPI): ParseResult {
-  const errors: Record<string, ParseError[]> = {};
+type Options = {
+  reporter: Reporter;
+};
+
+export function parseFarcasterFrame(
+  $: CheerioAPI,
+  { reporter }: Options
+): ParseResult {
   const parsedFrame: ParsedFrame = {
     version: getMetaTag($, "fc:frame"),
     ogImage: getMetaTag($, "og:image"),
@@ -29,52 +34,33 @@ export function parseFarcasterFrame($: CheerioAPI): ParseResult {
 
   // validate version
   if (!parsedFrame.version) {
-    addError(
-      errors,
-      "fc:frame",
-      'Missing required meta tag "fc:frame"',
-      "farcaster"
-    );
+    reporter.error("fc:frame", 'Missing required meta tag "fc:frame"');
   } else if (!isValidVersion(parsedFrame.version)) {
-    addError(
-      errors,
-      "fc:frame",
-      `Invalid version "${parsedFrame.version}"`,
-      "farcaster"
-    );
+    reporter.error("fc:frame", `Invalid version "${parsedFrame.version}"`);
   } else {
     frame.version = parsedFrame.version;
   }
 
   if (!parsedFrame.image) {
-    addError(
-      errors,
+    reporter.error(
       "fc:frame:image",
-      'Missing required meta tag "fc:frame:image"',
-      "farcaster"
+      'Missing required meta tag "fc:frame:image"'
     );
   } else {
     frame.image = validate(
-      errors,
+      reporter,
       "fc:frame:image",
-      "farcaster",
       validateFrameImage,
       parsedFrame.image
     );
   }
 
   if (!parsedFrame.ogImage) {
-    addError(
-      errors,
-      "og:image",
-      'Missing required meta tag "og:image"',
-      "farcaster"
-    );
+    reporter.error("og:image", 'Missing required meta tag "og:image"');
   } else {
     frame.ogImage = validate(
-      errors,
+      reporter,
       "og:image",
-      "farcaster",
       validateFrameImage,
       parsedFrame.ogImage
     );
@@ -82,9 +68,8 @@ export function parseFarcasterFrame($: CheerioAPI): ParseResult {
 
   if (parsedFrame.imageAspectRatio) {
     frame.imageAspectRatio = validate(
-      errors,
+      reporter,
       "fc:frame:image:aspect_ratio",
-      "farcaster",
       validateAspectRatio,
       parsedFrame.imageAspectRatio
     );
@@ -92,9 +77,8 @@ export function parseFarcasterFrame($: CheerioAPI): ParseResult {
 
   if (parsedFrame.inputText) {
     frame.inputText = validate(
-      errors,
+      reporter,
       "fc:frame:input:text",
-      "farcaster",
       validateInputText,
       parsedFrame.inputText
     );
@@ -102,9 +86,8 @@ export function parseFarcasterFrame($: CheerioAPI): ParseResult {
 
   if (parsedFrame.postUrl) {
     frame.postUrl = validate(
-      errors,
+      reporter,
       "fc:frame:post_url",
-      "farcaster",
       validateUrl,
       parsedFrame.postUrl,
       256
@@ -113,23 +96,22 @@ export function parseFarcasterFrame($: CheerioAPI): ParseResult {
 
   if (parsedFrame.state) {
     frame.state = validate(
-      errors,
+      reporter,
       "fc:frame:state",
-      "farcaster",
       validateState,
       parsedFrame.state
     );
   }
 
-  const parsedButtons = parseButtons($, errors, "farcaster", "fc:frame:button");
+  const parsedButtons = parseButtons($, reporter, "fc:frame:button");
 
   if (parsedButtons.length > 0) {
     frame.buttons = parsedButtons as typeof frame.buttons;
   }
 
-  if (Object.keys(errors).length > 0) {
+  if (reporter.hasReports()) {
     return {
-      errors,
+      reports: reporter.toObject(),
       frame,
     };
   }

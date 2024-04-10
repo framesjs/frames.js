@@ -2,9 +2,8 @@
 import type { CheerioAPI } from "cheerio";
 import type { Frame } from "../types";
 import { isValidVersion } from "../utils";
-import type { ParseError, ParseResult, ParsedFrame } from "./types";
+import type { ParseResult, ParsedFrame, Reporter } from "./types";
 import {
-  addError,
   getMetaTag,
   parseButtons,
   validate,
@@ -17,6 +16,7 @@ import {
 
 type Options = {
   farcasterFrame: Partial<Frame>;
+  reporter: Reporter;
 };
 
 type ParsedOpenFramesFrame = ParsedFrame & {
@@ -25,9 +25,8 @@ type ParsedOpenFramesFrame = ParsedFrame & {
 
 export function parseOpenFramesFrame(
   $: CheerioAPI,
-  { farcasterFrame }: Options
+  { farcasterFrame, reporter }: Options
 ): ParseResult {
-  const errors: Record<string, ParseError[]> = {};
   let fallsBackToFarcaster = false;
   let fallbackFrameData: Partial<Frame> = {};
 
@@ -39,7 +38,7 @@ export function parseOpenFramesFrame(
       const protocol = property.replace("of:accepts:", "");
 
       if (!protocol) {
-        addError(errors, property, "Missing protocol id", "openframes");
+        reporter.error(property, "Missing protocol id");
       }
 
       if (protocol === "farcaster") {
@@ -53,11 +52,9 @@ export function parseOpenFramesFrame(
     });
 
   if (accepts.length === 0) {
-    addError(
-      errors,
+    reporter.error(
       "of:accepts:{protocol_identifier}",
-      'At least one "of:accepts:{protocol_identifier}" meta tag is required',
-      "openframes"
+      'At least one "of:accepts:{protocol_identifier}" meta tag is required'
     );
   }
 
@@ -84,52 +81,30 @@ export function parseOpenFramesFrame(
   };
 
   if (!parsedFrame.version) {
-    addError(
-      errors,
-      "of:version",
-      'Missing required meta tag "of:version"',
-      "openframes"
-    );
+    reporter.error("of:version", 'Missing required meta tag "of:version"');
   } else if (!isValidVersion(parsedFrame.version)) {
-    addError(
-      errors,
-      "of:version",
-      `Invalid version "${parsedFrame.version}"`,
-      "openframes"
-    );
+    reporter.error("of:version", `Invalid version "${parsedFrame.version}"`);
   } else {
     frame.version = parsedFrame.version;
   }
 
   if (!parsedFrame.image) {
-    addError(
-      errors,
-      "of:image",
-      'Missing required meta tag "of:image"',
-      "openframes"
-    );
+    reporter.error("of:image", 'Missing required meta tag "of:image"');
   } else {
     frame.image = validate(
-      errors,
+      reporter,
       "of:image",
-      "openframes",
       validateFrameImage,
       parsedFrame.image
     );
   }
 
   if (!parsedFrame.ogImage) {
-    addError(
-      errors,
-      "og:image",
-      'Missing required meta tag "og:image"',
-      "openframes"
-    );
+    reporter.error("og:image", 'Missing required meta tag "og:image"');
   } else {
     frame.ogImage = validate(
-      errors,
+      reporter,
       "og:image",
-      "openframes",
       validateFrameImage,
       parsedFrame.ogImage
     );
@@ -137,9 +112,8 @@ export function parseOpenFramesFrame(
 
   if (parsedFrame.imageAspectRatio) {
     frame.imageAspectRatio = validate(
-      errors,
+      reporter,
       "of:image:aspect_ratio",
-      "openframes",
       validateAspectRatio,
       parsedFrame.imageAspectRatio
     );
@@ -147,9 +121,8 @@ export function parseOpenFramesFrame(
 
   if (parsedFrame.inputText) {
     frame.inputText = validate(
-      errors,
+      reporter,
       "of:input:text",
-      "openframes",
       validateInputText,
       parsedFrame.inputText
     );
@@ -157,9 +130,8 @@ export function parseOpenFramesFrame(
 
   if (parsedFrame.postUrl) {
     frame.postUrl = validate(
-      errors,
+      reporter,
       "of:post_url",
-      "openframes",
       validateUrl,
       parsedFrame.postUrl,
       256
@@ -168,22 +140,21 @@ export function parseOpenFramesFrame(
 
   if (parsedFrame.state) {
     frame.state = validate(
-      errors,
+      reporter,
       "of:state",
-      "openframes",
       validateState,
       parsedFrame.state
     );
   }
 
-  const parsedButtons = parseButtons($, errors, "openframes", "of:button");
+  const parsedButtons = parseButtons($, reporter, "of:button");
 
   if (parsedButtons.length > 0) {
     frame.buttons = parsedButtons as typeof frame.buttons;
   }
 
-  if (Object.keys(errors).length > 0) {
-    return { frame, errors };
+  if (reporter.hasReports()) {
+    return { frame, reports: reporter.toObject() };
   }
 
   return {
