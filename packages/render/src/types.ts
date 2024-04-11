@@ -1,4 +1,9 @@
-import type { Frame, FrameButton, TransactionTargetResponse } from "frames.js";
+import type {
+  Frame,
+  FrameButton,
+  TransactionTargetResponse,
+  ParsingReport,
+} from "frames.js";
 import type { FarcasterFrameContext } from "./farcaster/frames";
 
 export type OnTransactionFunc = (
@@ -17,8 +22,8 @@ export type UseFrameReturn<
   frameGetProxy: string;
   /** an signer state object used to determine what actions are possible */
   signerState: SignerStateInstance<T, B>;
-  /** the url of the homeframe, if null won't load a frame */
-  homeframeUrl: string | null;
+  /** the url of the homeframe, if null / undefined won't load a frame */
+  homeframeUrl: string | null | undefined;
   /** the initial frame. if not specified will fetch it from the url prop */
   frame?: Frame;
   /** a function to handle mint buttons */
@@ -76,47 +81,55 @@ export type FrameRequest =
       url: string;
     };
 
-export type FrameStackPending = {
+export type FrameStackBase = {
   timestamp: Date;
-} & FrameRequest;
-
-export type FrameStackBase = FrameStackPending & {
   /** speed in seconds */
   speed: number;
   responseStatus: number;
-};
+} & FrameRequest;
+
+export type FrameStackPending = {
+  timestamp: Date;
+  status: "pending";
+} & FrameRequest;
 
 export type FrameStackSuccess = FrameStackBase & {
   frame: Frame;
-  frameValidationErrors: null | Record<string, string[]>;
-  isValid: boolean;
+  status: "success";
 };
 
-export type FrameStackError = (FrameStackBase | FrameStackSuccess) & {
+export type FrameStackErrorWithReports = FrameStackBase & {
+  frame: Partial<Frame>;
+  frameValidationReports: Record<string, ParsingReport[]>;
+  status: "error";
+};
+
+export type FrameStackRequestError = FrameStackBase & {
+  status: "requestError";
   requestError: unknown;
 };
 
-export type FramesStack = (FrameStackSuccess | FrameStackError)[];
+export type FramesStackItem =
+  | FrameStackPending
+  | FrameStackSuccess
+  | FrameStackErrorWithReports
+  | FrameStackRequestError;
+
+export type FramesStack = FramesStackItem[];
 
 export type FrameState = {
   fetchFrame: (request: FrameRequest) => void | Promise<void>;
   clearFrameStack: () => void;
   /** The frame at the top of the stack (at index 0) */
-  frame: Frame | null;
+  frame: FramesStackItem | undefined;
   /** A stack of frames with additional context, with the most recent frame at index 0 */
   framesStack: FramesStack;
-  /** isLoading frame */
-  isLoading?: null | FrameStackPending;
   inputText: string;
   setInputText: (s: string) => void;
   onButtonPress: (
     frameButton: FrameButton,
     index: number
   ) => void | Promise<void>;
-  /** Whether the frame at the top of the stack has any frame validation errors. Undefined when the frame is not loaded or set */
-  isFrameValid: boolean | undefined;
-  frameValidationErrors: Record<string, string[]> | undefined | null;
-  error: unknown;
   homeframeUrl: string | null;
 };
 

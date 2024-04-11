@@ -1,5 +1,5 @@
 import type { ImgHTMLAttributes } from "react";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import type { FrameButton } from "frames.js";
 import type { FrameTheme, FrameState } from "./types";
 import { PresentableError } from "./errors";
@@ -33,34 +33,19 @@ export function FrameUI({
   FrameImage,
 }: FrameUIProps): React.JSX.Element | null {
   const [isImageLoading, setIsImageLoading] = useState(true);
-
-  const isLoading = !!frameState.isLoading || isImageLoading;
-
-  useEffect(() => {
-    if (frameState.frame?.image) {
-      setIsImageLoading(true);
-    }
-  }, [frameState.frame?.image]);
-
+  const frame = frameState.frame;
+  const isLoading = frame?.status === 'pending' || isImageLoading;
   const resolvedTheme = getThemeWithDefaults(theme ?? {});
 
   if (!frameState.homeframeUrl) {
     return <div>Missing frame url</div>;
   }
 
-  if (frameState.error && !(frameState.error instanceof PresentableError)) {
-    return <div>Failed to load Frame</div>;
-  }
-
-  if (frameState.homeframeUrl && !frameState.frame && !frameState.isLoading) {
-    return <div>Failed to load Frame</div>;
-  }
-
   if (!frameState.frame) {
     return null;
   }
 
-  if (!frameState.isFrameValid) {
+  if (frameState.frame.status === 'error') {
     return <div>Invalid frame</div>;
   }
 
@@ -73,7 +58,7 @@ export function FrameUI({
       <div className="relative w-full" style={{ height: "100%" }}>
         {" "}
         {/* Ensure the container fills the height */}
-        {frameState.error ? (
+        {frameState.frame.status === 'requestError' ? (
           <div
             className="absolute px-4 py-2 rounded-sm"
             style={{
@@ -82,11 +67,13 @@ export function FrameUI({
               color: "white",
             }}
           >
-            {(frameState.error as PresentableError).message}
+            {(frameState.frame.requestError instanceof PresentableError || frameState.frame.requestError instanceof Error ? frameState.frame.requestError.message : 'An error occurred')}
           </div>
         ) : null}
+        {frameState.frame.status === 'success' &&
         <ImageEl
-          src={frameState.frame.image}
+          src={frameState.frame.frame.image}
+          key={frameState.frame.frame.image}
           alt="Frame image"
           width="100%"
           style={{
@@ -97,9 +84,12 @@ export function FrameUI({
             objectFit: "cover",
             width: "100%",
             aspectRatio:
-              (frameState.frame.imageAspectRatio ?? "1.91:1") === "1:1"
+              (frameState.frame.frame.imageAspectRatio ?? "1.91:1") === "1:1"
                 ? "1/1"
                 : "1.91/1",
+          }}
+          onLoadStart={() => {
+            setIsImageLoading(true);
           }}
           onLoad={() => {
             setIsImageLoading(false);
@@ -107,9 +97,9 @@ export function FrameUI({
           onError={() => {
             setIsImageLoading(false);
           }}
-        />
+        />}
       </div>
-      {frameState.frame.inputText ? (
+      {frameState.frame.status === 'success' && frameState.frame.frame.inputText ? (
         <input
           className="p-[6px] mx-2 border box-border"
           style={{
@@ -118,7 +108,7 @@ export function FrameUI({
           }}
           value={frameState.inputText}
           type="text"
-          placeholder={frameState.frame.inputText}
+          placeholder={frameState.frame.frame.inputText}
           onChange={(e) => {
             frameState.setInputText(e.target.value);
           }}
@@ -132,7 +122,7 @@ export function FrameUI({
         }}
         className="px-2 pb-2"
       >
-        {frameState.frame.buttons?.map(
+        {frameState.frame.status === 'success' && frameState.frame.frame.buttons?.map(
           (frameButton: FrameButton, index: number) => (
             <button
               type="button"
