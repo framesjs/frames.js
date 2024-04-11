@@ -4,11 +4,10 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  FrameUI,
-  OnTransactionFunc,
+  type OnTransactionFunc,
   fallbackFrameContext,
+  FramesStack,
 } from "@frames.js/render";
-import { FrameImageNext } from "@frames.js/render/next";
 import { useFrame } from "@frames.js/render/use-frame";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import { sendTransaction, switchChain } from "@wagmi/core";
@@ -20,12 +19,70 @@ import { FrameDebugger } from "./components/frame-debugger";
 import pkg from "../package.json";
 import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
 import { MockHubActionContext } from "./utils/mock-hub-utils";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { FrameSpecification } from "./types";
+import { AlertTriangle, CheckCircle2, LoaderIcon, XCircle } from "lucide-react";
 
 const LoginWindow = dynamic(() => import("./components/create-signer"), {
   ssr: false,
 });
 
-const FALLBACK_URL = process.env.NEXT_PUBLIC_HOST || 'http://localhost:3000';
+const FALLBACK_URL = process.env.NEXT_PUBLIC_HOST || "http://localhost:3000";
+
+const ToggleGroupStackItemStatusIcon: React.FC<{
+  specification: FrameSpecification;
+  stackItem: FramesStack[number] | undefined;
+}> = ({ specification, stackItem }) => {
+  switch (stackItem?.status) {
+    case "pending":
+      return (
+        <LoaderIcon
+          className="animate-spin mr-2"
+          aria-hidden="true"
+          size={20}
+        />
+      );
+    case "requestError":
+      return (
+        <XCircle className="mr-2" aria-hidden="true" size={20} color="red" />
+      );
+    case "done": {
+      const frameResultBySpecification = stackItem.frames[specification];
+
+      switch (frameResultBySpecification.status) {
+        case "invalid":
+          return (
+            <XCircle
+              className="mr-2"
+              aria-hidden="true"
+              size={20}
+              color="red"
+            />
+          );
+        case "warnings":
+          return (
+            <AlertTriangle
+              className="mr-2"
+              aria-hidden="true"
+              size={20}
+              color="orange"
+            />
+          );
+        case "valid":
+          return (
+            <CheckCircle2
+              className="mr-2"
+              aria-hidden="true"
+              size={20}
+              color="green"
+            />
+          );
+      }
+    }
+  }
+
+  return null;
+};
 
 export default function App({
   searchParams,
@@ -33,6 +90,8 @@ export default function App({
   searchParams: Record<string, string>;
 }): JSX.Element {
   const router = useRouter();
+  const [specification, setSpecification] =
+    useState<FrameSpecification>("farcaster");
   /**
    * Parse the URL from the query string. This will also cause debugger to automatically load the frame.
    */
@@ -187,13 +246,11 @@ export default function App({
             className="flex flex-row"
             onSubmit={(e) => {
               e.preventDefault();
-              const newUrl = new FormData(e.currentTarget).get('url')?.toString() || '';
+              const newUrl =
+                new FormData(e.currentTarget).get("url")?.toString() || "";
 
               if (
-                !(
-                  newUrl.startsWith("http://") ||
-                  newUrl.startsWith("https://")
-                )
+                !(newUrl.startsWith("http://") || newUrl.startsWith("https://"))
               ) {
                 alert("URL must start with http:// or https://");
                 return;
@@ -205,12 +262,12 @@ export default function App({
                 if (searchParams.url === parsedUrl) {
                   location.reload();
                 }
-  
+
                 router.push(`?url=${encodeURIComponent(parsedUrl)}`);
               } catch (e) {
-                alert('URL must be in valid format');
+                alert("URL must be in valid format");
                 return;
-              }              
+              }
             }}
           >
             <Input
@@ -220,8 +277,37 @@ export default function App({
               defaultValue={url ?? FALLBACK_URL}
               placeholder="Enter URL"
             />
-            <Button className="rounded-l-none">Debug</Button>
+            <Button className="rounded-l-none" type="submit">
+              Debug
+            </Button>
           </form>
+
+          <ToggleGroup
+            onValueChange={(value) => {
+              if (!value) {
+                return;
+              }
+
+              setSpecification(value as FrameSpecification);
+            }}
+            type="single"
+            value={specification}
+          >
+            <ToggleGroupItem value="farcaster">
+              <ToggleGroupStackItemStatusIcon
+                specification="farcaster"
+                stackItem={frameState.frame}
+              ></ToggleGroupStackItemStatusIcon>
+              Farcaster
+            </ToggleGroupItem>
+            <ToggleGroupItem value="openframes">
+              <ToggleGroupStackItemStatusIcon
+                specification="openframes"
+                stackItem={frameState.frame}
+              ></ToggleGroupStackItemStatusIcon>
+              Open Frames
+            </ToggleGroupItem>
+          </ToggleGroup>
 
           <LoginWindow
             farcasterUser={signerState.signer ?? null}
@@ -243,17 +329,8 @@ export default function App({
             url={url}
             mockHubContext={mockHubContext}
             setMockHubContext={setMockHubContext}
-          >
-            <div className="border rounded-lg overflow-hidden">
-              <FrameUI
-                frameState={frameState}
-                theme={{
-                  bg: "white",
-                }}
-                FrameImage={FrameImageNext}
-              />
-            </div>
-          </FrameDebugger>
+            specification={specification}
+          ></FrameDebugger>
         </>
       ) : null}
     </div>

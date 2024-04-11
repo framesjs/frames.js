@@ -1,8 +1,9 @@
 import type {
   Frame,
   FrameButton,
-  TransactionTargetResponse,
   ParsingReport,
+  TransactionTargetResponse,
+  getFrame,
 } from "frames.js";
 import type { FarcasterFrameContext } from "./farcaster/frames";
 
@@ -12,7 +13,7 @@ export type OnTransactionFunc = (
 
 export type UseFrameReturn<
   T = object,
-  B extends FrameActionBodyPayload = FrameActionBodyPayload,
+  B extends FrameActionBodyPayload = FrameActionBodyPayload
 > = {
   /** skip frame signing, for frames that don't verify signatures */
   dangerousSkipSigning?: boolean;
@@ -40,7 +41,7 @@ export type UseFrameReturn<
 
 export interface SignerStateInstance<
   T = object,
-  B extends FrameActionBodyPayload = FrameActionBodyPayload,
+  B extends FrameActionBodyPayload = FrameActionBodyPayload
 > {
   signer?: T | null;
   hasSigner: boolean;
@@ -93,15 +94,24 @@ export type FrameStackPending = {
   status: "pending";
 } & FrameRequest;
 
-export type FrameStackSuccess = FrameStackBase & {
-  frame: Frame;
-  status: "success";
-};
+type GetFrameResult = ReturnType<typeof getFrame>;
 
-export type FrameStackErrorWithReports = FrameStackBase & {
-  frame: Partial<Frame>;
-  frameValidationReports: Record<string, ParsingReport[]>;
-  status: "error";
+export type FrameStackDone = FrameStackBase & {
+  frames: Record<
+    keyof GetFrameResult,
+    | { frame: Frame; status: "valid" }
+    | {
+        frame: Partial<Frame>;
+        reports: Record<string, ParsingReport[]>;
+        status: "invalid";
+      }
+    | {
+        frame: Partial<Frame>;
+        reports: Record<string, ParsingReport[]>;
+        status: "warnings";
+      }
+  >;
+  status: "done";
 };
 
 export type FrameStackRequestError = FrameStackBase & {
@@ -111,8 +121,7 @@ export type FrameStackRequestError = FrameStackBase & {
 
 export type FramesStackItem =
   | FrameStackPending
-  | FrameStackSuccess
-  | FrameStackErrorWithReports
+  | FrameStackDone
   | FrameStackRequestError;
 
 export type FramesStack = FramesStackItem[];
@@ -127,6 +136,7 @@ export type FrameState = {
   inputText: string;
   setInputText: (s: string) => void;
   onButtonPress: (
+    frame: Frame,
     frameButton: FrameButton,
     index: number
   ) => void | Promise<void>;

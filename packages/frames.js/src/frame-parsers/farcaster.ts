@@ -15,11 +15,12 @@ import type { ParseResult, ParsedFrame, Reporter } from "./types";
 
 type Options = {
   reporter: Reporter;
+  fallbackPostUrl: string;
 };
 
 export function parseFarcasterFrame(
   $: CheerioAPI,
-  { reporter }: Options
+  { fallbackPostUrl, reporter }: Options
 ): ParseResult {
   const parsedFrame: ParsedFrame = {
     version: getMetaTag($, "fc:frame"),
@@ -27,7 +28,7 @@ export function parseFarcasterFrame(
     image: getMetaTag($, "fc:frame:image"),
     imageAspectRatio: getMetaTag($, "fc:frame:image:aspect_ratio"),
     inputText: getMetaTag($, "fc:frame:input:text"),
-    postUrl: getMetaTag($, "fc:frame:post_url"),
+    postUrl: getMetaTag($, "fc:frame:post_url") ?? fallbackPostUrl,
     state: getMetaTag($, "fc:frame:state"),
   };
   const frame: Partial<Frame> = {};
