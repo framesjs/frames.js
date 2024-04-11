@@ -1,25 +1,37 @@
 # getFrame
 
-Returns a `Frame` object, extracting the frame metadata from the given htmlString, or returning null if the frame is invalid. Includes tags from the [Open Frames specification](https://github.com/open-frames/standard).
+Returns an object with `farcaster` and `openframes` keys, each containing an object with `frame` property extracting the frame metadata from the given htmlString, or containing `reports` property if the frame is invalid. Includes tags from the [Open Frames specification](https://github.com/open-frames/standard).
 
 ## Usage
 
 ```ts [example.ts]
-import { getFrame, Frame } from "frames.js"
+import { getFrame, Frame } from "frames.js";
 
-const { frame } = await getFrame({
-	htmlString: '<html><head>...</head><body></body></html>',
-	url: 'https://framesjs-homeframe.vercel.app/'
+const { farcaster, openframes } = await getFrame({
+  htmlString: "<html><head>...</head><body></body></html>",
+  url: "https://framesjs-homeframe.vercel.app/",
 });
-console.log(frame)
+console.log(farcaster, openframes);
 /*
+	{ 
+		frame: {
+			version: FrameVersion;
+			postUrl: string;
+			buttons?: FrameButtonsType | undefined;
+			image: string;
+			ogImage?: string | undefined;
+			inputText?: string | undefined;
+		}
+	},
 	{
-		version: FrameVersion;
-		postUrl: string;
-		buttons?: FrameButtonsType | undefined;
-		image: string;
-		ogImage?: string | undefined;
-		inputText?: string | undefined;
+		frame: {
+			version: FrameVersion;
+			postUrl: string;
+			buttons?: FrameButtonsType | undefined;
+			image: string;
+			ogImage?: string | undefined;
+			inputText?: string | undefined;
+		}
 	}
 */
 ```
