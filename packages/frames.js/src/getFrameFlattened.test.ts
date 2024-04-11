@@ -49,6 +49,7 @@ describe("getFrameFlattened", () => {
       "og:image": "https://example.com/og-image.png",
       "fc:frame": "vNext",
       "fc:frame:image": "https://example.com/image.png",
+      "og:image": "https://example.com/og-image.png",
       "fc:frame:post_url": "https://example.com/post",
       "fc:frame:input:text": "input",
       "fc:frame:image:aspect_ratio": "1:1",

@@ -61,6 +61,7 @@ type FrameRequiredProperties = {
   "og:image": string;
   "fc:frame": FrameVersion;
   "fc:frame:image": string;
+  "og:image": string;
 };
 
 export type OpenFramesProperties = {
