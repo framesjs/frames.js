@@ -2,6 +2,8 @@ import { load } from "cheerio";
 import { parseOpenFramesFrame } from "./open-frames";
 import { createReporter } from "./reporter";
 
+const fallbackPostUrl = "http://fallback.com/post";
+
 describe("open frames frame parser", () => {
   let reporter = createReporter("openframes");
 
@@ -17,12 +19,15 @@ describe("open frames frame parser", () => {
     <meta name="og:image" content="http://example.com/og-image.png"/>
     `);
 
-    expect(parseOpenFramesFrame($, { farcasterFrame: {}, reporter })).toEqual({
+    expect(
+      parseOpenFramesFrame($, { farcasterFrame: {}, reporter, fallbackPostUrl })
+    ).toEqual({
       frame: {
         accepts: [{ id: "some_protocol", version: "vNext" }],
         version: "vNext",
         image: "http://example.com/image.png",
         ogImage: "http://example.com/og-image.png",
+        postUrl: fallbackPostUrl,
       },
     });
   });
@@ -40,6 +45,7 @@ describe("open frames frame parser", () => {
           version: "vNext",
           image: "http://example.com/farcaster-image.png",
         },
+        fallbackPostUrl,
         reporter,
       })
     ).toEqual({
@@ -48,6 +54,7 @@ describe("open frames frame parser", () => {
         version: "vNext",
         image: "http://example.com/farcaster-image.png",
         ogImage: "http://example.com/og-image.png",
+        postUrl: fallbackPostUrl,
       },
     });
   });
@@ -60,24 +67,29 @@ describe("open frames frame parser", () => {
       <meta name="og:image" content="http://example.com/og-image.png"/>
       `);
 
-      expect(parseOpenFramesFrame($, { farcasterFrame: {}, reporter })).toEqual(
-        {
-          reports: {
-            "of:version": [
-              {
-                level: "error",
-                message: 'Missing required meta tag "of:version"',
-                source: "openframes",
-              },
-            ],
-          },
-          frame: {
-            accepts: [{ id: "some_protocol", version: "vNext" }],
-            image: "http://example.com/image.png",
-            ogImage: "http://example.com/og-image.png",
-          },
-        }
-      );
+      expect(
+        parseOpenFramesFrame($, {
+          farcasterFrame: {},
+          fallbackPostUrl,
+          reporter,
+        })
+      ).toEqual({
+        reports: {
+          "of:version": [
+            {
+              level: "error",
+              message: 'Missing required meta tag "of:version"',
+              source: "openframes",
+            },
+          ],
+        },
+        frame: {
+          accepts: [{ id: "some_protocol", version: "vNext" }],
+          image: "http://example.com/image.png",
+          ogImage: "http://example.com/og-image.png",
+          postUrl: fallbackPostUrl,
+        },
+      });
     });
 
     it('does not fallback to fc:frame if "of:accepts:farcaster" is present and of:version is missing', () => {
@@ -87,24 +99,29 @@ describe("open frames frame parser", () => {
       <meta name="og:image" content="http://example.com/og-image.png"/>
       `);
 
-      expect(parseOpenFramesFrame($, { farcasterFrame: {}, reporter })).toEqual(
-        {
-          reports: {
-            "of:version": [
-              {
-                level: "error",
-                message: 'Missing required meta tag "of:version"',
-                source: "openframes",
-              },
-            ],
-          },
-          frame: {
-            accepts: [{ id: "farcaster", version: "vNext" }],
-            image: "http://example.com/image.png",
-            ogImage: "http://example.com/og-image.png",
-          },
-        }
-      );
+      expect(
+        parseOpenFramesFrame($, {
+          farcasterFrame: {},
+          fallbackPostUrl,
+          reporter,
+        })
+      ).toEqual({
+        reports: {
+          "of:version": [
+            {
+              level: "error",
+              message: 'Missing required meta tag "of:version"',
+              source: "openframes",
+            },
+          ],
+        },
+        frame: {
+          accepts: [{ id: "farcaster", version: "vNext" }],
+          image: "http://example.com/image.png",
+          ogImage: "http://example.com/og-image.png",
+          postUrl: fallbackPostUrl,
+        },
+      });
     });
 
     it("parses version", () => {
@@ -115,16 +132,21 @@ describe("open frames frame parser", () => {
       <meta name="og:image" content="http://example.com/og-image.png"/>
       `);
 
-      expect(parseOpenFramesFrame($, { farcasterFrame: {}, reporter })).toEqual(
-        {
-          frame: {
-            accepts: [{ id: "some_protocol", version: "vNext" }],
-            version: "vNext",
-            image: "http://example.com/image.png",
-            ogImage: "http://example.com/og-image.png",
-          },
-        }
-      );
+      expect(
+        parseOpenFramesFrame($, {
+          farcasterFrame: {},
+          fallbackPostUrl,
+          reporter,
+        })
+      ).toEqual({
+        frame: {
+          accepts: [{ id: "some_protocol", version: "vNext" }],
+          version: "vNext",
+          image: "http://example.com/image.png",
+          ogImage: "http://example.com/og-image.png",
+          postUrl: fallbackPostUrl,
+        },
+      });
     });
   });
 
@@ -136,26 +158,31 @@ describe("open frames frame parser", () => {
       <meta name="og:image" content="http://example.com/og-image.png"/>
       `);
 
-      expect(parseOpenFramesFrame($, { farcasterFrame: {}, reporter })).toEqual(
-        {
-          frame: {
-            accepts: [],
-            version: "vNext",
-            image: "http://example.com/image.png",
-            ogImage: "http://example.com/og-image.png",
-          },
-          reports: {
-            "of:accepts:{protocol_identifier}": [
-              {
-                level: "error",
-                message:
-                  'At least one "of:accepts:{protocol_identifier}" meta tag is required',
-                source: "openframes",
-              },
-            ],
-          },
-        }
-      );
+      expect(
+        parseOpenFramesFrame($, {
+          farcasterFrame: {},
+          fallbackPostUrl,
+          reporter,
+        })
+      ).toEqual({
+        frame: {
+          accepts: [],
+          version: "vNext",
+          image: "http://example.com/image.png",
+          ogImage: "http://example.com/og-image.png",
+          postUrl: fallbackPostUrl,
+        },
+        reports: {
+          "of:accepts:{protocol_identifier}": [
+            {
+              level: "error",
+              message:
+                'At least one "of:accepts:{protocol_identifier}" meta tag is required',
+              source: "openframes",
+            },
+          ],
+        },
+      });
     });
 
     it("parses accepts", () => {
@@ -166,16 +193,21 @@ describe("open frames frame parser", () => {
       <meta name="og:image" content="http://example.com/og-image.png"/>
       `);
 
-      expect(parseOpenFramesFrame($, { farcasterFrame: {}, reporter })).toEqual(
-        {
-          frame: {
-            accepts: [{ id: "farcaster", version: "vNext" }],
-            version: "vNext",
-            image: "http://example.com/image.png",
-            ogImage: "http://example.com/og-image.png",
-          },
-        }
-      );
+      expect(
+        parseOpenFramesFrame($, {
+          farcasterFrame: {},
+          fallbackPostUrl,
+          reporter,
+        })
+      ).toEqual({
+        frame: {
+          accepts: [{ id: "farcaster", version: "vNext" }],
+          version: "vNext",
+          image: "http://example.com/image.png",
+          ogImage: "http://example.com/og-image.png",
+          postUrl: fallbackPostUrl,
+        },
+      });
     });
   });
 
@@ -187,24 +219,29 @@ describe("open frames frame parser", () => {
     <meta name="of:image" content="http://example.com/image.png"/>
     `);
 
-      expect(parseOpenFramesFrame($, { farcasterFrame: {}, reporter })).toEqual(
-        {
-          reports: {
-            "og:image": [
-              {
-                level: "error",
-                message: 'Missing required meta tag "og:image"',
-                source: "openframes",
-              },
-            ],
-          },
-          frame: {
-            accepts: [{ id: "some_protocol", version: "vNext" }],
-            version: "vNext",
-            image: "http://example.com/image.png",
-          },
-        }
-      );
+      expect(
+        parseOpenFramesFrame($, {
+          farcasterFrame: {},
+          fallbackPostUrl,
+          reporter,
+        })
+      ).toEqual({
+        reports: {
+          "og:image": [
+            {
+              level: "error",
+              message: 'Missing required meta tag "og:image"',
+              source: "openframes",
+            },
+          ],
+        },
+        frame: {
+          accepts: [{ id: "some_protocol", version: "vNext" }],
+          version: "vNext",
+          image: "http://example.com/image.png",
+          postUrl: fallbackPostUrl,
+        },
+      });
     });
 
     it("parses og image", () => {
@@ -215,16 +252,21 @@ describe("open frames frame parser", () => {
     <meta name="og:image" content="http://example.com/og-image.png"/>
     `);
 
-      expect(parseOpenFramesFrame($, { farcasterFrame: {}, reporter })).toEqual(
-        {
-          frame: {
-            accepts: [{ id: "some_protocol", version: "vNext" }],
-            version: "vNext",
-            image: "http://example.com/image.png",
-            ogImage: "http://example.com/og-image.png",
-          },
-        }
-      );
+      expect(
+        parseOpenFramesFrame($, {
+          farcasterFrame: {},
+          fallbackPostUrl,
+          reporter,
+        })
+      ).toEqual({
+        frame: {
+          accepts: [{ id: "some_protocol", version: "vNext" }],
+          version: "vNext",
+          image: "http://example.com/image.png",
+          ogImage: "http://example.com/og-image.png",
+          postUrl: fallbackPostUrl,
+        },
+      });
     });
   });
 
@@ -236,24 +278,29 @@ describe("open frames frame parser", () => {
       <meta name="og:image" content="http://example.com/og-image.png"/>
       `);
 
-      expect(parseOpenFramesFrame($, { farcasterFrame: {}, reporter })).toEqual(
-        {
-          reports: {
-            "of:image": [
-              {
-                level: "error",
-                message: 'Missing required meta tag "of:image"',
-                source: "openframes",
-              },
-            ],
-          },
-          frame: {
-            accepts: [{ id: "some_protocol", version: "vNext" }],
-            version: "vNext",
-            ogImage: "http://example.com/og-image.png",
-          },
-        }
-      );
+      expect(
+        parseOpenFramesFrame($, {
+          farcasterFrame: {},
+          fallbackPostUrl,
+          reporter,
+        })
+      ).toEqual({
+        reports: {
+          "of:image": [
+            {
+              level: "error",
+              message: 'Missing required meta tag "of:image"',
+              source: "openframes",
+            },
+          ],
+        },
+        frame: {
+          accepts: [{ id: "some_protocol", version: "vNext" }],
+          version: "vNext",
+          ogImage: "http://example.com/og-image.png",
+          postUrl: fallbackPostUrl,
+        },
+      });
     });
 
     it("falls back to farcaster image if image is missing and of:accepts:farcaster is present", () => {
@@ -268,6 +315,7 @@ describe("open frames frame parser", () => {
           farcasterFrame: {
             image: "http://example.com/farcaster-image.png",
           },
+          fallbackPostUrl,
           reporter,
         })
       ).toEqual({
@@ -276,6 +324,7 @@ describe("open frames frame parser", () => {
           version: "vNext",
           image: "http://example.com/farcaster-image.png",
           ogImage: "http://example.com/og-image.png",
+          postUrl: fallbackPostUrl,
         },
       });
     });
@@ -288,16 +337,21 @@ describe("open frames frame parser", () => {
       <meta name="og:image" content="http://example.com/og-image.png"/>
       `);
 
-      expect(parseOpenFramesFrame($, { farcasterFrame: {}, reporter })).toEqual(
-        {
-          frame: {
-            accepts: [{ id: "some_protocol", version: "vNext" }],
-            version: "vNext",
-            image: "http://example.com/image.png",
-            ogImage: "http://example.com/og-image.png",
-          },
-        }
-      );
+      expect(
+        parseOpenFramesFrame($, {
+          farcasterFrame: {},
+          fallbackPostUrl,
+          reporter,
+        })
+      ).toEqual({
+        frame: {
+          accepts: [{ id: "some_protocol", version: "vNext" }],
+          version: "vNext",
+          image: "http://example.com/image.png",
+          ogImage: "http://example.com/og-image.png",
+          postUrl: fallbackPostUrl,
+        },
+      });
     });
   });
 
@@ -315,6 +369,7 @@ describe("open frames frame parser", () => {
           farcasterFrame: {
             imageAspectRatio: "1.91:1",
           },
+          fallbackPostUrl,
           reporter,
         })
       ).toEqual({
@@ -324,6 +379,7 @@ describe("open frames frame parser", () => {
           image: "http://example.com/image.png",
           ogImage: "http://example.com/og-image.png",
           imageAspectRatio: "1.91:1",
+          postUrl: fallbackPostUrl,
         },
       });
     });
@@ -337,17 +393,22 @@ describe("open frames frame parser", () => {
       <meta name="of:image:aspect_ratio" content="1.91:1"/>
       `);
 
-      expect(parseOpenFramesFrame($, { farcasterFrame: {}, reporter })).toEqual(
-        {
-          frame: {
-            accepts: [{ id: "some_protocol", version: "vNext" }],
-            version: "vNext",
-            image: "http://example.com/image.png",
-            ogImage: "http://example.com/og-image.png",
-            imageAspectRatio: "1.91:1",
-          },
-        }
-      );
+      expect(
+        parseOpenFramesFrame($, {
+          farcasterFrame: {},
+          fallbackPostUrl,
+          reporter,
+        })
+      ).toEqual({
+        frame: {
+          accepts: [{ id: "some_protocol", version: "vNext" }],
+          version: "vNext",
+          image: "http://example.com/image.png",
+          ogImage: "http://example.com/og-image.png",
+          imageAspectRatio: "1.91:1",
+          postUrl: fallbackPostUrl,
+        },
+      });
     });
   });
 
@@ -365,6 +426,7 @@ describe("open frames frame parser", () => {
           farcasterFrame: {
             inputText: "input text",
           },
+          fallbackPostUrl,
           reporter,
         })
       ).toEqual({
@@ -374,6 +436,7 @@ describe("open frames frame parser", () => {
           image: "http://example.com/image.png",
           ogImage: "http://example.com/og-image.png",
           inputText: "input text",
+          postUrl: fallbackPostUrl,
         },
       });
     });
@@ -387,17 +450,22 @@ describe("open frames frame parser", () => {
       <meta name="of:input:text" content="input text"/>
       `);
 
-      expect(parseOpenFramesFrame($, { farcasterFrame: {}, reporter })).toEqual(
-        {
-          frame: {
-            accepts: [{ id: "some_protocol", version: "vNext" }],
-            version: "vNext",
-            image: "http://example.com/image.png",
-            ogImage: "http://example.com/og-image.png",
-            inputText: "input text",
-          },
-        }
-      );
+      expect(
+        parseOpenFramesFrame($, {
+          farcasterFrame: {},
+          fallbackPostUrl,
+          reporter,
+        })
+      ).toEqual({
+        frame: {
+          accepts: [{ id: "some_protocol", version: "vNext" }],
+          version: "vNext",
+          image: "http://example.com/image.png",
+          ogImage: "http://example.com/og-image.png",
+          inputText: "input text",
+          postUrl: fallbackPostUrl,
+        },
+      });
     });
   });
 
@@ -412,27 +480,30 @@ describe("open frames frame parser", () => {
       <meta name="of:post_url" content="${url.toString()}"/>
       `);
 
-      expect(parseOpenFramesFrame($, { farcasterFrame: {}, reporter })).toEqual(
-        {
-          reports: {
-            "of:post_url": [
-              {
-                level: "error",
-                message:
-                  "Invalid URL. URL size exceeds 256 bytes limit (frames.js generates a longer post_url including system params).",
-                source: "openframes",
-              },
-            ],
-          },
-          frame: {
-            accepts: [{ id: "some_protocol", version: "vNext" }],
-            version: "vNext",
-            image: "http://example.com/image.png",
-            ogImage: "http://example.com/og-image.png",
-            postUrl: undefined,
-          },
-        }
-      );
+      expect(
+        parseOpenFramesFrame($, {
+          farcasterFrame: {},
+          fallbackPostUrl,
+          reporter,
+        })
+      ).toEqual({
+        reports: {
+          "of:post_url": [
+            {
+              level: "error",
+              message:
+                "Invalid URL. URL size exceeds 256 bytes limit (frames.js generates a longer post_url including system params).",
+              source: "openframes",
+            },
+          ],
+        },
+        frame: {
+          accepts: [{ id: "some_protocol", version: "vNext" }],
+          version: "vNext",
+          image: "http://example.com/image.png",
+          ogImage: "http://example.com/og-image.png",
+        },
+      });
     });
 
     it("does not fall back to fc:frame:post_url if of:accepts:farcaster is present and post url is missing", () => {
@@ -448,6 +519,7 @@ describe("open frames frame parser", () => {
           farcasterFrame: {
             postUrl: "http://test.com",
           },
+          fallbackPostUrl,
           reporter,
         })
       ).toEqual({
@@ -456,7 +528,7 @@ describe("open frames frame parser", () => {
           version: "vNext",
           image: "http://example.com/image.png",
           ogImage: "http://example.com/og-image.png",
-          postUrl: undefined,
+          postUrl: fallbackPostUrl,
         },
       });
     });
@@ -470,17 +542,21 @@ describe("open frames frame parser", () => {
       <meta name="of:post_url" content="http://example.com/post"/>
       `);
 
-      expect(parseOpenFramesFrame($, { farcasterFrame: {}, reporter })).toEqual(
-        {
-          frame: {
-            accepts: [{ id: "some_protocol", version: "vNext" }],
-            version: "vNext",
-            image: "http://example.com/image.png",
-            ogImage: "http://example.com/og-image.png",
-            postUrl: "http://example.com/post",
-          },
-        }
-      );
+      expect(
+        parseOpenFramesFrame($, {
+          farcasterFrame: {},
+          fallbackPostUrl,
+          reporter,
+        })
+      ).toEqual({
+        frame: {
+          accepts: [{ id: "some_protocol", version: "vNext" }],
+          version: "vNext",
+          image: "http://example.com/image.png",
+          ogImage: "http://example.com/og-image.png",
+          postUrl: "http://example.com/post",
+        },
+      });
     });
   });
 
@@ -498,6 +574,7 @@ describe("open frames frame parser", () => {
           farcasterFrame: {
             state: "state",
           },
+          fallbackPostUrl,
           reporter,
         })
       ).toEqual({
@@ -506,6 +583,7 @@ describe("open frames frame parser", () => {
           version: "vNext",
           image: "http://example.com/image.png",
           ogImage: "http://example.com/og-image.png",
+          postUrl: fallbackPostUrl,
           state: "state",
         },
       });
@@ -520,17 +598,22 @@ describe("open frames frame parser", () => {
       <meta name="of:state" content="state"/>
       `);
 
-      expect(parseOpenFramesFrame($, { farcasterFrame: {}, reporter })).toEqual(
-        {
-          frame: {
-            accepts: [{ id: "some_protocol", version: "vNext" }],
-            version: "vNext",
-            image: "http://example.com/image.png",
-            ogImage: "http://example.com/og-image.png",
-            state: "state",
-          },
-        }
-      );
+      expect(
+        parseOpenFramesFrame($, {
+          farcasterFrame: {},
+          fallbackPostUrl,
+          reporter,
+        })
+      ).toEqual({
+        frame: {
+          accepts: [{ id: "some_protocol", version: "vNext" }],
+          version: "vNext",
+          image: "http://example.com/image.png",
+          ogImage: "http://example.com/og-image.png",
+          postUrl: fallbackPostUrl,
+          state: "state",
+        },
+      });
     });
   });
 
@@ -546,24 +629,29 @@ describe("open frames frame parser", () => {
       <meta property="of:button:1:target" content="eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df" />
       `);
 
-      expect(parseOpenFramesFrame($, { farcasterFrame: {}, reporter })).toEqual(
-        {
-          frame: {
-            accepts: [{ id: "some_protocol", version: "vNext" }],
-            version: "vNext",
-            image: "http://example.com/image.png",
-            ogImage: "http://example.com/og-image.png",
-            buttons: [
-              {
-                label: "1",
-                action: "mint",
-                target:
-                  "eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df",
-              },
-            ],
-          },
-        }
-      );
+      expect(
+        parseOpenFramesFrame($, {
+          farcasterFrame: {},
+          fallbackPostUrl,
+          reporter,
+        })
+      ).toEqual({
+        frame: {
+          accepts: [{ id: "some_protocol", version: "vNext" }],
+          version: "vNext",
+          image: "http://example.com/image.png",
+          ogImage: "http://example.com/og-image.png",
+          postUrl: fallbackPostUrl,
+          buttons: [
+            {
+              label: "1",
+              action: "mint",
+              target:
+                "eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df",
+            },
+          ],
+        },
+      });
     });
   });
 });

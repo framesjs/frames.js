@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { LOCAL_STORAGE_KEYS } from "../constants";
 import { convertKeypairToHex, createKeypair } from "../lib/crypto";
 import {
-  FarcasterSignerState,
-  FarcasterSigner,
+  type FarcasterSignerState,
+  type FarcasterSigner,
   signFrameAction,
 } from "@frames.js/render";
 
@@ -239,7 +239,7 @@ export function useFarcasterIdentity(): FarcasterSignerState & {
   return {
     signer: farcasterUser,
     hasSigner: !!farcasterUser?.fid && !!farcasterUser.privateKey,
-    signFrameAction: signFrameAction,
+    signFrameAction,
     isLoading: null,
     isLoadingSigner: isLoading,
     impersonateUser,

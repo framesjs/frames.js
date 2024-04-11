@@ -2,6 +2,8 @@ import { load } from "cheerio";
 import { parseFarcasterFrame } from "./farcaster";
 import { createReporter } from "./reporter";
 
+const fallbackPostUrl = "http://fallback.com/post";
+
 describe("farcaster frame parser", () => {
   let reporter = createReporter("farcaster");
 
@@ -16,11 +18,14 @@ describe("farcaster frame parser", () => {
       <meta property="og:image" content="http://example.com/image.png" />
     `);
 
-    expect(parseFarcasterFrame(document, { reporter })).toEqual({
+    expect(
+      parseFarcasterFrame(document, { reporter, fallbackPostUrl })
+    ).toEqual({
       frame: {
         image: "http://example.com/image.png",
         ogImage: "http://example.com/image.png",
         version: "vNext",
+        postUrl: fallbackPostUrl,
       },
     });
   });
@@ -32,7 +37,9 @@ describe("farcaster frame parser", () => {
         <meta property="og:image" content="http://example.com/image.png" />
       `);
 
-      expect(parseFarcasterFrame(document, { reporter })).toMatchObject({
+      expect(
+        parseFarcasterFrame(document, { reporter, fallbackPostUrl })
+      ).toMatchObject({
         frame: {},
         reports: expect.objectContaining({
           "fc:frame": [
@@ -53,7 +60,9 @@ describe("farcaster frame parser", () => {
         <meta property="og:image" content="http://example.com/image.png" />
       `);
 
-      expect(parseFarcasterFrame(document, { reporter })).toMatchObject({
+      expect(
+        parseFarcasterFrame(document, { reporter, fallbackPostUrl })
+      ).toMatchObject({
         frame: {},
         reports: expect.objectContaining({
           "fc:frame": [
@@ -74,11 +83,14 @@ describe("farcaster frame parser", () => {
         <meta property="og:image" content="http://example.com/image.png" />
       `);
 
-      expect(parseFarcasterFrame(document, { reporter })).toEqual({
+      expect(
+        parseFarcasterFrame(document, { reporter, fallbackPostUrl })
+      ).toEqual({
         frame: {
           image: "http://example.com/image.png",
           ogImage: "http://example.com/image.png",
           version: "2022-01-01",
+          postUrl: fallbackPostUrl,
         },
       });
     });
@@ -91,7 +103,7 @@ describe("farcaster frame parser", () => {
     <meta name="fc:frame:image" content="http://example.com/image.png"/>
     `);
 
-      expect(parseFarcasterFrame($, { reporter })).toEqual({
+      expect(parseFarcasterFrame($, { reporter, fallbackPostUrl })).toEqual({
         reports: {
           "og:image": [
             {
@@ -104,6 +116,7 @@ describe("farcaster frame parser", () => {
         frame: {
           version: "vNext",
           image: "http://example.com/image.png",
+          postUrl: fallbackPostUrl,
         },
       });
     });
@@ -115,11 +128,12 @@ describe("farcaster frame parser", () => {
     <meta name="og:image" content="http://example.com/og-image.png"/>
     `);
 
-      expect(parseFarcasterFrame($, { reporter })).toEqual({
+      expect(parseFarcasterFrame($, { reporter, fallbackPostUrl })).toEqual({
         frame: {
           version: "vNext",
           image: "http://example.com/image.png",
           ogImage: "http://example.com/og-image.png",
+          postUrl: fallbackPostUrl,
         },
       });
     });
@@ -132,10 +146,13 @@ describe("farcaster frame parser", () => {
         <meta property="og:image" content="http://example.com/image.png" />
       `);
 
-      expect(parseFarcasterFrame(document, { reporter })).toMatchObject({
+      expect(
+        parseFarcasterFrame(document, { reporter, fallbackPostUrl })
+      ).toMatchObject({
         frame: {
           version: "vNext",
           ogImage: "http://example.com/image.png",
+          postUrl: fallbackPostUrl,
         },
         reports: expect.objectContaining({
           "fc:frame:image": [
@@ -156,10 +173,13 @@ describe("farcaster frame parser", () => {
         <meta property="fc:frame:image" content="http://example.com/image.png" />
       `);
 
-      expect(parseFarcasterFrame(document, { reporter })).toEqual({
+      expect(
+        parseFarcasterFrame(document, { reporter, fallbackPostUrl })
+      ).toEqual({
         frame: {
           image: "http://example.com/image.png",
           ogImage: "http://example.com/image.png",
+          postUrl: fallbackPostUrl,
           version: "vNext",
         },
       });
@@ -175,10 +195,13 @@ describe("farcaster frame parser", () => {
       <meta property="fc:frame:image:aspect_ratio" content="1:1" />
     `);
 
-      expect(parseFarcasterFrame(document, { reporter })).toEqual({
+      expect(
+        parseFarcasterFrame(document, { reporter, fallbackPostUrl })
+      ).toEqual({
         frame: {
           image: "http://example.com/image.png",
           version: "vNext",
+          postUrl: fallbackPostUrl,
           imageAspectRatio: "1:1",
           ogImage: "http://example.com/image.png",
         },
@@ -195,10 +218,13 @@ describe("farcaster frame parser", () => {
         <meta property="fc:frame:input:text" content="Enter a message" />
       `);
 
-      expect(parseFarcasterFrame(document, { reporter })).toEqual({
+      expect(
+        parseFarcasterFrame(document, { reporter, fallbackPostUrl })
+      ).toEqual({
         frame: {
           image: "http://example.com/image.png",
           version: "vNext",
+          postUrl: fallbackPostUrl,
           inputText: "Enter a message",
           ogImage: "http://example.com/image.png",
         },
@@ -216,7 +242,9 @@ describe("farcaster frame parser", () => {
         <meta property="fc:frame:post_url" content="${url.toString()}" />
       `);
 
-      expect(parseFarcasterFrame(document, { reporter })).toMatchObject({
+      expect(
+        parseFarcasterFrame(document, { reporter, fallbackPostUrl })
+      ).toMatchObject({
         frame: {
           version: "vNext",
           image: "http://example.com/image.png",
@@ -243,7 +271,9 @@ describe("farcaster frame parser", () => {
         <meta property="fc:frame:post_url" content="http://example.com/post" />
       `);
 
-      expect(parseFarcasterFrame(document, { reporter })).toEqual({
+      expect(
+        parseFarcasterFrame(document, { reporter, fallbackPostUrl })
+      ).toEqual({
         frame: {
           image: "http://example.com/image.png",
           version: "vNext",
@@ -263,10 +293,13 @@ describe("farcaster frame parser", () => {
         <meta property="fc:frame:state" content="state" />
       `);
 
-      expect(parseFarcasterFrame(document, { reporter })).toEqual({
+      expect(
+        parseFarcasterFrame(document, { reporter, fallbackPostUrl })
+      ).toEqual({
         frame: {
           image: "http://example.com/image.png",
           ogImage: "http://example.com/image.png",
+          postUrl: fallbackPostUrl,
           version: "vNext",
           state: "state",
         },
@@ -285,11 +318,14 @@ describe("farcaster frame parser", () => {
       <meta property="fc:frame:button:1:target" content="http://example.com" />
     `);
 
-      expect(parseFarcasterFrame(document, { reporter })).toEqual({
+      expect(
+        parseFarcasterFrame(document, { reporter, fallbackPostUrl })
+      ).toEqual({
         frame: {
           image: "http://example.com/image.png",
           version: "vNext",
           ogImage: "http://example.com/image.png",
+          postUrl: fallbackPostUrl,
           buttons: [
             {
               label: "1",

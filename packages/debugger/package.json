@@ -72,6 +72,7 @@
     "build": "rimraf .next && next build",
     "start": "next start",
     "lint": "next lint",
+    "check:types": "tsc --noEmit",
     "prepublishOnly": "npm run build"
   },
   "postcss": {
