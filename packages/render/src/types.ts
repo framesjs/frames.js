@@ -130,7 +130,7 @@ export type FrameState = {
     frameButton: FrameButton,
     index: number
   ) => void | Promise<void>;
-  homeframeUrl: string | null;
+  homeframeUrl: string | null | undefined;
 };
 
 export type OnMintArgs = {
