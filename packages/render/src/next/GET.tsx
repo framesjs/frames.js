@@ -18,9 +18,9 @@ export async function GET(request: NextRequest): Promise<NextResponseBase> {
     const urlRes = await fetch(url);
     const htmlString = await urlRes.text();
 
-    const { frame, errors } = getFrame({ htmlString, url });
+    const result = getFrame({ htmlString, url });
 
-    return NextResponse.json({ frame, errors });
+    return NextResponse.json(result);
   } catch (err) {
     // eslint-disable-next-line no-console -- provide feedback to the developer
     console.error(err);

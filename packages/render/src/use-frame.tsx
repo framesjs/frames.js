@@ -3,7 +3,7 @@
 /* eslint-disable no-alert -- provide feedback */
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import type {
   FrameActionPayload,
   FrameButton,
@@ -22,6 +22,7 @@ import type {
   FrameRequest,
   UseFrameReturn,
   OnTransactionArgs,
+  FrameStackRequestError,
 } from "./types";
 import { PresentableError } from "./errors";
 
@@ -84,6 +85,54 @@ export const fallbackFrameContext: FrameContext = {
   connectedAddress: "0x0000000000000000000000000000000000000001",
 };
 
+function computeDurationInSeconds(start: Date, end: Date): number {
+  return Number(((end.getTime() - start.getTime()) / 1000).toFixed(2));
+}
+
+type FrameActions =
+  | {
+      action: "LOAD";
+      item: FrameStackPending;
+    }
+  | {
+      action: "REQUEST_ERROR";
+      pendingItem: FrameStackPending;
+      item: FrameStackRequestError;
+    }
+  | {
+      action: "DONE";
+      pendingItem: FrameStackPending;
+      item: FramesStack[number];
+    }
+  | { action: "CLEAR" };
+
+function framesStackReducer(
+  state: FramesStack,
+  action: FrameActions
+): FramesStack {
+  switch (action.action) {
+    case "LOAD":
+      return [action.item, ...state];
+    case "DONE": {
+      const index = state.findIndex(
+        (item) => item.timestamp === action.pendingItem.timestamp
+      );
+
+      if (index === -1) {
+        return state;
+      }
+
+      state[index] = action.item;
+
+      return state.slice();
+    }
+    case "CLEAR":
+      return [];
+    default:
+      return state;
+  }
+}
+
 export function useFrame<
   T = object,
   B extends FrameActionBodyPayload = FrameActionPayload,
@@ -104,111 +153,148 @@ export function useFrame<
   const [inputText, setInputText] = useState("");
   const initialFrame = useMemo(() => {
     if (frame) {
-      return { frame, errors: null };
+      return { frame };
     }
     return undefined;
   }, [frame]);
-
-  const [framesStack, setFramesStack] = useState<FramesStack>(
-    initialFrame
-      ? [
+  const reducerInitArg = useMemo(
+    () => ({ initialFrame, homeframeUrl }),
+    [initialFrame, homeframeUrl]
+  );
+  const [framesStack, dispatch] = useReducer(
+    framesStackReducer,
+    reducerInitArg,
+    (args): FramesStack => {
+      if (args.initialFrame) {
+        return [
           {
             method: "GET",
             responseStatus: 200,
             timestamp: new Date(),
-            url: homeframeUrl ?? "",
-            isValid: true,
-            frameValidationErrors: null,
+            url: args.homeframeUrl ?? "",
             speed: 0,
-            ...initialFrame,
+            ...args.initialFrame,
+            status: "success",
           },
-        ]
-      : []
+        ];
+      } else if (args.homeframeUrl) {
+        // prevent flash of empty if will shortly set this in first rerender
+        // this is then handled by fetchFrame having second argument set to true so the stack is cleared
+        return [
+          {
+            method: "GET",
+            timestamp: new Date(),
+            url: args.homeframeUrl,
+            status: "pending",
+          },
+        ];
+      }
+
+      return [];
+    }
   );
 
-  const [isLoading, setIsLoading] = useState<FrameStackPending | null>(
-    // prevent flash of empty if will shortly set this in first rerender
-    homeframeUrl && !initialFrame
-      ? {
-          method: "GET" as const,
-          timestamp: new Date(),
-          url: homeframeUrl,
-        }
-      : null
-  );
+  async function fetchFrame(
+    frameRequest: FrameRequest,
+    shouldClear = false
+  ): Promise<void> {
+    const startTime = new Date();
 
-  async function fetchFrame(frameRequest: FrameRequest): Promise<void> {
+    if (shouldClear) {
+      // this clears initial frame since that is loading from SSR since we aren't able to finish it.
+      // not an ideal solution
+      dispatch({ action: "CLEAR" });
+    }
+
     if (frameRequest.method === "GET") {
-      const tstart = new Date();
-
-      const frameStackBase = {
-        request: {},
+      const frameStackPendingItem: FrameStackPending = {
         method: "GET" as const,
-        timestamp: tstart,
+        timestamp: startTime,
         url: frameRequest.url,
+        status: "pending",
       };
-      setIsLoading(frameStackBase);
+      dispatch({ action: "LOAD", item: frameStackPendingItem });
 
-      let requestError: unknown = null;
-      let newFrame: ReturnType<typeof getFrame> | null = null;
       const searchParams = new URLSearchParams({ url: frameRequest.url });
       const proxiedUrl = `${frameGetProxy}?${searchParams.toString()}`;
 
-      let stackItem: FramesStack[number];
       let response;
+      let endTime = new Date();
       try {
-        response = await fetch(proxiedUrl);
+        let stackItem: FramesStack[number];
+
+        response = await fetch(proxiedUrl).finally(() => {
+          endTime = new Date();
+        });
 
         if (!response.ok) {
           throw new Error(`Failed to fetch frame: ${response.statusText}`);
         }
 
-        newFrame = (await response.json()) as ReturnType<typeof getFrame>;
-        const tend = new Date();
+        const newFrame = (await response.json()) as ReturnType<typeof getFrame>;
+        const speed = computeDurationInSeconds(startTime, endTime);
 
-        stackItem = {
-          ...frameStackBase,
-          frame: newFrame.frame,
-          frameValidationErrors: newFrame.errors,
-          speed: Number(
-            ((tend.getTime() - tstart.getTime()) / 1000).toFixed(2)
-          ),
-          responseStatus: response.status,
-          isValid: Object.keys(newFrame.errors ?? {}).length === 0,
-        };
+        if ("reports" in newFrame) {
+          stackItem = {
+            ...frameStackPendingItem,
+            frame: newFrame.frame,
+            frameValidationReports: newFrame.reports,
+            speed,
+            responseStatus: response.status,
+            status: "error",
+          };
+        } else {
+          stackItem = {
+            ...frameStackPendingItem,
+            frame: newFrame.frame,
+            speed,
+            responseStatus: response.status,
+            status: "success",
+          };
+        }
+
+        dispatch({
+          action: "DONE",
+          pendingItem: frameStackPendingItem,
+          item: stackItem,
+        });
       } catch (err) {
-        const tend = new Date();
-
-        stackItem = {
-          ...frameStackBase,
+        const stackItem: FrameStackRequestError = {
+          ...frameStackPendingItem,
           url: frameRequest.url,
           responseStatus: response?.status ?? 500,
-          requestError,
-          speed: Number(
-            ((tend.getTime() - tstart.getTime()) / 1000).toFixed(2)
-          ),
+          requestError: err,
+          speed: computeDurationInSeconds(startTime, endTime),
+          status: "requestError",
         };
 
-        requestError = err;
+        dispatch({
+          action: "REQUEST_ERROR",
+          pendingItem: frameStackPendingItem,
+          item: stackItem,
+        });
       }
-      setFramesStack((v) => [stackItem, ...v]);
     } else {
-      const tstart = new Date();
-      const frameStackBase = {
+      const frameStackPendingItem: FrameStackPending = {
         method: "POST" as const,
         request: {
           searchParams: frameRequest.request.searchParams,
           body: frameRequest.request.body,
         },
-        timestamp: tstart,
+        timestamp: startTime,
         url: frameRequest.url,
+        status: "pending",
       };
-      setIsLoading(frameStackBase);
-      let stackItem: FramesStack[number] | undefined;
+
+      dispatch({ action: "LOAD", item: frameStackPendingItem });
+
       const proxiedUrl = `${frameActionProxy}?${frameRequest.request.searchParams.toString()}`;
 
       let response;
+      let endTime = new Date();
+
       try {
+        let stackItem: FramesStack[number];
         response = await fetch(proxiedUrl, {
           method: "POST",
           headers: {
@@ -218,6 +304,8 @@ export function useFrame<
             ...extraButtonRequestPayload,
             ...frameRequest.request.body,
           }),
+        }).finally(() => {
+          endTime = new Date();
         });
 
         if (!response.ok) {
@@ -236,7 +324,6 @@ export function useFrame<
         const dataRes = (await response.json()) as
           | ReturnType<typeof getFrame>
           | { location: string };
-        const tend = new Date();
 
         if ("location" in dataRes) {
           const location = dataRes.location;
@@ -244,39 +331,50 @@ export function useFrame<
           if (window.confirm(`You are about to be redirected to ${location}`)) {
             window.open(location, "_blank")?.focus();
           }
+
+          return;
+        } else if ("reports" in dataRes) {
+          stackItem = {
+            ...frameStackPendingItem,
+            responseStatus: response.status,
+            speed: computeDurationInSeconds(startTime, endTime),
+            frame: dataRes.frame,
+            frameValidationReports: dataRes.reports,
+            status: "error",
+          };
         } else {
           stackItem = {
-            ...frameStackBase,
+            ...frameStackPendingItem,
             responseStatus: response.status,
-            speed: Number(
-              ((tend.getTime() - tstart.getTime()) / 1000).toFixed(2)
-            ),
+            speed: computeDurationInSeconds(startTime, endTime),
             frame: dataRes.frame,
-            frameValidationErrors: dataRes.errors,
-            isValid: Object.keys(dataRes.errors ?? {}).length === 0,
+            status: "success",
           };
         }
+
+        dispatch({
+          action: "DONE",
+          pendingItem: frameStackPendingItem,
+          item: stackItem,
+        });
       } catch (err) {
-        const tend = new Date();
-        const baseItem =
-          err instanceof PresentableError
-            ? { ...framesStack[0], ...frameStackBase }
-            : frameStackBase;
-        stackItem = {
-          ...baseItem,
+        const stackItem: FrameStackRequestError = {
+          ...frameStackPendingItem,
           responseStatus: response?.status ?? 500,
           requestError: err,
-          speed: Number(
-            ((tend.getTime() - tstart.getTime()) / 1000).toFixed(2)
-          ),
+          speed: computeDurationInSeconds(startTime, endTime),
+          status: "requestError",
         };
+
+        dispatch({
+          action: "REQUEST_ERROR",
+          pendingItem: frameStackPendingItem,
+          item: stackItem,
+        });
 
         console.error(err);
       }
-
-      setFramesStack((v) => (stackItem ? [stackItem, ...v] : v));
     }
-    setIsLoading(null);
   }
 
   const fetchFrameRef = useRef(fetchFrame);
@@ -286,65 +384,45 @@ export function useFrame<
   useEffect(() => {
     if (!initialFrame && homeframeUrl) {
       fetchFrameRef
-        .current({
-          url: homeframeUrl,
-          method: "GET",
-        })
+        .current(
+          {
+            url: homeframeUrl,
+            method: "GET",
+          },
+          // tell the fetchFrame function to clear the stack because this is called only on initial render
+          // and there could potentially be a pending object returned from SSR
+          true
+        )
         .catch((e) => {
           console.error(e);
         });
     }
   }, [initialFrame, homeframeUrl]);
 
-  function getCurrentFrame(): ReturnType<typeof getFrame>["frame"] | null {
-    const [latestFrame] = framesStack;
-
-    return latestFrame && "frame" in latestFrame ? latestFrame.frame : null;
-  }
-
-  function isCurrentFrameValid(): boolean | undefined {
-    const [latestFrame] = framesStack;
-
-    return latestFrame && "frameValidationErrors" in latestFrame
-      ? Object.keys(latestFrame.frameValidationErrors ?? {}).length === 0
-      : undefined;
-  }
-
-  function getCurrentFrameValidationErrors():
-    | Record<string, string[]>
-    | null
-    | undefined {
-    const [latestFrame] = framesStack;
-
-    return latestFrame && "frameValidationErrors" in latestFrame
-      ? latestFrame.frameValidationErrors
-      : null;
-  }
-
-  function getCurrentFrameRequestError(): unknown {
-    const [latestFrame] = framesStack;
-
-    return latestFrame && "requestError" in latestFrame
-      ? latestFrame.requestError
-      : null;
-  }
-
   async function onButtonPress(
     frameButton: FrameButton,
     index: number
   ): Promise<void> {
-    const currentFrame = getCurrentFrame();
+    const [latestFrame] = framesStack;
 
-    if (!currentFrame) {
+    if (!latestFrame) {
       // todo: proper error handling
       console.error("missing frame");
       return;
     }
+
+    if (latestFrame.status !== "success") {
+      window.alert("Frame is not ready yet or failed");
+      return;
+    }
+
     if (!signerState.hasSigner && !dangerousSkipSigning) {
       signerState.onSignerlessFramePress();
       // don't continue, let the app handle
       return;
     }
+
+    const currentFrame = latestFrame.frame;
 
     switch (frameButton.action) {
       case "link": {
@@ -453,13 +531,13 @@ export function useFrame<
 
     target: string;
   }): Promise<void> {
-    const currentFrame = getCurrentFrame();
+    const currentFrameStackItem = framesStack[0];
 
     if (!isDangerousSkipSigning && !signerState.hasSigner) {
       console.error("frames.js: missing required auth state");
       return;
     }
-    if (!currentFrame || !homeframeUrl) {
+    if (!currentFrameStackItem || !homeframeUrl) {
       console.error("frames.js: missing required value for post");
       return;
     }
@@ -506,13 +584,13 @@ export function useFrame<
     target: string;
   }): Promise<TransactionTargetResponse | undefined> {
     // Send post request to get calldata
-    const currentFrame = getCurrentFrame();
+    const currentFrameStackItem = framesStack[0];
 
     if (!dangerousSkipSigning && !signerState.hasSigner) {
       console.error("frames.js: missing required auth state");
       return;
     }
-    if (!currentFrame || !homeframeUrl) {
+    if (!currentFrameStackItem || !homeframeUrl) {
       console.error("frames.js: missing required value for post");
       return;
     }
@@ -556,19 +634,15 @@ export function useFrame<
   }
 
   return {
-    isLoading,
     inputText,
     setInputText,
     clearFrameStack: () => {
-      setFramesStack([]);
+      dispatch({ action: "CLEAR" });
     },
     onButtonPress,
     fetchFrame,
     homeframeUrl,
     framesStack,
-    frame: getCurrentFrame() ?? null,
-    isFrameValid: isCurrentFrameValid(),
-    frameValidationErrors: getCurrentFrameValidationErrors(),
-    error: getCurrentFrameRequestError(),
+    frame: framesStack[0],
   };
 }

@@ -8,8 +8,8 @@ export const fallbackFrameContext: FrameContext = {
   connectedAddress: "0x0000000000000000000000000000000000000001",
 };
 
-export * from "./frame-ui.js";
-export * from "./types.js";
+export * from "./frame-ui";
+export * from "./types";
 export * from "./farcaster";
 
 /** don't export use-frame from here, as it's a client component */

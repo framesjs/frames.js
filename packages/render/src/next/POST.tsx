@@ -49,12 +49,12 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     const htmlString = await r.text();
 
-    const { frame, errors } = getFrame({
+    const result = getFrame({
       htmlString,
       url: body.untrustedData.url,
     });
 
-    return Response.json({ frame, errors });
+    return Response.json(result);
   } catch (err) {
     // eslint-disable-next-line no-console -- provide feedback to the user
     console.error(err);
