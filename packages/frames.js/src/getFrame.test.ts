@@ -21,38 +21,43 @@ describe("getFrame", () => {
         url: "https://example.com",
       })
     ).toMatchObject({
-      frame: {
-        version: "vNext",
-        image: "http://example.com/image.png",
-        ogImage: undefined,
-        buttons: [
-          {
-            label: "Green",
-            action: "post",
-            target: undefined,
-          },
-          {
-            label: "Purple",
-            action: "post",
-            target: undefined,
-          },
-          {
-            label: "Red",
-            action: "post",
-            target: undefined,
-          },
-          {
-            label: "Blue",
-            action: "post",
-            target: undefined,
-          },
-        ],
-        postUrl: "https://example.com/",
-        inputText: "Enter a message",
-        imageAspectRatio: undefined,
-        accepts: [],
+      farcaster: {
+        frame: {
+          version: "vNext",
+          image: "http://example.com/image.png",
+          buttons: [
+            {
+              label: "Green",
+              action: "post",
+              target: undefined,
+            },
+            {
+              label: "Purple",
+              action: "post",
+              target: undefined,
+            },
+            {
+              label: "Red",
+              action: "post",
+              target: undefined,
+            },
+            {
+              label: "Blue",
+              action: "post",
+              target: undefined,
+            },
+          ],
+          postUrl: "https://example.com/",
+          inputText: "Enter a message",
+        },
+        reports: expect.any(Object) as unknown,
       },
-      reports: expect.any(Object) as unknown,
+      openframes: {
+        frame: {
+          accepts: [],
+        },
+        reports: expect.any(Object) as unknown,
+      },
     });
   });
 
@@ -77,38 +82,45 @@ describe("getFrame", () => {
     });
 
     expect(frame).toEqual({
-      frame: {
-        version: "vNext",
-        image: "http://example.com/image.png",
-        ogImage: undefined,
-        buttons: [
-          {
-            label: "1",
-            action: "post",
-            target: undefined,
-          },
-          {
-            label: "2",
-            action: "post_redirect",
-            target: undefined,
-          },
-          {
-            label: "3",
-            action: "link",
-            target: "https://example.com",
-          },
-          {
-            label: "Mint",
-            action: "mint",
-            target: "eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df",
-          },
-        ],
-        postUrl: "https://example.com/",
-        inputText: undefined,
-        imageAspectRatio: undefined,
-        accepts: [],
+      farcaster: {
+        frame: {
+          version: "vNext",
+          image: "http://example.com/image.png",
+          ogImage: undefined,
+          buttons: [
+            {
+              label: "1",
+              action: "post",
+              target: undefined,
+            },
+            {
+              label: "2",
+              action: "post_redirect",
+              target: undefined,
+            },
+            {
+              label: "3",
+              action: "link",
+              target: "https://example.com",
+            },
+            {
+              label: "Mint",
+              action: "mint",
+              target:
+                "eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df",
+            },
+          ],
+          postUrl: "https://example.com/",
+        },
+        reports: expect.any(Object) as unknown,
       },
-      reports: expect.any(Object) as unknown,
+      openframes: {
+        frame: {
+          accepts: [],
+          postUrl: "https://example.com/",
+        },
+        reports: expect.any(Object) as unknown,
+      },
     });
   });
 
@@ -156,7 +168,15 @@ describe("getFrame", () => {
     });
 
     expect(parsedFrame).toEqual({
-      frame: exampleFrame,
+      farcaster: {
+        frame: {
+          ...exampleFrame,
+          accepts: undefined,
+        },
+      },
+      openframes: {
+        frame: exampleFrame,
+      },
     });
   });
 
@@ -175,39 +195,45 @@ describe("getFrame", () => {
     const frame = getFrame({ htmlString: html, url: "https://example.com" });
 
     expect(frame).toEqual({
-      frame: {
-        version: "vNext",
-        image: "http://example.com/image.png",
-        ogImage: undefined,
-        buttons: [
-          {
-            label: "Green",
-            action: "post",
-            target: undefined,
-          },
-          {
-            label: "Purple",
-            action: "post",
-            target: undefined,
-          },
-          {
-            label: "Red",
-            action: "post",
-            target: undefined,
-          },
-          {
-            label: "Blue",
-            action: "post",
-            target: undefined,
-          },
-        ],
-        postUrl: "https://example.com/",
-        inputText: "Enter a message",
-        imageAspectRatio: undefined,
-        accepts: [],
-        state: undefined,
+      farcaster: {
+        frame: {
+          postUrl: "https://example.com/",
+        },
+        reports: expect.any(Object) as unknown,
       },
-      reports: expect.any(Object) as unknown,
+      openframes: {
+        frame: {
+          accepts: [],
+          version: "vNext",
+          image: "http://example.com/image.png",
+          ogImage: undefined,
+          buttons: [
+            {
+              label: "Green",
+              action: "post",
+              target: undefined,
+            },
+            {
+              label: "Purple",
+              action: "post",
+              target: undefined,
+            },
+            {
+              label: "Red",
+              action: "post",
+              target: undefined,
+            },
+            {
+              label: "Blue",
+              action: "post",
+              target: undefined,
+            },
+          ],
+          postUrl: "https://example.com/",
+          inputText: "Enter a message",
+        },
+        reports: expect.any(Object) as unknown,
+      },
     });
   });
 

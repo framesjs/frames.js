@@ -117,7 +117,6 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
       // and handle that error in catch block
       const frame: Frame = {
         version: "vNext",
-        postUrl: "",
         state,
         // @todo rendering image could be moved to its own middleware instead so users can use something different if they want to?
         // but that would mean that we need to specify middleware manually in any app since importing it here in default middleware

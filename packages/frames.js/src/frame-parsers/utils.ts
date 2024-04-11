@@ -2,7 +2,7 @@ import type { CheerioAPI } from "cheerio";
 import type { FrameButton, ImageAspectRatio } from "../types";
 import { getByteLength } from "../utils";
 import { getTokenFromUrl } from "../getTokenFromUrl";
-import type { ParsingReport, ParsedButton, Reporter } from "./types";
+import type { ParsedButton, Reporter } from "./types";
 
 export function validate<TValidator extends (...args: any) => any>(
   reporter: Reporter,
@@ -446,38 +446,4 @@ export function getMetaTag(
   }
 
   return value ?? defaultValue;
-}
-
-export function mergeErrors(
-  a: Record<string, ParsingReport[]> | undefined,
-  b: Record<string, ParsingReport[]> | undefined
-): Record<string, ParsingReport[]> | undefined {
-  if (a && !b) {
-    return a;
-  }
-
-  if (!a && b) {
-    return b;
-  }
-
-  if (!a && !b) {
-    return undefined;
-  }
-
-  if (a === undefined && b === undefined) {
-    return undefined;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- can't be undefined
-  const allKeys = new Set([...Object.keys(a!), ...Object.keys(b!)]);
-  const mergedErrors: Record<string, ParsingReport[]> = {};
-
-  for (const key of allKeys) {
-    const errorsA = a?.[key]?.slice() || [];
-    const errorsB = b?.[key]?.slice() || [];
-
-    mergedErrors[key] = [...errorsA, ...errorsB];
-  }
-
-  return mergedErrors;
 }

@@ -17,6 +17,7 @@ import {
 type Options = {
   farcasterFrame: Partial<Frame>;
   reporter: Reporter;
+  fallbackPostUrl: string;
 };
 
 type ParsedOpenFramesFrame = ParsedFrame & {
@@ -25,7 +26,7 @@ type ParsedOpenFramesFrame = ParsedFrame & {
 
 export function parseOpenFramesFrame(
   $: CheerioAPI,
-  { farcasterFrame, reporter }: Options
+  { fallbackPostUrl, farcasterFrame, reporter }: Options
 ): ParseResult {
   let fallsBackToFarcaster = false;
   let fallbackFrameData: Partial<Frame> = {};
@@ -73,7 +74,7 @@ export function parseOpenFramesFrame(
       fallbackFrameData.imageAspectRatio
     ),
     inputText: getMetaTag($, "of:input:text", fallbackFrameData.inputText),
-    postUrl: getMetaTag($, "of:post_url"),
+    postUrl: getMetaTag($, "of:post_url") ?? fallbackPostUrl,
     state: getMetaTag($, "of:state", fallbackFrameData.state),
   };
   const frame: Partial<Frame> = {

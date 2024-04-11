@@ -9,8 +9,18 @@ import { SignerStateInstance } from "@frames.js/render";
 ## Reference
 
 ```ts [frames.js/render/types.ts]
-import type { Frame, FrameButton } from "..";
-import { FarcasterFrameContext } from "./farcaster";
+import type {
+  Frame,
+  FrameButton,
+  ParsingReport,
+  TransactionTargetResponse,
+  getFrame,
+} from "frames.js";
+import type { FarcasterFrameContext } from "./farcaster/frames";
+
+export type OnTransactionFunc = (
+  t: OnTransactionArgs
+) => Promise<`0x${string}` | null>;
 
 export type UseFrameReturn<
   T = object,
@@ -24,12 +34,14 @@ export type UseFrameReturn<
   frameGetProxy: string;
   /** an signer state object used to determine what actions are possible */
   signerState: SignerStateInstance<T, B>;
-  /** the url of the homeframe, if null won't load a frame */
-  homeframeUrl: string | null;
+  /** the url of the homeframe, if null / undefined won't load a frame */
+  homeframeUrl: string | null | undefined;
   /** the initial frame. if not specified will fetch it from the url prop */
   frame?: Frame;
   /** a function to handle mint buttons */
-  onMint?: (t: onMintArgs) => void;
+  onMint?: (t: OnMintArgs) => void;
+  /** a function to handle transaction buttons, returns the transaction hash or null */
+  onTransaction?: OnTransactionFunc;
   /** the context of this frame, used for generating Frame Action payloads */
   frameContext: FrameContext;
   /**
@@ -52,6 +64,7 @@ export interface SignerStateInstance<
     inputText?: string;
     signer: T | null;
     state?: string;
+    transactionId?: `0x${string}`;
     frameContext: FrameContext;
   }) => Promise<{
     body: B;
@@ -69,7 +82,6 @@ export interface SignerStateInstance<
 export type FrameRequest =
   | {
       method: "GET";
-      request: {};
       url: string;
     }
   | {
@@ -81,49 +93,75 @@ export type FrameRequest =
       url: string;
     };
 
-export type FrameStackPending = {
+export type FrameStackBase = {
   timestamp: Date;
-} & FrameRequest;
-
-export type FrameStackBase = FrameStackPending & {
   /** speed in seconds */
   speed: number;
   responseStatus: number;
+} & FrameRequest;
+
+export type FrameStackPending = {
+  timestamp: Date;
+  status: "pending";
+} & FrameRequest;
+
+type GetFrameResult = ReturnType<typeof getFrame>;
+
+export type FrameStackDone = FrameStackBase & {
+  frames: Record<
+    keyof GetFrameResult,
+    | { frame: Frame; status: "valid" }
+    | {
+        frame: Partial<Frame>;
+        reports: Record<string, ParsingReport[]>;
+        status: "invalid";
+      }
+    | {
+        frame: Partial<Frame>;
+        reports: Record<string, ParsingReport[]>;
+        status: "warnings";
+      }
+  >;
+  status: "done";
 };
 
-export type FrameStackSuccess = FrameStackBase & {
-  frame: Frame;
-  frameValidationErrors: null | Record<string, string[]>;
-  isValid: boolean;
-};
-
-export type FrameStackError = FrameStackBase & {
+export type FrameStackRequestError = FrameStackBase & {
+  status: "requestError";
   requestError: unknown;
 };
 
-export type FramesStack = Array<FrameStackSuccess | FrameStackError>;
+export type FramesStackItem =
+  | FrameStackPending
+  | FrameStackDone
+  | FrameStackRequestError;
+
+export type FramesStack = FramesStackItem[];
 
 export type FrameState = {
-  fetchFrame: (request: FrameRequest) => void;
+  fetchFrame: (request: FrameRequest) => void | Promise<void>;
   clearFrameStack: () => void;
   /** The frame at the top of the stack (at index 0) */
-  frame: Frame | null;
+  frame: FramesStackItem | undefined;
   /** A stack of frames with additional context, with the most recent frame at index 0 */
   framesStack: FramesStack;
-  /** isLoading frame */
-  isLoading?: null | FrameStackPending;
   inputText: string;
   setInputText: (s: string) => void;
-  onButtonPress: (frameButton: FrameButton, index: number) => void;
-  /** Whether the frame at the top of the stack has any frame validation errors. Undefined when the frame is not loaded or set */
-  isFrameValid: boolean | undefined;
-  frameValidationErrors: Record<string, string[]> | undefined | null;
-  error: null | unknown;
-  homeframeUrl: string | null;
+  onButtonPress: (
+    frame: Frame,
+    frameButton: FrameButton,
+    index: number
+  ) => void | Promise<void>;
+  homeframeUrl: string | null | undefined;
 };
 
-export type onMintArgs = {
+export type OnMintArgs = {
   target: string;
+  frameButton: FrameButton;
+  frame: Frame;
+};
+
+export type OnTransactionArgs = {
+  transactionData: TransactionTargetResponse;
   frameButton: FrameButton;
   frame: Frame;
 };
@@ -139,7 +177,7 @@ export const themeParams = [
 
 export type FrameTheme = Partial<Record<(typeof themeParams)[number], string>>;
 
-export interface FrameActionBodyPayload {}
+export type FrameActionBodyPayload = Record<string, unknown>;
 
 export type FrameContext = FarcasterFrameContext;
 ```
