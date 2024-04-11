@@ -19,8 +19,10 @@ describe("getFrameHtmlHead", () => {
 
     const result = getFrame({ htmlString: html, url: "http://framesjs.org" });
 
-    expect(result.frame).toMatchObject(frame);
-    expect(JSON.parse(result.frame.state as unknown as string)).toEqual(json);
+    expect(result.farcaster.frame).toMatchObject(frame);
+    expect(
+      JSON.parse(result.farcaster.frame.state as unknown as string)
+    ).toEqual(json);
   });
 
   it("correctly serializes JSON containing double quotes", () => {
@@ -39,8 +41,10 @@ describe("getFrameHtmlHead", () => {
 
     const result = getFrame({ htmlString: html, url: "http://framesjs.org" });
 
-    expect(result.frame).toMatchObject(frame);
-    expect(JSON.parse(result.frame.state as unknown as string)).toEqual(json);
+    expect(result.farcaster.frame).toMatchObject(frame);
+    expect(
+      JSON.parse(result.farcaster.frame.state as unknown as string)
+    ).toEqual(json);
   });
 
   it("correctly serializes and deserializes text input containing single quotes", () => {
@@ -59,7 +63,7 @@ describe("getFrameHtmlHead", () => {
 
     const result = getFrame({ htmlString: html, url: "http://framesjs.org" });
 
-    expect(result.frame).toMatchObject(frame);
+    expect(result.farcaster.frame).toMatchObject(frame);
   });
 
   it("correctly serializes and deserializes text input containing double quoes", () => {
@@ -78,6 +82,6 @@ describe("getFrameHtmlHead", () => {
 
     const result = getFrame({ htmlString: html, url: "http://framesjs.org" });
 
-    expect(result.frame).toMatchObject(frame);
+    expect(result.farcaster.frame).toMatchObject(frame);
   });
 });

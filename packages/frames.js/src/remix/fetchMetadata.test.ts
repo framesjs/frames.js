@@ -20,7 +20,6 @@ describe("fetchMetaData", () => {
         "fc:frame": "vNext",
         "fc:frame:image": "imageUrl",
         "fc:frame:post_url": "",
-        "og:image": "",
       } satisfies FrameFlattened);
 
     const metadata = await fetchMetadata(
