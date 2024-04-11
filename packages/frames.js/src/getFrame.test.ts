@@ -246,6 +246,6 @@ describe("getFrame", () => {
 
     const frame = getFrame({ htmlString: html, url: "https://example.com" });
 
-    expect(JSON.parse(frame.frame.state || "")).toEqual({ test: "'><&" });
+    expect(JSON.parse(frame.farcaster.frame.state || "")).toEqual({ test: "'><&" });
   });
 });
