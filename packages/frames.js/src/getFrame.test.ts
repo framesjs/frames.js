@@ -258,4 +258,16 @@ describe("getFrame", () => {
 
     expect(frame.frame).toEqual(sampleFrame);
   });
+
+  it("should parse values with escaped html values", () => {
+    const html = `
+    <meta name="of:version" content="vNext" />
+    <meta name="of:image" content="http://example.com/image.png" />
+    <meta name="fc:frame:state" content="{&quot;test&quot;:&quot;&#39;&gt;&lt;&&quot;}"/>
+  `;
+
+    const frame = getFrame({ htmlString: html, url: "https://example.com" });
+
+    expect(JSON.parse(frame.frame.state || "")).toEqual({ test: "'><&" });
+  });
 });
