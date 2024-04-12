@@ -24,7 +24,7 @@ const LoginWindow = dynamic(() => import("./components/create-signer"), {
   ssr: false,
 });
 
-const FALLBACK_URL = process.env.NEXT_PUBLIC_HOST || 'http://localhost:3000';
+const FALLBACK_URL = process.env.NEXT_PUBLIC_HOST || "http://localhost:3000";
 
 export default function App({
   searchParams,
@@ -116,7 +116,7 @@ export default function App({
   );
 
   const frameState = useFrame({
-    homeframeUrl: url,
+    homeframeUrl: url || null,
     frameActionProxy: "/frames",
     frameGetProxy: "/frames",
     frameContext: {
@@ -186,13 +186,11 @@ export default function App({
             className="flex flex-row"
             onSubmit={(e) => {
               e.preventDefault();
-              const newUrl = new FormData(e.currentTarget).get('url')?.toString() || '';
+              const newUrl =
+                new FormData(e.currentTarget).get("url")?.toString() || "";
 
               if (
-                !(
-                  newUrl.startsWith("http://") ||
-                  newUrl.startsWith("https://")
-                )
+                !(newUrl.startsWith("http://") || newUrl.startsWith("https://"))
               ) {
                 alert("URL must start with http:// or https://");
                 return;
@@ -204,12 +202,12 @@ export default function App({
                 if (searchParams.url === parsedUrl) {
                   location.reload();
                 }
-  
+
                 router.push(`?url=${encodeURIComponent(parsedUrl)}`);
               } catch (e) {
-                alert('URL must be in valid format');
+                alert("URL must be in valid format");
                 return;
-              }              
+              }
             }}
           >
             <Input
