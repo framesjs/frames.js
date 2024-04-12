@@ -2,6 +2,7 @@ import {
   FrameVerifySignatureResult,
   LensClient,
   development,
+  production,
 } from "@lens-protocol/client";
 
 type LensFrameMessageType = {
@@ -28,12 +29,15 @@ export type LensFrameMessageReturnType = LensFrameMessageType & {
   isActionVerifed: boolean;
 };
 
+export type LensFrameOptions = {
+  environment?: "production" | "development";
+};
+
 export function isLensFrameActionPayload(
-  frameActionPayload: unknown
-): frameActionPayload is LensFrameMessageType {
+  frameActionPayload: LensFrameMessageType
+): boolean {
   return (
     typeof frameActionPayload === "object" &&
-    frameActionPayload !== null &&
     "clientProtocol" in frameActionPayload &&
     typeof frameActionPayload.clientProtocol === "string" &&
     frameActionPayload.clientProtocol.startsWith("lens@")
@@ -41,10 +45,14 @@ export function isLensFrameActionPayload(
 }
 
 export async function getLensFrameMessage(
-  frameActionPayload: LensFrameMessageType
+  frameActionPayload: LensFrameMessageType,
+  options?: LensFrameOptions
 ): Promise<LensFrameMessageReturnType> {
+  const lensClientEnvironment =
+    options?.environment === "development" ? development : production;
+
   const lensClient = new LensClient({
-    environment: development,
+    environment: lensClientEnvironment,
   });
 
   const typedData = await lensClient.frames.createFrameTypedData({
