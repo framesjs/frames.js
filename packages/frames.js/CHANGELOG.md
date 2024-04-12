@@ -1,5 +1,13 @@
 # frames.js
 
+## 0.12.2
+
+### Patch Changes
+
+- c15c6f4: fix: escape serialized state in html
+- c15c6f4: feat: images worker middleware
+- c15c6f4: chore: update readme
+
 ## 0.12.1
 
 ### Patch Changes

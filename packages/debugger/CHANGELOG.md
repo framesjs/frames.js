@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.1.17
+
+### Patch Changes
+
+- c15c6f4: fix: use also FARCASTER_DEVELOPER_FID env variable for fid
+
 ## 0.1.16
 
 ### Patch Changes
