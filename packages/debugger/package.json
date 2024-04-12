@@ -5,7 +5,7 @@
     "frames.js",
     "farcaster"
   ],
-  "version": "0.1.16",
+  "version": "0.1.17",
   "bin": {
     "frames": "./bin/debugger.js"
   },
@@ -48,7 +48,7 @@
     "clsx": "^2.1.0",
     "eslint-config-next": "^14.1.0",
     "eslint": "^8.56.0",
-    "frames.js": "^0.12.1",
+    "frames.js": "^0.12.2",
     "lucide-react": "^0.344.0",
     "postcss": "^8",
     "qrcode.react": "^3.1.0",

@@ -1,5 +1,11 @@
 # create-frames
 
+## 0.1.2
+
+### Patch Changes
+
+- c15c6f4: fix: config must be esm module
+
 ## 0.1.1
 
 ### Patch Changes
