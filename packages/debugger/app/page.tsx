@@ -8,7 +8,6 @@ import {
   OnTransactionFunc,
   fallbackFrameContext,
 } from "@frames.js/render";
-import { FrameImageNext } from "@frames.js/render/next";
 import { useFrame } from "@frames.js/render/use-frame";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import { sendTransaction, switchChain } from "@wagmi/core";
@@ -250,7 +249,6 @@ export default function App({
                 theme={{
                   bg: "white",
                 }}
-                FrameImage={FrameImageNext}
               />
             </div>
           </FrameDebugger>
