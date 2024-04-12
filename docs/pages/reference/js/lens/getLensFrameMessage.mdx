@@ -15,24 +15,17 @@ const frameMessage = await getLensFrameMessage(frameActionPayload);
 console.log(frameMessage);
 /**
 {
-  clientProtocol: "lens@1.0.0";
-  untrustedData: {
-    specVersion: "1.0.0";
-    profileId: "0x01";
-    pubId: "0x02-0x01";
-    url: "https://example.com;
-    buttonIndex: 1;
-    unixTimestamp: 123456789;
-    deadline: 123456789;
-    inputText: "";
-    state: "";
-    actionResponse: "";
-  };
-  trustedData: {
-    messageBytes: "";
-    identityToken: "";
-  },
-  isActionVerified: true,
+  profileId: "0x01";
+  pubId: "0x02-0x01";
+  url: "https://example.com;
+  buttonIndex: 1;
+  unixTimestamp: 123456789;
+  deadline: 123456789;
+  inputText: "";
+  state: "";
+  actionResponse: "";
+  specVersion: "1.0.0";
+  isValid: true,
 }
 **/
 ```

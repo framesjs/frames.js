@@ -5,7 +5,7 @@ import {
   production,
 } from "@lens-protocol/client";
 
-type LensFrameMessageType = {
+type LensFrameRequest = {
   clientProtocol: string;
   untrustedData: {
     specVersion: string;
@@ -25,8 +25,20 @@ type LensFrameMessageType = {
   };
 };
 
-export type LensFrameMessageReturnType = LensFrameMessageType & {
-  isActionVerifed: boolean;
+type LensFrameVerifiedFields = {
+  url: string;
+  buttonIndex: number;
+  profileId: string;
+  pubId: string;
+  inputText: string;
+  state: string;
+  actionResponse: string;
+  deadline: number;
+  specVersion: string;
+};
+
+export type LensFrameResponse = LensFrameVerifiedFields & {
+  isValid: boolean;
 };
 
 export type LensFrameOptions = {
@@ -34,7 +46,7 @@ export type LensFrameOptions = {
 };
 
 export function isLensFrameActionPayload(
-  frameActionPayload: LensFrameMessageType
+  frameActionPayload: LensFrameRequest
 ): boolean {
   return (
     typeof frameActionPayload === "object" &&
@@ -45,9 +57,9 @@ export function isLensFrameActionPayload(
 }
 
 export async function getLensFrameMessage(
-  frameActionPayload: LensFrameMessageType,
+  frameActionPayload: LensFrameRequest,
   options?: LensFrameOptions
-): Promise<LensFrameMessageReturnType> {
+): Promise<LensFrameResponse> {
   const lensClientEnvironment =
     options?.environment === "development" ? development : production;
 
@@ -66,7 +78,7 @@ export async function getLensFrameMessage(
   });
 
   return {
-    ...frameActionPayload,
-    isActionVerifed: response === FrameVerifySignatureResult.Verified,
+    ...typedData.value,
+    isValid: response === FrameVerifySignatureResult.Verified,
   };
 }
