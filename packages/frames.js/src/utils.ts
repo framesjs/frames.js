@@ -94,7 +94,7 @@ export function isValidVersion(version: string): boolean {
 
 export function getEnumKeyByEnumValue<
   TEnumKey extends string,
-  TEnumVal extends string | number,
+  TEnumVal extends string | number
 >(
   enumDefinition: { [key in TEnumKey]: TEnumVal },
   enumValue: TEnumVal
@@ -117,7 +117,9 @@ export function extractAddressFromJSONMessage(
 
   if (data.type !== MessageType.VERIFICATION_ADD_ETH_ADDRESS) {
     throw new Error(
-      `Invalid message provided. Expected message type to be ${MessageType.VERIFICATION_ADD_ETH_ADDRESS} but got ${getEnumKeyByEnumValue(MessageType, data.type)}.`
+      `Invalid message provided. Expected message type to be ${
+        MessageType.VERIFICATION_ADD_ETH_ADDRESS
+      } but got ${getEnumKeyByEnumValue(MessageType, data.type)}.`
     );
   }
 
@@ -143,4 +145,24 @@ export function extractAddressFromJSONMessage(
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- we know the data is there
   return (message as Record<string, any>).data.verificationAddAddressBody
     .address as `0x${string}`;
+}
+
+/**
+ * Used to make sure that the provided value does not cause parsing issues malforming the value.
+ */
+export function escapeHtmlAttributeValue(value: string): string {
+  return value.replace(/["'<>]/g, (char) => {
+    switch (char) {
+      case '"':
+        return "&quot;";
+      case "'":
+        return "&#39;";
+      case "<":
+        return "&lt;";
+      case ">":
+        return "&gt;";
+      default:
+        return char;
+    }
+  });
 }

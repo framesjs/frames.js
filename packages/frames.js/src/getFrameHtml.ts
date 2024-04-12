@@ -1,4 +1,5 @@
 import type { Frame } from "./types";
+import { escapeHtmlAttributeValue } from "./utils";
 
 export interface GetFrameHtmlOptions {
   /** value for the OG "og:title" html tag*/
@@ -25,7 +26,11 @@ export function getFrameHtml(
   <html>
     <head>
       <title>${options.title ?? "frame"}</title>
-      ${options.og?.title ? `<meta property="og:title" content="${options.og.title}"/>` : ""}
+      ${
+        options.og?.title
+          ? `<meta property="og:title" content="${options.og.title}"/>`
+          : ""
+      }
       ${getFrameHtmlHead(frame)}
       ${options.htmlHead || ""}
     </head>
@@ -45,21 +50,35 @@ export function getFrameHtmlHead(frame: Frame): string {
     `<meta name="fc:frame" content="${frame.version}"/>`,
     `<meta name="fc:frame:image" content="${frame.image}"/>`,
     `<meta name="fc:frame:post_url" content="${frame.postUrl}"/>`,
-    frame.state ? `<meta name="fc:frame:state" content='${frame.state}'/>` : "",
+    frame.state
+      ? `<meta name="fc:frame:state" content="${escapeHtmlAttributeValue(
+          frame.state
+        )}"/>`
+      : "",
     frame.imageAspectRatio
       ? `<meta name="fc:frame:image:aspect_ratio" content="${frame.imageAspectRatio}"/>`
       : "",
     frame.inputText
-      ? `<meta name="fc:frame:input:text" content="${frame.inputText}"/>`
+      ? `<meta name="fc:frame:input:text" content="${escapeHtmlAttributeValue(
+          frame.inputText
+        )}"/>`
       : "",
     ...(frame.buttons?.flatMap((button, index) => [
-      `<meta name="fc:frame:button:${index + 1}" content="${button.label}"/>`,
-      `<meta name="fc:frame:button:${index + 1}:action" content="${button.action}"/>`,
+      `<meta name="fc:frame:button:${
+        index + 1
+      }" content="${escapeHtmlAttributeValue(button.label)}"/>`,
+      `<meta name="fc:frame:button:${index + 1}:action" content="${
+        button.action
+      }"/>`,
       button.target
-        ? `<meta name="fc:frame:button:${index + 1}:target" content="${button.target}"/>`
+        ? `<meta name="fc:frame:button:${index + 1}:target" content="${
+            button.target
+          }"/>`
         : "",
       button.action === "tx" && button.post_url
-        ? `<meta name="fc:frame:button:${index + 1}:post_url" content="${button.post_url}"/>`
+        ? `<meta name="fc:frame:button:${index + 1}:post_url" content="${
+            button.post_url
+          }"/>`
         : "",
     ]) ?? []),
   ];
@@ -70,21 +89,35 @@ export function getFrameHtmlHead(frame: Frame): string {
         `<meta name="of:version" content="${frame.version}"/>`,
         `<meta name="of:image" content="${frame.image}"/>`,
         `<meta name="of:post_url" content="${frame.postUrl}"/>`,
-        frame.state ? `<meta name="of:state" content='${frame.state}'/>` : "",
+        frame.state
+          ? `<meta name="of:state" content="${escapeHtmlAttributeValue(
+              frame.state
+            )}"/>`
+          : "",
         frame.imageAspectRatio
           ? `<meta name="of:image:aspect_ratio" content="${frame.imageAspectRatio}"/>`
           : "",
         frame.inputText
-          ? `<meta name="of:input:text" content="${frame.inputText}"/>`
+          ? `<meta name="of:input:text" content="${escapeHtmlAttributeValue(
+              frame.inputText
+            )}"/>`
           : "",
         ...(frame.buttons?.flatMap((button, index) => [
-          `<meta name="of:button:${index + 1}" content="${button.label}"/>`,
-          `<meta name="of:button:${index + 1}:action" content="${button.action}"/>`,
+          `<meta name="of:button:${
+            index + 1
+          }" content="${escapeHtmlAttributeValue(button.label)}"/>`,
+          `<meta name="of:button:${index + 1}:action" content="${
+            button.action
+          }"/>`,
           button.target
-            ? `<meta name="of:button:${index + 1}:target" content="${button.target}"/>`
+            ? `<meta name="of:button:${index + 1}:target" content="${
+                button.target
+              }"/>`
             : "",
           button.action === "tx" && button.post_url
-            ? `<meta name="of:button:${index + 1}:post_url" content="${button.post_url}"/>`
+            ? `<meta name="of:button:${index + 1}:post_url" content="${
+                button.post_url
+              }"/>`
             : "",
         ]) ?? []),
       ],

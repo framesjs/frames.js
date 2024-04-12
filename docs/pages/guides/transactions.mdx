@@ -18,7 +18,7 @@ buttons: [
 ];
 ```
 
-Use the [Transactions starter](https://github.com/framesjs/frames.js/tree/main/examples/framesjs-starter/app/examples/new-api-transaction) as a template to build your transaction Frames.
+Use the [Transactions starter](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples/new-api-transaction) as a template to build your transaction Frames.
 
 ## Using the connected wallet address
 
@@ -29,7 +29,7 @@ The address is available in the context under the key `connectedAddress`.
 Note:
 
 - The address is only available when the user has connected a wallet to the client the frame button pressed is has a `tx` action.
-- `connectedAddress` differs from the `requesterVerifiedAddresses` returned by the [`farcasterHubContext`](/middleware/farcasterHubContext) middleware.
+- `connectedAddress` differs from the `requesterVerifiedAddresses` returned by the [`farcasterHubContext`](/middleware/farcaster-hub-context) middleware.
 
 ```tsx [./app/frames/tx-data/route.tsx]
 import { frames } from "../frames";

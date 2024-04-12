@@ -23,7 +23,8 @@ const args = yargs(hideBin(process.argv))
     alias: "fid",
     type: "number",
     description: `Only needed for the debugger to create a real Farcaster signer. Get this by visiting your Warpcast profile, pressing the kebab (three dots) menu and then "About" and then your fid should be there.`,
-    default: process.env.FARCASTER_DEVELOPER_ID,
+    default:
+      process.env.FARCASTER_DEVELOPER_ID || process.env.FARCASTER_DEVELOPER_FID,
   })
   .option("port", {
     alias: "p",

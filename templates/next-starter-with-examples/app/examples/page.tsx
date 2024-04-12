@@ -53,6 +53,21 @@ export default function ExamplesIndexPage() {
             Slow requests
           </Link>
         </li>
+        <li>
+          <Link className="underline" href="/examples/new-api-error">
+            Errors
+          </Link>
+        </li>
+        <li>
+          <Link className="underline" href="/examples/new-api-images-worker">
+            Images worker
+          </Link>
+        </li>
+        <li>
+          <Link className="underline" href="/examples/new-api-images-worker">
+            Images worker custom renderer
+          </Link>
+        </li>
       </ul>
       <b>Frames.js v0.8 and below</b>
       <ul>
