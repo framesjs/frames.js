@@ -35,7 +35,8 @@ type FrameOptionalStringKeys =
   | "fc:frame:input:text"
   | "fc:frame:state"
   | "fc:frame:post_url"
-  | keyof OpenFramesProperties;
+  | keyof OpenFramesProperties
+  | "frames.js:version";
 type FrameOptionalActionButtonTypeKeys =
   `fc:frame:button:${1 | 2 | 3 | 4}:action`;
 type FrameOptionalButtonStringKeys =
@@ -55,6 +56,7 @@ type MapFrameOptionalKeyToValueType<K extends FrameKeys> =
       : string | undefined;
 
 type FrameRequiredProperties = {
+  "og:image": string;
   "fc:frame": FrameVersion;
   "fc:frame:image": string;
 };

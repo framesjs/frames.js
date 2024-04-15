@@ -16,6 +16,7 @@ describe("fetchMetadata", () => {
     nock("http://localhost:3000")
       .get("/frames")
       .reply(200, {
+        "og:image": "imageUrl",
         "fc:frame": "vNext",
         "fc:frame:image": "imageUrl",
         "fc:frame:post_url": "",
@@ -27,6 +28,7 @@ describe("fetchMetadata", () => {
       "fc:frame": "vNext",
       "fc:frame:image": "imageUrl",
       "fc:frame:post_url": "",
+      "og:image": "imageUrl",
     });
   });
 

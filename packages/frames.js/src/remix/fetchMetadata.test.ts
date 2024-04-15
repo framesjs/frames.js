@@ -16,6 +16,7 @@ describe("fetchMetaData", () => {
     nock("http://localhost:3000")
       .get("/frames")
       .reply(200, {
+        "og:image": "imageUrl",
         "fc:frame": "vNext",
         "fc:frame:image": "imageUrl",
         "fc:frame:post_url": "",
@@ -26,6 +27,7 @@ describe("fetchMetaData", () => {
     );
 
     expect(metadata).toEqual([
+      { name: "og:image", content: "imageUrl" },
       { name: "fc:frame", content: "vNext" },
       { name: "fc:frame:image", content: "imageUrl" },
       { name: "fc:frame:post_url", content: "" },

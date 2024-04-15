@@ -32,6 +32,14 @@ jest.mock("@vercel/og", () => {
   };
 });
 
+jest.mock(
+  "../../package.json",
+  () => ({
+    version: "0.0.0-mock",
+  }),
+  { virtual: true }
+);
+
 describe("renderResponse middleware", () => {
   const arrayBufferMock: jest.Mock = (
     vercelOg as unknown as { arrayBufferMock: jest.Mock }
@@ -40,13 +48,13 @@ describe("renderResponse middleware", () => {
     vercelOg as unknown as { constructorMock: jest.Mock }
   ).constructorMock;
   const render = renderResponse();
-  const request =new Request("https://example.com"); 
+  const request = new Request("https://example.com");
   const context: FramesContext<undefined> = {
     basePath: "/",
     initialState: undefined,
     request,
     url: new URL("https://example.com"),
-    baseUrl: resolveBaseUrl(request, undefined, '/'),
+    baseUrl: resolveBaseUrl(request, undefined, "/"),
   };
 
   beforeEach(() => {
@@ -164,7 +172,10 @@ describe("renderResponse middleware", () => {
   });
 
   it("properly resolves against baseUrl", async () => {
-    const newContext = { ...context, baseUrl: new URL("https://example.com/prefixed") };
+    const newContext = {
+      ...context,
+      baseUrl: new URL("https://example.com/prefixed"),
+    };
     const result = await render(newContext, async () => {
       return {
         image: <div>My image</div>,
