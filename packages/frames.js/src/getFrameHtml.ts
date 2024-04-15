@@ -1,3 +1,4 @@
+import { getFrameFlattened } from "./getFrameFlattened";
 import type { Frame } from "./types";
 import { escapeHtmlAttributeValue } from "./utils";
 
@@ -45,88 +46,15 @@ export function getFrameHtml(
  * @returns an string with tags to be included in a <head>
  */
 export function getFrameHtmlHead(frame: Frame): string {
-  const tags = [
-    `<meta name="og:image" content="${frame.ogImage || frame.image}"/>`,
-    `<meta name="fc:frame" content="${frame.version}"/>`,
-    `<meta name="fc:frame:image" content="${frame.image}"/>`,
-    `<meta name="fc:frame:post_url" content="${frame.postUrl}"/>`,
-    frame.state
-      ? `<meta name="fc:frame:state" content="${escapeHtmlAttributeValue(
-          frame.state
-        )}"/>`
-      : "",
-    frame.imageAspectRatio
-      ? `<meta name="fc:frame:image:aspect_ratio" content="${frame.imageAspectRatio}"/>`
-      : "",
-    frame.inputText
-      ? `<meta name="fc:frame:input:text" content="${escapeHtmlAttributeValue(
-          frame.inputText
-        )}"/>`
-      : "",
-    ...(frame.buttons?.flatMap((button, index) => [
-      `<meta name="fc:frame:button:${
-        index + 1
-      }" content="${escapeHtmlAttributeValue(button.label)}"/>`,
-      `<meta name="fc:frame:button:${index + 1}:action" content="${
-        button.action
-      }"/>`,
-      button.target
-        ? `<meta name="fc:frame:button:${index + 1}:target" content="${
-            button.target
-          }"/>`
-        : "",
-      button.action === "tx" && button.post_url
-        ? `<meta name="fc:frame:button:${index + 1}:post_url" content="${
-            button.post_url
-          }"/>`
-        : "",
-    ]) ?? []),
-  ];
+  const flattened = getFrameFlattened(frame);
 
-  if (frame.accepts?.length) {
-    tags.push(
-      ...[
-        `<meta name="of:version" content="${frame.version}"/>`,
-        `<meta name="of:image" content="${frame.image}"/>`,
-        `<meta name="of:post_url" content="${frame.postUrl}"/>`,
-        frame.state
-          ? `<meta name="of:state" content="${escapeHtmlAttributeValue(
-              frame.state
-            )}"/>`
-          : "",
-        frame.imageAspectRatio
-          ? `<meta name="of:image:aspect_ratio" content="${frame.imageAspectRatio}"/>`
-          : "",
-        frame.inputText
-          ? `<meta name="of:input:text" content="${escapeHtmlAttributeValue(
-              frame.inputText
-            )}"/>`
-          : "",
-        ...(frame.buttons?.flatMap((button, index) => [
-          `<meta name="of:button:${
-            index + 1
-          }" content="${escapeHtmlAttributeValue(button.label)}"/>`,
-          `<meta name="of:button:${index + 1}:action" content="${
-            button.action
-          }"/>`,
-          button.target
-            ? `<meta name="of:button:${index + 1}:target" content="${
-                button.target
-              }"/>`
-            : "",
-          button.action === "tx" && button.post_url
-            ? `<meta name="of:button:${index + 1}:post_url" content="${
-                button.post_url
-              }"/>`
-            : "",
-        ]) ?? []),
-      ],
-      ...frame.accepts.map(
-        ({ id, version }) =>
-          `<meta name="of:accepts:${id}" content="${version}"/>`
-      )
-    );
-  }
+  const tags = Object.entries(flattened)
+    .map(([key, value]) => {
+      return value
+        ? `<meta name="${key}" content="${escapeHtmlAttributeValue(value)}"/>`
+        : null;
+    })
+    .filter(Boolean) as string[];
 
   return tags.join("");
 }

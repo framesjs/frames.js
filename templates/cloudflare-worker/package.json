@@ -40,7 +40,7 @@
     "dev": "concurrently --kill-others \"wrangler dev\" \"frames --url http://localhost:8787\"",
     "deploy": "wrangler deploy",
     "build": "wrangler deploy --dry-run",
-    "start": "wangler dev",
+    "start": "wrangler dev",
     "test": "vitest"
   }
 }

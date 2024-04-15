@@ -7,7 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { FarcasterSigner } from "frames.js/render";
+import type { FarcasterSigner } from "@frames.js/render";
 import QRCode from "qrcode.react";
 
 const LoginWindow = ({
