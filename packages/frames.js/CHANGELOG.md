@@ -1,5 +1,18 @@
 # frames.js
 
+## 0.13.0
+
+### Minor Changes
+
+- 0d373a9: fix: `FrameFlattened` type to include og:image and include og:image in `getFrameFlattened` return value
+
+### Patch Changes
+
+- 0d373a9: feat: add frames.js:version meta tag to frames responses
+- 0d373a9: fix: escape serialized state in html
+- 0d373a9: feat: images worker middleware
+- 0d373a9: chore: update readme
+
 ## 0.12.2
 
 ### Patch Changes

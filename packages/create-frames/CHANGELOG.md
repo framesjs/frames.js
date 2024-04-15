@@ -1,5 +1,11 @@
 # create-frames
 
+## 0.1.3
+
+### Patch Changes
+
+- 0d373a9: fix: config must be esm module
+
 ## 0.1.2
 
 ### Patch Changes

@@ -1,5 +1,21 @@
 # docs
 
+## 0.2.0
+
+### Minor Changes
+
+- 0d373a9: fix: next.js generateMetadata example code
+
+### Patch Changes
+
+- 0d373a9: feat: images worker middleware
+- Updated dependencies [0d373a9]
+- Updated dependencies [0d373a9]
+- Updated dependencies [0d373a9]
+- Updated dependencies [0d373a9]
+- Updated dependencies [0d373a9]
+  - frames.js@0.13.0
+
 ## 0.1.0
 
 ### Minor Changes
