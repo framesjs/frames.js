@@ -1,5 +1,13 @@
 # @frames.js/debugger
 
+## 0.1.18
+
+### Patch Changes
+
+- 0d373a9: fix: lock nextjs version, move react/react-dom to dependencies
+- 0d373a9: fix: cloudflare worker starter script command
+- 0d373a9: fix: use also FARCASTER_DEVELOPER_FID env variable for fid
+
 ## 0.1.17
 
 ### Patch Changes
