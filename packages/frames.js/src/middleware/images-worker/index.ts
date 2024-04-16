@@ -35,7 +35,7 @@ export function imagesWorkerMiddleware({
     const searchParams = new URLSearchParams({
       time: Date.now().toString(),
       jsx: imageJsonString,
-      aspectRatio: nextResult.imageOptions?.aspectRatio?.toString() || "1:1.91",
+      aspectRatio: nextResult.imageOptions?.aspectRatio?.toString() || "1.91:1",
     });
 
     if (secret) {
