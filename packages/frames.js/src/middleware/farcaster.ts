@@ -89,6 +89,11 @@ export function farcaster(): FramesMiddleware<any, FramesMessageContext> {
         },
       });
     } catch (error) {
+      // eslint-disable-next-line no-console -- provide feedback to the developer
+      console.info(
+        "farcaster middleware: could not decode farcaster message from payload, calling next.",
+        error
+      );
       return next();
     }
   };

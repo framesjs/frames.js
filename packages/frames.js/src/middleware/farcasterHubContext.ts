@@ -95,6 +95,11 @@ export function farcasterHubContext(
         },
       });
     } catch (error) {
+      // eslint-disable-next-line no-console -- provide feedback to the developer
+      console.info(
+        "farcasterHubContect middleware: could not decode farcaster message from payload, calling next.",
+        error
+      );
       return next();
     }
   };
