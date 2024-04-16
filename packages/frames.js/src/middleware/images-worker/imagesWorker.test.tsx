@@ -1,6 +1,7 @@
 import type { DetailedHTMLProps, HTMLAttributes, ReactElement } from "react";
 import type { FrameDefinition, FramesContext } from "../../core/types";
 import { resolveBaseUrl } from "../../core/utils";
+import type { ImageAspectRatio } from "../../types";
 import * as ImagesWorker from ".";
 
 describe("imagesWorker", () => {
@@ -83,7 +84,9 @@ describe("imagesWorker", () => {
 
     const url = new URL(result.image as string);
 
-    expect(url.searchParams.get("aspectRatio")).toBe("1:1.91");
+    const expectedAspectRatio: ImageAspectRatio = "1.91:1";
+
+    expect(url.searchParams.get("aspectRatio")).toBe(expectedAspectRatio);
   });
 
   it("should pass the aspect ratio specified in the Frame Definition in the image URL", async () => {

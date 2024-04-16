@@ -82,17 +82,25 @@ export function farcasterHubContext(
       return next();
     }
 
-    const message = await getFrameMessage(payload, {
-      ...options,
-      fetchHubContext: true,
-    });
-
-    return next({
-      message,
-      clientProtocol: {
-        id: "farcaster",
-        version: "vNext", // TODO: Pass version in getFrameMessage
-      },
-    });
+    try {
+      const message = await getFrameMessage(payload, {
+        ...options,
+        fetchHubContext: true,
+      });
+      return next({
+        message,
+        clientProtocol: {
+          id: "farcaster",
+          version: "vNext", // TODO: Pass version in getFrameMessage
+        },
+      });
+    } catch (error) {
+      // eslint-disable-next-line no-console -- provide feedback to the developer
+      console.info(
+        "farcasterHubContect middleware: could not decode farcaster message from payload, calling next.",
+        error
+      );
+      return next();
+    }
   };
 }

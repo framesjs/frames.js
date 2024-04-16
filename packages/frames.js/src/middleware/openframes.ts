@@ -117,8 +117,11 @@ export function openframes<T = OpenFrameMessage>({
 
     const message = await handler.getFrameMessage(json);
 
-    return next({
-      message,
+    return nextInjectAcceptedClient({
+      nextResult: next({
+        message,
+        clientProtocol,
+      }),
       clientProtocol,
     });
   };
