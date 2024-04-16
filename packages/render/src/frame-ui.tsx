@@ -1,7 +1,7 @@
 import type { ImgHTMLAttributes } from "react";
 import React, { useState } from "react";
 import type { FrameButton } from "frames.js";
-import type { FrameTheme, FrameState, FrameStackDone } from "./types";
+import type { FrameTheme, FrameState } from "./types";
 import { PresentableError } from "./errors";
 
 export const defaultTheme: Required<FrameTheme> = {
@@ -24,30 +24,14 @@ export type FrameUIProps = {
   frameState: FrameState;
   theme?: FrameTheme;
   FrameImage?: React.FC<ImgHTMLAttributes<HTMLImageElement> & { src: string }>;
-  /**
-   * Which frame should be used to render the UI
-   *
-   * @defaultValue 'farcaster'
-   */
-  specification?: "farcaster" | "openframes";
 };
 
-function hasErrors(frame: FrameStackDone["frames"]["farcaster"]): boolean {
-  if (!("reports" in frame)) {
-    return false;
-  }
-
-  return Object.values(frame.reports)
-    .flatMap((r) => r)
-    .some((r) => r.level === "error");
-}
 
 /** A UI component only, that should be easy for any app to integrate */
 export function FrameUI({
   frameState,
   theme,
   FrameImage,
-  specification = "farcaster",
 }: FrameUIProps): React.JSX.Element | null {
   const [isImageLoading, setIsImageLoading] = useState(true);
   const currentFrame = frameState.frame;
@@ -73,10 +57,10 @@ export function FrameUI({
   /**
    * This value is available in render only if currentFrame status is done and doesn't contain errors
    */
-  const frameResultBySpecification =
-    currentFrame.status === "done" ? currentFrame.frames[specification] : null;
+  const frameResult =
+    currentFrame.status === "done" ? currentFrame.frame : null;
 
-  if (frameResultBySpecification && hasErrors(frameResultBySpecification)) {
+  if (frameResult && frameResult.status === 'failure') {
     return <div>Invalid Frame</div>;
   }
 
@@ -104,11 +88,11 @@ export function FrameUI({
               : "An error occurred"}
           </div>
         ) : null}
-        {!!frameResultBySpecification &&
-          typeof frameResultBySpecification.frame.image === "string" && (
+        {!!frameResult &&
+          typeof frameResult.frame.image === "string" && (
             <ImageEl
-              src={frameResultBySpecification.frame.image}
-              key={frameResultBySpecification.frame.image}
+              src={frameResult.frame.image}
+              key={frameResult.frame.image}
               alt="Frame image"
               width="100%"
               style={{
@@ -119,7 +103,7 @@ export function FrameUI({
                 objectFit: "cover",
                 width: "100%",
                 aspectRatio:
-                  (frameResultBySpecification.frame.imageAspectRatio ??
+                  (frameResult.frame.imageAspectRatio ??
                     "1.91:1") === "1:1"
                     ? "1/1"
                     : "1.91/1",
@@ -136,8 +120,8 @@ export function FrameUI({
             />
           )}
       </div>
-      {!!frameResultBySpecification &&
-      frameResultBySpecification.frame.inputText ? (
+      {!!frameResult &&
+      frameResult.frame.inputText ? (
         <input
           className="p-[6px] mx-2 border box-border"
           style={{
@@ -146,7 +130,7 @@ export function FrameUI({
           }}
           value={frameState.inputText}
           type="text"
-          placeholder={frameResultBySpecification.frame.inputText}
+          placeholder={frameResult.frame.inputText}
           onChange={(e) => {
             frameState.setInputText(e.target.value);
           }}
@@ -160,8 +144,8 @@ export function FrameUI({
         }}
         className="px-2 pb-2"
       >
-        {!!frameResultBySpecification &&
-          frameResultBySpecification.frame.buttons?.map(
+        {!!frameResult &&
+          frameResult.frame.buttons?.map(
             (frameButton: FrameButton, index: number) => (
               <button
                 type="button"
@@ -178,17 +162,9 @@ export function FrameUI({
                   cursor: isLoading ? undefined : "pointer",
                 }}
                 onClick={() => {
-                  if ("reports" in frameResultBySpecification) {
-                    // eslint-disable-next-line no-alert -- we expect this
-                    window.alert(
-                      "Current frame is invalid, the button press will not work"
-                    );
-                    return;
-                  }
-
                   Promise.resolve(
                     frameState.onButtonPress(
-                      frameResultBySpecification.frame,
+                      frameResult.frame,
                       frameButton,
                       index
                     )

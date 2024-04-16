@@ -1,6 +1,7 @@
 import type { FrameActionPayload } from "frames.js";
 import { getFrame } from "frames.js";
 import type { NextRequest } from "next/server";
+import { isSpecificationValid } from "./validators";
 
 /** Proxies frame actions to avoid CORS issues and preserve user IP privacy */
 export async function POST(req: NextRequest): Promise<Response> {
@@ -10,9 +11,14 @@ export async function POST(req: NextRequest): Promise<Response> {
   const isTransactionRequest =
     req.nextUrl.searchParams.get("postType") === "tx";
   const postUrl = req.nextUrl.searchParams.get("postUrl");
+  const specification = req.nextUrl.searchParams.get("specification") ?? "farcaster";
 
   if (!postUrl) {
     return Response.error();
+  }
+
+  if (!isSpecificationValid(specification)) {
+    return Response.json({ message: "Invalid specification" }, { status: 400 });
   }
 
   try {
@@ -52,6 +58,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     const result = getFrame({
       htmlString,
       url: body.untrustedData.url,
+      specification,
     });
 
     return Response.json(result);

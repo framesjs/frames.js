@@ -22,6 +22,7 @@ import { MockHubActionContext } from "./utils/mock-hub-utils";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { FrameSpecification } from "./types";
 import { AlertTriangle, CheckCircle2, LoaderIcon, XCircle } from "lucide-react";
+import { hasWarnings } from "./lib/utils";
 
 const LoginWindow = dynamic(() => import("./components/create-signer"), {
   ssr: false,
@@ -30,9 +31,8 @@ const LoginWindow = dynamic(() => import("./components/create-signer"), {
 const FALLBACK_URL = process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
 
 const ToggleGroupStackItemStatusIcon: React.FC<{
-  specification: FrameSpecification;
   stackItem: FramesStack[number] | undefined;
-}> = ({ specification, stackItem }) => {
+}> = ({ stackItem }) => {
   switch (stackItem?.status) {
     case "pending":
       return (
@@ -47,10 +47,10 @@ const ToggleGroupStackItemStatusIcon: React.FC<{
         <XCircle className="mr-2" aria-hidden="true" size={20} color="red" />
       );
     case "done": {
-      const frameResultBySpecification = stackItem.frames[specification];
+      const frame = stackItem.frame;
 
-      switch (frameResultBySpecification.status) {
-        case "invalid":
+      switch (frame.status) {
+        case "failure":
           return (
             <XCircle
               className="mr-2"
@@ -59,16 +59,18 @@ const ToggleGroupStackItemStatusIcon: React.FC<{
               color="red"
             />
           );
-        case "warnings":
-          return (
-            <AlertTriangle
-              className="mr-2"
-              aria-hidden="true"
-              size={20}
-              color="orange"
-            />
-          );
-        case "valid":
+        case "success":
+          if (hasWarnings(frame.reports)) {
+            return (
+              <AlertTriangle
+                className="mr-2"
+                aria-hidden="true"
+                size={20}
+                color="orange"
+              />
+            );
+          }
+
           return (
             <CheckCircle2
               className="mr-2"
@@ -295,14 +297,12 @@ export default function App({
           >
             <ToggleGroupItem value="farcaster">
               <ToggleGroupStackItemStatusIcon
-                specification="farcaster"
                 stackItem={frameState.frame}
               ></ToggleGroupStackItemStatusIcon>
               Farcaster
             </ToggleGroupItem>
             <ToggleGroupItem value="openframes">
               <ToggleGroupStackItemStatusIcon
-                specification="openframes"
                 stackItem={frameState.frame}
               ></ToggleGroupStackItemStatusIcon>
               Open Frames

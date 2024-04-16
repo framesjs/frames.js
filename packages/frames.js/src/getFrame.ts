@@ -1,59 +1,37 @@
-import * as cheerio from "cheerio";
-import type { Frame } from "./types";
-import { parseFarcasterFrame } from "./frame-parsers/farcaster";
-import { parseOpenFramesFrame } from "./frame-parsers/open-frames";
-import type { ParsingReport } from "./frame-parsers/types";
-import { createReporter } from "./frame-parsers/reporter";
+import type {
+  ParseResult,
+  SupportedParsingSpecification,
+} from "./frame-parsers/types";
+import { parseFramesWithReports } from "./parseFramesWithReports";
 
-type FrameResult =
-  | { frame: Frame }
-  | { frame: Partial<Frame>; reports: Record<string, ParsingReport[]> };
+type GetFrameResult = ParseResult;
 
-type GetFrameResult = {
-  farcaster: FrameResult;
-  openframes: FrameResult;
+type GetFrameOptions = {
+  htmlString: string;
+  /**
+   * Fallback url used if post_url is missing.
+   */
+  url: string;
+  /**
+   * @defaultValue 'farcaster'
+   */
+  specification?: SupportedParsingSpecification;
 };
 
 /**
- * @returns an object, extracting the frame metadata from the given htmlString.
- * If the Frame fails validation, the `errors` object will be non-null
+ * Extracts frame metadata from the given htmlString.
+ *
+ * @returns an object representing the parsing result
  */
 export function getFrame({
   htmlString,
+  specification = "farcaster",
   url,
-}: {
-  htmlString: string;
-  url: string;
-}): GetFrameResult {
-  const $ = cheerio.load(htmlString);
-  const reporter = createReporter("farcaster");
-  const openFramesReporter = createReporter("openframes");
-  const pageTitle = $("title").text();
-
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- just in case
-  if (!pageTitle) {
-    reporter.warn(
-      "<title>",
-      "A <title> tag is required in order for your frames to work in Warpcast"
-    );
-    openFramesReporter.warn(
-      "<title>",
-      "A <title> tag is required in order for your frames to work in Warpcast"
-    );
-  }
-
-  const farcasterFrame = parseFarcasterFrame($, {
-    reporter,
+}: GetFrameOptions): GetFrameResult {
+  const parsedFrames = parseFramesWithReports({
     fallbackPostUrl: url,
-  });
-  const openFramesFrame = parseOpenFramesFrame($, {
-    farcasterFrame: farcasterFrame.frame,
-    reporter: openFramesReporter,
-    fallbackPostUrl: url,
+    html: htmlString,
   });
 
-  return {
-    farcaster: farcasterFrame,
-    openframes: openFramesFrame,
-  };
+  return parsedFrames[specification];
 }

@@ -7,6 +7,8 @@ import type {
 
 export function createReporter(source: ParsingReportSource): Reporter {
   const reports: Record<string, ParsingReport[]> = {};
+  let errorCount = 0;
+  let warningCount = 0;
 
   function report(
     key: string,
@@ -34,6 +36,12 @@ export function createReporter(source: ParsingReportSource): Reporter {
       level,
     });
 
+    if (level === "error") {
+      errorCount += 1;
+    } else {
+      warningCount += 1;
+    }
+
     reports[key] = issuesList;
   }
 
@@ -45,7 +53,10 @@ export function createReporter(source: ParsingReportSource): Reporter {
       report(key, message, "warning", overrideSource);
     },
     hasReports() {
-      return Object.keys(reports).length > 0;
+      return warningCount + errorCount > 0;
+    },
+    hasErrors() {
+      return errorCount > 0;
     },
     toObject() {
       return reports;

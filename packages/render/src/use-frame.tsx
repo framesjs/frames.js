@@ -9,7 +9,6 @@ import type {
   FrameActionPayload,
   FrameButton,
   TransactionTargetResponse,
-  getFrame,
 } from "frames.js";
 import { getFarcasterTime } from "@farcaster/core";
 import type {
@@ -24,47 +23,12 @@ import type {
   UseFrameReturn,
   OnTransactionArgs,
   FrameStackRequestError,
-  FrameStackDone,
+  GetFrameResult,
 } from "./types";
 import { PresentableError } from "./errors";
 
 function onMintFallback({ target }: OnMintArgs): void {
   window.alert(`Mint requested: ${target}`);
-}
-
-function convertGetFrameResultToStackItemFrames(
-  result: ReturnType<typeof getFrame>
-): FrameStackDone["frames"] {
-  return Object.keys(result).reduce<FrameStackDone["frames"]>(
-    (acc, key) => {
-      const frameResultBySpecification = result[key as keyof typeof result];
-
-      if (!("reports" in frameResultBySpecification)) {
-        acc[key as keyof typeof result] = {
-          frame: frameResultBySpecification.frame,
-          status: "valid",
-        };
-
-        return acc;
-      }
-
-      const hasErrors = Object.values(frameResultBySpecification.reports)
-        .flatMap((r) => r)
-        .some((r) => r.level === "error");
-
-      acc[key as keyof typeof result] = {
-        frame: frameResultBySpecification.frame,
-        reports: frameResultBySpecification.reports,
-        status: hasErrors ? "invalid" : "warnings",
-      };
-
-      return acc;
-    },
-    {
-      openframes: { reports: {}, frame: {}, status: "invalid" },
-      farcaster: { reports: {}, frame: {}, status: "invalid" },
-    }
-  );
 }
 
 export const unsignedFrameAction: SignerStateInstance["signFrameAction"] =
@@ -216,10 +180,10 @@ export function useFrame<
             timestamp: new Date(),
             url: args.homeframeUrl ?? "",
             speed: 0,
-            // @todo this is not ideal but we have to distinguish between messsage as those can have also different validations, etc
-            frames: {
-              farcaster: { frame: args.initialFrame.frame, status: "valid" },
-              openframes: { frame: args.initialFrame.frame, status: "valid" },
+            frame: {
+              status: 'success',
+              frame: args.initialFrame.frame,
+              reports: {},
             },
             status: "done",
           },
@@ -276,7 +240,7 @@ export function useFrame<
           throw new Error(`Failed to fetch frame: ${response.statusText}`);
         }
 
-        const frames = (await response.json()) as ReturnType<typeof getFrame>;
+        const loadedFrame = (await response.json()) as GetFrameResult;
 
         dispatch({
           action: "DONE",
@@ -284,7 +248,7 @@ export function useFrame<
           item: {
             ...frameStackPendingItem,
             status: "done",
-            frames: convertGetFrameResultToStackItemFrames(frames),
+            frame: loadedFrame,
             speed: computeDurationInSeconds(startTime, endTime),
             responseStatus: response.status,
           },
@@ -353,12 +317,12 @@ export function useFrame<
             throw new Error(`Failed to fetch frame: ${response.statusText}`);
         }
 
-        const dataRes = (await response.json()) as
-          | ReturnType<typeof getFrame>
+        const responseData = (await response.json()) as
+          | GetFrameResult
           | { location: string };
 
-        if ("location" in dataRes) {
-          const location = dataRes.location;
+        if ("location" in responseData) {
+          const location = responseData.location;
 
           if (window.confirm(`You are about to be redirected to ${location}`)) {
             window.open(location, "_blank")?.focus();
@@ -372,7 +336,7 @@ export function useFrame<
           pendingItem: frameStackPendingItem,
           item: {
             ...frameStackPendingItem,
-            frames: convertGetFrameResultToStackItemFrames(dataRes),
+            frame: responseData,
             status: "done",
             speed: computeDurationInSeconds(startTime, endTime),
             responseStatus: response.status,

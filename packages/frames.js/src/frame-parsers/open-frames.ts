@@ -80,6 +80,14 @@ export function parseOpenFramesFrame(
   const frame: Partial<Frame> = {
     accepts,
   };
+  const pageTitle = $("title").text();
+
+  if (!pageTitle) {
+    reporter.warn(
+      "<title>",
+      "A <title> tag is required in order for your frames to work in Warpcast"
+    );
+  }
 
   if (!parsedFrame.version) {
     reporter.error("of:version", 'Missing required meta tag "of:version"');
@@ -154,11 +162,17 @@ export function parseOpenFramesFrame(
     frame.buttons = parsedButtons as typeof frame.buttons;
   }
 
-  if (reporter.hasReports()) {
-    return { frame, reports: reporter.toObject() };
+  if (reporter.hasErrors()) {
+    return {
+      status: "failure",
+      frame,
+      reports: reporter.toObject(),
+    };
   }
 
   return {
+    status: "success",
     frame: frame as unknown as Frame,
+    reports: reporter.toObject(),
   };
 }
