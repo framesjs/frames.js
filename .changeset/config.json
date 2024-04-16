@@ -7,5 +7,9 @@
   "linked": [],
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": []
+  "ignore": [],
+  "/* https://github.com/changesets/changesets/pull/542/files": "*/",
+  "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
+    "updateInternalDependents": "always"
+  }
 }
