@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.13.1
+
+### Patch Changes
+
+- b3058d7: fix: open frames integrations
+
 ## 0.13.0
 
 ### Minor Changes

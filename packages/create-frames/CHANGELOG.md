@@ -1,5 +1,11 @@
 # create-frames
 
+## 0.1.4
+
+### Patch Changes
+
+- fix: add images worker to multi protocol example
+
 ## 0.1.3
 
 ### Patch Changes

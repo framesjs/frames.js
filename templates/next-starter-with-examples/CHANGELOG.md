@@ -1,5 +1,11 @@
 # template-next-starter-with-examples
 
+## 0.0.5
+
+### Patch Changes
+
+- fix: add images worker to multi protocol example
+
 ## 0.0.4
 
 ### Patch Changes
