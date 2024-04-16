@@ -75,7 +75,7 @@ export function createImagesWorker(
 function Scaffold({ children }: { children: React.ReactNode }): ReactElement {
   return (
     <div tw="flex flex-row items-stretch relative w-full h-screen bg-white overflow-hidden">
-      <div tw="flex flex-col w-full justify-center items-center text-black overflow-hidden">
+      <div tw="flex flex-col w-full justify-center items-center text-black text-[36px] overflow-hidden">
         {children}
       </div>
     </div>
