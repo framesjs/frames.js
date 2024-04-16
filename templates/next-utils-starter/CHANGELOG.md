@@ -1,5 +1,11 @@
 # template-next-utils-starter
 
+## 0.0.2
+
+### Patch Changes
+
+- fix: bump frames.js version
+
 ## 0.0.1
 
 ### Patch Changes

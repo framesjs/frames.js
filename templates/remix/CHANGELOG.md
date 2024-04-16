@@ -1,5 +1,11 @@
 # template-remix
 
+## 0.0.4
+
+### Patch Changes
+
+- fix: bump frames.js version
+
 ## 0.0.3
 
 ### Patch Changes

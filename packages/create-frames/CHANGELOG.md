@@ -1,5 +1,11 @@
 # create-frames
 
+## 0.1.5
+
+### Patch Changes
+
+- fix: bump frames.js version to 0.13.1
+
 ## 0.1.4
 
 ### Patch Changes
