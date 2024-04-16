@@ -302,7 +302,6 @@ const FramesRequestCardContent: React.FC<{
   });
 };
 
-
 export function FrameDebugger({
   specification,
   url,
@@ -313,8 +312,8 @@ export function FrameDebugger({
   specification: SupportedParsingSpecification;
   frameState: FrameState;
   url: string;
-  mockHubContext: Partial<MockHubActionContext>;
-  setMockHubContext: Dispatch<SetStateAction<Partial<MockHubActionContext>>>;
+  mockHubContext?: Partial<MockHubActionContext>;
+  setMockHubContext?: Dispatch<SetStateAction<Partial<MockHubActionContext>>>;
 }) {
   const [copySuccess, setCopySuccess] = useState(false);
   useEffect(() => {
@@ -413,14 +412,16 @@ export function FrameDebugger({
             ></FramesRequestCardContent>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="px-5">
-            <MockHubConfig
-              hubContext={mockHubContext}
-              setHubContext={setMockHubContext}
-            ></MockHubConfig>
-          </CardContent>
-        </Card>
+        {mockHubContext && setMockHubContext && (
+          <Card>
+            <CardContent className="px-5">
+              <MockHubConfig
+                hubContext={mockHubContext}
+                setHubContext={setMockHubContext}
+              ></MockHubConfig>
+            </CardContent>
+          </Card>
+        )}
         <div className="border rounded-lg shadow-sm bg-white">
           <a
             target="_blank"
@@ -679,8 +680,8 @@ export function FrameDebugger({
                           {frameState.frame.speed > 5
                             ? `Request took more than 5s (${frameState.frame.speed} seconds). This may be normal: first request will take longer in development (as next.js builds), but in production, clients will timeout requests after 5s`
                             : frameState.frame.speed > 4
-                              ? `Warning: Request took more than 4s (${frameState.frame.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
-                              : `${frameState.frame.speed} seconds`}
+                            ? `Warning: Request took more than 4s (${frameState.frame.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
+                            : `${frameState.frame.speed} seconds`}
                         </TableCell>
                       </TableRow>
                       <FrameDebuggerFramePropertiesTableRow

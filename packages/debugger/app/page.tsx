@@ -7,6 +7,7 @@ import {
   type OnTransactionFunc,
   fallbackFrameContext,
   FramesStack,
+  UseFrameReturn,
 } from "@frames.js/render";
 import { useFrame } from "@frames.js/render/use-frame";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
@@ -27,6 +28,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useXmtpIdentity } from "./hooks/use-xmtp-identity";
+import { FrameActionPayload } from "frames.js";
 
 const LoginWindow = dynamic(() => import("./components/create-signer"), {
   ssr: false,
@@ -51,27 +54,53 @@ type ProtocolConfiguration =
 const ProtocolConfiguratorButton: React.FC<{
   onChange: (configuration: ProtocolConfiguration) => void;
   value: ProtocolConfiguration | null;
-}> = ({ onChange, value }) => {
+  farcasterSignerState: ReturnType<typeof useFarcasterIdentity>;
+  xmtpSignerState: ReturnType<typeof useXmtpIdentity>;
+}> = ({ onChange, value, farcasterSignerState, xmtpSignerState }) => {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="secondary">{value ? <>{value.protocol} ({value.specification})</> : <>Select a protocol</>}</Button>
+        <Button variant="secondary">
+          {value ? (
+            <>
+              {value.protocol} ({value.specification})
+            </>
+          ) : (
+            <>Select a protocol</>
+          )}
+        </Button>
       </PopoverTrigger>
       <PopoverContent>
         <Tabs defaultValue={value?.protocol ?? "farcaster"}>
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="farcaster">Farcaster</TabsTrigger>
+            <TabsTrigger
+              value="farcaster"
+              onClick={() =>
+                onChange({ protocol: "farcaster", specification: "farcaster" })
+              }
+            >
+              Farcaster
+            </TabsTrigger>
+            <TabsTrigger
+              value="xmtp"
+              onClick={() =>
+                onChange({ protocol: "xmtp", specification: "openframes" })
+              }
+            >
+              XMTP
+            </TabsTrigger>
             <TabsTrigger value="lens">Lens</TabsTrigger>
-            <TabsTrigger value="xmtp">XMTP</TabsTrigger>
           </TabsList>
           <TabsContent value="farcaster">
-            <Button
-              onClick={() => {
-                onChange({ protocol: "farcaster", specification: "farcaster" });
-              }}
-            >
-              Save
-            </Button>
+            <LoginWindow
+              farcasterUser={farcasterSignerState.signer ?? null}
+              loading={!!farcasterSignerState.isLoadingSigner ?? false}
+              startFarcasterSignerProcess={
+                farcasterSignerState.onSignerlessFramePress
+              }
+              impersonateUser={farcasterSignerState.impersonateUser}
+              logout={farcasterSignerState.logout}
+            ></LoginWindow>
           </TabsContent>
           <TabsContent value="lens">
             <Button
@@ -83,13 +112,23 @@ const ProtocolConfiguratorButton: React.FC<{
             </Button>
           </TabsContent>
           <TabsContent value="xmtp">
-            <Button
-              onClick={() => {
-                onChange({ protocol: "xmtp", specification: "openframes" });
-              }}
-            >
-              Save
-            </Button>
+            {xmtpSignerState.signer ? (
+              <Button
+                onClick={() => {
+                  xmtpSignerState.logout?.();
+                }}
+              >
+                Logout
+              </Button>
+            ) : (
+              <Button
+                onClick={() => {
+                  xmtpSignerState.onSignerlessFramePress();
+                }}
+              >
+                Connect XMTP
+              </Button>
+            )}
           </TabsContent>
         </Tabs>
       </PopoverContent>
@@ -147,7 +186,8 @@ export default function App({
     );
   }, []);
 
-  const signerState = useFarcasterIdentity();
+  const farcasterSignerState = useFarcasterIdentity();
+  const xmtpSignerState = useXmtpIdentity();
 
   const onTransaction: OnTransactionFunc = useCallback(
     async ({ transactionData }) => {
@@ -188,8 +228,10 @@ export default function App({
     [account.address, currentChainId, config, openConnectModal]
   );
 
-  // @todo this should be moved to it's own component so we can reset it when configuration changes
-  const frameState = useFrame({
+  const useFrameConfig: Omit<
+    UseFrameReturn<object, FrameActionPayload>,
+    "signerState"
+  > = {
     homeframeUrl: url,
     frameActionProxy: "/frames",
     frameGetProxy: "/frames",
@@ -197,7 +239,6 @@ export default function App({
       ...fallbackFrameContext,
       ...(account.address ? { connectedAddress: account.address } : undefined),
     },
-    signerState,
     extraButtonRequestPayload: { mockData: mockHubContext },
     onTransaction,
     onMint(t) {
@@ -232,7 +273,23 @@ export default function App({
         });
     },
     specification: protocolConfiguration?.specification,
+  };
+
+  // TODO: this should be moved to it's own component so we can reset it when configuration changes
+  const farcasterFrameState = useFrame({
+    ...useFrameConfig,
+    signerState: farcasterSignerState,
   });
+  const xmtpFrameState = useFrame({
+    ...useFrameConfig,
+    signerState: xmtpSignerState,
+  });
+
+  const selectedFrameState = {
+    farcaster: farcasterFrameState,
+    xmtp: xmtpFrameState,
+    lens: null,
+  }[protocolConfiguration?.protocol ?? "farcaster"];
 
   return (
     <div className="bg-slate-50 min-h-lvh">
@@ -299,38 +356,43 @@ export default function App({
 
           <ProtocolConfiguratorButton
             // use key so the component is reset on change
-            key={
-              (protocolConfiguration?.protocol ?? "farcaster") +
-              (protocolConfiguration?.specification ?? "farcaster")
-            }
+            // key={
+            //   (protocolConfiguration?.protocol ?? "farcaster") +
+            //   (protocolConfiguration?.specification ?? "farcaster")
+            // }
             onChange={setProtocolConfiguration}
             value={protocolConfiguration}
+            farcasterSignerState={farcasterSignerState}
+            xmtpSignerState={xmtpSignerState}
           ></ProtocolConfiguratorButton>
 
-          {/* @todo move to ProtocolConfiguratorButton */}
-          <LoginWindow
-            farcasterUser={signerState.signer ?? null}
-            loading={!!signerState.isLoadingSigner ?? false}
-            startFarcasterSignerProcess={signerState.onSignerlessFramePress}
-            impersonateUser={signerState.impersonateUser}
-            logout={signerState.logout}
-          ></LoginWindow>
-
           <div className="ml-auto">
-            <ConnectButton></ConnectButton>
+            <ConnectButton showBalance={false}></ConnectButton>
           </div>
         </div>
       </div>
       {url ? (
         <>
           {/* @todo use key that contains protocol + spec combination, so debugger is reset on change */}
-          <FrameDebugger
-            frameState={frameState}
-            url={url}
-            mockHubContext={mockHubContext}
-            setMockHubContext={setMockHubContext}
-            specification={protocolConfiguration?.specification ?? "farcaster"}
-          ></FrameDebugger>
+          {selectedFrameState && (
+            <FrameDebugger
+              frameState={selectedFrameState}
+              url={url}
+              mockHubContext={
+                protocolConfiguration?.protocol === "farcaster"
+                  ? mockHubContext
+                  : undefined
+              }
+              setMockHubContext={
+                protocolConfiguration?.protocol === "farcaster"
+                  ? setMockHubContext
+                  : undefined
+              }
+              specification={
+                protocolConfiguration?.specification ?? "farcaster"
+              }
+            ></FrameDebugger>
+          )}
         </>
       ) : null}
     </div>

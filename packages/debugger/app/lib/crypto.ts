@@ -16,7 +16,7 @@ export function convertKeypairToHex({
   };
 }
 
-export async function createKeypair(): Promise<{
+export async function createKeypairEDDSA(): Promise<{
   publicKeyBytes: Uint8Array;
   privateKeyBytes: Uint8Array;
 }> {

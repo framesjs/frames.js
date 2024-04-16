@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { LOCAL_STORAGE_KEYS } from "../constants";
-import { convertKeypairToHex, createKeypair } from "../lib/crypto";
+import { convertKeypairToHex, createKeypairEDDSA } from "../lib/crypto";
 import {
   type FarcasterSignerState,
   type FarcasterSigner,
@@ -30,7 +30,7 @@ export function useFarcasterIdentity(): FarcasterSignerState & {
   );
 
   async function impersonateUser({ fid }: { fid: number }) {
-    const keypair = await createKeypair();
+    const keypair = await createKeypairEDDSA();
     const { privateKey, publicKey } = convertKeypairToHex(keypair);
     const signer: FarcasterSigner = {
       status: "impersonating",
@@ -166,7 +166,7 @@ export function useFarcasterIdentity(): FarcasterSignerState & {
 
   async function createAndStoreSigner() {
     try {
-      const keypair = await createKeypair();
+      const keypair = await createKeypairEDDSA();
       const keypairString = convertKeypairToHex(keypair);
       const authorizationResponse = await fetch(`/signer`, {
         method: "POST",
