@@ -33,10 +33,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { FrameSpecification } from "../types";
+import { hasWarnings } from "../lib/utils";
 
 type FrameDebuggerFramePropertiesTableRowsProps = {
   stackItem: FrameState["framesStack"][number];
-  specification: FrameSpecification;
 };
 
 function paramsToObject(entries: IterableIterator<[string, string]>): object {
@@ -61,7 +61,6 @@ function isPropertyExperimental([key, value]: [string, string]) {
 
 function FrameDebuggerFramePropertiesTableRow({
   stackItem,
-  specification,
 }: FrameDebuggerFramePropertiesTableRowsProps) {
   const properties = useMemo(() => {
     /** tuple of key and value */
@@ -78,14 +77,12 @@ function FrameDebuggerFramePropertiesTableRow({
       return { validProperties, invalidProperties, isValid: false };
     }
 
-    const result = stackItem.frames[specification];
+    const result = stackItem.frame;
 
     // we need to check validation errors first because getFrame incorrectly return a value for a key even if it's invalid
-    if (result.status === "invalid" || result.status === "warnings") {
-      for (const [key, errors] of Object.entries(result.reports)) {
-        invalidProperties.push([key, errors]);
-        visitedInvalidProperties.push(key);
-      }
+    for (const [key, errors] of Object.entries(result.reports)) {
+      invalidProperties.push([key, errors]);
+      visitedInvalidProperties.push(key);
     }
 
     // @todo frame here can be Partial if there are errors we should handle that somehow
@@ -110,7 +107,7 @@ function FrameDebuggerFramePropertiesTableRow({
       isValid: invalidProperties.length === 0,
       hasExperimentalProperties,
     };
-  }, [stackItem, specification]);
+  }, [stackItem]);
 
   return (
     <>
@@ -193,16 +190,35 @@ function ShortenedText({
   );
 }
 
+const FramesRequestCardContentIcon: React.FC<{
+  stackItem: FramesStack[number];
+}> = ({ stackItem }) => {
+  if (stackItem.status === "pending") {
+    return <LoaderIcon className="animate-spin" size={20} />;
+  }
+
+  if (stackItem.status === "requestError") {
+    return <XCircle size={20} color="red" />;
+  }
+
+  if (stackItem.frame?.status === "failure") {
+    return <XCircle size={20} color="red" />;
+  }
+
+  if (hasWarnings(stackItem.frame.reports)) {
+    return <AlertTriangle size={20} color="orange" />;
+  }
+
+  return <CheckCircle2 size={20} color="green" />;
+};
+
 const FramesRequestCardContent: React.FC<{
   stack: FramesStack;
-  specification: FrameSpecification;
   fetchFrame: FrameState["fetchFrame"];
-}> = ({ fetchFrame, specification, stack }) => {
+}> = ({ fetchFrame, stack }) => {
   return stack.map((frameStackItem, i) => {
     const frame =
-      frameStackItem.status === "done"
-        ? frameStackItem.frames[specification]
-        : undefined;
+      frameStackItem.status === "done" ? frameStackItem.frame : undefined;
 
     return (
       <button
@@ -238,17 +254,9 @@ const FramesRequestCardContent: React.FC<{
               : ""}
           </span>
           <span className="ml-auto">
-            {frameStackItem.status === "pending" && (
-              <LoaderIcon className="animate-spin" size={20} />
-            )}
-            {(frameStackItem.status === "requestError" ||
-              frame?.status === "invalid") && <XCircle size={20} color="red" />}
-            {frame?.status === "warnings" && (
-              <AlertTriangle size={20} color="orange" />
-            )}
-            {frame?.status === "valid" && (
-              <CheckCircle2 size={20} color="green" />
-            )}
+            <FramesRequestCardContentIcon
+              stackItem={frameStackItem}
+            ></FramesRequestCardContentIcon>
           </span>
         </span>
         <span className="flex flex-row w-full">
@@ -333,10 +341,8 @@ export function FrameDebugger({
     }
   }, [isLoading, latestFrame?.timestamp, openAccordions]);
 
-  const frameResultBySpecification =
-    latestFrame?.status === "done"
-      ? latestFrame.frames[specification]
-      : undefined;
+  const frameResult =
+    latestFrame?.status === "done" ? latestFrame.frame : undefined;
 
   return (
     <div className="flex flex-row items-start p-4 gap-4 bg-slate-50 max-w-full w-full h-full">
@@ -402,7 +408,6 @@ export function FrameDebugger({
           <CardContent className="p-0">
             <FramesRequestCardContent
               fetchFrame={frameState.fetchFrame}
-              specification={specification}
               stack={frameState.framesStack}
             ></FramesRequestCardContent>
           </CardContent>
@@ -504,7 +509,6 @@ export function FrameDebugger({
                   bg: "white",
                 }}
                 FrameImage={FrameImageNext}
-                specification={specification}
               />
             </div>
           )}
@@ -598,7 +602,7 @@ export function FrameDebugger({
                   )}
                 </TabsContent>
                 <TabsContent value="meta">
-                  {frameResultBySpecification?.status === "valid" ? (
+                  {frameResult?.status === "success" ? (
                     <div className="py-4 flex-1">
                       <span className="font-bold">html tags</span>
                       <button
@@ -606,7 +610,7 @@ export function FrameDebugger({
                         onClick={() => {
                           // Copy the text inside the text field
                           navigator.clipboard.writeText(
-                            getFrameHtmlHead(frameResultBySpecification.frame)
+                            getFrameHtmlHead(frameResult.frame)
                           );
                           setCopySuccess(true);
                         }}
@@ -623,7 +627,7 @@ export function FrameDebugger({
                           borderRadius: "4px",
                         }}
                       >
-                        {getFrameHtmlHead(frameResultBySpecification.frame)
+                        {getFrameHtmlHead(frameResult.frame)
                           .split("<meta")
                           .filter((t) => !!t)
                           // hacky...
@@ -674,12 +678,11 @@ export function FrameDebugger({
                           {frameState.frame.speed > 5
                             ? `Request took more than 5s (${frameState.frame.speed} seconds). This may be normal: first request will take longer in development (as next.js builds), but in production, clients will timeout requests after 5s`
                             : frameState.frame.speed > 4
-                            ? `Warning: Request took more than 4s (${frameState.frame.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
-                            : `${frameState.frame.speed} seconds`}
+                              ? `Warning: Request took more than 4s (${frameState.frame.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
+                              : `${frameState.frame.speed} seconds`}
                         </TableCell>
                       </TableRow>
                       <FrameDebuggerFramePropertiesTableRow
-                        specification={specification}
                         stackItem={frameState.frame}
                       ></FrameDebuggerFramePropertiesTableRow>
                     </TableBody>

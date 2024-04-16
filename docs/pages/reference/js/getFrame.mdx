@@ -1,19 +1,21 @@
 # getFrame
 
-Returns an object with `farcaster` and `openframes` keys, each containing an object with `frame` property extracting the frame metadata from the given htmlString, or containing `reports` property if the frame is invalid. Includes tags from the [Open Frames specification](https://github.com/open-frames/standard).
+Returns an object, extracting the frame metadata from the given htmlString to `frame` object and `result: "success"` if there are no validation results, otherwise it returns what was possible to parse into `frame` object. If `specification` option is passed and set to `openframes` it parses tags from the [Open Frames specification](https://github.com/open-frames/standard).
 
 ## Usage
 
 ```ts [example.ts]
 import { getFrame, Frame } from "frames.js";
 
-const { farcaster, openframes } = await getFrame({
+// parses farcaster metadata
+const frame = await getFrame({
   htmlString: "<html><head>...</head><body></body></html>",
   url: "https://framesjs-homeframe.vercel.app/",
 });
-console.log(farcaster, openframes);
+console.log(frame);
 /*
 	{ 
+		status: 'success';
 		frame: {
 			version: FrameVersion;
 			postUrl: string;
@@ -21,9 +23,23 @@ console.log(farcaster, openframes);
 			image: string;
 			ogImage?: string | undefined;
 			inputText?: string | undefined;
-		}
-	},
+		};
+		reports: {},
+	}
+*/
+
+// parses openframes metadata
+const openFrame = await getFrame({
+  htmlString: "<html><head>...</head><body></body></html>",
+  url: "https://framesjs-homeframe.vercel.app/",
+  specification: "openframes",
+});
+
+console.log(openFrame);
+
+/*
 	{
+		status: 'success',
 		frame: {
 			version: FrameVersion;
 			postUrl: string;
@@ -31,7 +47,8 @@ console.log(farcaster, openframes);
 			image: string;
 			ogImage?: string | undefined;
 			inputText?: string | undefined;
-		}
+		},
+		reports: {},
 	}
 */
 ```

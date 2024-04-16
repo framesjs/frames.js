@@ -1,6 +1,9 @@
 import type { Abi } from "viem";
 
-export type { ParsingReport } from "./frame-parsers/types";
+export type {
+  ParsingReport,
+  SupportedParsingSpecification,
+} from "./frame-parsers/types";
 
 export type FrameVersion = "vNext" | `${number}-${number}-${number}`;
 

@@ -17,11 +17,14 @@ describe("open frames frame parser", () => {
     <meta name="of:accepts:some_protocol" content="vNext"/> 
     <meta name="of:image" content="http://example.com/image.png"/>
     <meta name="og:image" content="http://example.com/og-image.png"/>
+    <title>Test</title>
     `);
 
     expect(
       parseOpenFramesFrame($, { farcasterFrame: {}, reporter, fallbackPostUrl })
     ).toEqual({
+      status: "success",
+      reports: {},
       frame: {
         accepts: [{ id: "some_protocol", version: "vNext" }],
         version: "vNext",
@@ -37,6 +40,7 @@ describe("open frames frame parser", () => {
     <meta name="of:version" content="vNext"/>
     <meta name="of:accepts:farcaster" content="vNext"/>
     <meta name="og:image" content="http://example.com/og-image.png"/>
+    <title>Test</title>
     `);
 
     expect(
@@ -49,6 +53,8 @@ describe("open frames frame parser", () => {
         reporter,
       })
     ).toEqual({
+      status: "success",
+      reports: {},
       frame: {
         accepts: [{ id: "farcaster", version: "vNext" }],
         version: "vNext",
@@ -65,6 +71,7 @@ describe("open frames frame parser", () => {
       <meta name="of:accepts:some_protocol" content="vNext"/> 
       <meta name="of:image" content="http://example.com/image.png"/>
       <meta name="og:image" content="http://example.com/og-image.png"/>
+      <title>Test</title>
       `);
 
       expect(
@@ -74,6 +81,7 @@ describe("open frames frame parser", () => {
           reporter,
         })
       ).toEqual({
+        status: "failure",
         reports: {
           "of:version": [
             {
@@ -97,6 +105,7 @@ describe("open frames frame parser", () => {
       <meta name="of:accepts:farcaster" content="vNext"/>
       <meta name="of:image" content="http://example.com/image.png"/>
       <meta name="og:image" content="http://example.com/og-image.png"/>
+      <title>Test</title>
       `);
 
       expect(
@@ -106,6 +115,7 @@ describe("open frames frame parser", () => {
           reporter,
         })
       ).toEqual({
+        status: "failure",
         reports: {
           "of:version": [
             {
@@ -130,6 +140,7 @@ describe("open frames frame parser", () => {
       <meta name="of:accepts:some_protocol" content="vNext"/> 
       <meta name="of:image" content="http://example.com/image.png"/>
       <meta name="og:image" content="http://example.com/og-image.png"/>
+      <title>Test</title>
       `);
 
       expect(
@@ -139,6 +150,8 @@ describe("open frames frame parser", () => {
           reporter,
         })
       ).toEqual({
+        status: "success",
+        reports: {},
         frame: {
           accepts: [{ id: "some_protocol", version: "vNext" }],
           version: "vNext",
@@ -156,6 +169,7 @@ describe("open frames frame parser", () => {
       <meta name="of:version" content="vNext"/>
       <meta name="of:image" content="http://example.com/image.png"/>
       <meta name="og:image" content="http://example.com/og-image.png"/>
+      <title>Test</title>
       `);
 
       expect(
@@ -165,6 +179,7 @@ describe("open frames frame parser", () => {
           reporter,
         })
       ).toEqual({
+        status: "failure",
         frame: {
           accepts: [],
           version: "vNext",
@@ -191,6 +206,7 @@ describe("open frames frame parser", () => {
       <meta name="of:accepts:farcaster" content="vNext"/>
       <meta name="of:image" content="http://example.com/image.png"/>
       <meta name="og:image" content="http://example.com/og-image.png"/>
+      <title>Test</title>
       `);
 
       expect(
@@ -200,6 +216,8 @@ describe("open frames frame parser", () => {
           reporter,
         })
       ).toEqual({
+        status: "success",
+        reports: {},
         frame: {
           accepts: [{ id: "farcaster", version: "vNext" }],
           version: "vNext",
@@ -217,6 +235,7 @@ describe("open frames frame parser", () => {
     <meta name="of:version" content="vNext"/>
     <meta name="of:accepts:some_protocol" content="vNext"/> 
     <meta name="of:image" content="http://example.com/image.png"/>
+    <title>Test</title>
     `);
 
       expect(
@@ -226,6 +245,7 @@ describe("open frames frame parser", () => {
           reporter,
         })
       ).toEqual({
+        status: "failure",
         reports: {
           "og:image": [
             {
@@ -250,6 +270,7 @@ describe("open frames frame parser", () => {
     <meta name="of:accepts:some_protocol" content="vNext"/> 
     <meta name="of:image" content="http://example.com/image.png"/>
     <meta name="og:image" content="http://example.com/og-image.png"/>
+    <title>Test</title>
     `);
 
       expect(
@@ -259,6 +280,8 @@ describe("open frames frame parser", () => {
           reporter,
         })
       ).toEqual({
+        status: "success",
+        reports: {},
         frame: {
           accepts: [{ id: "some_protocol", version: "vNext" }],
           version: "vNext",
@@ -276,6 +299,7 @@ describe("open frames frame parser", () => {
       <meta name="of:version" content="vNext"/>
       <meta name="of:accepts:some_protocol" content="vNext"/> 
       <meta name="og:image" content="http://example.com/og-image.png"/>
+      <title>Test</title>
       `);
 
       expect(
@@ -285,6 +309,7 @@ describe("open frames frame parser", () => {
           reporter,
         })
       ).toEqual({
+        status: "failure",
         reports: {
           "of:image": [
             {
@@ -308,6 +333,7 @@ describe("open frames frame parser", () => {
         <meta name="of:version" content="vNext"/>
         <meta name="of:accepts:farcaster" content="vNext"/>
         <meta name="og:image" content="http://example.com/og-image.png"/>
+        <title>Test</title>
         `);
 
       expect(
@@ -319,6 +345,8 @@ describe("open frames frame parser", () => {
           reporter,
         })
       ).toEqual({
+        status: "success",
+        reports: {},
         frame: {
           accepts: [{ id: "farcaster", version: "vNext" }],
           version: "vNext",
@@ -335,6 +363,7 @@ describe("open frames frame parser", () => {
       <meta name="of:accepts:some_protocol" content="vNext"/> 
       <meta name="of:image" content="http://example.com/image.png"/>
       <meta name="og:image" content="http://example.com/og-image.png"/>
+      <title>Test</title>
       `);
 
       expect(
@@ -344,6 +373,8 @@ describe("open frames frame parser", () => {
           reporter,
         })
       ).toEqual({
+        status: "success",
+        reports: {},
         frame: {
           accepts: [{ id: "some_protocol", version: "vNext" }],
           version: "vNext",
@@ -362,6 +393,7 @@ describe("open frames frame parser", () => {
         <meta name="of:accepts:farcaster" content="vNext"/>
         <meta name="of:image" content="http://example.com/image.png"/>
         <meta name="og:image" content="http://example.com/og-image.png"/>
+        <title>Test</title>
         `);
 
       expect(
@@ -373,6 +405,8 @@ describe("open frames frame parser", () => {
           reporter,
         })
       ).toEqual({
+        status: "success",
+        reports: {},
         frame: {
           accepts: [{ id: "farcaster", version: "vNext" }],
           version: "vNext",
@@ -391,6 +425,7 @@ describe("open frames frame parser", () => {
       <meta name="of:image" content="http://example.com/image.png"/>
       <meta name="og:image" content="http://example.com/og-image.png"/>
       <meta name="of:image:aspect_ratio" content="1.91:1"/>
+      <title>Test</title>
       `);
 
       expect(
@@ -400,6 +435,8 @@ describe("open frames frame parser", () => {
           reporter,
         })
       ).toEqual({
+        status: "success",
+        reports: {},
         frame: {
           accepts: [{ id: "some_protocol", version: "vNext" }],
           version: "vNext",
@@ -419,6 +456,7 @@ describe("open frames frame parser", () => {
         <meta name="of:accepts:farcaster" content="vNext"/>
         <meta name="of:image" content="http://example.com/image.png"/>
         <meta name="og:image" content="http://example.com/og-image.png"/>
+        <title>Test</title>
         `);
 
       expect(
@@ -430,6 +468,8 @@ describe("open frames frame parser", () => {
           reporter,
         })
       ).toEqual({
+        status: "success",
+        reports: {},
         frame: {
           accepts: [{ id: "farcaster", version: "vNext" }],
           version: "vNext",
@@ -448,6 +488,7 @@ describe("open frames frame parser", () => {
       <meta name="of:image" content="http://example.com/image.png"/>
       <meta name="og:image" content="http://example.com/og-image.png"/>
       <meta name="of:input:text" content="input text"/>
+      <title>Test</title>
       `);
 
       expect(
@@ -457,6 +498,7 @@ describe("open frames frame parser", () => {
           reporter,
         })
       ).toEqual({
+        status: "success",
         frame: {
           accepts: [{ id: "some_protocol", version: "vNext" }],
           version: "vNext",
@@ -465,6 +507,7 @@ describe("open frames frame parser", () => {
           inputText: "input text",
           postUrl: fallbackPostUrl,
         },
+        reports: {},
       });
     });
   });
@@ -478,6 +521,7 @@ describe("open frames frame parser", () => {
       <meta name="of:image" content="http://example.com/image.png"/>
       <meta name="og:image" content="http://example.com/og-image.png"/>
       <meta name="of:post_url" content="${url.toString()}"/>
+      <title>Test</title>
       `);
 
       expect(
@@ -487,6 +531,7 @@ describe("open frames frame parser", () => {
           reporter,
         })
       ).toEqual({
+        status: "failure",
         reports: {
           "of:post_url": [
             {
@@ -512,6 +557,7 @@ describe("open frames frame parser", () => {
         <meta name="of:accepts:farcaster" content="vNext"/>
         <meta name="of:image" content="http://example.com/image.png"/>
         <meta name="og:image" content="http://example.com/og-image.png"/>
+        <title>Test</title>
         `);
 
       expect(
@@ -523,6 +569,8 @@ describe("open frames frame parser", () => {
           reporter,
         })
       ).toEqual({
+        status: "success",
+        reports: {},
         frame: {
           accepts: [{ id: "farcaster", version: "vNext" }],
           version: "vNext",
@@ -540,6 +588,7 @@ describe("open frames frame parser", () => {
       <meta name="of:image" content="http://example.com/image.png"/>
       <meta name="og:image" content="http://example.com/og-image.png"/>
       <meta name="of:post_url" content="http://example.com/post"/>
+      <title>Test</title>
       `);
 
       expect(
@@ -549,6 +598,8 @@ describe("open frames frame parser", () => {
           reporter,
         })
       ).toEqual({
+        status: "success",
+        reports: {},
         frame: {
           accepts: [{ id: "some_protocol", version: "vNext" }],
           version: "vNext",
@@ -567,6 +618,7 @@ describe("open frames frame parser", () => {
         <meta name="of:accepts:farcaster" content="vNext"/>
         <meta name="of:image" content="http://example.com/image.png"/>
         <meta name="og:image" content="http://example.com/og-image.png"/>
+        <title>Test</title>
         `);
 
       expect(
@@ -578,6 +630,8 @@ describe("open frames frame parser", () => {
           reporter,
         })
       ).toEqual({
+        status: "success",
+        reports: {},
         frame: {
           accepts: [{ id: "farcaster", version: "vNext" }],
           version: "vNext",
@@ -596,6 +650,7 @@ describe("open frames frame parser", () => {
       <meta name="of:image" content="http://example.com/image.png"/>
       <meta name="og:image" content="http://example.com/og-image.png"/>
       <meta name="of:state" content="state"/>
+      <title>Test</title>
       `);
 
       expect(
@@ -605,6 +660,8 @@ describe("open frames frame parser", () => {
           reporter,
         })
       ).toEqual({
+        status: "success",
+        reports: {},
         frame: {
           accepts: [{ id: "some_protocol", version: "vNext" }],
           version: "vNext",
@@ -627,6 +684,7 @@ describe("open frames frame parser", () => {
       <meta property="of:button:1" content="1" />
       <meta property="of:button:1:action" content="mint" />
       <meta property="of:button:1:target" content="eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df" />
+      <title>Test</title>
       `);
 
       expect(
@@ -636,6 +694,8 @@ describe("open frames frame parser", () => {
           reporter,
         })
       ).toEqual({
+        status: "success",
+        reports: {},
         frame: {
           accepts: [{ id: "some_protocol", version: "vNext" }],
           version: "vNext",
@@ -650,6 +710,44 @@ describe("open frames frame parser", () => {
                 "eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df",
             },
           ],
+        },
+      });
+    });
+  });
+
+  describe("title (warpcast)", () => {
+    it("warns if title is missing", () => {
+      const document = load(`
+        <meta property="of:version" content="vNext" />
+        <meta name="of:accepts:some_protocol" content="vNext"/>
+        <meta property="of:image" content="http://example.com/image.png" />
+        <meta property="og:image" content="http://example.com/image.png" />
+      `);
+
+      expect(
+        parseOpenFramesFrame(document, {
+          reporter,
+          fallbackPostUrl,
+          farcasterFrame: {},
+        })
+      ).toEqual({
+        status: "success",
+        reports: {
+          "<title>": [
+            {
+              level: "warning",
+              message:
+                "A <title> tag is required in order for your frames to work in Warpcast",
+              source: "openframes",
+            },
+          ],
+        },
+        frame: {
+          image: "http://example.com/image.png",
+          ogImage: "http://example.com/image.png",
+          version: "vNext",
+          postUrl: fallbackPostUrl,
+          accepts: [{ id: "some_protocol", version: "vNext" }],
         },
       });
     });

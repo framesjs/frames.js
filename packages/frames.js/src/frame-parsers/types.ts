@@ -1,9 +1,15 @@
 import type { Frame } from "../types";
 
+export type SupportedParsingSpecification = "farcaster" | "openframes";
+
 export interface Reporter {
   error: (key: string, message: unknown, source?: ParsingReportSource) => void;
+  /**
+   * Reporst a warning. Warning can't be used in case the frame is invalid and not renderable.
+   */
   warn: (key: string, message: unknown, source?: ParsingReportSource) => void;
   hasReports: () => boolean;
+  hasErrors: () => boolean;
   toObject: () => Record<string, ParsingReport[]>;
 }
 
@@ -26,7 +32,7 @@ export type ParsedFrame = {
   buttons?: ParsedButton[];
 };
 
-export type ParsingReportSource = "farcaster" | "openframes";
+export type ParsingReportSource = SupportedParsingSpecification;
 
 export type ParsingReportLevel = "error" | "warning";
 
@@ -38,9 +44,18 @@ export type ParsingReport = {
 
 export type ParseResult =
   | {
+      status: "success";
       frame: Frame;
+      /**
+       * Reports contain only warnings that should not have any impact on the frame's functionality.
+       */
+      reports: Record<string, ParsingReport[]>;
     }
   | {
+      status: "failure";
       frame: Partial<Frame>;
+      /**
+       * Reports contain warnings and errors that should be addressed before the frame can be used.
+       */
       reports: Record<string, ParsingReport[]>;
     };

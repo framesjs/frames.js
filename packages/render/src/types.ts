@@ -1,7 +1,6 @@
 import type {
   Frame,
   FrameButton,
-  ParsingReport,
   TransactionTargetResponse,
   getFrame,
 } from "frames.js";
@@ -13,7 +12,7 @@ export type OnTransactionFunc = (
 
 export type UseFrameReturn<
   T = object,
-  B extends FrameActionBodyPayload = FrameActionBodyPayload
+  B extends FrameActionBodyPayload = FrameActionBodyPayload,
 > = {
   /** skip frame signing, for frames that don't verify signatures */
   dangerousSkipSigning?: boolean;
@@ -41,7 +40,7 @@ export type UseFrameReturn<
 
 export interface SignerStateInstance<
   T = object,
-  B extends FrameActionBodyPayload = FrameActionBodyPayload
+  B extends FrameActionBodyPayload = FrameActionBodyPayload,
 > {
   signer?: T | null;
   hasSigner: boolean;
@@ -94,23 +93,10 @@ export type FrameStackPending = {
   status: "pending";
 } & FrameRequest;
 
-type GetFrameResult = ReturnType<typeof getFrame>;
+export type GetFrameResult = ReturnType<typeof getFrame>;
 
 export type FrameStackDone = FrameStackBase & {
-  frames: Record<
-    keyof GetFrameResult,
-    | { frame: Frame; status: "valid" }
-    | {
-        frame: Partial<Frame>;
-        reports: Record<string, ParsingReport[]>;
-        status: "invalid";
-      }
-    | {
-        frame: Partial<Frame>;
-        reports: Record<string, ParsingReport[]>;
-        status: "warnings";
-      }
-  >;
+  frame: GetFrameResult;
   status: "done";
 };
 

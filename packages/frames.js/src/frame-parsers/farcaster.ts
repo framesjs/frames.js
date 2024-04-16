@@ -32,6 +32,14 @@ export function parseFarcasterFrame(
     state: getMetaTag($, "fc:frame:state"),
   };
   const frame: Partial<Frame> = {};
+  const pageTitle = $("title").text();
+
+  if (!pageTitle) {
+    reporter.warn(
+      "<title>",
+      "A <title> tag is required in order for your frames to work in Warpcast"
+    );
+  }
 
   // validate version
   if (!parsedFrame.version) {
@@ -110,14 +118,17 @@ export function parseFarcasterFrame(
     frame.buttons = parsedButtons as typeof frame.buttons;
   }
 
-  if (reporter.hasReports()) {
+  if (reporter.hasErrors()) {
     return {
-      reports: reporter.toObject(),
+      status: "failure",
       frame,
+      reports: reporter.toObject(),
     };
   }
 
   return {
+    status: "success",
     frame: frame as unknown as Frame,
+    reports: reporter.toObject(),
   };
 }

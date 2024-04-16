@@ -3,16 +3,18 @@ import { getFrameHtml } from "./getFrameHtml";
 import type { Frame } from "./types";
 
 describe("getFrame", () => {
-  it("should parse html meta tags", () => {
+  it("should parse html meta tags (farcaster)", () => {
     const htmlString = `
     <meta name="fc:frame" content="vNext" />
     <meta name="fc:frame:image" content="http://example.com/image.png" />
+    <meta name="og:image" content="http://example.com/image.png"/>
     <meta name="fc:frame:button:1" content="Green" />
     <meta name="fc:frame:button:2" content="Purple" />
     <meta name="fc:frame:button:3" content="Red" />
     <meta name="fc:frame:button:4" content="Blue" />
     <meta name="fc:frame:post_url" content="https://example.com" />
     <meta name="fc:frame:input:text" content="Enter a message" />
+    <title>test</title>
   `;
 
     expect(
@@ -20,52 +22,47 @@ describe("getFrame", () => {
         htmlString,
         url: "https://example.com",
       })
-    ).toMatchObject({
-      farcaster: {
-        frame: {
-          version: "vNext",
-          image: "http://example.com/image.png",
-          buttons: [
-            {
-              label: "Green",
-              action: "post",
-              target: undefined,
-            },
-            {
-              label: "Purple",
-              action: "post",
-              target: undefined,
-            },
-            {
-              label: "Red",
-              action: "post",
-              target: undefined,
-            },
-            {
-              label: "Blue",
-              action: "post",
-              target: undefined,
-            },
-          ],
-          postUrl: "https://example.com/",
-          inputText: "Enter a message",
-        },
-        reports: expect.any(Object) as unknown,
+    ).toEqual({
+      status: "success",
+      frame: {
+        version: "vNext",
+        image: "http://example.com/image.png",
+        ogImage: "http://example.com/image.png",
+        buttons: [
+          {
+            label: "Green",
+            action: "post",
+            target: undefined,
+          },
+          {
+            label: "Purple",
+            action: "post",
+            target: undefined,
+          },
+          {
+            label: "Red",
+            action: "post",
+            target: undefined,
+          },
+          {
+            label: "Blue",
+            action: "post",
+            target: undefined,
+          },
+        ],
+        postUrl: "https://example.com/",
+        inputText: "Enter a message",
       },
-      openframes: {
-        frame: {
-          accepts: [],
-        },
-        reports: expect.any(Object) as unknown,
-      },
+      reports: {},
     });
   });
 
-  it("should parse button actions", () => {
+  it("should parse button actions (farcaster)", () => {
     const html = `
     <meta name="fc:frame" content="vNext"/>
     <meta name="fc:frame:post_url" content="https://example.com"/>
     <meta name="fc:frame:image" content="http://example.com/image.png"/>
+    <meta name="og:image" content="http://example.com/image.png"/>
     <meta name="fc:frame:button:1" content="1"/>
     <meta name="fc:frame:button:2" content="2"/>
     <meta name="fc:frame:button:2:action" content="post_redirect"/>
@@ -75,6 +72,7 @@ describe("getFrame", () => {
     <meta name="fc:frame:button:4" content="Mint" />
     <meta name="fc:frame:button:4:action" content="mint" />
     <meta name="fc:frame:button:4:target" content="eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df" />
+    <title>test</title>
     `;
     const frame = getFrame({
       htmlString: html,
@@ -82,45 +80,36 @@ describe("getFrame", () => {
     });
 
     expect(frame).toEqual({
-      farcaster: {
-        frame: {
-          version: "vNext",
-          image: "http://example.com/image.png",
-          ogImage: undefined,
-          buttons: [
-            {
-              label: "1",
-              action: "post",
-              target: undefined,
-            },
-            {
-              label: "2",
-              action: "post_redirect",
-              target: undefined,
-            },
-            {
-              label: "3",
-              action: "link",
-              target: "https://example.com",
-            },
-            {
-              label: "Mint",
-              action: "mint",
-              target:
-                "eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df",
-            },
-          ],
-          postUrl: "https://example.com/",
-        },
-        reports: expect.any(Object) as unknown,
+      status: "success",
+      frame: {
+        version: "vNext",
+        image: "http://example.com/image.png",
+        ogImage: "http://example.com/image.png",
+        buttons: [
+          {
+            label: "1",
+            action: "post",
+            target: undefined,
+          },
+          {
+            label: "2",
+            action: "post_redirect",
+            target: undefined,
+          },
+          {
+            label: "3",
+            action: "link",
+            target: "https://example.com",
+          },
+          {
+            label: "Mint",
+            action: "mint",
+            target: "eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df",
+          },
+        ],
+        postUrl: "https://example.com/",
       },
-      openframes: {
-        frame: {
-          accepts: [],
-          postUrl: "https://example.com/",
-        },
-        reports: expect.any(Object) as unknown,
-      },
+      reports: {},
     });
   });
 
@@ -168,84 +157,84 @@ describe("getFrame", () => {
     });
 
     expect(parsedFrame).toEqual({
-      farcaster: {
-        frame: {
-          ...exampleFrame,
-          accepts: undefined,
-        },
-      },
-      openframes: {
-        frame: exampleFrame,
-      },
+      status: "success",
+      frame: { ...exampleFrame, accepts: undefined },
+      reports: {},
     });
   });
 
   it("should parse open frames tags", () => {
     const html = `
     <meta name="of:version" content="vNext" />
+    <meta name="of:accepts:some" content="vNext" />
     <meta name="of:image" content="http://example.com/image.png" />
+    <meta name="og:image" content="http://example.com/image.png" />
     <meta name="of:button:1" content="Green" />
     <meta name="of:button:2" content="Purple" />
     <meta name="of:button:3" content="Red" />
     <meta name="of:button:4" content="Blue" />
     <meta name="of:post_url" content="https://example.com" />
     <meta name="of:input:text" content="Enter a message" />
+    <title>test</title>
   `;
 
-    const frame = getFrame({ htmlString: html, url: "https://example.com" });
+    const frame = getFrame({
+      htmlString: html,
+      url: "https://example.com",
+      specification: "openframes",
+    });
 
+    expect(frame).not.toBeNull();
     expect(frame).toEqual({
-      farcaster: {
-        frame: {
-          postUrl: "https://example.com/",
-        },
-        reports: expect.any(Object) as unknown,
+      status: "success",
+      frame: {
+        accepts: [{ id: "some", version: "vNext" }],
+        version: "vNext",
+        image: "http://example.com/image.png",
+        ogImage: "http://example.com/image.png",
+        buttons: [
+          {
+            label: "Green",
+            action: "post",
+            target: undefined,
+          },
+          {
+            label: "Purple",
+            action: "post",
+            target: undefined,
+          },
+          {
+            label: "Red",
+            action: "post",
+            target: undefined,
+          },
+          {
+            label: "Blue",
+            action: "post",
+            target: undefined,
+          },
+        ],
+        postUrl: "https://example.com/",
+        inputText: "Enter a message",
       },
-      openframes: {
-        frame: {
-          accepts: [],
-          version: "vNext",
-          image: "http://example.com/image.png",
-          ogImage: undefined,
-          buttons: [
-            {
-              label: "Green",
-              action: "post",
-              target: undefined,
-            },
-            {
-              label: "Purple",
-              action: "post",
-              target: undefined,
-            },
-            {
-              label: "Red",
-              action: "post",
-              target: undefined,
-            },
-            {
-              label: "Blue",
-              action: "post",
-              target: undefined,
-            },
-          ],
-          postUrl: "https://example.com/",
-          inputText: "Enter a message",
-        },
-        reports: expect.any(Object) as unknown,
-      },
+      reports: {},
     });
   });
 
   it("should parse values with escaped html values", () => {
     const html = `
-    <meta name="of:version" content="vNext" />
-    <meta name="of:image" content="http://example.com/image.png" />
+    <meta name="fc:frame" content="vNext" />
+    <meta name="fc:frame:image" content="http://example.com/image.png" />
+    <meta name="og:image" content="http://example.com/image.png" />
     <meta name="fc:frame:state" content="{&quot;test&quot;:&quot;&#39;&gt;&lt;&&quot;}"/>
+    <title>test</title>
   `;
 
-    const frame = getFrame({ htmlString: html, url: "https://example.com" });
+    const result = getFrame({ htmlString: html, url: "https://example.com" });
 
-    expect(JSON.parse(frame.farcaster.frame.state || "")).toEqual({ test: "'><&" });
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- this is test
+    expect(JSON.parse(result.frame.state!)).toEqual({
+      test: "'><&",
+    });
   });
 });
