@@ -56,9 +56,9 @@ export function createImagesWorker(
         return response;
       }
 
-      const width = 1000;
-      const height =
-        aspectRatio === "1.91:1" ? Math.round(width * 1.91) : width;
+      const height = 600;
+      const width =
+        aspectRatio === "1.91:1" ? Math.round(height * 1.91) : height;
 
       return new ImageResponse(
         <Scaffold>{jsx}</Scaffold>,
