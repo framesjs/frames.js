@@ -20,9 +20,9 @@ import pkg from "../package.json";
 import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
 import { MockHubActionContext } from "./utils/mock-hub-utils";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { FrameSpecification } from "./types";
 import { AlertTriangle, CheckCircle2, LoaderIcon, XCircle } from "lucide-react";
 import { hasWarnings } from "./lib/utils";
+import type { SupportedParsingSpecification } from "frames.js";
 
 const LoginWindow = dynamic(() => import("./components/create-signer"), {
   ssr: false,
@@ -93,7 +93,7 @@ export default function App({
 }): JSX.Element {
   const router = useRouter();
   const [specification, setSpecification] =
-    useState<FrameSpecification>("farcaster");
+    useState<SupportedParsingSpecification>("farcaster");
   /**
    * Parse the URL from the query string. This will also cause debugger to automatically load the frame.
    */
@@ -290,7 +290,7 @@ export default function App({
                 return;
               }
 
-              setSpecification(value as FrameSpecification);
+              setSpecification(value as SupportedParsingSpecification);
             }}
             type="single"
             value={specification}
