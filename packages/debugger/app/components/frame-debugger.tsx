@@ -3,6 +3,7 @@ import {
   getFrameFlattened,
   type Frame,
   ParsingReport,
+  SupportedParsingSpecification,
 } from "frames.js";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import React from "react";
@@ -32,7 +33,6 @@ import {
 } from "@/components/ui/hover-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { FrameSpecification } from "../types";
 import { hasWarnings } from "../lib/utils";
 
 type FrameDebuggerFramePropertiesTableRowsProps = {
@@ -309,7 +309,7 @@ export function FrameDebugger({
   mockHubContext,
   setMockHubContext,
 }: {
-  specification: FrameSpecification;
+  specification: SupportedParsingSpecification;
   frameState: FrameState;
   url: string;
   mockHubContext: Partial<MockHubActionContext>;

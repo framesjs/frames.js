@@ -1,6 +1,7 @@
 import type {
   Frame,
   FrameButton,
+  SupportedParsingSpecification,
   TransactionTargetResponse,
   getFrame,
 } from "frames.js";
@@ -36,6 +37,12 @@ export type UseFrameReturn<
    * Extra data appended to the frame action payload
    */
   extraButtonRequestPayload?: Record<string, unknown>;
+  /**
+   * Which specification to use for parsing the frame action payload
+   *
+   * @defaultValue 'farcaster'
+   */
+  specification?: SupportedParsingSpecification;
 };
 
 export interface SignerStateInstance<
