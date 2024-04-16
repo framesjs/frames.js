@@ -82,17 +82,20 @@ export function farcasterHubContext(
       return next();
     }
 
-    const message = await getFrameMessage(payload, {
-      ...options,
-      fetchHubContext: true,
-    });
-
-    return next({
-      message,
-      clientProtocol: {
-        id: "farcaster",
-        version: "vNext", // TODO: Pass version in getFrameMessage
-      },
-    });
+    try {
+      const message = await getFrameMessage(payload, {
+        ...options,
+        fetchHubContext: true,
+      });
+      return next({
+        message,
+        clientProtocol: {
+          id: "farcaster",
+          version: "vNext", // TODO: Pass version in getFrameMessage
+        },
+      });
+    } catch (error) {
+      return next();
+    }
   };
 }

@@ -76,16 +76,20 @@ export function farcaster(): FramesMiddleware<any, FramesMessageContext> {
       return next();
     }
 
-    const message = await getFrameMessage(payload, {
-      fetchHubContext: false,
-    });
+    try {
+      const message = await getFrameMessage(payload, {
+        fetchHubContext: false,
+      });
 
-    return next({
-      message,
-      clientProtocol: {
-        id: "farcaster",
-        version: "vNext",
-      },
-    });
+      return next({
+        message,
+        clientProtocol: {
+          id: "farcaster",
+          version: "vNext",
+        },
+      });
+    } catch (error) {
+      return next();
+    }
   };
 }
