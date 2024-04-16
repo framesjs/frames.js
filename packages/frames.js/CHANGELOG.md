@@ -1,5 +1,12 @@
 # frames.js
 
+## 0.13.2
+
+### Patch Changes
+
+- 651e6b1: fix: set default images worker styling font size to 36px
+- fe92ca0: fix: remove error detail from farcaster middleware log
+
 ## 0.13.1
 
 ### Patch Changes
