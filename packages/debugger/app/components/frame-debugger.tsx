@@ -302,6 +302,7 @@ const FramesRequestCardContent: React.FC<{
   });
 };
 
+
 export function FrameDebugger({
   specification,
   url,

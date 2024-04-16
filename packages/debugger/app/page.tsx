@@ -13,16 +13,20 @@ import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import { sendTransaction, switchChain } from "@wagmi/core";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useAccount, useChainId, useConfig } from "wagmi";
 import { FrameDebugger } from "./components/frame-debugger";
 import pkg from "../package.json";
 import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
 import { MockHubActionContext } from "./utils/mock-hub-utils";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { AlertTriangle, CheckCircle2, LoaderIcon, XCircle } from "lucide-react";
 import { hasWarnings } from "./lib/utils";
-import type { SupportedParsingSpecification } from "frames.js";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const LoginWindow = dynamic(() => import("./components/create-signer"), {
   ssr: false,
@@ -30,60 +34,67 @@ const LoginWindow = dynamic(() => import("./components/create-signer"), {
 
 const FALLBACK_URL = process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
 
-const ToggleGroupStackItemStatusIcon: React.FC<{
-  stackItem: FramesStack[number] | undefined;
-}> = ({ stackItem }) => {
-  switch (stackItem?.status) {
-    case "pending":
-      return (
-        <LoaderIcon
-          className="animate-spin mr-2"
-          aria-hidden="true"
-          size={20}
-        />
-      );
-    case "requestError":
-      return (
-        <XCircle className="mr-2" aria-hidden="true" size={20} color="red" />
-      );
-    case "done": {
-      const frame = stackItem.frame;
-
-      switch (frame.status) {
-        case "failure":
-          return (
-            <XCircle
-              className="mr-2"
-              aria-hidden="true"
-              size={20}
-              color="red"
-            />
-          );
-        case "success":
-          if (hasWarnings(frame.reports)) {
-            return (
-              <AlertTriangle
-                className="mr-2"
-                aria-hidden="true"
-                size={20}
-                color="orange"
-              />
-            );
-          }
-
-          return (
-            <CheckCircle2
-              className="mr-2"
-              aria-hidden="true"
-              size={20}
-              color="green"
-            />
-          );
-      }
+type ProtocolConfiguration =
+  | {
+      protocol: "farcaster";
+      specification: "farcaster";
     }
-  }
+  | {
+      protocol: "lens";
+      specification: "openframes";
+    }
+  | {
+      protocol: "xmtp";
+      specification: "openframes";
+    };
 
-  return null;
+const ProtocolConfiguratorButton: React.FC<{
+  onChange: (configuration: ProtocolConfiguration) => void;
+  value: ProtocolConfiguration | null;
+}> = ({ onChange, value }) => {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="secondary">{value ? <>{value.protocol} ({value.specification})</> : <>Select a protocol</>}</Button>
+      </PopoverTrigger>
+      <PopoverContent>
+        <Tabs defaultValue={value?.protocol ?? "farcaster"}>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="farcaster">Farcaster</TabsTrigger>
+            <TabsTrigger value="lens">Lens</TabsTrigger>
+            <TabsTrigger value="xmtp">XMTP</TabsTrigger>
+          </TabsList>
+          <TabsContent value="farcaster">
+            <Button
+              onClick={() => {
+                onChange({ protocol: "farcaster", specification: "farcaster" });
+              }}
+            >
+              Save
+            </Button>
+          </TabsContent>
+          <TabsContent value="lens">
+            <Button
+              onClick={() => {
+                onChange({ protocol: "lens", specification: "openframes" });
+              }}
+            >
+              Save
+            </Button>
+          </TabsContent>
+          <TabsContent value="xmtp">
+            <Button
+              onClick={() => {
+                onChange({ protocol: "xmtp", specification: "openframes" });
+              }}
+            >
+              Save
+            </Button>
+          </TabsContent>
+        </Tabs>
+      </PopoverContent>
+    </Popover>
+  );
 };
 
 export default function App({
@@ -92,8 +103,8 @@ export default function App({
   searchParams: Record<string, string>;
 }): JSX.Element {
   const router = useRouter();
-  const [specification, setSpecification] =
-    useState<SupportedParsingSpecification>("farcaster");
+  const [protocolConfiguration, setProtocolConfiguration] =
+    useState<ProtocolConfiguration | null>(null);
   /**
    * Parse the URL from the query string. This will also cause debugger to automatically load the frame.
    */
@@ -177,6 +188,7 @@ export default function App({
     [account.address, currentChainId, config, openConnectModal]
   );
 
+  // @todo this should be moved to it's own component so we can reset it when configuration changes
   const frameState = useFrame({
     homeframeUrl: url,
     frameActionProxy: "/frames",
@@ -219,6 +231,7 @@ export default function App({
           console.error(e);
         });
     },
+    specification: protocolConfiguration?.specification,
   });
 
   return (
@@ -284,31 +297,17 @@ export default function App({
             </Button>
           </form>
 
-          <ToggleGroup
-            onValueChange={(value) => {
-              if (!value) {
-                return;
-              }
+          <ProtocolConfiguratorButton
+            // use key so the component is reset on change
+            key={
+              (protocolConfiguration?.protocol ?? "farcaster") +
+              (protocolConfiguration?.specification ?? "farcaster")
+            }
+            onChange={setProtocolConfiguration}
+            value={protocolConfiguration}
+          ></ProtocolConfiguratorButton>
 
-              setSpecification(value as SupportedParsingSpecification);
-            }}
-            type="single"
-            value={specification}
-          >
-            <ToggleGroupItem value="farcaster">
-              <ToggleGroupStackItemStatusIcon
-                stackItem={frameState.frame}
-              ></ToggleGroupStackItemStatusIcon>
-              Farcaster
-            </ToggleGroupItem>
-            <ToggleGroupItem value="openframes">
-              <ToggleGroupStackItemStatusIcon
-                stackItem={frameState.frame}
-              ></ToggleGroupStackItemStatusIcon>
-              Open Frames
-            </ToggleGroupItem>
-          </ToggleGroup>
-
+          {/* @todo move to ProtocolConfiguratorButton */}
           <LoginWindow
             farcasterUser={signerState.signer ?? null}
             loading={!!signerState.isLoadingSigner ?? false}
@@ -324,12 +323,13 @@ export default function App({
       </div>
       {url ? (
         <>
+          {/* @todo use key that contains protocol + spec combination, so debugger is reset on change */}
           <FrameDebugger
             frameState={frameState}
             url={url}
             mockHubContext={mockHubContext}
             setMockHubContext={setMockHubContext}
-            specification={specification}
+            specification={protocolConfiguration?.specification ?? "farcaster"}
           ></FrameDebugger>
         </>
       ) : null}
