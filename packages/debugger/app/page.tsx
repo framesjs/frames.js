@@ -30,10 +30,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useXmtpIdentity } from "./hooks/use-xmtp-identity";
 import { FrameActionPayload } from "frames.js";
-
-const LoginWindow = dynamic(() => import("./components/create-signer"), {
-  ssr: false,
-});
+import FarcasterSignerWindow from "./components/farcaster-signer-config";
+import { LOCAL_STORAGE_KEYS } from "./constants";
 
 const FALLBACK_URL = process.env.NEXT_PUBLIC_HOST || "http://localhost:3000";
 
@@ -51,6 +49,21 @@ type ProtocolConfiguration =
       specification: "openframes";
     };
 
+const protocolConfigurationMap: Record<string, ProtocolConfiguration> = {
+  farcaster: {
+    protocol: "farcaster",
+    specification: "farcaster",
+  },
+  xmtp: {
+    protocol: "xmtp",
+    specification: "openframes",
+  },
+  lens: {
+    protocol: "lens",
+    specification: "openframes",
+  },
+};
+
 const ProtocolConfiguratorButton: React.FC<{
   onChange: (configuration: ProtocolConfiguration) => void;
   value: ProtocolConfiguration | null;
@@ -60,7 +73,7 @@ const ProtocolConfiguratorButton: React.FC<{
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="secondary">
+        <Button variant={value ? "outline" : "destructive"}>
           {value ? (
             <>
               {value.protocol} ({value.specification})
@@ -92,7 +105,7 @@ const ProtocolConfiguratorButton: React.FC<{
             <TabsTrigger value="lens">Lens</TabsTrigger>
           </TabsList>
           <TabsContent value="farcaster">
-            <LoginWindow
+            <FarcasterSignerWindow
               farcasterUser={farcasterSignerState.signer ?? null}
               loading={!!farcasterSignerState.isLoadingSigner ?? false}
               startFarcasterSignerProcess={
@@ -100,7 +113,7 @@ const ProtocolConfiguratorButton: React.FC<{
               }
               impersonateUser={farcasterSignerState.impersonateUser}
               logout={farcasterSignerState.logout}
-            ></LoginWindow>
+            ></FarcasterSignerWindow>
           </TabsContent>
           <TabsContent value="lens">
             <Button
@@ -176,6 +189,16 @@ export default function App({
   const { openConnectModal } = useConnectModal();
 
   useEffect(() => {
+    const selectedProtocol = localStorage.getItem(
+      LOCAL_STORAGE_KEYS.SELECTED_PROTOCOL
+    );
+
+    if (selectedProtocol) {
+      setProtocolConfiguration(
+        protocolConfigurationMap[selectedProtocol] || null
+      );
+    }
+
     console.log(
       ` ,---.                                             ,--.        \n/  .-',--.--. ,--,--.,--,--,--. ,---.  ,---.       \`--' ,---.  \n|  \`-,|  .--'' ,-.  ||        || .-. :(  .-'       ,--.(  .-'  \n|  .-'|  |    '-'  ||  |  |  |   --..-'  \`).--.  |  |.-'  \`) \n\`--'  \`--'    \`--\`--'\`--\`--\`--' \`----'\`----' '--'.-'  /\`----'  \n                                                 '---'         \n${pkg.name}, Version ${pkg.version}`
     );
@@ -185,6 +208,14 @@ export default function App({
       "font-weight:bold;"
     );
   }, []);
+
+  useEffect(() => {
+    if (protocolConfiguration)
+      localStorage.setItem(
+        LOCAL_STORAGE_KEYS.SELECTED_PROTOCOL,
+        protocolConfiguration.protocol
+      );
+  }, [protocolConfiguration]);
 
   const farcasterSignerState = useFarcasterIdentity();
   const xmtpSignerState = useXmtpIdentity();
@@ -230,7 +261,7 @@ export default function App({
 
   const useFrameConfig: Omit<
     UseFrameReturn<object, FrameActionPayload>,
-    "signerState"
+    "signerState" | "specification"
   > = {
     homeframeUrl: url,
     frameActionProxy: "/frames",
@@ -272,17 +303,18 @@ export default function App({
           console.error(e);
         });
     },
-    specification: protocolConfiguration?.specification,
   };
 
   // TODO: this should be moved to it's own component so we can reset it when configuration changes
   const farcasterFrameState = useFrame({
     ...useFrameConfig,
     signerState: farcasterSignerState,
+    specification: "farcaster",
   });
   const xmtpFrameState = useFrame({
     ...useFrameConfig,
     signerState: xmtpSignerState,
+    specification: "openframes",
   });
 
   const selectedFrameState = {
@@ -355,12 +387,9 @@ export default function App({
           </form>
 
           <ProtocolConfiguratorButton
-            // use key so the component is reset on change
-            // key={
-            //   (protocolConfiguration?.protocol ?? "farcaster") +
-            //   (protocolConfiguration?.specification ?? "farcaster")
-            // }
-            onChange={setProtocolConfiguration}
+            onChange={(spec) => {
+              setProtocolConfiguration(spec);
+            }}
             value={protocolConfiguration}
             farcasterSignerState={farcasterSignerState}
             xmtpSignerState={xmtpSignerState}
@@ -374,23 +403,13 @@ export default function App({
       {url ? (
         <>
           {/* @todo use key that contains protocol + spec combination, so debugger is reset on change */}
-          {selectedFrameState && (
+          {selectedFrameState && protocolConfiguration?.specification && (
             <FrameDebugger
               frameState={selectedFrameState}
               url={url}
-              mockHubContext={
-                protocolConfiguration?.protocol === "farcaster"
-                  ? mockHubContext
-                  : undefined
-              }
-              setMockHubContext={
-                protocolConfiguration?.protocol === "farcaster"
-                  ? setMockHubContext
-                  : undefined
-              }
-              specification={
-                protocolConfiguration?.specification ?? "farcaster"
-              }
+              mockHubContext={mockHubContext}
+              setMockHubContext={setMockHubContext}
+              specification={protocolConfiguration?.specification}
             ></FrameDebugger>
           )}
         </>

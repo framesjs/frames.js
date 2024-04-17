@@ -142,7 +142,7 @@ function framesStackReducer(
 
 export function useFrame<
   T = object,
-  B extends FrameActionBodyPayload = FrameActionPayload
+  B extends FrameActionBodyPayload = FrameActionPayload,
 >({
   homeframeUrl,
   frameContext,
@@ -156,7 +156,7 @@ export function useFrame<
   /** Ex: /frames */
   frameGetProxy,
   extraButtonRequestPayload,
-  specification = 'farcaster',
+  specification = "farcaster",
 }: UseFrameReturn<T, B>): FrameState {
   const [inputText, setInputText] = useState("");
   const initialFrame = useMemo(() => {
@@ -182,7 +182,7 @@ export function useFrame<
             url: args.homeframeUrl ?? "",
             speed: 0,
             frame: {
-              status: 'success',
+              status: "success",
               frame: args.initialFrame.frame,
               reports: {},
             },
@@ -227,8 +227,13 @@ export function useFrame<
       };
       dispatch({ action: "LOAD", item: frameStackPendingItem });
 
-      const searchParams = new URLSearchParams({ url: frameRequest.url, specification });
+      const searchParams = new URLSearchParams({
+        url: frameRequest.url,
+        specification,
+      });
       const proxiedUrl = `${frameGetProxy}?${searchParams.toString()}`;
+
+      console.log({ proxiedUrl, specification });
 
       let response;
       let endTime = new Date();
@@ -273,9 +278,11 @@ export function useFrame<
         console.error(err);
       }
     } else {
-      const searchParams = new URLSearchParams(frameRequest.request.searchParams);
+      const searchParams = new URLSearchParams(
+        frameRequest.request.searchParams
+      );
 
-      searchParams.set('specification', specification);
+      searchParams.set("specification", specification);
 
       const frameStackPendingItem: FrameStackPending = {
         method: "POST" as const,
