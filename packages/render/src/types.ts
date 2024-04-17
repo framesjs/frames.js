@@ -12,9 +12,9 @@ export type OnTransactionFunc = (
 ) => Promise<`0x${string}` | null>;
 
 export type UseFrameReturn<
-  T = object,
-  B extends FrameActionBodyPayload = FrameActionBodyPayload,
-  C extends FrameContext = FarcasterFrameContext,
+  SignerStorageType = object,
+  FrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
+  FrameContextType extends FrameContext = FarcasterFrameContext,
 > = {
   /** skip frame signing, for frames that don't verify signatures */
   dangerousSkipSigning?: boolean;
@@ -23,7 +23,11 @@ export type UseFrameReturn<
   /** the route used to GET the initial frame via proxy */
   frameGetProxy: string;
   /** an signer state object used to determine what actions are possible */
-  signerState: SignerStateInstance<T, B, C>;
+  signerState: SignerStateInstance<
+    SignerStorageType,
+    FrameActionBodyType,
+    FrameContextType
+  >;
   /** the url of the homeframe, if null / undefined won't load a frame */
   homeframeUrl: string | null | undefined;
   /** the initial frame. if not specified will fetch it from the url prop */
@@ -33,7 +37,7 @@ export type UseFrameReturn<
   /** a function to handle transaction buttons, returns the transaction hash or null */
   onTransaction?: OnTransactionFunc;
   /** the context of this frame, used for generating Frame Action payloads */
-  frameContext: C;
+  frameContext: FrameContextType;
   /**
    * Extra data appended to the frame action payload
    */
@@ -47,11 +51,11 @@ export type UseFrameReturn<
 };
 
 export interface SignerStateInstance<
-  T = object,
-  B extends FrameActionBodyPayload = FrameActionBodyPayload,
-  C extends FrameContext = FarcasterFrameContext,
+  SignerStorageType = object,
+  FrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
+  FrameContextType extends FrameContext = FarcasterFrameContext,
 > {
-  signer?: T | null;
+  signer?: SignerStorageType | null;
   hasSigner: boolean;
   signFrameAction: (actionContext: {
     target?: string;
@@ -59,12 +63,12 @@ export interface SignerStateInstance<
     buttonIndex: number;
     url: string;
     inputText?: string;
-    signer: T | null;
+    signer: SignerStorageType | null;
     state?: string;
     transactionId?: `0x${string}`;
-    frameContext: C;
+    frameContext: FrameContextType;
   }) => Promise<{
-    body: B;
+    body: FrameActionBodyType;
     searchParams: URLSearchParams;
   }>;
   /** isLoading frame */

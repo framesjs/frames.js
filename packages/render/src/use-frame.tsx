@@ -235,8 +235,6 @@ export function useFrame<
       });
       const proxiedUrl = `${frameGetProxy}?${searchParams.toString()}`;
 
-      console.log({ proxiedUrl, specification });
-
       let response;
       let endTime = new Date();
       try {

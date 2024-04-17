@@ -142,10 +142,9 @@ export function useXmtpIdentity(): XmtpSignerInstance {
         inputText: actionContext.inputText,
         state: actionContext.state,
         buttonIndex: actionContext.buttonIndex,
-        conversationTopic:
-          actionContext.frameContext.conversationTopic || "/xmtp/0/123",
-        participantAccountAddresses: actionContext.frameContext
-          .participantAccountAddresses || [address, zeroAddress],
+        conversationTopic: actionContext.frameContext.conversationTopic,
+        participantAccountAddresses:
+          actionContext.frameContext.participantAccountAddresses,
         ...(actionContext.frameContext.groupId
           ? { groupId: actionContext.frameContext.groupId }
           : {}),
