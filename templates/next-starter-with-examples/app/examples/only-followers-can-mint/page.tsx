@@ -8,11 +8,10 @@ import {
   getPreviousFrame,
   useFramesReducer,
 } from "frames.js/next/server";
-import Link from "next/link";
 import { getTokenUrl } from "frames.js";
 import { zora } from "viem/chains";
-import { DEFAULT_DEBUGGER_HUB_URL, createDebugUrl } from "../../debug";
-import { currentURL } from "../../utils";
+import { DEFAULT_DEBUGGER_HUB_URL } from "../../debug";
+import { DebugLink } from "../../components/DebugLink";
 
 type State =
   | {
@@ -40,8 +39,6 @@ export default async function Home({
   params,
   searchParams,
 }: NextServerPageProps) {
-  const url = currentURL("/examples/slow-request");
-
   const previousFrame = getPreviousFrame<State>(searchParams);
 
   const frameMessage = await getFrameMessage(previousFrame.postBody, {
@@ -100,8 +97,7 @@ export default async function Home({
   // then, when done, return next frame
   return (
     <div>
-      Only followers can mint example.{" "}
-      <Link href={createDebugUrl(url)}>Debug</Link>
+      Only followers can mint example. <DebugLink />
       <FrameContainer
         pathname="/examples/only-followers-can-mint"
         postUrl="/examples/only-followers-can-mint/frames"

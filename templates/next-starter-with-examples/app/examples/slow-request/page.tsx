@@ -7,10 +7,9 @@ import {
   getFrameMessage,
   getPreviousFrame,
 } from "frames.js/next/server";
-import Link from "next/link";
 import { RandomNumberRequestStateValue } from "./slow-fetch/types";
-import { currentURL } from "../../utils";
-import { DEFAULT_DEBUGGER_HUB_URL, createDebugUrl } from "../../debug";
+import { DEFAULT_DEBUGGER_HUB_URL } from "../../debug";
+import { DebugLink } from "../../components/DebugLink";
 
 type State = {};
 
@@ -18,7 +17,6 @@ const initialState: State = {} as const;
 
 // This is a react server component only
 export default async function Home({ searchParams }: NextServerPageProps) {
-  const url = currentURL("/examples/slow-request");
   const previousFrame = getPreviousFrame<State>(searchParams);
 
   const frameMessage = await getFrameMessage(previousFrame.postBody, {
@@ -168,10 +166,7 @@ export default async function Home({ searchParams }: NextServerPageProps) {
   // then, when done, return next frame
   return (
     <div className="p-4">
-      frames.js starter kit with slow requests.{" "}
-      <Link href={createDebugUrl(url)} className="underline">
-        Debug
-      </Link>
+      frames.js starter kit with slow requests. <DebugLink />
       {frame}
     </div>
   );

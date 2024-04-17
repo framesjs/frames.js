@@ -1,8 +1,7 @@
-import Link from "next/link";
 import { currentURL, appURL } from "../../utils";
-import { createDebugUrl } from "../../debug";
 import type { Metadata } from "next";
 import { fetchMetadata } from "frames.js/next";
+import { DebugLink } from "../../components/DebugLink";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -21,10 +20,7 @@ export default async function Home() {
 
   return (
     <div>
-      State signing
-      <Link href={createDebugUrl(url)} className="underline">
-        Debug
-      </Link>
+      State signing <DebugLink></DebugLink>
     </div>
   );
 }

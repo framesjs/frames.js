@@ -1,8 +1,10 @@
 import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
 import Head from "next/head";
-import { fetchMetadata, metadataToMetaTags } from "frames.js/next/pages-router/client";
-import Link from "next/link";
-import { createDebugUrl } from "../../../app/debug";
+import {
+  fetchMetadata,
+  metadataToMetaTags,
+} from "frames.js/next/pages-router/client";
+import { DebugLink } from "../../../app/components/DebugLink";
 
 export const getServerSideProps = async function getServerSideProps() {
   return {
@@ -30,13 +32,7 @@ export default function Page({
       </Head>
 
       <div>
-        Next.js Page Router example{" "}
-        <Link
-          href={createDebugUrl("http://localhost:3000/page-router")}
-          className="underline"
-        >
-          Debug
-        </Link>
+        Next.js Page Router example <DebugLink />
       </div>
     </>
   );

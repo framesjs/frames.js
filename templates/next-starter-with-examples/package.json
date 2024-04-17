@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node ./scripts/dev-script.js",
+    "dev:stackblitz": "node ./scripts/run-stackblitz-script.js",
     "dev:monorepo": "next dev",
     "build": "next build",
     "start": "next start",

@@ -1,8 +1,7 @@
-import Link from "next/link";
-import { appURL, currentURL } from "../../utils";
-import { createDebugUrl } from "../../debug";
+import { appURL } from "../../utils";
 import type { Metadata } from "next";
 import { fetchMetadata } from "frames.js/next";
+import { DebugLink } from "../../components/DebugLink";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -17,14 +16,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const url = currentURL("/examples/new-api-mint-button");
-
   return (
     <div>
-      New api mint button example.{" "}
-      <Link href={createDebugUrl(url)} className="underline">
-        Debug
-      </Link>
+      New api mint button example. <DebugLink />
     </div>
   );
 }

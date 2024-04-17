@@ -1,8 +1,7 @@
-import Link from "next/link";
-import { currentURL, appURL } from "../../utils";
-import { createDebugUrl } from "../../debug";
+import { appURL } from "../../utils";
 import type { Metadata } from "next";
 import { fetchMetadata } from "frames.js/next";
+import { DebugLink } from "../../components/DebugLink";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -17,14 +16,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const url = currentURL("/examples/new-api-cache-control");
-
   return (
     <div>
-      Custom middleware example{" "}
-      <Link href={createDebugUrl(url)} className="underline">
-        Debug
-      </Link>
+      Custom middleware example <DebugLink />
     </div>
   );
 }
