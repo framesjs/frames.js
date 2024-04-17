@@ -14,6 +14,7 @@ export type OnTransactionFunc = (
 export type UseFrameReturn<
   T = object,
   B extends FrameActionBodyPayload = FrameActionBodyPayload,
+  C extends FrameContext = FarcasterFrameContext,
 > = {
   /** skip frame signing, for frames that don't verify signatures */
   dangerousSkipSigning?: boolean;
@@ -22,7 +23,7 @@ export type UseFrameReturn<
   /** the route used to GET the initial frame via proxy */
   frameGetProxy: string;
   /** an signer state object used to determine what actions are possible */
-  signerState: SignerStateInstance<T, B>;
+  signerState: SignerStateInstance<T, B, C>;
   /** the url of the homeframe, if null / undefined won't load a frame */
   homeframeUrl: string | null | undefined;
   /** the initial frame. if not specified will fetch it from the url prop */
@@ -32,7 +33,7 @@ export type UseFrameReturn<
   /** a function to handle transaction buttons, returns the transaction hash or null */
   onTransaction?: OnTransactionFunc;
   /** the context of this frame, used for generating Frame Action payloads */
-  frameContext: FrameContext;
+  frameContext: C;
   /**
    * Extra data appended to the frame action payload
    */
@@ -48,6 +49,7 @@ export type UseFrameReturn<
 export interface SignerStateInstance<
   T = object,
   B extends FrameActionBodyPayload = FrameActionBodyPayload,
+  C extends FrameContext = FarcasterFrameContext,
 > {
   signer?: T | null;
   hasSigner: boolean;
@@ -60,7 +62,7 @@ export interface SignerStateInstance<
     signer: T | null;
     state?: string;
     transactionId?: `0x${string}`;
-    frameContext: FrameContext;
+    frameContext: C;
   }) => Promise<{
     body: B;
     searchParams: URLSearchParams;
@@ -161,4 +163,4 @@ export type FrameTheme = Partial<Record<(typeof themeParams)[number], string>>;
 
 export type FrameActionBodyPayload = Record<string, unknown>;
 
-export type FrameContext = FarcasterFrameContext;
+export type FrameContext = Record<string, unknown>;

@@ -1,26 +1,26 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { LOCAL_STORAGE_KEYS } from "../constants";
-import { convertKeypairToHex, createKeypairEDDSA } from "../lib/crypto";
-import {
-  type FarcasterSigner,
-  signFrameAction,
-  SignerStateInstance,
-} from "@frames.js/render";
-import { Client, Signer } from "@xmtp/xmtp-js";
-import { FramesClient } from "@xmtp/frames-client";
-import { signMessage, getAccount } from "wagmi/actions";
-import { useAccount, useConfig } from "wagmi";
-import { zeroAddress } from "viem";
+import { SignerStateInstance } from "@frames.js/render";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { FramePostPayload, FramesClient } from "@xmtp/frames-client";
+import { Client, Signer } from "@xmtp/xmtp-js";
+import { useEffect, useMemo, useState } from "react";
+import { zeroAddress } from "viem";
+import { useAccount, useConfig } from "wagmi";
+import { getAccount, signMessage } from "wagmi/actions";
+import { LOCAL_STORAGE_KEYS } from "../constants";
+import { XmtpFrameContext } from "./use-xmtp-context";
 
 type XmtpSigner = {
   walletAddress: string;
   keys: Uint8Array;
 };
 
-type XmtpSignerInstance = SignerStateInstance<XmtpSigner>;
+type XmtpSignerInstance = SignerStateInstance<
+  XmtpSigner,
+  FramePostPayload,
+  XmtpFrameContext
+>;
 
 export function useXmtpIdentity(): XmtpSignerInstance {
   const [isLoading, setLoading] = useState(false);
@@ -142,8 +142,16 @@ export function useXmtpIdentity(): XmtpSignerInstance {
         inputText: actionContext.inputText,
         state: actionContext.state,
         buttonIndex: actionContext.buttonIndex,
-        conversationTopic: "/xmtp/0/123",
-        participantAccountAddresses: [address, zeroAddress],
+        conversationTopic:
+          actionContext.frameContext.conversationTopic || "/xmtp/0/123",
+        participantAccountAddresses: actionContext.frameContext
+          .participantAccountAddresses || [address, zeroAddress],
+        ...(actionContext.frameContext.groupId
+          ? { groupId: actionContext.frameContext.groupId }
+          : {}),
+        ...(actionContext.frameContext.groupSecret
+          ? { groupSecret: actionContext.frameContext.groupSecret }
+          : {}),
       });
 
       const searchParams = new URLSearchParams({

@@ -1,23 +1,19 @@
-import type {
-  CastId,
-  FrameActionMessage
-} from "@farcaster/core";
+import type { CastId, FrameActionMessage } from "@farcaster/core";
 import {
   NobleEd25519Signer,
   makeFrameAction,
   FarcasterNetwork,
   Message,
-  FrameActionBody
+  FrameActionBody,
 } from "@farcaster/core";
 import { hexToBytes } from "viem";
 import type { FrameButton } from "frames.js";
-import type { FrameActionBodyPayload, FrameContext } from "../types";
+import type { FrameActionBodyPayload } from "../types";
 import type { FarcasterSignerState } from "./signers";
-
 
 export type FarcasterFrameContext = {
   /** Connected address of user, only sent with transaction data request */
-  connectedAddress?: `0x${string}`;
+  address?: `0x${string}`;
   castId: { hash: `0x${string}`; fid: number };
 };
 
@@ -41,7 +37,7 @@ export const signFrameAction = async ({
   inputText?: string;
   state?: string;
   transactionId?: `0x${string}`;
-  frameContext: FrameContext;
+  frameContext: FarcasterFrameContext;
 }): Promise<{
   body: FrameActionBodyPayload;
   searchParams: URLSearchParams;
@@ -67,8 +63,8 @@ export const signFrameAction = async ({
       // it seems the message in hubs actually requires a value here.
       inputText: inputText !== undefined ? Buffer.from(inputText) : undefined,
       address:
-        frameContext.connectedAddress !== undefined
-          ? hexToBytes(frameContext.connectedAddress)
+        frameContext.address !== undefined
+          ? hexToBytes(frameContext.address)
           : undefined,
       transactionId:
         transactionId !== undefined ? hexToBytes(transactionId) : undefined,
@@ -99,7 +95,7 @@ export const signFrameAction = async ({
           hash: frameContext.castId.hash,
         },
         inputText,
-        address: frameContext.connectedAddress,
+        address: frameContext.address,
         transactionId,
       },
       trustedData: {

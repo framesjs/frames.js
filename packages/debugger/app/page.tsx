@@ -4,34 +4,33 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  type OnTransactionFunc,
-  fallbackFrameContext,
-  FramesStack,
-  UseFrameReturn,
-} from "@frames.js/render";
-import { useFrame } from "@frames.js/render/use-frame";
-import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
-import { sendTransaction, switchChain } from "@wagmi/core";
-import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useAccount, useChainId, useConfig } from "wagmi";
-import { FrameDebugger } from "./components/frame-debugger";
-import pkg from "../package.json";
-import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
-import { MockHubActionContext } from "./utils/mock-hub-utils";
-import { AlertTriangle, CheckCircle2, LoaderIcon, XCircle } from "lucide-react";
-import { hasWarnings } from "./lib/utils";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useXmtpIdentity } from "./hooks/use-xmtp-identity";
+import {
+  UseFrameReturn,
+  fallbackFrameContext,
+  type OnTransactionFunc,
+} from "@frames.js/render";
+import { useFrame } from "@frames.js/render/use-frame";
+import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
+import { sendTransaction, switchChain } from "@wagmi/core";
 import { FrameActionPayload } from "frames.js";
+import { useRouter } from "next/navigation";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { isAddress, zeroAddress } from "viem";
+import { useAccount, useChainId, useConfig } from "wagmi";
+import pkg from "../package.json";
 import FarcasterSignerWindow from "./components/farcaster-signer-config";
+import { FrameDebugger } from "./components/frame-debugger";
 import { LOCAL_STORAGE_KEYS } from "./constants";
+import { useFarcasterFrameContext } from "./hooks/use-farcaster-context";
+import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
+import { useXmtpFrameContext } from "./hooks/use-xmtp-context";
+import { useXmtpIdentity } from "./hooks/use-xmtp-identity";
+import { MockHubActionContext } from "./utils/mock-hub-utils";
 
 const FALLBACK_URL = process.env.NEXT_PUBLIC_HOST || "http://localhost:3000";
 
@@ -69,7 +68,16 @@ const ProtocolConfiguratorButton: React.FC<{
   value: ProtocolConfiguration | null;
   farcasterSignerState: ReturnType<typeof useFarcasterIdentity>;
   xmtpSignerState: ReturnType<typeof useXmtpIdentity>;
-}> = ({ onChange, value, farcasterSignerState, xmtpSignerState }) => {
+  farcasterFrameContext: ReturnType<typeof useFarcasterFrameContext>;
+  xmtpFrameContext: ReturnType<typeof useXmtpFrameContext>;
+}> = ({
+  onChange,
+  value,
+  farcasterSignerState,
+  xmtpSignerState,
+  farcasterFrameContext,
+  xmtpFrameContext,
+}) => {
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -85,7 +93,7 @@ const ProtocolConfiguratorButton: React.FC<{
       </PopoverTrigger>
       <PopoverContent>
         <Tabs defaultValue={value?.protocol ?? "farcaster"}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger
               value="farcaster"
               onClick={() =>
@@ -102,7 +110,7 @@ const ProtocolConfiguratorButton: React.FC<{
             >
               XMTP
             </TabsTrigger>
-            <TabsTrigger value="lens">Lens</TabsTrigger>
+            {/* <TabsTrigger value="lens">Lens</TabsTrigger> */}
           </TabsList>
           <TabsContent value="farcaster">
             <FarcasterSignerWindow
@@ -114,6 +122,123 @@ const ProtocolConfiguratorButton: React.FC<{
               impersonateUser={farcasterSignerState.impersonateUser}
               logout={farcasterSignerState.logout}
             ></FarcasterSignerWindow>
+            <div className="border-t pt-4 mt-4">
+              <div className="text-md font-bold mb-2">Frame Context</div>
+              <div>Cast Hash</div>
+              <Input
+                type="text"
+                placeholder="Cast Hash"
+                defaultValue={farcasterFrameContext.frameContext.castId.hash}
+                onChange={(e) => {
+                  farcasterFrameContext.setFrameContext((c) => ({
+                    ...farcasterFrameContext.frameContext,
+                    castId: {
+                      fid: farcasterFrameContext.frameContext.castId.fid,
+                      hash: e.target.value as unknown as `0x${string}`,
+                    },
+                  }));
+                }}
+              />
+              <div>Cast FID</div>
+              <Input
+                type="text"
+                placeholder="Cast FID"
+                defaultValue={farcasterFrameContext.frameContext.castId.fid}
+                onChange={(e) => {
+                  farcasterFrameContext.setFrameContext({
+                    ...farcasterFrameContext.frameContext,
+                    castId: {
+                      fid: parseInt(e.target.value),
+                      hash: farcasterFrameContext.frameContext.castId.hash,
+                    },
+                  });
+                }}
+              />
+              {/* Reset context button */}
+              <Button
+                onClick={() => {
+                  farcasterFrameContext.resetFrameContext();
+                }}
+                variant={"secondary"}
+                className="mt-2 w-full"
+              >
+                Reset
+              </Button>
+            </div>
+          </TabsContent>
+          <TabsContent value="xmtp">
+            <div>
+              <div>
+                {xmtpSignerState.signer ? (
+                  <div>
+                    <div className="mb-2">
+                      Connected as{" "}
+                      {xmtpSignerState.signer.walletAddress.slice(0, 6)}...
+                      {xmtpSignerState.signer.walletAddress.slice(-4)}
+                    </div>
+                    <Button
+                      variant={"secondary"}
+                      className="w-full"
+                      onClick={() => {
+                        xmtpSignerState.logout?.();
+                      }}
+                    >
+                      Logout
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    className="w-full"
+                    onClick={() => {
+                      xmtpSignerState.onSignerlessFramePress();
+                    }}
+                  >
+                    Connect XMTP
+                  </Button>
+                )}
+              </div>
+              <div className="border-t pt-4 mt-4">
+                <div className="text-md font-bold mb-2">Frame Context</div>
+                {/* Configure context */}
+                <div>Conversation Topic</div>
+                <Input
+                  type="text"
+                  placeholder="Conversation Topic"
+                  defaultValue={xmtpFrameContext.frameContext.conversationTopic}
+                  onChange={(e) => {
+                    xmtpFrameContext.setFrameContext((c) => ({
+                      ...xmtpFrameContext.frameContext,
+                      conversationTopic: e.target.value,
+                    }));
+                  }}
+                />
+                <div>Participant Addresses (CSV)</div>
+                <Input
+                  type="text"
+                  placeholder="Participant Addresses"
+                  defaultValue={xmtpFrameContext.frameContext.participantAccountAddresses.join(
+                    ","
+                  )}
+                  onChange={(e) => {
+                    xmtpFrameContext.setFrameContext({
+                      ...xmtpFrameContext.frameContext,
+                      participantAccountAddresses: e.target.value
+                        .split(",")
+                        .filter((a) => isAddress(a)) as `0x${string}`[],
+                    });
+                  }}
+                />
+                <Button
+                  onClick={() => {
+                    xmtpFrameContext.resetFrameContext();
+                  }}
+                  variant={"secondary"}
+                  className="mt-2 w-full"
+                >
+                  Reset
+                </Button>
+              </div>
+            </div>
           </TabsContent>
           <TabsContent value="lens">
             <Button
@@ -123,25 +248,6 @@ const ProtocolConfiguratorButton: React.FC<{
             >
               Save
             </Button>
-          </TabsContent>
-          <TabsContent value="xmtp">
-            {xmtpSignerState.signer ? (
-              <Button
-                onClick={() => {
-                  xmtpSignerState.logout?.();
-                }}
-              >
-                Logout
-              </Button>
-            ) : (
-              <Button
-                onClick={() => {
-                  xmtpSignerState.onSignerlessFramePress();
-                }}
-              >
-                Connect XMTP
-              </Button>
-            )}
           </TabsContent>
         </Tabs>
       </PopoverContent>
@@ -219,6 +325,19 @@ export default function App({
 
   const farcasterSignerState = useFarcasterIdentity();
   const xmtpSignerState = useXmtpIdentity();
+
+  const farcasterFrameContext = useFarcasterFrameContext({
+    fallbackContext: fallbackFrameContext,
+  });
+
+  const xmtpFrameContext = useXmtpFrameContext({
+    fallbackContext: {
+      conversationTopic: "test",
+      participantAccountAddresses: account.address
+        ? [account.address, zeroAddress]
+        : [zeroAddress],
+    },
+  });
 
   const onTransaction: OnTransactionFunc = useCallback(
     async ({ transactionData }) => {
@@ -305,16 +424,18 @@ export default function App({
     },
   };
 
-  // TODO: this should be moved to it's own component so we can reset it when configuration changes
   const farcasterFrameState = useFrame({
     ...useFrameConfig,
     signerState: farcasterSignerState,
     specification: "farcaster",
+    frameContext: farcasterFrameContext.frameContext,
   });
+
   const xmtpFrameState = useFrame({
     ...useFrameConfig,
     signerState: xmtpSignerState,
     specification: "openframes",
+    frameContext: xmtpFrameContext.frameContext,
   });
 
   const selectedFrameState = {
@@ -393,6 +514,8 @@ export default function App({
             value={protocolConfiguration}
             farcasterSignerState={farcasterSignerState}
             xmtpSignerState={xmtpSignerState}
+            farcasterFrameContext={farcasterFrameContext}
+            xmtpFrameContext={xmtpFrameContext}
           ></ProtocolConfiguratorButton>
 
           <div className="ml-auto">

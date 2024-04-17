@@ -21,7 +21,7 @@ const FarcasterSignerConfig = ({
   return (
     <div>
       <div>
-        <div className="border-b pb-2">
+        <div>
           {farcasterUser?.status === "approved" ? (
             farcasterUser.fid ? (
               <div>
@@ -32,26 +32,35 @@ const FarcasterSignerConfig = ({
               "Something is wrong..."
             )
           ) : farcasterUser?.status === "impersonating" ? (
-            <div>
-              Impersonating fid: <b>{farcasterUser?.fid}</b>,{" "}
-              <Button onClick={logout}>Logout</Button>
+            <div className="space-y-2">
+              <div>
+                Impersonating fid: <b>{farcasterUser?.fid}</b>{" "}
+              </div>
               <p>
                 <span className=" text-slate-400">
                   *Impersonation only works for testing local frames using
-                  frames.js to validate messages, as they&apos;re mocked. It
-                  uses the `cast.fid` of `1` and `cast.hash` value of
-                  `0x00...00` as the frame context in payloads.
+                  frames.js to validate messages, as they&apos;re mocked.
                 </span>{" "}
               </p>
+              <div>
+                <Button
+                  variant={"secondary"}
+                  className="w-full"
+                  onClick={logout}
+                >
+                  Logout
+                </Button>
+              </div>
             </div>
           ) : farcasterUser?.status === "pending_approval" ? (
             "Approve in Warpcast"
           ) : (
-            <h2>Sign in use buttons</h2>
+            <div className="font-bold">Sign in to use buttons</div>
           )}
         </div>
-        <div>
-          {!farcasterUser?.status && (
+
+        {!farcasterUser?.status && (
+          <div className="border-t pt-4 mt-4">
             <div className="flex flex-col gap-2 pt-2">
               <form
                 action=""
@@ -87,9 +96,11 @@ const FarcasterSignerConfig = ({
                 (costs warps once, works with remote frames and other libs)
               </div>
             </div>
-          )}
-          {farcasterUser?.status === "pending_approval" &&
-            farcasterUser?.signerApprovalUrl && (
+          </div>
+        )}
+        {farcasterUser?.status === "pending_approval" &&
+          farcasterUser?.signerApprovalUrl && (
+            <div className="border-t pt-4 mt-4">
               <div className="signer-approval-container mr-4 flex flex-col gap-2">
                 Scan with your camera app
                 <QRCode value={farcasterUser.signerApprovalUrl} size={128} />
@@ -107,8 +118,8 @@ const FarcasterSignerConfig = ({
                   Impersonate instead
                 </Button>
               </div>
-            )}
-        </div>
+            </div>
+          )}
       </div>
     </div>
   );
