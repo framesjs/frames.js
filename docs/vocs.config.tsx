@@ -79,6 +79,16 @@ const sidebar = [
     ],
   },
   {
+    text: 'CLI',
+    collapsed: false,
+    items: [
+      {
+        text: 'Creating a project from template',
+        link: '/cli/creating-a-project-from-template',
+      }
+    ]
+  },
+  {
     text: "Write your frame with",
     collapsed: false,
     items: [
@@ -345,16 +355,14 @@ export default defineConfig({
           <script defer src="/_vercel/insights/script.js" />
         </>
       );
-    else
-      return (
-        <>
-          <script defer src="/_vercel/insights/script.js" />
-        </>
+    return (
+        <script defer src="/_vercel/insights/script.js" />
       );
   },
-  sidebar: sidebar,
+  sidebar,
   topNav: [
     { text: "Github", link: "https://github.com/framesjs/frames.js" },
+    { text: 'Examples', link: "https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples" },
     {
       text: pkg.version,
       items: [

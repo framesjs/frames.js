@@ -3,11 +3,15 @@ title: "State via Query Params"
 description: "A guide to demonstrate alternative state management using query params"
 ---
 
+import Example from "../../components/Example";
+
 # State via Query Params
 
 Sometimes you want to provide some specific state to next frame in your application that can differ based on which button user clicked. You can achieve this by using `query` property of `target` prop.
 
 This guide will show you how to use query params to manage state in Frames.js and [Next.js App Router](/reference/core/next).
+
+<Example path="/examples/new-api-state-via-query-params" />
 
 ## Setup
 
@@ -70,7 +74,7 @@ In the above example we use `ctx.pressedButton.index` to determine which button 
 import { Button } from "frames.js/next";
 import { frames } from "./frames";
 
-const handler = frames(async (ctx) => { // [!code focus]
+const handler = frames(async (ctx) => {
   let state = ctx.state;
 
   switch (

@@ -3,16 +3,20 @@ title: "Guide: Frames.js State"
 description: "Frames.js is the react based framework for making frames. Debugger included."
 ---
 
+import Example from "../../components/Example";
+
 # Guide: State Management in Frames.js
 
 State in Frames.js is a way for you to store data that you want to use in between frames requests. The frames spec allows up to 4kb of data to be stored in the state object.
+
+<Example path="/examples/new-api-state" />
 
 ## Setup
 
 To use state in frames.js, you should declare the initial state in your `createFrames` call. If your state type is not declared explicitly it will be derived from the initial state.
 
 ```ts [frames.ts]
-import { createFrames } from "@framesjs/next";
+import { createFrames } from "frames.js/next";
 
 export type State = {
   count: number;
@@ -32,7 +36,7 @@ You can access the state object in your frame on the `ctx` parameter. The initia
 ```ts [route.tsx]
 import { frames } from "./frames";
 
-const handler = frames(async ({ ctx }) => {
+const handler = frames(async (ctx) => {
   return {
     image: <div tw="flex">Count: {ctx.state.count}</div>, // [!code focus]
   };
@@ -47,19 +51,20 @@ export const POST = handler;
 To update the state, you just include the updated state object in your handler's [`FrameDefinition`](/reference/core/createFrames#framedefinition) return value.
 
 ```ts [route.tsx]
-import { frames, Button } from "./frames";
+import { Button } from 'frames.js/next';
+import { frames } from "./frames";
 
-const handler = frames(async ({ ctx }) => {
+const handler = frames(async (ctx) => {
   const currentState = ctx.state;
 
   // Update the state // [!code focus]
   const updatedState = { // [!code focus]
     ...currentState, // [!code focus]
-    count: currentState.count + 1, // [!code focus]
+    count: ctx.pressedButton ? currentState.count + 1 : currentState.count, // [!code focus]
   }; // [!code focus]
 
   return {
-    image: <div tw="flex">Count: {updatedState.count}`</div>, // [!code focus],
+    image: <div tw="flex">Count: {updatedState.count}</div>, // [!code focus],
     buttons: [
       <Button action="post">Increment</Button>
     ],
