@@ -54,6 +54,11 @@ export default function ExamplesIndexPage() {
           </Link>
         </li>
         <li>
+          <Link className="underline" href="/examples/new-api-state-via-query-params">
+            State via Query Params
+          </Link>
+        </li>
+        <li>
           <Link className="underline" href="/examples/new-api-error">
             Errors
           </Link>

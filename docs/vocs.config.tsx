@@ -27,6 +27,10 @@ const sidebar = [
         link: "/guides/state-management",
       },
       {
+        text: "State via Query Params",
+        link: "/guides/state-via-query-params",
+      },
+      {
         text: "Deploying your Frame",
         link: "/guides/deployment",
       },
