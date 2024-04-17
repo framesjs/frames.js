@@ -39,6 +39,7 @@
   "packageManager": "yarn@1.22.19",
   "workspaces": [
     "docs",
+    "docs-preview",
     "packages/*",
     "templates/*"
   ],
