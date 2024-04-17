@@ -132,6 +132,12 @@ export const POST = frames(async (ctx) => {
 });
 ```
 
+## TypeError: Invalid URL ... when calling Next.js route
+
+If you are getting this error you are possibly running your app behind multiple proxies. Next.js receives multiple `x-forwarded-proto` and `x-forwarded-host` headers which causes the URL to be invalid.
+
+We recommend downgrading to `next@14.0.1` as this is the last version that does not have this issue and works with `frames.js`. See https://github.com/framesjs/frames.js/issues/319 and https://github.com/vercel/next.js/issues/58914.
+
 ## Combining old and new SDKs
 
 You cannot use the `<FrameComponent>`, `<FrameButton>` and `<FrameImage>` components from the old SDK (`frames.js/next/server`) with the new SDK (`frames.js/next`).
