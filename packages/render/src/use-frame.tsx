@@ -50,13 +50,17 @@ export const unsignedFrameAction: SignerStateInstance<
     postUrl: target ?? "",
   });
 
+  const isFarcaster = "castId" in frameContext;
+
   return {
     searchParams,
     body: {
       untrustedData: {
         url,
-        timestamp: getFarcasterTime()._unsafeUnwrap(),
-        network: 1,
+        timestamp: isFarcaster
+          ? getFarcasterTime()._unsafeUnwrap()
+          : Date.now(),
+        ...(isFarcaster ? { network: 1 } : {}),
         buttonIndex,
         state,
         inputText,
@@ -85,12 +89,12 @@ async function onTransactionFallback({
   return null;
 }
 
-export const fallbackFrameContext: FrameContext = {
+export const fallbackFrameContext: FarcasterFrameContext = {
   castId: {
     fid: 1,
     hash: "0x0000000000000000000000000000000000000000" as const,
   },
-  connectedAddress: "0x0000000000000000000000000000000000000001",
+  address: "0x0000000000000000000000000000000000000001",
 };
 
 function computeDurationInSeconds(start: Date, end: Date): number {
@@ -151,6 +155,7 @@ export function useFrame<
   dangerousSkipSigning,
   onMint = onMintFallback,
   onTransaction = onTransactionFallback,
+  connectedAddress,
   signerState,
   frame,
   /** Ex: /frames */
@@ -580,6 +585,7 @@ export function useFrame<
       inputText: postInputText,
       signer: signerState.signer ?? null,
       frameContext,
+      address: connectedAddress,
       url: homeframeUrl,
       target,
       frameButton,

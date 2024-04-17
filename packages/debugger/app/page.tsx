@@ -164,8 +164,8 @@ export default function App({
     frameGetProxy: "/frames",
     frameContext: {
       ...fallbackFrameContext,
-      ...(account.address ? { connectedAddress: account.address } : undefined),
     },
+    connectedAddress: account.address,
     extraButtonRequestPayload: { mockData: mockHubContext },
     onTransaction,
     onMint(t) {

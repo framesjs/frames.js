@@ -32,6 +32,8 @@ export type UseFrameReturn<
   homeframeUrl: string | null | undefined;
   /** the initial frame. if not specified will fetch it from the url prop */
   frame?: Frame;
+  /** connected wallet address of the user */
+  connectedAddress: `0x${string}` | undefined;
   /** a function to handle mint buttons */
   onMint?: (t: OnMintArgs) => void;
   /** a function to handle transaction buttons, returns the transaction hash or null */
@@ -66,6 +68,7 @@ export interface SignerStateInstance<
     signer: SignerStorageType | null;
     state?: string;
     transactionId?: `0x${string}`;
+    address?: `0x${string}`;
     frameContext: FrameContextType;
   }) => Promise<{
     body: FrameActionBodyType;
