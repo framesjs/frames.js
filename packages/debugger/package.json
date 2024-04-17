@@ -70,7 +70,8 @@
   "scripts": {
     "dev": "next dev -p 3010",
     "dev:monorepo": "next dev -p 3010",
-    "build": "rimraf .next && next build",
+    "#//": "Disables pre-rendering -- https://github.com/vercel/next.js/discussions/46544#discussioncomment-7115457",
+    "build": "rimraf .next && next experimental-compile",
     "start": "next start",
     "lint": "next lint",
     "check:types": "tsc --noEmit",
