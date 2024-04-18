@@ -24,7 +24,7 @@
     "node": ">=18.17.0"
   },
   "devDependencies": {
-    "@frames.js/debugger": "^0.1.18",
+    "@frames.js/debugger": "^0.1.19",
     "@types/node": "^18.17.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",

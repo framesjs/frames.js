@@ -1,5 +1,12 @@
 # create-frames
 
+## 0.1.7
+
+### Patch Changes
+
+- 5bb3bb9: fix: properly provide initial value for template
+- 2051ae4: feat: new example using state via query params
+
 ## 0.1.6
 
 ### Patch Changes

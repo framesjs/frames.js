@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.1.19
+
+### Patch Changes
+
+- 8b0f661: feat: allow to override default url in debugger
+
 ## 0.1.18
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # @frames.js/render
 
+## 0.1.5
+
+### Patch Changes
+
+- e07cf94: fix: signFrameAction type error
+- 41c980b: fix: include frame state in untrusted data
+
 ## 0.1.4
 
 ### Patch Changes
