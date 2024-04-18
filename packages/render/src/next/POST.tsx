@@ -11,7 +11,8 @@ export async function POST(req: NextRequest): Promise<Response> {
   const isTransactionRequest =
     req.nextUrl.searchParams.get("postType") === "tx";
   const postUrl = req.nextUrl.searchParams.get("postUrl");
-  const specification = req.nextUrl.searchParams.get("specification") ?? "farcaster";
+  const specification =
+    req.nextUrl.searchParams.get("specification") ?? "farcaster";
 
   if (!postUrl) {
     return Response.error();

@@ -4,98 +4,33 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  type OnTransactionFunc,
+  UseFrameReturn,
   fallbackFrameContext,
-  FramesStack,
+  type OnTransactionFunc,
 } from "@frames.js/render";
 import { useFrame } from "@frames.js/render/use-frame";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import { sendTransaction, switchChain } from "@wagmi/core";
-import dynamic from "next/dynamic";
+import { FrameActionPayload } from "frames.js";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { zeroAddress } from "viem";
 import { useAccount, useChainId, useConfig } from "wagmi";
-import { FrameDebugger } from "./components/frame-debugger";
 import pkg from "../package.json";
+import { FrameDebugger } from "./components/frame-debugger";
+import { LOCAL_STORAGE_KEYS } from "./constants";
+import { useFarcasterFrameContext } from "./hooks/use-farcaster-context";
 import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
+import { useXmtpFrameContext } from "./hooks/use-xmtp-context";
+import { useXmtpIdentity } from "./hooks/use-xmtp-identity";
 import { MockHubActionContext } from "./utils/mock-hub-utils";
-import { AlertTriangle, CheckCircle2, LoaderIcon, XCircle } from "lucide-react";
-import { hasWarnings } from "./lib/utils";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-const LoginWindow = dynamic(() => import("./components/create-signer"), {
-  ssr: false,
-});
+  ProtocolConfiguration,
+  protocolConfigurationMap,
+  ProtocolConfigurationButton,
+} from "./components/protocol-config-button";
 
 const FALLBACK_URL = process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
-
-type ProtocolConfiguration =
-  | {
-      protocol: "farcaster";
-      specification: "farcaster";
-    }
-  | {
-      protocol: "lens";
-      specification: "openframes";
-    }
-  | {
-      protocol: "xmtp";
-      specification: "openframes";
-    };
-
-const ProtocolConfiguratorButton: React.FC<{
-  onChange: (configuration: ProtocolConfiguration) => void;
-  value: ProtocolConfiguration | null;
-}> = ({ onChange, value }) => {
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="secondary">{value ? <>{value.protocol} ({value.specification})</> : <>Select a protocol</>}</Button>
-      </PopoverTrigger>
-      <PopoverContent>
-        <Tabs defaultValue={value?.protocol ?? "farcaster"}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="farcaster">Farcaster</TabsTrigger>
-            <TabsTrigger value="lens">Lens</TabsTrigger>
-            <TabsTrigger value="xmtp">XMTP</TabsTrigger>
-          </TabsList>
-          <TabsContent value="farcaster">
-            <Button
-              onClick={() => {
-                onChange({ protocol: "farcaster", specification: "farcaster" });
-              }}
-            >
-              Save
-            </Button>
-          </TabsContent>
-          <TabsContent value="lens">
-            <Button
-              onClick={() => {
-                onChange({ protocol: "lens", specification: "openframes" });
-              }}
-            >
-              Save
-            </Button>
-          </TabsContent>
-          <TabsContent value="xmtp">
-            <Button
-              onClick={() => {
-                onChange({ protocol: "xmtp", specification: "openframes" });
-              }}
-            >
-              Save
-            </Button>
-          </TabsContent>
-        </Tabs>
-      </PopoverContent>
-    </Popover>
-  );
-};
 
 export default function App({
   searchParams,
@@ -137,6 +72,16 @@ export default function App({
   const { openConnectModal } = useConnectModal();
 
   useEffect(() => {
+    const selectedProtocol = localStorage.getItem(
+      LOCAL_STORAGE_KEYS.SELECTED_PROTOCOL
+    );
+
+    if (selectedProtocol) {
+      setProtocolConfiguration(
+        protocolConfigurationMap[selectedProtocol] || null
+      );
+    }
+
     console.log(
       ` ,---.                                             ,--.        \n/  .-',--.--. ,--,--.,--,--,--. ,---.  ,---.       \`--' ,---.  \n|  \`-,|  .--'' ,-.  ||        || .-. :(  .-'       ,--.(  .-'  \n|  .-'|  |    '-'  ||  |  |  |   --..-'  \`).--.  |  |.-'  \`) \n\`--'  \`--'    \`--\`--'\`--\`--\`--' \`----'\`----' '--'.-'  /\`----'  \n                                                 '---'         \n${pkg.name}, Version ${pkg.version}`
     );
@@ -147,7 +92,29 @@ export default function App({
     );
   }, []);
 
-  const signerState = useFarcasterIdentity();
+  useEffect(() => {
+    if (protocolConfiguration)
+      localStorage.setItem(
+        LOCAL_STORAGE_KEYS.SELECTED_PROTOCOL,
+        protocolConfiguration.protocol
+      );
+  }, [protocolConfiguration]);
+
+  const farcasterSignerState = useFarcasterIdentity();
+  const xmtpSignerState = useXmtpIdentity();
+
+  const farcasterFrameContext = useFarcasterFrameContext({
+    fallbackContext: fallbackFrameContext,
+  });
+
+  const xmtpFrameContext = useXmtpFrameContext({
+    fallbackContext: {
+      conversationTopic: "test",
+      participantAccountAddresses: account.address
+        ? [account.address, zeroAddress]
+        : [zeroAddress],
+    },
+  });
 
   const onTransaction: OnTransactionFunc = useCallback(
     async ({ transactionData }) => {
@@ -188,16 +155,17 @@ export default function App({
     [account.address, currentChainId, config, openConnectModal]
   );
 
-  // @todo this should be moved to it's own component so we can reset it when configuration changes
-  const frameState = useFrame({
+  const useFrameConfig: Omit<
+    UseFrameReturn<object, FrameActionPayload>,
+    "signerState" | "specification"
+  > = {
     homeframeUrl: url,
     frameActionProxy: "/frames",
     frameGetProxy: "/frames",
     frameContext: {
       ...fallbackFrameContext,
-      ...(account.address ? { connectedAddress: account.address } : undefined),
     },
-    signerState,
+    connectedAddress: account.address,
     extraButtonRequestPayload: { mockData: mockHubContext },
     onTransaction,
     onMint(t) {
@@ -231,8 +199,27 @@ export default function App({
           console.error(e);
         });
     },
-    specification: protocolConfiguration?.specification,
+  };
+
+  const farcasterFrameState = useFrame({
+    ...useFrameConfig,
+    signerState: farcasterSignerState,
+    specification: "farcaster",
+    frameContext: farcasterFrameContext.frameContext,
   });
+
+  const xmtpFrameState = useFrame({
+    ...useFrameConfig,
+    signerState: xmtpSignerState,
+    specification: "openframes",
+    frameContext: xmtpFrameContext.frameContext,
+  });
+
+  const selectedFrameState = {
+    farcaster: farcasterFrameState,
+    xmtp: xmtpFrameState,
+    lens: null,
+  }[protocolConfiguration?.protocol ?? "farcaster"];
 
   return (
     <div className="bg-slate-50 min-h-lvh">
@@ -297,40 +284,33 @@ export default function App({
             </Button>
           </form>
 
-          <ProtocolConfiguratorButton
-            // use key so the component is reset on change
-            key={
-              (protocolConfiguration?.protocol ?? "farcaster") +
-              (protocolConfiguration?.specification ?? "farcaster")
-            }
-            onChange={setProtocolConfiguration}
+          <ProtocolConfigurationButton
+            onChange={(spec) => {
+              setProtocolConfiguration(spec);
+            }}
             value={protocolConfiguration}
-          ></ProtocolConfiguratorButton>
-
-          {/* @todo move to ProtocolConfiguratorButton */}
-          <LoginWindow
-            farcasterUser={signerState.signer ?? null}
-            loading={!!signerState.isLoadingSigner ?? false}
-            startFarcasterSignerProcess={signerState.onSignerlessFramePress}
-            impersonateUser={signerState.impersonateUser}
-            logout={signerState.logout}
-          ></LoginWindow>
+            farcasterSignerState={farcasterSignerState}
+            xmtpSignerState={xmtpSignerState}
+            farcasterFrameContext={farcasterFrameContext}
+            xmtpFrameContext={xmtpFrameContext}
+          ></ProtocolConfigurationButton>
 
           <div className="ml-auto">
-            <ConnectButton></ConnectButton>
+            <ConnectButton showBalance={false}></ConnectButton>
           </div>
         </div>
       </div>
       {url ? (
         <>
-          {/* @todo use key that contains protocol + spec combination, so debugger is reset on change */}
-          <FrameDebugger
-            frameState={frameState}
-            url={url}
-            mockHubContext={mockHubContext}
-            setMockHubContext={setMockHubContext}
-            specification={protocolConfiguration?.specification ?? "farcaster"}
-          ></FrameDebugger>
+          {selectedFrameState && protocolConfiguration?.specification && (
+            <FrameDebugger
+              frameState={selectedFrameState}
+              url={url}
+              mockHubContext={mockHubContext}
+              setMockHubContext={setMockHubContext}
+              specification={protocolConfiguration?.specification}
+            ></FrameDebugger>
+          )}
         </>
       ) : null}
     </div>

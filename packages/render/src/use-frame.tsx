@@ -4,12 +4,7 @@
 "use client";
 
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
-import type {
-  Frame,
-  FrameActionPayload,
-  FrameButton,
-  TransactionTargetResponse,
-} from "frames.js";
+import type { Frame, FrameButton, TransactionTargetResponse } from "frames.js";
 import { getFarcasterTime } from "@farcaster/core";
 import type {
   FrameState,
@@ -26,48 +21,53 @@ import type {
   GetFrameResult,
 } from "./types";
 import { PresentableError } from "./errors";
+import type { FarcasterFrameContext } from "./farcaster";
 
 function onMintFallback({ target }: OnMintArgs): void {
   window.alert(`Mint requested: ${target}`);
 }
 
-export const unsignedFrameAction: SignerStateInstance["signFrameAction"] =
-  async ({
-    buttonIndex,
-    frameContext,
-    frameButton,
-    state,
-    target,
-    inputText,
-    url,
-  }) => {
-    const searchParams = new URLSearchParams({
-      postType: frameButton.action,
-      postUrl: target ?? "",
-    });
+export const unsignedFrameAction: SignerStateInstance<
+  object,
+  FrameActionBodyPayload,
+  FrameContext
+>["signFrameAction"] = async ({
+  buttonIndex,
+  frameContext,
+  frameButton,
+  state,
+  target,
+  inputText,
+  url,
+}) => {
+  const searchParams = new URLSearchParams({
+    postType: frameButton.action,
+    postUrl: target ?? "",
+  });
 
-    return {
-      searchParams,
-      body: {
-        untrustedData: {
-          url,
-          timestamp: getFarcasterTime()._unsafeUnwrap(),
-          network: 1,
-          buttonIndex,
-          castId: {
-            fid: frameContext.castId.fid,
-            hash: frameContext.castId.hash,
-          },
-          state,
-          inputText,
-          address: frameContext.connectedAddress,
-        },
-        trustedData: {
-          messageBytes: "0",
-        },
+  const isFarcaster = "castId" in frameContext;
+
+  return {
+    searchParams,
+    body: {
+      untrustedData: {
+        url,
+        timestamp: isFarcaster
+          ? getFarcasterTime()._unsafeUnwrap()
+          : Date.now(),
+        ...(isFarcaster ? { network: 1 } : {}),
+        buttonIndex,
+        state,
+        inputText,
+        address: frameContext.connectedAddress,
+        ...frameContext,
       },
-    };
+      trustedData: {
+        messageBytes: Buffer.from("").toString("hex"),
+      },
+    },
   };
+};
 
 async function onTransactionFallback({
   transactionData,
@@ -84,12 +84,12 @@ async function onTransactionFallback({
   return null;
 }
 
-export const fallbackFrameContext: FrameContext = {
+export const fallbackFrameContext: FarcasterFrameContext = {
   castId: {
     fid: 1,
     hash: "0x0000000000000000000000000000000000000000" as const,
   },
-  connectedAddress: "0x0000000000000000000000000000000000000001",
+  address: "0x0000000000000000000000000000000000000001",
 };
 
 function computeDurationInSeconds(start: Date, end: Date): number {
@@ -141,14 +141,16 @@ function framesStackReducer(
 }
 
 export function useFrame<
-  T = object,
-  B extends FrameActionBodyPayload = FrameActionPayload
+  SignerStorageType = object,
+  FrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
+  FrameContextType extends FrameContext = FarcasterFrameContext,
 >({
   homeframeUrl,
   frameContext,
   dangerousSkipSigning,
   onMint = onMintFallback,
   onTransaction = onTransactionFallback,
+  connectedAddress,
   signerState,
   frame,
   /** Ex: /frames */
@@ -156,8 +158,12 @@ export function useFrame<
   /** Ex: /frames */
   frameGetProxy,
   extraButtonRequestPayload,
-  specification = 'farcaster',
-}: UseFrameReturn<T, B>): FrameState {
+  specification = "farcaster",
+}: UseFrameReturn<
+  SignerStorageType,
+  FrameActionBodyType,
+  FrameContextType
+>): FrameState {
   const [inputText, setInputText] = useState("");
   const initialFrame = useMemo(() => {
     if (frame) {
@@ -182,7 +188,7 @@ export function useFrame<
             url: args.homeframeUrl ?? "",
             speed: 0,
             frame: {
-              status: 'success',
+              status: "success",
               frame: args.initialFrame.frame,
               reports: {},
             },
@@ -227,7 +233,10 @@ export function useFrame<
       };
       dispatch({ action: "LOAD", item: frameStackPendingItem });
 
-      const searchParams = new URLSearchParams({ url: frameRequest.url, specification });
+      const searchParams = new URLSearchParams({
+        url: frameRequest.url,
+        specification,
+      });
       const proxiedUrl = `${frameGetProxy}?${searchParams.toString()}`;
 
       let response;
@@ -273,9 +282,11 @@ export function useFrame<
         console.error(err);
       }
     } else {
-      const searchParams = new URLSearchParams(frameRequest.request.searchParams);
+      const searchParams = new URLSearchParams(
+        frameRequest.request.searchParams
+      );
 
-      searchParams.set('specification', specification);
+      searchParams.set("specification", specification);
 
       const frameStackPendingItem: FrameStackPending = {
         method: "POST" as const,
@@ -521,9 +532,7 @@ export function useFrame<
     const frameSignatureContext = {
       inputText: postInputText,
       signer: signerState.signer ?? null,
-      frameContext: {
-        castId: frameContext.castId,
-      },
+      frameContext,
       url: homeframeUrl,
       target,
       frameButton,
@@ -574,10 +583,8 @@ export function useFrame<
     const { searchParams, body } = await signerState.signFrameAction({
       inputText: postInputText,
       signer: signerState.signer ?? null,
-      frameContext: {
-        castId: frameContext.castId,
-        connectedAddress: frameContext.connectedAddress,
-      },
+      frameContext,
+      address: connectedAddress,
       url: homeframeUrl,
       target,
       frameButton,

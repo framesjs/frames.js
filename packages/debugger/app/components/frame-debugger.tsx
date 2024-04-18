@@ -302,7 +302,6 @@ const FramesRequestCardContent: React.FC<{
   });
 };
 
-
 export function FrameDebugger({
   specification,
   url,
@@ -313,8 +312,8 @@ export function FrameDebugger({
   specification: SupportedParsingSpecification;
   frameState: FrameState;
   url: string;
-  mockHubContext: Partial<MockHubActionContext>;
-  setMockHubContext: Dispatch<SetStateAction<Partial<MockHubActionContext>>>;
+  mockHubContext?: Partial<MockHubActionContext>;
+  setMockHubContext?: Dispatch<SetStateAction<Partial<MockHubActionContext>>>;
 }) {
   const [copySuccess, setCopySuccess] = useState(false);
   useEffect(() => {
@@ -413,14 +412,18 @@ export function FrameDebugger({
             ></FramesRequestCardContent>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="px-5">
-            <MockHubConfig
-              hubContext={mockHubContext}
-              setHubContext={setMockHubContext}
-            ></MockHubConfig>
-          </CardContent>
-        </Card>
+        {specification === "farcaster" &&
+          mockHubContext &&
+          setMockHubContext && (
+            <Card>
+              <CardContent className="px-5">
+                <MockHubConfig
+                  hubContext={mockHubContext}
+                  setHubContext={setMockHubContext}
+                ></MockHubConfig>
+              </CardContent>
+            </Card>
+          )}
         <div className="border rounded-lg shadow-sm bg-white">
           <a
             target="_blank"
