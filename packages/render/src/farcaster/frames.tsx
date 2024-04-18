@@ -1,19 +1,15 @@
-import type {
-  CastId,
-  FrameActionMessage
-} from "@farcaster/core";
+import type { CastId, FrameActionMessage } from "@farcaster/core";
 import {
+  FarcasterNetwork,
+  FrameActionBody,
+  Message,
   NobleEd25519Signer,
   makeFrameAction,
-  FarcasterNetwork,
-  Message,
-  FrameActionBody
 } from "@farcaster/core";
-import { hexToBytes } from "viem";
 import type { FrameButton } from "frames.js";
+import { hexToBytes } from "viem";
 import type { FrameContext } from "../types";
 import type { FarcasterSignerState } from "./signers";
-
 
 export type FarcasterFrameContext = {
   /** Connected address of user, only sent with transaction data request */
@@ -101,6 +97,7 @@ export const signFrameAction = async ({
         inputText,
         address: frameContext.connectedAddress,
         transactionId,
+        state,
       },
       trustedData: {
         messageBytes: trustedBytes,
