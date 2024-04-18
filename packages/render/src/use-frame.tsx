@@ -4,12 +4,7 @@
 "use client";
 
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
-import type {
-  Frame,
-  FrameActionPayload,
-  FrameButton,
-  TransactionTargetResponse,
-} from "frames.js";
+import type { Frame, FrameButton, TransactionTargetResponse } from "frames.js";
 import { getFarcasterTime } from "@farcaster/core";
 import type {
   FrameState,
@@ -146,9 +141,9 @@ function framesStackReducer(
 }
 
 export function useFrame<
-  T = object,
-  B extends FrameActionBodyPayload = FrameActionPayload,
-  C extends FrameContext = FarcasterFrameContext,
+  SignerStorageType = object,
+  FrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
+  FrameContextType extends FrameContext = FarcasterFrameContext,
 >({
   homeframeUrl,
   frameContext,
@@ -164,7 +159,11 @@ export function useFrame<
   frameGetProxy,
   extraButtonRequestPayload,
   specification = "farcaster",
-}: UseFrameReturn<T, B, C>): FrameState {
+}: UseFrameReturn<
+  SignerStorageType,
+  FrameActionBodyType,
+  FrameContextType
+>): FrameState {
   const [inputText, setInputText] = useState("");
   const initialFrame = useMemo(() => {
     if (frame) {
