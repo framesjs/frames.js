@@ -25,7 +25,7 @@ const LoginWindow = dynamic(() => import("./components/create-signer"), {
   ssr: false,
 });
 
-const FALLBACK_URL = process.env.NEXT_PUBLIC_HOST || 'http://localhost:3000';
+const FALLBACK_URL = process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || 'http://localhost:3000';
 
 export default function App({
   searchParams,
