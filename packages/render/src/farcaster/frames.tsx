@@ -8,7 +8,7 @@ import {
 } from "@farcaster/core";
 import type { FrameButton } from "frames.js";
 import { hexToBytes } from "viem";
-import type { FrameContext } from "../types";
+import type { FrameActionBodyPayload, FrameContext } from "../types";
 import type { FarcasterSignerState } from "./signers";
 
 export type FarcasterFrameContext = {
@@ -39,7 +39,7 @@ export const signFrameAction = async ({
   transactionId?: `0x${string}`;
   frameContext: FrameContext;
 }): Promise<{
-  body: object;
+  body: FrameActionBodyPayload;
   searchParams: URLSearchParams;
 }> => {
   if (!signer?.fid) {
