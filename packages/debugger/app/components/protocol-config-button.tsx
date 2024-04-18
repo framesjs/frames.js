@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -8,13 +6,14 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import React from "react";
+import React, { useEffect } from "react";
 import { isAddress } from "viem";
-import FarcasterSignerWindow from "./farcaster-signer-config";
 import { useFarcasterFrameContext } from "../hooks/use-farcaster-context";
 import { useFarcasterIdentity } from "../hooks/use-farcaster-identity";
 import { useXmtpFrameContext } from "../hooks/use-xmtp-context";
 import { useXmtpIdentity } from "../hooks/use-xmtp-identity";
+import { cn } from "../lib/utils";
+import FarcasterSignerWindow from "./farcaster-signer-config";
 
 export type ProtocolConfiguration =
   | {
@@ -58,6 +57,14 @@ export const ProtocolConfigurationButton: React.FC<{
   farcasterFrameContext,
   xmtpFrameContext,
 }) => {
+  const [initialized, setInitialized] = React.useState(false);
+
+  useEffect(() => {
+    if (value) {
+      setInitialized(true);
+    }
+  }, [value]);
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -72,12 +79,21 @@ export const ProtocolConfigurationButton: React.FC<{
         </Button>
       </PopoverTrigger>
       <PopoverContent>
-        <Tabs defaultValue={value?.protocol ?? "farcaster"}>
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs defaultValue="none">
+          <TabsList
+            className={cn(
+              "w-full grid",
+              !value ? "grid-cols-3" : "grid-cols-2"
+            )}
+          >
+            {!value && <TabsTrigger value="none">None</TabsTrigger>}
             <TabsTrigger
               value="farcaster"
               onClick={() =>
-                onChange({ protocol: "farcaster", specification: "farcaster" })
+                onChange({
+                  protocol: "farcaster",
+                  specification: "farcaster",
+                })
               }
             >
               Farcaster
@@ -92,6 +108,7 @@ export const ProtocolConfigurationButton: React.FC<{
             </TabsTrigger>
             {/* <TabsTrigger value="lens">Lens</TabsTrigger> */}
           </TabsList>
+          <TabsContent value={"none"}></TabsContent>
           <TabsContent value="farcaster">
             <FarcasterSignerWindow
               farcasterUser={farcasterSignerState.signer ?? null}
@@ -110,13 +127,13 @@ export const ProtocolConfigurationButton: React.FC<{
                 placeholder="Cast Hash"
                 defaultValue={farcasterFrameContext.frameContext.castId.hash}
                 onChange={(e) => {
-                  farcasterFrameContext.setFrameContext((c) => ({
+                  farcasterFrameContext.setFrameContext({
                     ...farcasterFrameContext.frameContext,
                     castId: {
                       fid: farcasterFrameContext.frameContext.castId.fid,
                       hash: e.target.value as unknown as `0x${string}`,
                     },
-                  }));
+                  });
                 }}
               />
               <div>Cast FID</div>
