@@ -1,5 +1,5 @@
 import { intro, log, outro, select, confirm, text } from "@clack/prompts";
-import { getTemplates } from "./utils/getTemplates.js";
+import { getDefaultTemplate, getTemplates } from "./utils/getTemplates.js";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -53,7 +53,7 @@ export async function create(params) {
         name: template,
         value: template,
       })),
-      defaultValue: "next",
+      initialValue: getDefaultTemplate(),
       validate(input) {
         if (!input) {
           return "Template is required";

@@ -1,0 +1,4 @@
+{
+  "description": "This file contains template configuration for CLI",
+  "default": "next-starter-with-examples"
+}
