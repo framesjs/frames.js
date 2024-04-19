@@ -24,6 +24,28 @@ The URL used if the frame does not contain `post_url` and `post | post_redirect`
 
 The specification to use when parsing the HTML. Defaults to `"farcaster"`.
 
+## Result
+
+`getFrame` returns an object with the following properties:
+
+### `status`
+
+- Type: `"success" | "error"`
+
+The status of the parsing operation.
+
+### `frame`
+
+- Type: [`Frame`](reference/js/types#reference)
+
+The parsed frame. If `status` is `error` then this `frame` can miss some of the data.
+
+### `reports`
+
+- Type: `Record<string, ParsingReport[]>`
+
+Reports of the parsing operation. Each key is a frame property and the value is an array of `ParsingReport` objects which contain `level ('error' | 'warning')`, `message (string)` and `source ('farcaster' | 'openframes')` properties.
+
 ## Usage
 
 ```ts [example.ts]
