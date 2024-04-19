@@ -10,7 +10,9 @@ const nextConfig = {
           {
             key: "Access-Control-Allow-Origin",
             value:
-              process.env.NODE_ENV === "development" ? "*" : "framesjs.org",
+              process.env.NODE_ENV === "development"
+                ? "*"
+                : "https://framesjs.org",
           },
           {
             key: "Access-Control-Allow-Methods",
