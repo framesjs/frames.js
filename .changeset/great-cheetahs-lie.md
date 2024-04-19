@@ -4,4 +4,4 @@
 "@frames.js/render": minor
 ---
 
-feat: parse Frames separately, return reports for each specification
+feat: Breaking change! Update getFrames to parse different Frames specifications separately
