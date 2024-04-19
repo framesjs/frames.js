@@ -21,7 +21,8 @@ import {
 } from "wagmi/chains";
 
 const config = getDefaultConfig({
-  appName: "frames.js debugger",
+  appName: "frames.js docs examples renderer",
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- this is set
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_ID!,
   chains: [
     mainnet,

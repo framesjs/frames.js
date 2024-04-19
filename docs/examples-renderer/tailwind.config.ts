@@ -8,8 +8,8 @@ const config = {
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
     "./@/**/*.{ts,tsx}",
-    "../node_modules/frames.js/dist/**/*.{ts,tsx,js,css}",
-    "../node_modules/@frames.js/render/dist/**/*.{ts,tsx,js,css}",
+    "../../node_modules/frames.js/dist/**/*.{ts,tsx,js,css}",
+    "../../node_modules/@frames.js/render/dist/**/*.{ts,tsx,js,css}",
   ],
   prefix: "",
   theme: {
