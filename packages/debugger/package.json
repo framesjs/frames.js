@@ -83,11 +83,11 @@
   "scripts": {
     "dev": "next dev -p 3010",
     "dev:monorepo": "next dev -p 3010",
-    "build": "rimraf .next && next build",
+    "build": "rimraf .next && next build && npm run build:library",
     "start": "next start",
     "lint": "next lint",
     "check:types": "tsc --noEmit",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "npm run build && npm run build:library",
     "check:package-types": "attw --pack .",
     "check:package-lint": "publint --strict",
     "build:library": "tsup"

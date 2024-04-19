@@ -1,3 +1,4 @@
 # bundle .next
 !/.next
 /.next/cache
+!/dist
