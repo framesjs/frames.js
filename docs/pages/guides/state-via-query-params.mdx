@@ -11,7 +11,7 @@ Sometimes you want to provide some specific state to next frame in your applicat
 
 This guide will show you how to use query params to manage state in Frames.js and [Next.js App Router](/reference/core/next).
 
-<Example url="http://localhost:3000/examples/new-api-state-via-query-params" />
+<Example path="/examples/new-api-state-via-query-params" />
 
 ## Setup
 
@@ -75,110 +75,6 @@ import { Button } from "frames.js/next";
 import { frames } from "./frames";
 
 const handler = frames(async (ctx) => {
-  // [!code focus]
-  let state = ctx.state;
-
-  switch (
-    ctx.searchParams.action // [!code focus]
-  ) {
-    case "increment": // [!code focus]
-      state = { ...state, count: state.count + 1 };
-      break;
-    case "decrement": // [!code focus]
-      state = { ...state, count: state.count - 1 };
-      break;
-  }
-
-  return {
-    image: <div tw="flex">Count: {state.count}</div>,
-    buttons: [
-      <Button target={{ query: { action: "increment" } }}>Increment</Button>, // [!code focus]
-      <Button target={{ query: { action: "decrement" } }}>Decrement</Button>, // [!code focus]
-    ],
-    state,
-  };
-});
-
-export const GET = handler;
-export const POST = handler;
-```
-
----
-
-title: "State via Query Params"
-description: "A guide to demonstrate alternative state management using query params"
-
----
-
-# State via Query Params
-
-Sometimes you want to provide some specific state to next frame in your application that can differ based on which button user clicked. You can achieve this by using `query` property of `target` prop.
-
-This guide will show you how to use query params to manage state in Frames.js and [Next.js App Router](/reference/core/next).
-
-## Setup
-
-Let's start by creating a simple counter application.
-
-First create frames with initial state. For more information about state management see [State Management in Frames.js](/guides/state-management).
-
-```tsx [app/frames/frames.ts]
-import { createFrames } from "@framesjs/next";
-
-export type State = {
-  count: number;
-};
-
-export const frames = createFrames<State>({
-  initialState: {
-    count: 0,
-  },
-});
-```
-
-## Increment and decrement functionality
-
-Create a route handler that responds to `GET` and `POST` requests.
-
-```tsx [app/frames/route.tsx]
-import { Button } from "frames.js/next";
-import { frames } from "./frames";
-
-const handler = frames(async (ctx) => {
-  let state = ctx.state;
-
-  switch (ctx.pressedButton?.index) {
-    case 1:
-      state = { ...state, count: state.count + 1 };
-      break;
-    case 2:
-      state = { ...state, count: state.count - 1 };
-      break;
-  }
-
-  return {
-    image: <div tw="flex">Count: {state.count}</div>,
-    buttons: [<Button>Increment</Button>, <Button>Decrement</Button>],
-    state,
-  };
-});
-
-export const GET = handler;
-export const POST = handler;
-```
-
-When user clicks first button the counter is incremented, and when user clicks second button the counter is decremented.
-
-## Improving code readability by query params
-
-In the above example we use `ctx.pressedButton.index` to determine which button was clicked. This is not very readable and also is prone to bugs when you change the order of buttons. This can be improved by using query params.
-
-```tsx [app/frames/route.tsx]
-import { Button } from "frames.js/next";
-import { frames } from "./frames";
-
-const handler = frames(async (ctx) => {
-  // [!code focus]
   let state = ctx.state;
 
   switch (
