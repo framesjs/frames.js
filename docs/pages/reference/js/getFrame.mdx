@@ -1,6 +1,6 @@
 # getFrame
 
-Returns an object, extracting the frame metadata from the given htmlString to `frame` object and `result: "success"` if there are no validation results, otherwise it returns what was possible to parse into `frame` object. If `specification` option is passed and set to `openframes` it parses tags from the [Open Frames specification](https://github.com/open-frames/standard).
+Parses HTML according to a given frames specification and returns an object containing a [`Frame`](reference/js/types#reference) if it is valid. Supported specifications are `farcaster` and [`openframes`](https://github.com/open-frames/standard) - defaults to `farcaster` if no specification is specified.
 
 ## Usage
 
