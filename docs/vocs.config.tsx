@@ -239,11 +239,11 @@ const sidebar = [
               },
               {
                 text: "POST",
-                link: "/reference/render/next/POST",
+                link: "/reference/render/next/post",
               },
               {
                 text: "GET",
-                link: "/reference/render/next/GET",
+                link: "/reference/render/next/get",
               },
             ],
           },
@@ -319,7 +319,7 @@ export default defineConfig({
   ogImageUrl: "https://framesjs.org/og.png",
   title: "frames.js",
   logoUrl: { light: "/full-logo.png", dark: "/full-logo.png" },
-  iconUrl: "/favicons/favicon.svg",
+  iconUrl: "/favicon.png",
   rootDir: ".",
   head({ path }) {
     if (path === "/")
