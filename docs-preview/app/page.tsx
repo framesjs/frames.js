@@ -37,7 +37,7 @@ export default function Home({
   }, []);
 
   return (
-    <main className="p-2">
+    <main className={`p-2 ${frameState.frame?.status === 'pending' ? 'blur' : ''} min-w-[500px] min-h-[336px]`}>
       <FrameUI frameState={frameState} FrameImage={FrameImageNext} />
     </main>
   );
