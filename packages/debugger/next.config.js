@@ -19,7 +19,15 @@ const nextConfig = {
     ],
   },
   webpack: (config) => {
-    config.externals.push("pino-pretty", "lokijs", "encoding");
+    config.externals.push(
+      "pino-pretty",
+      "lokijs",
+      "encoding",
+      // this is installed by `@xmtp/xmtp-js` and used internally, we have to mark it as external
+      // because it breaks nextjs server side build. Also because of that `@xmtp/xmtp-js` must be in `dependencies`
+      // so it is installed on user's system
+      "@xmtp/user-preferences-bindings-wasm"
+    );
     return config;
   },
 };

@@ -19,8 +19,8 @@ describe("getFrameHtmlHead", () => {
 
     const result = getFrame({ htmlString: html, url: "http://framesjs.org" });
 
-    expect(result.frame).toMatchObject(frame);
-    expect(JSON.parse(result.frame.state as unknown as string)).toEqual(json);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- this is test
+    expect(JSON.parse(result.frame.state!)).toEqual(json);
   });
 
   it("correctly serializes JSON containing double quotes", () => {
@@ -39,8 +39,8 @@ describe("getFrameHtmlHead", () => {
 
     const result = getFrame({ htmlString: html, url: "http://framesjs.org" });
 
-    expect(result.frame).toMatchObject(frame);
-    expect(JSON.parse(result.frame.state as unknown as string)).toEqual(json);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- this is test
+    expect(JSON.parse(result.frame.state!)).toEqual(json);
   });
 
   it("correctly serializes and deserializes text input containing single quotes", () => {

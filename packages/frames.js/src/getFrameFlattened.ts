@@ -11,7 +11,7 @@ export function getFrameFlattened(frame: Frame): FrameFlattened {
     frame.accepts && Boolean(frame.accepts.length)
       ? {
           // custom of tags
-          [`of:version`]: frame.version,
+          "of:version": frame.version,
           ...frame.accepts.reduce(
             (acc: Record<string, string>, { id, version }) => {
               acc[`of:accepts:${id}`] = version;
@@ -20,12 +20,13 @@ export function getFrameFlattened(frame: Frame): FrameFlattened {
             {}
           ),
           // same as fc:frame tags
-          [`of:image`]: frame.image,
-          [`of:post_url`]: frame.postUrl,
-          [`of:input:text`]: frame.inputText,
-          ...(frame.state ? { [`of:state`]: frame.state } : {}),
+          "of:image": frame.image,
+          "og:image": frame.ogImage || frame.image,
+          "of:post_url": frame.postUrl,
+          "of:input:text": frame.inputText,
+          ...(frame.state ? { "of:state": frame.state } : {}),
           ...(frame.imageAspectRatio
-            ? { [`of:image:aspect_ratio`]: frame.imageAspectRatio }
+            ? { "of:image:aspect_ratio": frame.imageAspectRatio }
             : {}),
           ...frame.buttons?.reduce(
             (acc, button, index) => ({
@@ -43,14 +44,14 @@ export function getFrameFlattened(frame: Frame): FrameFlattened {
       : {};
 
   const metadata: FrameFlattened = {
-    [`og:image`]: frame.ogImage || frame.image,
-    [`fc:frame`]: frame.version,
-    [`fc:frame:image`]: frame.image,
-    [`fc:frame:post_url`]: frame.postUrl,
-    [`fc:frame:input:text`]: frame.inputText,
-    ...(frame.state ? { [`fc:frame:state`]: frame.state } : {}),
+    "fc:frame": frame.version,
+    "fc:frame:image": frame.image,
+    "og:image": frame.ogImage || frame.image,
+    "fc:frame:post_url": frame.postUrl,
+    "fc:frame:input:text": frame.inputText,
+    ...(frame.state ? { "fc:frame:state": frame.state } : {}),
     ...(frame.imageAspectRatio
-      ? { [`fc:frame:image:aspect_ratio`]: frame.imageAspectRatio }
+      ? { "fc:frame:image:aspect_ratio": frame.imageAspectRatio }
       : {}),
     ...frame.buttons?.reduce(
       (acc, button, index) => ({

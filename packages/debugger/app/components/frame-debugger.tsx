@@ -1,7 +1,14 @@
-import { getFrameHtmlHead, getFrameFlattened } from "frames.js";
+import {
+  getFrameHtmlHead,
+  getFrameFlattened,
+  type Frame,
+  ParsingReport,
+  SupportedParsingSpecification,
+} from "frames.js";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import React from "react";
-import { FrameState, FrameStackSuccess } from "@frames.js/render";
+import { type FrameState, type FramesStack, FrameUI } from "@frames.js/render";
+import { FrameImageNext } from "@frames.js/render/next";
 import { Table, TableBody, TableCell, TableRow } from "@/components/table";
 import {
   AlertTriangle,
@@ -25,6 +32,8 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
+import { hasWarnings } from "../lib/utils";
 
 type FrameDebuggerFramePropertiesTableRowsProps = {
   stackItem: FrameState["framesStack"][number];
@@ -57,24 +66,27 @@ function FrameDebuggerFramePropertiesTableRow({
     /** tuple of key and value */
     const validProperties: [string, string][] = [];
     /** tuple of key and error message */
-    const invalidProperties: [string, string[]][] = [];
+    const invalidProperties: [string, ParsingReport[]][] = [];
     const visitedInvalidProperties: string[] = [];
 
-    if ("requestError" in stackItem) {
+    if (stackItem.status === "pending") {
+      return { validProperties, invalidProperties, isValid: true };
+    }
+
+    if (stackItem.status === "requestError") {
       return { validProperties, invalidProperties, isValid: false };
     }
 
+    const result = stackItem.frame;
+
     // we need to check validation errors first because getFrame incorrectly return a value for a key even if it's invalid
-    if (stackItem.frameValidationErrors) {
-      for (const [key, errors] of Object.entries(
-        stackItem.frameValidationErrors
-      )) {
-        invalidProperties.push([key, errors]);
-        visitedInvalidProperties.push(key);
-      }
+    for (const [key, errors] of Object.entries(result.reports)) {
+      invalidProperties.push([key, errors]);
+      visitedInvalidProperties.push(key);
     }
 
-    const flattenedFrame = getFrameFlattened(stackItem.frame);
+    // @todo frame here can be Partial if there are errors we should handle that somehow
+    const flattenedFrame = getFrameFlattened(result.frame as Frame);
 
     let hasExperimentalProperties = false;
 
@@ -121,20 +133,33 @@ function FrameDebuggerFramePropertiesTableRow({
           </TableRow>
         );
       })}
-      {properties.invalidProperties.map(([propertyKey, errorMessages]) => {
-        return (
-          <TableRow key={`${propertyKey}-invalid`}>
-            <TableCell>
-              <XCircle size={20} color="red" />
-            </TableCell>
-            <TableCell>{propertyKey}</TableCell>
-            <TableCell className="text-slate-500">
-              <p className="font-bold text-red-800">
-                {errorMessages.join(", ")}
-              </p>
-            </TableCell>
-          </TableRow>
-        );
+      {properties.invalidProperties.flatMap(([propertyKey, errorMessages]) => {
+        return errorMessages.map((errorMessage, i) => {
+          return (
+            <TableRow key={`${propertyKey}-${i}-invalid`}>
+              <TableCell>
+                {errorMessage.level === "error" ? (
+                  <XCircle size={20} color="red" />
+                ) : (
+                  <AlertTriangle size={20} color="orange" />
+                )}
+              </TableCell>
+              <TableCell>{propertyKey}</TableCell>
+              <TableCell className="text-slate-500">
+                <p
+                  className={cn(
+                    "font-bold",
+                    errorMessage.level === "error"
+                      ? "text-red-500"
+                      : "text-orange-500"
+                  )}
+                >
+                  {errorMessage.message}
+                </p>
+              </TableCell>
+            </TableRow>
+          );
+        });
       })}
       {properties.hasExperimentalProperties && (
         <TableRow>
@@ -165,18 +190,130 @@ function ShortenedText({
   );
 }
 
+const FramesRequestCardContentIcon: React.FC<{
+  stackItem: FramesStack[number];
+}> = ({ stackItem }) => {
+  if (stackItem.status === "pending") {
+    return <LoaderIcon className="animate-spin" size={20} />;
+  }
+
+  if (stackItem.status === "requestError") {
+    return <XCircle size={20} color="red" />;
+  }
+
+  if (stackItem.frame?.status === "failure") {
+    return <XCircle size={20} color="red" />;
+  }
+
+  if (hasWarnings(stackItem.frame.reports)) {
+    return <AlertTriangle size={20} color="orange" />;
+  }
+
+  return <CheckCircle2 size={20} color="green" />;
+};
+
+const FramesRequestCardContent: React.FC<{
+  stack: FramesStack;
+  fetchFrame: FrameState["fetchFrame"];
+}> = ({ fetchFrame, stack }) => {
+  return stack.map((frameStackItem, i) => {
+    const frame =
+      frameStackItem.status === "done" ? frameStackItem.frame : undefined;
+
+    return (
+      <button
+        className={`px-4 py-3 flex flex-col gap-2 ${
+          i !== 0 ? "border-t" : "bg-slate-50"
+        } hover:bg-slate-50 w-full`}
+        key={i}
+        onClick={() => {
+          fetchFrame(
+            frameStackItem.method === "GET"
+              ? {
+                  method: "GET",
+                  url: frameStackItem.url,
+                }
+              : {
+                  url: frameStackItem.url,
+                  method: frameStackItem.method,
+                  request: frameStackItem.request,
+                }
+          );
+        }}
+      >
+        <span className="flex text-left flex-row w-full">
+          <span className="border text-gray-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">
+            {frameStackItem.method}
+          </span>
+          <span className="border text-gray-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">
+            {new URL(frameStackItem.url).protocol}
+            {"//"}
+            {new URL(frameStackItem.url).hostname}
+            {new URL(frameStackItem.url).port
+              ? `:${new URL(frameStackItem.url).port}`
+              : ""}
+          </span>
+          <span className="ml-auto">
+            <FramesRequestCardContentIcon
+              stackItem={frameStackItem}
+            ></FramesRequestCardContentIcon>
+          </span>
+        </span>
+        <span className="flex flex-row w-full">
+          <span className="text-left line-clamp-2 text-ellipsis overflow-hidden break-words">
+            {new URL(frameStackItem.url).pathname}
+          </span>
+          <span className="ml-auto" suppressHydrationWarning>
+            {frameStackItem.timestamp.toLocaleTimeString()}
+          </span>
+        </span>
+        <div>
+          {Array.from(new URL(frameStackItem.url).searchParams.entries())
+            .length ? (
+            <HoverCard>
+              <HoverCardTrigger>
+                <span className="border text-gray-500 text-xs font-medium me-2 p-1 cursor-pointer rounded dark:bg-gray-700 dark:text-gray-300">
+                  ?params
+                </span>
+              </HoverCardTrigger>
+              <HoverCardContent>
+                <pre
+                  id="json"
+                  className="font-mono text-xs text-left"
+                  style={{
+                    padding: "10px",
+                    borderRadius: "4px",
+                  }}
+                >
+                  {JSON.stringify(
+                    paramsToObject(
+                      new URL(frameStackItem.url).searchParams.entries()
+                    ),
+                    null,
+                    2
+                  )}
+                </pre>
+              </HoverCardContent>
+            </HoverCard>
+          ) : null}
+        </div>
+      </button>
+    );
+  });
+};
+
 export function FrameDebugger({
-  children,
+  specification,
   url,
   frameState,
   mockHubContext,
   setMockHubContext,
 }: {
+  specification: SupportedParsingSpecification;
   frameState: FrameState;
-  children: React.ReactElement<any>;
   url: string;
-  mockHubContext: Partial<MockHubActionContext>;
-  setMockHubContext: Dispatch<SetStateAction<Partial<MockHubActionContext>>>;
+  mockHubContext?: Partial<MockHubActionContext>;
+  setMockHubContext?: Dispatch<SetStateAction<Partial<MockHubActionContext>>>;
 }) {
   const [copySuccess, setCopySuccess] = useState(false);
   useEffect(() => {
@@ -191,8 +328,10 @@ export function FrameDebugger({
 
   const [latestFrame] = frameState.framesStack;
 
+  const isLoading = frameState.frame?.status === "pending";
+
   useEffect(() => {
-    if (!frameState.isLoading) {
+    if (!isLoading) {
       // make sure the first frame is open
       if (!openAccordions.includes(String(latestFrame?.timestamp.getTime())))
         setOpenAccordions((v) => [
@@ -200,7 +339,10 @@ export function FrameDebugger({
           String(latestFrame?.timestamp.getTime()),
         ]);
     }
-  }, [frameState.isLoading, latestFrame?.timestamp, openAccordions]);
+  }, [isLoading, latestFrame?.timestamp, openAccordions]);
+
+  const frameResult =
+    latestFrame?.status === "done" ? latestFrame.frame : undefined;
 
   return (
     <div className="flex flex-row items-start p-4 gap-4 bg-slate-50 max-w-full w-full h-full">
@@ -264,109 +406,24 @@ export function FrameDebugger({
         </div>
         <Card className="max-h-[400px] overflow-y-auto">
           <CardContent className="p-0">
-            {[
-              ...(frameState.isLoading ? [frameState.isLoading] : []),
-              ...frameState.framesStack,
-            ].map((frameStackItem, i) => {
-              return (
-                <button
-                  className={`px-4 py-3 flex flex-col gap-2 ${i !== 0 ? "border-t" : "bg-slate-50"} hover:bg-slate-50 w-full`}
-                  key={i}
-                  onClick={() => {
-                    frameState.fetchFrame(
-                      frameStackItem.method === "GET"
-                        ? {
-                            method: "GET",
-                            url: frameStackItem.url,
-                          }
-                        : {
-                            url: frameStackItem.url,
-                            method: frameStackItem.method,
-                            request: frameStackItem.request,
-                          }
-                    );
-                  }}
-                >
-                  <span className="flex text-left flex-row w-full">
-                    <span className="border text-gray-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">
-                      {frameStackItem.method}
-                    </span>
-                    <span className="border text-gray-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">
-                      {new URL(frameStackItem.url).protocol}
-                      {"//"}
-                      {new URL(frameStackItem.url).hostname}
-                      {new URL(frameStackItem.url).port
-                        ? `:${new URL(frameStackItem.url).port}`
-                        : ""}
-                    </span>
-                    <span className="ml-auto">
-                      {"responseStatus" in frameStackItem ? (
-                        !("requestError" in frameStackItem) &&
-                        "isValid" in frameStackItem &&
-                        frameStackItem.isValid ? (
-                          <CheckCircle2 size={20} color="green" />
-                        ) : (
-                          <XCircle size={20} color="red" />
-                        )
-                      ) : (
-                        <LoaderIcon className="animate-spin" size={20} />
-                      )}
-                    </span>
-                  </span>
-                  <span className="flex flex-row w-full">
-                    <span className="text-left line-clamp-2 text-ellipsis overflow-hidden break-words">
-                      {new URL(frameStackItem.url).pathname}
-                    </span>
-                    <span className="ml-auto" suppressHydrationWarning>
-                      {frameStackItem.timestamp.toLocaleTimeString()}
-                    </span>
-                  </span>
-                  <div>
-                    {Array.from(
-                      new URL(frameStackItem.url).searchParams.entries()
-                    ).length ? (
-                      <HoverCard>
-                        <HoverCardTrigger>
-                          <span className="border text-gray-500 text-xs font-medium me-2 p-1 cursor-pointer rounded dark:bg-gray-700 dark:text-gray-300">
-                            ?params
-                          </span>
-                        </HoverCardTrigger>
-                        <HoverCardContent>
-                          <pre
-                            id="json"
-                            className="font-mono text-xs text-left"
-                            style={{
-                              padding: "10px",
-                              borderRadius: "4px",
-                            }}
-                          >
-                            {JSON.stringify(
-                              paramsToObject(
-                                new URL(
-                                  frameStackItem.url
-                                ).searchParams.entries()
-                              ),
-                              null,
-                              2
-                            )}
-                          </pre>
-                        </HoverCardContent>
-                      </HoverCard>
-                    ) : null}
-                  </div>
-                </button>
-              );
-            })}
+            <FramesRequestCardContent
+              fetchFrame={frameState.fetchFrame}
+              stack={frameState.framesStack}
+            ></FramesRequestCardContent>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="px-5">
-            <MockHubConfig
-              hubContext={mockHubContext}
-              setHubContext={setMockHubContext}
-            ></MockHubConfig>
-          </CardContent>
-        </Card>
+        {specification === "farcaster" &&
+          mockHubContext &&
+          setMockHubContext && (
+            <Card>
+              <CardContent className="px-5">
+                <MockHubConfig
+                  hubContext={mockHubContext}
+                  setHubContext={setMockHubContext}
+                ></MockHubConfig>
+              </CardContent>
+            </Card>
+          )}
         <div className="border rounded-lg shadow-sm bg-white">
           <a
             target="_blank"
@@ -437,8 +494,8 @@ export function FrameDebugger({
         </div>
       </div>
       <div className="flex flex-col gap-4 w-[500px] min-w-[500px]">
-        <div className="w-full flex flex-col gap-1">
-          {frameState.isLoading && !frameState.frame ? (
+        <div className="w-full flex flex-col gap-1" id="frame-preview">
+          {isLoading ? (
             <Card>
               <CardContent className="p-0 pb-2">
                 <div className="flex flex-col space-y-2">
@@ -449,7 +506,15 @@ export function FrameDebugger({
               </CardContent>
             </Card>
           ) : (
-            children
+            <div className="border rounded-lg overflow-hidden">
+              <FrameUI
+                frameState={frameState}
+                theme={{
+                  bg: "white",
+                }}
+                FrameImage={FrameImageNext}
+              />
+            </div>
           )}
           <div className="ml-auto text-sm text-slate-500">{url}</div>
         </div>
@@ -541,8 +606,7 @@ export function FrameDebugger({
                   )}
                 </TabsContent>
                 <TabsContent value="meta">
-                  {frameState.framesStack[0] &&
-                  "frame" in frameState.framesStack[0] ? (
+                  {frameResult?.status === "success" ? (
                     <div className="py-4 flex-1">
                       <span className="font-bold">html tags</span>
                       <button
@@ -550,10 +614,7 @@ export function FrameDebugger({
                         onClick={() => {
                           // Copy the text inside the text field
                           navigator.clipboard.writeText(
-                            getFrameHtmlHead(
-                              (frameState.framesStack[0] as FrameStackSuccess)
-                                .frame
-                            )
+                            getFrameHtmlHead(frameResult.frame)
                           );
                           setCopySuccess(true);
                         }}
@@ -570,7 +631,7 @@ export function FrameDebugger({
                           borderRadius: "4px",
                         }}
                       >
-                        {getFrameHtmlHead(frameState.framesStack[0]!.frame)
+                        {getFrameHtmlHead(frameResult.frame)
                           .split("<meta")
                           .filter((t) => !!t)
                           // hacky...
@@ -600,7 +661,7 @@ export function FrameDebugger({
       </div>
       <div className="flex flex-row gap-4 w-full">
         <div className="h-full min-w-0 w-full">
-          {frameState.isLoading ? null : frameState.framesStack.length !== 0 ? (
+          {frameState.frame && frameState.frame?.status !== "pending" ? (
             <Card>
               <CardContent className="p-0">
                 <div className="px-2">
@@ -608,9 +669,9 @@ export function FrameDebugger({
                     <TableBody>
                       <TableRow>
                         <TableCell>
-                          {frameState.framesStack[0]!.speed > 5 ? (
+                          {frameState.frame.speed > 5 ? (
                             <XCircle size={20} color="red" />
-                          ) : frameState.framesStack[0]!.speed > 4 ? (
+                          ) : frameState.frame.speed > 4 ? (
                             <AlertTriangle size={20} color="orange" />
                           ) : (
                             <CheckCircle2 size={20} color="green" />
@@ -618,15 +679,15 @@ export function FrameDebugger({
                         </TableCell>
                         <TableCell>frame speed</TableCell>
                         <TableCell className="text-slate-500">
-                          {frameState.framesStack[0]!.speed > 5
-                            ? `Request took more than 5s (${frameState.framesStack[0]!.speed} seconds). This may be normal: first request will take longer in development (as next.js builds), but in production, clients will timeout requests after 5s`
-                            : frameState.framesStack[0]!.speed > 4
-                              ? `Warning: Request took more than 4s (${frameState.framesStack[0]!.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
-                              : `${frameState.framesStack[0]!.speed} seconds`}
+                          {frameState.frame.speed > 5
+                            ? `Request took more than 5s (${frameState.frame.speed} seconds). This may be normal: first request will take longer in development (as next.js builds), but in production, clients will timeout requests after 5s`
+                            : frameState.frame.speed > 4
+                              ? `Warning: Request took more than 4s (${frameState.frame.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
+                              : `${frameState.frame.speed} seconds`}
                         </TableCell>
                       </TableRow>
                       <FrameDebuggerFramePropertiesTableRow
-                        stackItem={frameState.framesStack[0]!}
+                        stackItem={frameState.frame}
                       ></FrameDebuggerFramePropertiesTableRow>
                     </TableBody>
                   </Table>

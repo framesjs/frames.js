@@ -1,5 +1,10 @@
 import type { Abi } from "viem";
 
+export type {
+  ParsingReport,
+  SupportedParsingSpecification,
+} from "./frame-parsers/types";
+
 export type FrameVersion = "vNext" | `${number}-${number}-${number}`;
 
 export type ImageAspectRatio = "1.91:1" | "1:1";
@@ -56,9 +61,9 @@ type MapFrameOptionalKeyToValueType<K extends FrameKeys> =
       : string | undefined;
 
 type FrameRequiredProperties = {
-  "og:image": string;
   "fc:frame": FrameVersion;
   "fc:frame:image": string;
+  "og:image": string;
 };
 
 export type OpenFramesProperties = {

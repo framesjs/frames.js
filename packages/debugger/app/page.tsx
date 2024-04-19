@@ -4,28 +4,33 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  FrameUI,
-  OnTransactionFunc,
+  UseFrameReturn,
   fallbackFrameContext,
+  type OnTransactionFunc,
 } from "@frames.js/render";
-import { FrameImageNext } from "@frames.js/render/next";
 import { useFrame } from "@frames.js/render/use-frame";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import { sendTransaction, switchChain } from "@wagmi/core";
-import dynamic from "next/dynamic";
+import { FrameActionPayload } from "frames.js";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { zeroAddress } from "viem";
 import { useAccount, useChainId, useConfig } from "wagmi";
-import { FrameDebugger } from "./components/frame-debugger";
 import pkg from "../package.json";
+import { FrameDebugger } from "./components/frame-debugger";
+import { LOCAL_STORAGE_KEYS } from "./constants";
+import { useFarcasterFrameContext } from "./hooks/use-farcaster-context";
 import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
+import { useXmtpFrameContext } from "./hooks/use-xmtp-context";
+import { useXmtpIdentity } from "./hooks/use-xmtp-identity";
 import { MockHubActionContext } from "./utils/mock-hub-utils";
+import {
+  ProtocolConfiguration,
+  protocolConfigurationMap,
+  ProtocolConfigurationButton,
+} from "./components/protocol-config-button";
 
-const LoginWindow = dynamic(() => import("./components/create-signer"), {
-  ssr: false,
-});
-
-const FALLBACK_URL = process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || 'http://localhost:3000';
+const FALLBACK_URL = process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
 
 export default function App({
   searchParams,
@@ -33,6 +38,8 @@ export default function App({
   searchParams: Record<string, string>;
 }): JSX.Element {
   const router = useRouter();
+  const [protocolConfiguration, setProtocolConfiguration] =
+    useState<ProtocolConfiguration | null>(null);
   /**
    * Parse the URL from the query string. This will also cause debugger to automatically load the frame.
    */
@@ -65,6 +72,16 @@ export default function App({
   const { openConnectModal } = useConnectModal();
 
   useEffect(() => {
+    const selectedProtocol = localStorage.getItem(
+      LOCAL_STORAGE_KEYS.SELECTED_PROTOCOL
+    );
+
+    if (selectedProtocol) {
+      setProtocolConfiguration(
+        protocolConfigurationMap[selectedProtocol] || null
+      );
+    }
+
     console.log(
       ` ,---.                                             ,--.        \n/  .-',--.--. ,--,--.,--,--,--. ,---.  ,---.       \`--' ,---.  \n|  \`-,|  .--'' ,-.  ||        || .-. :(  .-'       ,--.(  .-'  \n|  .-'|  |    '-'  ||  |  |  |   --..-'  \`).--.  |  |.-'  \`) \n\`--'  \`--'    \`--\`--'\`--\`--\`--' \`----'\`----' '--'.-'  /\`----'  \n                                                 '---'         \n${pkg.name}, Version ${pkg.version}`
     );
@@ -75,7 +92,29 @@ export default function App({
     );
   }, []);
 
-  const signerState = useFarcasterIdentity();
+  useEffect(() => {
+    if (protocolConfiguration)
+      localStorage.setItem(
+        LOCAL_STORAGE_KEYS.SELECTED_PROTOCOL,
+        protocolConfiguration.protocol
+      );
+  }, [protocolConfiguration]);
+
+  const farcasterSignerState = useFarcasterIdentity();
+  const xmtpSignerState = useXmtpIdentity();
+
+  const farcasterFrameContext = useFarcasterFrameContext({
+    fallbackContext: fallbackFrameContext,
+  });
+
+  const xmtpFrameContext = useXmtpFrameContext({
+    fallbackContext: {
+      conversationTopic: "test",
+      participantAccountAddresses: account.address
+        ? [account.address, zeroAddress]
+        : [zeroAddress],
+    },
+  });
 
   const onTransaction: OnTransactionFunc = useCallback(
     async ({ transactionData }) => {
@@ -116,15 +155,17 @@ export default function App({
     [account.address, currentChainId, config, openConnectModal]
   );
 
-  const frameState = useFrame({
+  const useFrameConfig: Omit<
+    UseFrameReturn<object, FrameActionPayload>,
+    "signerState" | "specification"
+  > = {
     homeframeUrl: url,
     frameActionProxy: "/frames",
     frameGetProxy: "/frames",
     frameContext: {
       ...fallbackFrameContext,
-      ...(account.address ? { connectedAddress: account.address } : undefined),
     },
-    signerState,
+    connectedAddress: account.address,
     extraButtonRequestPayload: { mockData: mockHubContext },
     onTransaction,
     onMint(t) {
@@ -158,7 +199,27 @@ export default function App({
           console.error(e);
         });
     },
+  };
+
+  const farcasterFrameState = useFrame({
+    ...useFrameConfig,
+    signerState: farcasterSignerState,
+    specification: "farcaster",
+    frameContext: farcasterFrameContext.frameContext,
   });
+
+  const xmtpFrameState = useFrame({
+    ...useFrameConfig,
+    signerState: xmtpSignerState,
+    specification: "openframes",
+    frameContext: xmtpFrameContext.frameContext,
+  });
+
+  const selectedFrameState = {
+    farcaster: farcasterFrameState,
+    xmtp: xmtpFrameState,
+    lens: null,
+  }[protocolConfiguration?.protocol ?? "farcaster"];
 
   return (
     <div className="bg-slate-50 min-h-lvh">
@@ -187,13 +248,11 @@ export default function App({
             className="flex flex-row"
             onSubmit={(e) => {
               e.preventDefault();
-              const newUrl = new FormData(e.currentTarget).get('url')?.toString() || '';
+              const newUrl =
+                new FormData(e.currentTarget).get("url")?.toString() || "";
 
               if (
-                !(
-                  newUrl.startsWith("http://") ||
-                  newUrl.startsWith("https://")
-                )
+                !(newUrl.startsWith("http://") || newUrl.startsWith("https://"))
               ) {
                 alert("URL must start with http:// or https://");
                 return;
@@ -205,12 +264,12 @@ export default function App({
                 if (searchParams.url === parsedUrl) {
                   location.reload();
                 }
-  
+
                 router.push(`?url=${encodeURIComponent(parsedUrl)}`);
               } catch (e) {
-                alert('URL must be in valid format');
+                alert("URL must be in valid format");
                 return;
-              }              
+              }
             }}
           >
             <Input
@@ -220,40 +279,38 @@ export default function App({
               defaultValue={url ?? FALLBACK_URL}
               placeholder="Enter URL"
             />
-            <Button className="rounded-l-none">Debug</Button>
+            <Button className="rounded-l-none" type="submit">
+              Debug
+            </Button>
           </form>
 
-          <LoginWindow
-            farcasterUser={signerState.signer ?? null}
-            loading={!!signerState.isLoadingSigner ?? false}
-            startFarcasterSignerProcess={signerState.onSignerlessFramePress}
-            impersonateUser={signerState.impersonateUser}
-            logout={signerState.logout}
-          ></LoginWindow>
+          <ProtocolConfigurationButton
+            onChange={(spec) => {
+              setProtocolConfiguration(spec);
+            }}
+            value={protocolConfiguration}
+            farcasterSignerState={farcasterSignerState}
+            xmtpSignerState={xmtpSignerState}
+            farcasterFrameContext={farcasterFrameContext}
+            xmtpFrameContext={xmtpFrameContext}
+          ></ProtocolConfigurationButton>
 
           <div className="ml-auto">
-            <ConnectButton></ConnectButton>
+            <ConnectButton showBalance={false}></ConnectButton>
           </div>
         </div>
       </div>
       {url ? (
         <>
-          <FrameDebugger
-            frameState={frameState}
-            url={url}
-            mockHubContext={mockHubContext}
-            setMockHubContext={setMockHubContext}
-          >
-            <div className="border rounded-lg overflow-hidden">
-              <FrameUI
-                frameState={frameState}
-                theme={{
-                  bg: "white",
-                }}
-                FrameImage={FrameImageNext}
-              />
-            </div>
-          </FrameDebugger>
+          {selectedFrameState && protocolConfiguration?.specification && (
+            <FrameDebugger
+              frameState={selectedFrameState}
+              url={url}
+              mockHubContext={mockHubContext}
+              setMockHubContext={setMockHubContext}
+              specification={protocolConfiguration?.specification}
+            ></FrameDebugger>
+          )}
         </>
       ) : null}
     </div>

@@ -14,9 +14,15 @@
       "cache": false,
       "persistent": true
     },
-    "check:package-types": {},
-    "check:package-lint": {},
-    "check:types": {}
+    "check:package-types": {
+      "cache": false
+    },
+    "check:package-lint": {
+      "cache": false
+    },
+    "check:types": {
+      "cache": false
+    }
   },
   "globalEnv": [
     "NODE_ENV",

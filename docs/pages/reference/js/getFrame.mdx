@@ -1,25 +1,98 @@
 # getFrame
 
-Returns a `Frame` object, extracting the frame metadata from the given htmlString, or returning null if the frame is invalid. Includes tags from the [Open Frames specification](https://github.com/open-frames/standard).
+Parses HTML according to a given frames specification and returns an object containing a [`Frame`](reference/js/types#reference) if it is valid. Supported specifications are `farcaster` and [`openframes`](https://github.com/open-frames/standard) - defaults to `farcaster` if no specification is specified.
+
+## Parameters
+
+`getFrame` accepts an object with the following properties:
+
+### `htmlString`
+
+- Type: `string`
+
+The HTML string to be parsed.
+
+### `url`
+
+- Type: `string`
+
+The URL used if the frame does not contain `post_url` and `post | post_redirect` buttons don't have `target` specified.
+
+### `specification`
+
+- Type: `"farcaster" | "openframes"`
+
+The specification to use when parsing the HTML. Defaults to `"farcaster"`.
+
+## Result
+
+`getFrame` returns an object with the following properties:
+
+### `status`
+
+- Type: `"success" | "error"`
+
+The status of the parsing operation.
+
+### `frame`
+
+- Type: [`Frame`](reference/js/types#reference)
+
+The parsed frame. If `status` is `error` then this `frame` can miss some of the data.
+
+### `reports`
+
+- Type: `Record<string, ParsingReport[]>`
+
+Reports of the parsing operation. Each key is a frame property and the value is an array of `ParsingReport` objects which contain `level ('error' | 'warning')`, `message (string)` and `source ('farcaster' | 'openframes')` properties.
 
 ## Usage
 
 ```ts [example.ts]
-import { getFrame, Frame } from "frames.js"
+import { getFrame, Frame } from "frames.js";
 
-const { frame } = await getFrame({
-	htmlString: '<html><head>...</head><body></body></html>',
-	url: 'https://framesjs-homeframe.vercel.app/'
+// parses farcaster metadata
+const frame = await getFrame({
+  htmlString: "<html><head>...</head><body></body></html>",
+  url: "https://framesjs-homeframe.vercel.app/",
 });
-console.log(frame)
+console.log(frame);
+/*
+	{ 
+		status: 'success';
+		frame: {
+			version: FrameVersion;
+			postUrl: string;
+			buttons?: FrameButtonsType | undefined;
+			image: string;
+			ogImage?: string | undefined;
+			inputText?: string | undefined;
+		};
+		reports: {},
+	}
+*/
+
+// parses openframes metadata
+const openFrame = await getFrame({
+  htmlString: "<html><head>...</head><body></body></html>",
+  url: "https://framesjs-homeframe.vercel.app/",
+  specification: "openframes",
+});
+
+console.log(openFrame);
+
 /*
 	{
-		version: FrameVersion;
-		postUrl: string;
-		buttons?: FrameButtonsType | undefined;
-		image: string;
-		ogImage?: string | undefined;
-		inputText?: string | undefined;
+		status: 'success',
+		frame: {
+			version: FrameVersion;
+			postUrl: string;
+			buttons?: FrameButtonsType | undefined;
+			image: string;
+			ogImage?: string | undefined;
+			inputText?: string | undefined;
+		},
+		reports: {},
 	}
 */
 ```
