@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.14.0
+
+### Minor Changes
+
+- 1ca5d9b: feat: Breaking change! Update getFrames to parse different Frames specifications separately
+
 ## 0.13.2
 
 ### Patch Changes

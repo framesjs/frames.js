@@ -1,5 +1,12 @@
 # template-next-utils-starter
 
+## 0.0.4
+
+### Patch Changes
+
+- Updated dependencies [1ca5d9b]
+  - frames.js@0.14.0
+
 ## 0.0.3
 
 ### Patch Changes

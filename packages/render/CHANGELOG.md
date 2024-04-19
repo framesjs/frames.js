@@ -1,5 +1,17 @@
 # @frames.js/render
 
+## 0.2.0
+
+### Minor Changes
+
+- 1ca5d9b: feat: Breaking change! Dynamic frame context types, move connected address into its own property in `useFrame`
+- 1ca5d9b: feat: Breaking change! Update getFrames to parse different Frames specifications separately
+
+### Patch Changes
+
+- Updated dependencies [1ca5d9b]
+  - frames.js@0.14.0
+
 ## 0.1.5
 
 ### Patch Changes

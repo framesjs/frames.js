@@ -1,5 +1,12 @@
 # @frames.js/debugger
 
+## 0.2.0
+
+### Minor Changes
+
+- 1ca5d9b: feat: Breaking change! Update getFrames to parse different Frames specifications separately
+- 1ca5d9b: feat: Open Frames signers, more strict validation
+
 ## 0.1.19
 
 ### Patch Changes
