@@ -10,6 +10,14 @@
     "frames": "./bin/debugger.js"
   },
   "type": "module",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "dist/*",
+        "dist/*/index.d.ts"
+      ]
+    }
+  },
   "exports": {
     "./hooks": {
       "import": {
@@ -88,6 +96,7 @@
     "lint": "next lint",
     "check:types": "tsc --noEmit",
     "prepublishOnly": "npm run build && npm run build:library",
+    "pre:check:package-types": "npm run build:library",
     "check:package-types": "attw --pack .",
     "check:package-lint": "publint --strict",
     "build:library": "tsup"
