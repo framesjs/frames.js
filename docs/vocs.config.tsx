@@ -355,16 +355,14 @@ export default defineConfig({
           <script defer src="/_vercel/insights/script.js" />
         </>
       );
-    else
-      return (
-        <>
-          <script defer src="/_vercel/insights/script.js" />
-        </>
+    return (
+        <script defer src="/_vercel/insights/script.js" />
       );
   },
-  sidebar: sidebar,
+  sidebar,
   topNav: [
     { text: "Github", link: "https://github.com/framesjs/frames.js" },
+    { text: 'Examples', link: "https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples" },
     {
       text: pkg.version,
       items: [
