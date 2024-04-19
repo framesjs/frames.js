@@ -2,6 +2,28 @@
 
 Parses HTML according to a given frames specification and returns an object containing a [`Frame`](reference/js/types#reference) if it is valid. Supported specifications are `farcaster` and [`openframes`](https://github.com/open-frames/standard) - defaults to `farcaster` if no specification is specified.
 
+## Parameters
+
+`getFrame` accepts an object with the following properties:
+
+### `htmlString`
+
+- Type: `string`
+
+The HTML string to be parsed.
+
+### `url`
+
+- Type: `string`
+
+The URL used if the frame does not contain `post_url` and `post | post_redirect` buttons don't have `target` specified.
+
+### `specification`
+
+- Type: `"farcaster" | "openframes"`
+
+The specification to use when parsing the HTML. Defaults to `"farcaster"`.
+
 ## Usage
 
 ```ts [example.ts]
