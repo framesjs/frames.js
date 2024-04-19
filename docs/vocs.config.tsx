@@ -79,6 +79,16 @@ const sidebar = [
     ],
   },
   {
+    text: 'CLI',
+    collapsed: false,
+    items: [
+      {
+        text: 'Creating a project from template',
+        link: '/cli/creating-a-project-from-template',
+      }
+    ]
+  },
+  {
     text: "Write your frame with",
     collapsed: false,
     items: [
