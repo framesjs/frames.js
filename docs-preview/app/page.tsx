@@ -9,6 +9,7 @@ import { FrameImageNext } from "@frames.js/render/next";
 import { useAccount } from "wagmi";
 import { useEffect, useRef } from "react";
 
+// eslint-disable-next-line import/no-default-export -- must be default export
 export default function Home({
   searchParams,
 }: {
