@@ -32,14 +32,6 @@ export function parseFarcasterFrame(
     state: getMetaTag($, "fc:frame:state"),
   };
   const frame: Partial<Frame> = {};
-  const pageTitle = $("title").text();
-
-  if (!pageTitle) {
-    reporter.warn(
-      "<title>",
-      "A <title> tag is required in order for your frames to work in Warpcast"
-    );
-  }
 
   // validate version
   if (!parsedFrame.version) {

@@ -80,14 +80,6 @@ export function parseOpenFramesFrame(
   const frame: Partial<Frame> = {
     accepts,
   };
-  const pageTitle = $("title").text();
-
-  if (!pageTitle) {
-    reporter.warn(
-      "<title>",
-      "A <title> tag is required in order for your frames to work in Warpcast"
-    );
-  }
 
   if (!parsedFrame.version) {
     reporter.error("of:version", 'Missing required meta tag "of:version"');

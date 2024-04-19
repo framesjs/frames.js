@@ -714,42 +714,4 @@ describe("open frames frame parser", () => {
       });
     });
   });
-
-  describe("title (warpcast)", () => {
-    it("warns if title is missing", () => {
-      const document = load(`
-        <meta property="of:version" content="vNext" />
-        <meta name="of:accepts:some_protocol" content="vNext"/>
-        <meta property="of:image" content="http://example.com/image.png" />
-        <meta property="og:image" content="http://example.com/image.png" />
-      `);
-
-      expect(
-        parseOpenFramesFrame(document, {
-          reporter,
-          fallbackPostUrl,
-          farcasterFrame: {},
-        })
-      ).toEqual({
-        status: "success",
-        reports: {
-          "<title>": [
-            {
-              level: "warning",
-              message:
-                "A <title> tag is required in order for your frames to work in Warpcast",
-              source: "openframes",
-            },
-          ],
-        },
-        frame: {
-          image: "http://example.com/image.png",
-          ogImage: "http://example.com/image.png",
-          version: "vNext",
-          postUrl: fallbackPostUrl,
-          accepts: [{ id: "some_protocol", version: "vNext" }],
-        },
-      });
-    });
-  });
 });
