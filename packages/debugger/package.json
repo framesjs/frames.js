@@ -87,6 +87,19 @@
     "viem": "^2.7.12",
     "wagmi": "^2.5.7"
   },
+  "resolutions": {
+    "neverthrow": "6.1.0"
+  },
+  "overrides": {
+    "@farcaster/core": {
+      "neverthrow": "6.1.0"
+    }
+  },
+  "pnpm": {
+    "overrides": {
+      "neverthrow": "6.1.0"
+    }
+  },
   "engineStrict": true,
   "scripts": {
     "dev": "next dev -p 3010",
