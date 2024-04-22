@@ -17,6 +17,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  NEXT_PUBLIC_WALLETCONNECT_ID: "test"
+
 jobs:
   initialize:
     timeout-minutes: 5
@@ -34,7 +37,7 @@ jobs:
       - name: Install dependencies
         run: yarn --frozen-lockfile
 
-  lint:
+  lint-and-typecheck:
     needs: [initialize]
     runs-on: ubuntu-latest
     steps:
@@ -56,25 +59,6 @@ jobs:
       - name: Lint
         run: yarn lint
 
-  typecheck:
-    needs: [initialize]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-          cache: "yarn"
-
-      - name: Install dependencies
-        run: yarn --frozen-lockfile
-
-      - name: Build
-        run: yarn build:ci
-
       - name: Typecheck
         run: yarn check:types
 
@@ -85,7 +69,7 @@ jobs:
         run: yarn check:package-lint
 
   test:
-    needs: [lint, typecheck]
+    needs: [initialize]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

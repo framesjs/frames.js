@@ -59,6 +59,11 @@ export default function ExamplesIndexPage() {
           </Link>
         </li>
         <li>
+          <Link className="underline" href="/examples/new-api-state">
+            State Management
+          </Link>
+        </li>
+        <li>
           <Link className="underline" href="/examples/new-api-error">
             Errors
           </Link>

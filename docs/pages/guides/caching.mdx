@@ -3,11 +3,15 @@ title: "Caching"
 description: ""
 ---
 
+import Example from "../../components/Example";
+
 # Caching
 
 You can set the caching policy of your frames by defining the `Cache-Control` headers of your frame's **image response**
 
 Since images are returned as an inline Data URL by default, this will require you to create a separate endpoint for your dynamic images that you want to avoid caching for.
+
+<Example path="/examples/new-api-cache-control" />
 
 ```tsx [frames/route.tsx]
 // ...
