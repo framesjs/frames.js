@@ -3,6 +3,8 @@ title: "Deployments"
 description: "A guide on shipping your frames.js frame to production"
 ---
 
+import { Callout } from "vocs/components";
+
 # Shipping your Frame to production
 
 Frames.js works in most javascript frameworks or libraries, and should work out of the box with whereever you would normally deploy those.
@@ -11,7 +13,11 @@ We suggest deploying your frames to Vercel, but [Cloudflare Workers](/reference/
 
 ## Ensure you set up the correct `env` variables
 
-For the starter, `NEXT_PUBLIC_HOST` should be the full url (including https://) of the homepage.
+Always specify your frame's [`baseUrl`](/reference/core/createFrames#baseurl) in the `createFrames` call to ensure predictible behaviour of your frame buttons. This should be the full url (including https://) of the homepage.
+
+<Callout type="warning">
+If the `baseUrl` is not set, button targets will use the request URL's base URL which may not always point to the correct location.
+</Callout>
 
 ## Vercel Deployments
 
