@@ -30,7 +30,8 @@ import {
   ProtocolConfigurationButton,
 } from "./components/protocol-config-button";
 
-const FALLBACK_URL = process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
+const FALLBACK_URL =
+  process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
 
 export default function App({
   searchParams,
@@ -144,7 +145,7 @@ export default function App({
         const transactionId = await sendTransaction(config, {
           to: params.to,
           data: params.data,
-          value: BigInt(params.value),
+          value: BigInt(params.value || 0),
         });
         return transactionId;
       } catch (error) {
