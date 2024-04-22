@@ -1,4 +1,5 @@
 import type { FramesMiddleware, JsonValue } from "../core/types";
+import { isFrameDefinition } from "../core/utils";
 
 type StateMiddlewareContext<TState extends JsonValue | undefined> = {
   /**
@@ -43,9 +44,19 @@ export function stateMiddleware<
         }
       }
 
-      return next({
+      const nextResult = await next({
         state,
       });
+
+      if (isFrameDefinition(nextResult)) {
+        // Include previous state if it is not present in the result
+        return {
+          state,
+          ...nextResult,
+        };
+      }
+
+      return nextResult;
     }
 
     return next({
