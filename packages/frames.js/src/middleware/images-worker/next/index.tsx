@@ -60,13 +60,17 @@ export function createImagesWorker(
       const width =
         aspectRatio === "1.91:1" ? Math.round(height * 1.91) : height;
 
-      return new ImageResponse(
-        <Scaffold>{jsx}</Scaffold>,
-        options.imageOptions || {
-          width,
-          height,
-        }
-      ) as Response;
+      const {
+        width: overrideWidth,
+        height: overrideHeight,
+        ...overrideOptions
+      } = options.imageOptions || {};
+
+      return new ImageResponse(<Scaffold>{jsx}</Scaffold>, {
+        width: overrideWidth || width,
+        height: overrideHeight || height,
+        ...overrideOptions,
+      }) as Response;
     };
   };
 }
