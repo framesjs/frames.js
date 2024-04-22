@@ -10,26 +10,6 @@
     "frames": "./bin/debugger.js"
   },
   "type": "module",
-  "typesVersions": {
-    "*": {
-      "*": [
-        "dist/*",
-        "dist/*/index.d.ts"
-      ]
-    }
-  },
-  "exports": {
-    "./hooks": {
-      "import": {
-        "types": "./dist/hooks/index.d.ts",
-        "default": "./dist/hooks/index.js"
-      },
-      "require": {
-        "types": "./dist/hooks/index.d.cts",
-        "default": "./dist/hooks/index.cjs"
-      }
-    }
-  },
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -82,7 +62,6 @@
     "tailwind-merge": "^2.2.1",
     "tailwindcss": "^3.3.0",
     "tailwindcss-animate": "^1.0.7",
-    "tsup": "^8.0.1",
     "typescript": "^5.3.3",
     "viem": "^2.7.12",
     "wagmi": "^2.5.7"
@@ -104,15 +83,11 @@
   "scripts": {
     "dev": "next dev -p 3010",
     "dev:monorepo": "next dev -p 3010",
-    "build": "rimraf .next && next build && npm run build:library",
+    "build": "rimraf .next && next build",
     "start": "next start",
     "lint": "next lint",
     "check:types": "tsc --noEmit",
-    "prepublishOnly": "npm run build && npm run build:library",
-    "pre:check:package-types": "npm run build:library",
-    "check:package-types": "attw --pack .",
-    "check:package-lint": "publint --strict",
-    "build:library": "tsup"
+    "prepublishOnly": "npm run build"
   },
   "postcss": {
     "plugins": {
