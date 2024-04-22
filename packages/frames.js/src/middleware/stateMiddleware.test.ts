@@ -47,4 +47,18 @@ describe("stateMiddleware", () => {
 
     expect(next).toHaveBeenCalledWith({ state: { initial: true } });
   });
+
+  it("includes previous state in the result if it is not present", async () => {
+    const state = { foo: "bar" };
+    const ctx = {
+      message: { state: JSON.stringify(state) },
+      initialState: {},
+    };
+    const mw = stateMiddleware();
+    const next = jest.fn().mockReturnValue({ image: "/test" });
+
+    const result = await mw(ctx as unknown as FramesContext, next);
+
+    expect(result).toEqual({ image: "/test", state });
+  });
 });
