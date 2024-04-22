@@ -85,5 +85,18 @@
   "dependencies": {
     "@farcaster/core": "^0.14.7",
     "frames.js": "^0.14.0"
+  },
+  "resolutions": {
+    "neverthrow": "6.1.0"
+  },
+  "overrides": {
+    "@farcaster/core": {
+      "neverthrow": "6.1.0"
+    }
+  },
+  "pnpm": {
+    "overrides": {
+      "neverthrow": "6.1.0"
+    }
   }
 }
