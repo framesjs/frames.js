@@ -5,7 +5,7 @@
     "frames.js",
     "farcaster"
   ],
-  "version": "0.2.0",
+  "version": "0.2.1",
   "bin": {
     "frames": "./bin/debugger.js"
   },
@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@farcaster/core": "^0.14.7",
-    "@frames.js/render": "^0.2.0",
+    "@frames.js/render": "^0.2.1",
     "@noble/ed25519": "^2.0.0",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-checkbox": "^1.0.4",

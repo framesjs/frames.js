@@ -1,5 +1,11 @@
 # @frames.js/render
 
+## 0.2.1
+
+### Patch Changes
+
+- b4f5be1: fix: lock neverthrow version until it is fixed upstream
+
 ## 0.2.0
 
 ### Minor Changes

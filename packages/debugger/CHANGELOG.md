@@ -1,5 +1,12 @@
 # @frames.js/debugger
 
+## 0.2.1
+
+### Patch Changes
+
+- cea7c87: fix: handle value undefined in tx data
+- b4f5be1: fix: lock neverthrow version until it is fixed upstream
+
 ## 0.2.0
 
 ### Minor Changes
