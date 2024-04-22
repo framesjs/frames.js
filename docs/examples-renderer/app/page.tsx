@@ -1,13 +1,11 @@
 "use client";
 import { useFrame } from "@frames.js/render/use-frame";
 import { FrameUI, fallbackFrameContext } from "@frames.js/render";
-import {
-  useFarcasterIdentity,
-  useFarcasterFrameContext,
-} from "@frames.js/debugger/hooks";
 import { FrameImageNext } from "@frames.js/render/next";
 import { useAccount } from "wagmi";
 import { useEffect, useRef } from "react";
+import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
+import { useFarcasterFrameContext } from "./hooks/use-farcaster-context";
 
 // eslint-disable-next-line import/no-default-export -- must be default export
 export default function Home({
