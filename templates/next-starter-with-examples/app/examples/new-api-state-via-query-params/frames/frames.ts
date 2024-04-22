@@ -1,4 +1,5 @@
 import { createFrames } from "frames.js/next";
+import { appURL } from "../../../utils";
 
 type State = {
   count: number;
@@ -9,4 +10,5 @@ export const frames = createFrames<State>({
     count: 0,
   },
   basePath: "/examples/new-api-state-via-query-params/frames",
+  baseUrl: appURL(),
 });

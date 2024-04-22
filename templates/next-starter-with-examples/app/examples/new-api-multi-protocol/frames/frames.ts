@@ -4,10 +4,11 @@ import { imagesWorkerMiddleware } from "frames.js/middleware/images-worker";
 import { createFrames } from "frames.js/next";
 import { getXmtpFrameMessage, isXmtpFrameActionPayload } from "frames.js/xmtp";
 import { DEFAULT_DEBUGGER_HUB_URL } from "../../../debug";
+import { appURL } from "../../../utils";
 
 export const frames = createFrames({
   basePath: "/examples/new-api-multi-protocol/frames",
-  baseUrl: process.env.APP_URL,
+  baseUrl: appURL(),
   initialState: {
     pageIndex: 0,
   },
