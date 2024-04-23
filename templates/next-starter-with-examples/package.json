@@ -11,7 +11,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@lens-protocol/client": "^2.0.0-alpha.38",
+    "@lens-protocol/client": "^2.0.0",
     "@vercel/kv": "^1.0.1",
     "@xmtp/frames-validator": "^0.6.1",
     "clsx": "^2.1.0",
