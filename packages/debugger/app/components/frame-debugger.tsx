@@ -15,6 +15,7 @@ import {
   BanIcon,
   CheckCircle2,
   HomeIcon,
+  InfoIcon,
   ListIcon,
   LoaderIcon,
   MessageCircleHeart,
@@ -77,12 +78,17 @@ function FrameDebuggerFramePropertiesTableRow({
       return { validProperties, invalidProperties, isValid: false };
     }
 
+    if (stackItem.status === "message") {
+      return { validProperties, invalidProperties, isValid: true };
+    }
+
     const result = stackItem.frame;
 
     // we need to check validation errors first because getFrame incorrectly return a value for a key even if it's invalid
     for (const [key, errors] of Object.entries(result.reports)) {
-      invalidProperties.push([key, errors]);
-      visitedInvalidProperties.push(key);
+      invalidProperties.push([key, errors.filter((e) => e.level === "error")]);
+      if (errors.filter((e) => e.level === "error").length > 0)
+        visitedInvalidProperties.push(key);
     }
 
     // @todo frame here can be Partial if there are errors we should handle that somehow
@@ -199,6 +205,10 @@ const FramesRequestCardContentIcon: React.FC<{
 
   if (stackItem.status === "requestError") {
     return <XCircle size={20} color="red" />;
+  }
+
+  if (stackItem.status === "message") {
+    return <InfoIcon size={20} color="blue" />;
   }
 
   if (stackItem.frame?.status === "failure") {
@@ -682,8 +692,8 @@ export function FrameDebugger({
                           {frameState.frame.speed > 5
                             ? `Request took more than 5s (${frameState.frame.speed} seconds). This may be normal: first request will take longer in development (as next.js builds), but in production, clients will timeout requests after 5s`
                             : frameState.frame.speed > 4
-                              ? `Warning: Request took more than 4s (${frameState.frame.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
-                              : `${frameState.frame.speed} seconds`}
+                            ? `Warning: Request took more than 4s (${frameState.frame.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
+                            : `${frameState.frame.speed} seconds`}
                         </TableCell>
                       </TableRow>
                       <FrameDebuggerFramePropertiesTableRow

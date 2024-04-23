@@ -11,7 +11,7 @@ import {
 import { useFrame } from "@frames.js/render/use-frame";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import { sendTransaction, switchChain } from "@wagmi/core";
-import { FrameActionPayload } from "frames.js";
+import { Frame, FrameActionPayload } from "frames.js";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { zeroAddress } from "viem";
@@ -29,6 +29,8 @@ import {
   protocolConfigurationMap,
   ProtocolConfigurationButton,
 } from "./components/protocol-config-button";
+import { ActionDebugger } from "./components/action-debugger";
+import { ParseActionResult } from "./actions/types";
 
 const FALLBACK_URL =
   process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
@@ -58,6 +60,8 @@ export default function App({
       return undefined;
     }
   }, [searchParams.url]);
+  const [initialFrame, setInitialFrame] = useState<Frame & { type: string }>();
+  const [initialAction, setInitialAction] = useState<ParseActionResult>();
   const [mockHubContext, setMockHubContext] = useState<
     Partial<MockHubActionContext>
   >({
@@ -100,6 +104,36 @@ export default function App({
         protocolConfiguration.protocol
       );
   }, [protocolConfiguration]);
+
+  useEffect(() => {
+    if (!url || !protocolConfiguration?.specification) {
+      return;
+    }
+
+    const searchParams = new URLSearchParams({
+      url,
+      specification: protocolConfiguration?.specification,
+    });
+    const proxiedUrl = `/frames?${searchParams.toString()}`;
+
+    fetch(proxiedUrl)
+      .then(async (res) => {
+        if (!res.ok) {
+          const json = await res.json();
+          throw new Error(json.message);
+        }
+        return res.json();
+      })
+      .then((json) => {
+        if (json.type === "action") {
+          setInitialAction(json);
+          setInitialFrame(undefined);
+        } else if (json.type === "frame") {
+          setInitialFrame(json);
+          setInitialAction(undefined);
+        }
+      });
+  }, [url, protocolConfiguration]);
 
   const farcasterSignerState = useFarcasterIdentity();
   const xmtpSignerState = useXmtpIdentity();
@@ -161,6 +195,7 @@ export default function App({
     "signerState" | "specification"
   > = {
     homeframeUrl: url,
+    frame: initialFrame,
     frameActionProxy: "/frames",
     frameGetProxy: "/frames",
     frameContext: {
@@ -303,15 +338,28 @@ export default function App({
       </div>
       {url ? (
         <>
-          {selectedFrameState && protocolConfiguration?.specification && (
-            <FrameDebugger
-              frameState={selectedFrameState}
-              url={url}
-              mockHubContext={mockHubContext}
-              setMockHubContext={setMockHubContext}
-              specification={protocolConfiguration?.specification}
-            ></FrameDebugger>
+          {initialAction && selectedFrameState && (
+            <div>
+              <ActionDebugger
+                actionMetadataItem={initialAction}
+                frameState={selectedFrameState}
+              ></ActionDebugger>
+            </div>
           )}
+
+          <div className="border-t mx-4"></div>
+
+          {selectedFrameState &&
+            (initialFrame || selectedFrameState.frame) &&
+            protocolConfiguration?.specification && (
+              <FrameDebugger
+                frameState={selectedFrameState}
+                url={url}
+                mockHubContext={mockHubContext}
+                setMockHubContext={setMockHubContext}
+                specification={protocolConfiguration?.specification}
+              ></FrameDebugger>
+            )}
         </>
       ) : null}
     </div>
