@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server";
-import { vercelURL } from "../../../../../utils";
+import { appURL } from "../../../../../utils";
 import { frames } from "../../frames";
-import { appURL } from "../../../utils";
 
 export type ActionMetadata = {
   /** The action name. Must be less than 30 characters. */

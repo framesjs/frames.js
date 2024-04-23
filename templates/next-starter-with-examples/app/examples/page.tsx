@@ -54,7 +54,10 @@ export default function ExamplesIndexPage() {
           </Link>
         </li>
         <li>
-          <Link className="underline" href="/examples/new-api-state-via-query-params">
+          <Link
+            className="underline"
+            href="/examples/new-api-state-via-query-params"
+          >
             State via Query Params
           </Link>
         </li>
@@ -69,7 +72,10 @@ export default function ExamplesIndexPage() {
           </Link>
         </li>
         <li>
-          <Link className="underline" href="/examples/new-api-images-worker">
+          <Link
+            className="underline"
+            href="/examples/new-api-images-worker-custom"
+          >
             Images worker custom renderer
           </Link>
         </li>

@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-key */
 import { Button } from "frames.js/next";
 import { frames } from "./frames";
-import { appURL } from "../utils";
+import { appURL } from "../../../utils";
 
 function constructCastActionUrl(params: { url: string }): string {
   // Construct the URL
