@@ -89,8 +89,16 @@ describe("createImagesWorker", () => {
 
     const imagesRoute = createImagesWorker({
       imageOptions: {
-        width: 100,
-        height: 100,
+        sizes: {
+          "1:1": {
+            width: 100,
+            height: 100,
+          },
+          "1.91:1": {
+            width: 191,
+            height: 100,
+          },
+        },
       },
     });
 
