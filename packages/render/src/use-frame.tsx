@@ -19,6 +19,7 @@ import type {
   OnTransactionArgs,
   FrameStackRequestError,
   GetFrameResult,
+  FrameStackMessage,
 } from "./types";
 import { PresentableError } from "./errors";
 import type { FarcasterFrameContext } from "./farcaster";
@@ -107,6 +108,11 @@ type FrameActions =
       item: FrameStackRequestError;
     }
   | {
+      action: "MESSAGE";
+      pendingItem: FrameStackPending;
+      item: FrameStackMessage;
+    }
+  | {
       action: "DONE";
       pendingItem: FrameStackPending;
       item: FramesStack[number];
@@ -143,7 +149,7 @@ function framesStackReducer(
 export function useFrame<
   SignerStorageType = object,
   FrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
-  FrameContextType extends FrameContext = FarcasterFrameContext,
+  FrameContextType extends FrameContext = FarcasterFrameContext
 >({
   homeframeUrl,
   frameContext,
@@ -335,7 +341,8 @@ export function useFrame<
 
         const responseData = (await response.json()) as
           | GetFrameResult
-          | { location: string };
+          | { location: string }
+          | { message: string };
 
         if ("location" in responseData) {
           const location = responseData.location;
@@ -344,6 +351,22 @@ export function useFrame<
             window.open(location, "_blank")?.focus();
           }
 
+          return;
+        } else if ("message" in responseData) {
+          const stackItem: FrameStackMessage = {
+            ...frameStackPendingItem,
+            responseStatus: response.status,
+            speed: computeDurationInSeconds(startTime, endTime),
+            status: "message",
+            message: responseData.message,
+          };
+
+          dispatch({
+            action: "MESSAGE",
+            pendingItem: frameStackPendingItem,
+            item: stackItem,
+          });
+          window.alert(responseData.message);
           return;
         }
 
