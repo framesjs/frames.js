@@ -529,10 +529,14 @@ export function useFrame<
       return;
     }
 
+    const requiredFrameContext = { ...frameContext };
+    // Address is not included in post action
+    delete requiredFrameContext.address;
+
     const frameSignatureContext = {
       inputText: postInputText,
       signer: signerState.signer ?? null,
-      frameContext,
+      frameContext: requiredFrameContext,
       url: homeframeUrl,
       target,
       frameButton,
