@@ -31,7 +31,7 @@
     "prettier": "^3.1.1",
     "publint": "^0.2.7",
     "rimraf": "^5.0.5",
-    "turbo": "^1.12.2"
+    "turbo": "^1.13.2"
   },
   "engines": {
     "node": ">=18"
