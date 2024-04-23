@@ -529,9 +529,8 @@ export function useFrame<
       return;
     }
 
-    const requiredFrameContext = { ...frameContext };
-    // Address is not included in post action
-    delete requiredFrameContext.address;
+    // Transacting address is not included in post action
+    const { address: _, ...requiredFrameContext } = frameContext;
 
     const frameSignatureContext = {
       inputText: postInputText,
