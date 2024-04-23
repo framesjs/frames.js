@@ -38,7 +38,7 @@ export function createReporter(source: ParsingReportSource): Reporter {
 
     if (level === "error") {
       errorCount += 1;
-    } else {
+    } else if (level === "warning") {
       warningCount += 1;
     }
 
@@ -51,6 +51,9 @@ export function createReporter(source: ParsingReportSource): Reporter {
     },
     warn(key, message, overrideSource) {
       report(key, message, "warning", overrideSource);
+    },
+    valid(key, message, overrideSource) {
+      report(key, message, "valid", overrideSource);
     },
     hasReports() {
       return warningCount + errorCount > 0;

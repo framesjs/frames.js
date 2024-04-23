@@ -266,6 +266,16 @@
         "types": "./dist/cloudflare-workers/index.d.cts",
         "default": "./dist/cloudflare-workers/index.cjs"
       }
+    },
+    "./parsing": {
+      "import": {
+        "types": "./dist/frame-parsers/index.d.ts",
+        "default": "./dist/frame-parsers/index.js"
+      },
+      "require": {
+        "types": "./dist/frame-parsers/index.d.cts",
+        "default": "./dist/frame-parsers/index.cjs"
+      }
     }
   },
   "files": [
