@@ -42,11 +42,8 @@ export const signFrameAction = async ({
   body: FrameActionBodyPayload;
   searchParams: URLSearchParams;
 }> => {
-  if (!signer?.fid) {
+  if (!signer || signer.status === 'pending_approval') {
     throw new Error("Missing signer fid to sign message");
-  }
-  if (!signer.privateKey) {
-    throw new Error("Missing Farcaster signer to sign message");
   }
 
   const { message, trustedBytes } = await createFrameActionMessageWithSignerKey(

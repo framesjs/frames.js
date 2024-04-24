@@ -1,23 +1,37 @@
 import type { SignerStateInstance } from "..";
 
-export type FarcasterSignerState = SignerStateInstance<
-    FarcasterSigner | null
-  >
+export type FarcasterSignerState = SignerStateInstance<FarcasterSigner | null>;
 
-export interface FarcasterSigner {
-  /* the Farcaster signer private key */
+export type FarcasterSignerPendingApproval = {
+  status: "pending_approval";
+  deadline: number;
   privateKey: string;
-  /* the Farcaster signer public key */
   publicKey: string;
-  // may be undefined if status is pending_approval
-  fid?: number;
-  /** The status of the signer */
-  status: "approved" | "pending_approval" | "impersonating";
-  signature?: string;
-  deadline?: number;
-  signerApprovalUrl?: string;
-  token?: any;
-}
+  requestFid: number;
+  requestSigner: string;
+  signature: string;
+  signerApprovalUrl: string;
+  token: string;
+};
+
+export type FarcasterSignerImpersonating = {
+  status: "impersonating";
+  fid: number;
+  privateKey: string;
+  publicKey: string;
+};
+
+export type FarcasterSignerApproved = {
+  status: "approved";
+  fid: number;
+  privateKey: string;
+  publicKey: string;
+};
+
+export type FarcasterSigner =
+  | FarcasterSignerPendingApproval
+  | FarcasterSignerImpersonating
+  | FarcasterSignerApproved;
 
 export const mockFarcasterSigner: FarcasterSigner = {
   fid: 1,

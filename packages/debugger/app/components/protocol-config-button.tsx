@@ -6,7 +6,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import React, { useEffect } from "react";
 import { isAddress } from "viem";
 import { useFarcasterFrameContext } from "../hooks/use-farcaster-context";
 import { useFarcasterIdentity } from "../hooks/use-farcaster-identity";
@@ -57,14 +56,6 @@ export const ProtocolConfigurationButton: React.FC<{
   farcasterFrameContext,
   xmtpFrameContext,
 }) => {
-  const [initialized, setInitialized] = React.useState(false);
-
-  useEffect(() => {
-    if (value) {
-      setInitialized(true);
-    }
-  }, [value]);
-
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -118,6 +109,9 @@ export const ProtocolConfigurationButton: React.FC<{
               }
               impersonateUser={farcasterSignerState.impersonateUser}
               logout={farcasterSignerState.logout}
+              removeIdentity={farcasterSignerState.removeIdentity}
+              storedUsers={farcasterSignerState.identities}
+              onIdentitySelect={farcasterSignerState.selectIdentity}
             ></FarcasterSignerWindow>
             <div className="border-t pt-4 mt-4">
               <div className="text-md font-bold mb-2">Frame Context</div>
