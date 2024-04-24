@@ -106,6 +106,10 @@ const sidebar = [
         text: "Cloudflare Workers",
         link: "/reference/core/cloudflare-workers",
       },
+      {
+        text: "Elysia",
+        link: "/reference/core/elysia",
+      }
     ],
   },
   {

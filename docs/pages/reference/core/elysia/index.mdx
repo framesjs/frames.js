@@ -1,0 +1,24 @@
+# Elysia integration
+
+Frames.js can be easily integrated to an [Elysia](https://elysiajs.com) server.
+
+## Usage
+
+```tsx
+/* eslint-disable react/jsx-key */
+import { createFrames, Button } from "frames.js/elysia";
+import { Elysia } from "elysia";
+
+const app = new Elysia();
+const frames = createFrames();
+const handleRequest = frames(async (ctx) => {
+  return {
+    image: <span>My image</span>,
+    buttons: [<Button action="post">Click me</Button>],
+  };
+});
+
+app.get("/", handleRequest)
+   .post("/", handleRequest)
+   .listen(3000);
+```
