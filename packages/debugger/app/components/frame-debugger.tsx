@@ -19,6 +19,7 @@ import {
   ListIcon,
   LoaderIcon,
   MessageCircleHeart,
+  MessageSquareIcon,
   RefreshCwIcon,
   XCircle,
 } from "lucide-react";
@@ -515,18 +516,31 @@ export function FrameDebugger({
                 </div>
               </CardContent>
             </Card>
+          ) : frameState.frame && "message" in frameState.frame ? (
+            <Card>
+              <CardContent className="p-2">
+                <div className="flex flex-col space-y-2">
+                  <div className="flex gap-2 items-center">
+                    <MessageSquareIcon size={20} color="grey" />{" "}
+                    {frameState.frame.message}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           ) : (
-            <div className="border rounded-lg overflow-hidden">
-              <FrameUI
-                frameState={frameState}
-                theme={{
-                  bg: "white",
-                }}
-                FrameImage={FrameImageNext}
-              />
-            </div>
+            <>
+              <div className="border rounded-lg overflow-hidden">
+                <FrameUI
+                  frameState={frameState}
+                  theme={{
+                    bg: "white",
+                  }}
+                  FrameImage={FrameImageNext}
+                />
+              </div>
+              <div className="ml-auto text-sm text-slate-500">{url}</div>
+            </>
           )}
-          <div className="ml-auto text-sm text-slate-500">{url}</div>
         </div>
 
         {frameState.framesStack.length !== 0 ? (

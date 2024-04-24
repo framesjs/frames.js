@@ -113,6 +113,7 @@ export default function App({
     const searchParams = new URLSearchParams({
       url,
       specification: protocolConfiguration?.specification,
+      actions: "true",
     });
     const proxiedUrl = `/frames?${searchParams.toString()}`;
 

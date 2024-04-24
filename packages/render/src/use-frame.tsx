@@ -108,11 +108,6 @@ type FrameActions =
       item: FrameStackRequestError;
     }
   | {
-      action: "MESSAGE";
-      pendingItem: FrameStackPending;
-      item: FrameStackMessage;
-    }
-  | {
       action: "DONE";
       pendingItem: FrameStackPending;
       item: FramesStack[number];
@@ -362,7 +357,7 @@ export function useFrame<
           };
 
           dispatch({
-            action: "MESSAGE",
+            action: "DONE",
             pendingItem: frameStackPendingItem,
             item: stackItem,
           });

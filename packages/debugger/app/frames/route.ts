@@ -9,6 +9,7 @@ export async function GET(request: NextRequest): Promise<Response> {
   const url = request.nextUrl.searchParams.get("url");
   const specification =
     request.nextUrl.searchParams.get("specification") ?? "farcaster";
+  const shouldParseActions = request.nextUrl.searchParams.get("actions");
 
   if (!url) {
     return Response.json({ message: "Invalid URL" }, { status: 400 });
@@ -24,7 +25,8 @@ export async function GET(request: NextRequest): Promise<Response> {
     // If content type is JSON it could be an action
     if (
       urlRes.headers.get("content-type")?.includes("application/json") &&
-      specification === "farcaster"
+      specification === "farcaster" &&
+      shouldParseActions
     ) {
       const json = (await urlRes.json()) as object;
 

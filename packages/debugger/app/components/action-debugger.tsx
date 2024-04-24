@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
 import { ParsingReport } from "frames.js";
-import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, InfoIcon, XCircle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ParseActionResult } from "../actions/types";
 import IconByName from "./octicons";
@@ -221,8 +221,9 @@ export function ActionDebugger({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:underline"
+                    title="Learn more about this action"
                   >
-                    Learn more
+                    <InfoIcon size={20} color="#64748B" />
                   </a>
                 </div>
               </div>
