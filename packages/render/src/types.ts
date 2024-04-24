@@ -69,7 +69,8 @@ export interface SignerStateInstance<
     state?: string;
     transactionId?: `0x${string}`;
     address?: `0x${string}`;
-    frameContext: FrameContextType;
+    /** Transacting address is not included in non-transaction frame actions */
+    frameContext: FrameContextType | Omit<FrameContextType, "address">;
   }) => Promise<{
     body: FrameActionBodyType;
     searchParams: URLSearchParams;

@@ -529,10 +529,13 @@ export function useFrame<
       return;
     }
 
+    // Transacting address is not included in post action
+    const { address: _, ...requiredFrameContext } = frameContext;
+
     const frameSignatureContext = {
       inputText: postInputText,
       signer: signerState.signer ?? null,
-      frameContext,
+      frameContext: requiredFrameContext,
       url: homeframeUrl,
       target,
       frameButton,
