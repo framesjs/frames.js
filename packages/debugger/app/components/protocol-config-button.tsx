@@ -95,7 +95,7 @@ export const ProtocolConfigurationButton: React.FC<{
         </Button>
       </PopoverTrigger>
       <PopoverContent>
-        <Tabs defaultValue="none">
+        <Tabs value={value?.protocol} defaultValue="none">
           <TabsList
             className={cn(
               "w-full grid",
