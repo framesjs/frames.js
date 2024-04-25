@@ -267,7 +267,7 @@ function SelectedIdentity({ onLogout, onRemove, user }: SelectedIdentityProps) {
         }}
         variant="destructive"
       >
-        Remove
+        Delete from list
       </Button>
     </div>
   );

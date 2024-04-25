@@ -13,6 +13,7 @@ import { useXmtpFrameContext } from "../hooks/use-xmtp-context";
 import { useXmtpIdentity } from "../hooks/use-xmtp-identity";
 import { cn } from "../lib/utils";
 import FarcasterSignerWindow from "./farcaster-signer-config";
+import { useMemo } from "react";
 
 export type ProtocolConfiguration =
   | {
@@ -27,6 +28,7 @@ export type ProtocolConfiguration =
       protocol: "xmtp";
       specification: "openframes";
     };
+
 export const protocolConfigurationMap: Record<string, ProtocolConfiguration> = {
   farcaster: {
     protocol: "farcaster",
@@ -41,6 +43,7 @@ export const protocolConfigurationMap: Record<string, ProtocolConfiguration> = {
     specification: "openframes",
   },
 };
+
 export const ProtocolConfigurationButton: React.FC<{
   onChange: (configuration: ProtocolConfiguration) => void;
   value: ProtocolConfiguration | null;
@@ -56,13 +59,35 @@ export const ProtocolConfigurationButton: React.FC<{
   farcasterFrameContext,
   xmtpFrameContext,
 }) => {
+  const isSignerValid = useMemo(() => {
+    let valid = false;
+
+    if (value?.protocol === "farcaster") {
+      valid =
+        !!farcasterSignerState.signer &&
+        farcasterSignerState.signer.status !== "pending_approval";
+    }
+
+    if (value?.protocol === "xmtp") {
+      valid = !!xmtpSignerState.signer;
+    }
+
+    return valid;
+  }, [farcasterSignerState.signer, value?.protocol, xmtpSignerState.signer]);
+
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant={value ? "outline" : "destructive"}>
+        <Button variant={isSignerValid ? "outline" : "destructive"}>
           {value ? (
             <>
-              {value.protocol} ({value.specification})
+              {value.protocol}{" "}
+              {value.specification === "openframes"
+                ? `(${value.specification})`
+                : // Farcaster
+                  farcasterSignerState.signer?.status !== "pending_approval"
+                  ? `(${farcasterSignerState.signer?.fid ?? "select identity"})`
+                  : "select identity"}
             </>
           ) : (
             <>Select a protocol</>
