@@ -34,7 +34,6 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogOverlay,
   DialogPortal,
   DialogTitle,
   DialogTrigger,
@@ -298,7 +297,6 @@ function ImpersonateDialogButton(
         <Button>Impersonate FID</Button>
       </DialogTrigger>
       <DialogPortal>
-        <DialogOverlay />
         <ImpersonateDialogContent
           onClose={() => setIsDialogOpen(false)}
           {...props}
@@ -318,7 +316,6 @@ function FarcasterSignInDialogButton(
         <Button>Sign in with Farcaster</Button>
       </DialogTrigger>
       <DialogPortal>
-        <DialogOverlay />
         <SignInWithFarcasterDialogContent
           onClose={() => setIsDialogOpen(false)}
           {...props}
@@ -356,7 +353,6 @@ const DialogCommandItem = forwardRef<HTMLDivElement, DialogCommandItemProps>(
           </CommandItem>
         </DialogTrigger>
         <DialogPortal>
-          <DialogOverlay />
           {cloneElement(children, { onClose: () => setIsOpen(false) })}
         </DialogPortal>
       </Dialog>
