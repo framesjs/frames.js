@@ -134,9 +134,13 @@ export default function App({
             setInitialFrame(json);
             setInitialAction(undefined);
           }
+        })
+        .catch((e) => {
+          console.error(e);
+          alert(`Error loading url, see console for details`);
         });
     },
-    [url, protocolConfiguration]
+    [url, protocolConfiguration, setInitialAction, setInitialFrame]
   );
 
   useEffect(() => {

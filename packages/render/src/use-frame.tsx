@@ -345,7 +345,6 @@ export function useFrame<
             pendingItem: frameStackPendingItem,
             item: stackItem,
           });
-          window.alert(responseData.message);
           return;
         }
 
@@ -554,16 +553,6 @@ export function useFrame<
       : await signerState.signFrameAction(frameSignatureContext);
 
     const _fetchFrame = fetchFrameOverride ?? fetchFrame;
-
-    console.log({
-      // post_url stuff
-      url: searchParams.get("postUrl") ?? "/",
-      method: "POST",
-      request: {
-        searchParams,
-        body,
-      },
-    });
 
     await _fetchFrame({
       // post_url stuff
