@@ -11,7 +11,7 @@ import {
 import { useFrame } from "@frames.js/render/use-frame";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import { sendTransaction, switchChain } from "@wagmi/core";
-import { FrameActionPayload } from "frames.js";
+import { Frame, FrameActionPayload } from "frames.js";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { zeroAddress } from "viem";
@@ -29,6 +29,8 @@ import {
   protocolConfigurationMap,
   ProtocolConfigurationButton,
 } from "./components/protocol-config-button";
+import { ActionDebugger } from "./components/action-debugger";
+import { ParseActionResult } from "./actions/types";
 
 const FALLBACK_URL =
   process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
@@ -58,6 +60,8 @@ export default function App({
       return undefined;
     }
   }, [searchParams.url]);
+  const [initialFrame, setInitialFrame] = useState<Frame & { type: string }>();
+  const [initialAction, setInitialAction] = useState<ParseActionResult>();
   const [mockHubContext, setMockHubContext] = useState<
     Partial<MockHubActionContext>
   >({
@@ -100,6 +104,52 @@ export default function App({
         protocolConfiguration.protocol
       );
   }, [protocolConfiguration]);
+
+  const refreshUrl = useCallback(
+    (newUrl?: string) => {
+      if (!url || !protocolConfiguration?.specification) {
+        return;
+      }
+
+      const searchParams = new URLSearchParams({
+        url: newUrl || url,
+        specification: protocolConfiguration?.specification,
+        actions: "true",
+      });
+      const proxiedUrl = `/frames?${searchParams.toString()}`;
+
+      fetch(proxiedUrl)
+        .then(async (res) => {
+          if (!res.ok) {
+            const json = await res.json();
+            throw new Error(json.message);
+          }
+          return res.json();
+        })
+        .then((json) => {
+          if (json.type === "action") {
+            setInitialAction(json);
+            setInitialFrame(undefined);
+          } else if (json.type === "frame") {
+            setInitialFrame(json);
+            setInitialAction(undefined);
+          }
+        })
+        .catch((e) => {
+          console.error(e);
+          alert(`Error loading url, see console for details`);
+        });
+    },
+    [url, protocolConfiguration, setInitialAction, setInitialFrame]
+  );
+
+  useEffect(() => {
+    if (!url || !protocolConfiguration?.specification) {
+      return;
+    }
+
+    refreshUrl(url);
+  }, [url, protocolConfiguration, refreshUrl]);
 
   const farcasterSignerState = useFarcasterIdentity();
   const xmtpSignerState = useXmtpIdentity();
@@ -161,6 +211,7 @@ export default function App({
     "signerState" | "specification"
   > = {
     homeframeUrl: url,
+    frame: initialFrame,
     frameActionProxy: "/frames",
     frameGetProxy: "/frames",
     frameContext: {
@@ -202,12 +253,14 @@ export default function App({
     },
   };
 
-  const farcasterFrameState = useFrame({
+  const farcasterFrameConfig = {
     ...useFrameConfig,
     signerState: farcasterSignerState,
     specification: "farcaster",
     frameContext: farcasterFrameContext.frameContext,
-  });
+  } as const;
+
+  const farcasterFrameState = useFrame(farcasterFrameConfig);
 
   const xmtpFrameState = useFrame({
     ...useFrameConfig,
@@ -303,15 +356,29 @@ export default function App({
       </div>
       {url ? (
         <>
-          {selectedFrameState && protocolConfiguration?.specification && (
-            <FrameDebugger
-              frameState={selectedFrameState}
-              url={url}
-              mockHubContext={mockHubContext}
-              setMockHubContext={setMockHubContext}
-              specification={protocolConfiguration?.specification}
-            ></FrameDebugger>
+          {initialAction && (
+            <div>
+              <ActionDebugger
+                actionMetadataItem={initialAction}
+                farcasterFrameConfig={farcasterFrameConfig}
+                refreshUrl={refreshUrl}
+                mockHubContext={mockHubContext}
+                setMockHubContext={setMockHubContext}
+              ></ActionDebugger>
+            </div>
           )}
+
+          {selectedFrameState &&
+            initialFrame &&
+            protocolConfiguration?.specification && (
+              <FrameDebugger
+                frameState={selectedFrameState}
+                url={url}
+                mockHubContext={mockHubContext}
+                setMockHubContext={setMockHubContext}
+                specification={protocolConfiguration?.specification}
+              ></FrameDebugger>
+            )}
         </>
       ) : null}
     </div>

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await -- we expect async functions */
 /* eslint-disable no-console -- provide feedback */
 /* eslint-disable no-alert -- provide feedback */
 "use client";
@@ -20,10 +19,8 @@ import type {
   FrameStackRequestError,
   GetFrameResult,
   FrameStackMessage,
-  FrameReducerActions,
-} from "./types";
-import { PresentableError } from "./errors";
-import type { FarcasterFrameContext } from "./farcaster";
+  FarcasterFrameContext,
+} from "@frames.js/render";
 
 function onMintFallback({ target }: OnMintArgs): void {
   window.alert(`Mint requested: ${target}`);
@@ -98,9 +95,26 @@ function computeDurationInSeconds(start: Date, end: Date): number {
   return Number(((end.getTime() - start.getTime()) / 1000).toFixed(2));
 }
 
+type FrameActions =
+  | {
+      action: "LOAD";
+      item: FrameStackPending;
+    }
+  | {
+      action: "REQUEST_ERROR";
+      pendingItem: FrameStackPending;
+      item: FrameStackRequestError;
+    }
+  | {
+      action: "DONE";
+      pendingItem: FrameStackPending;
+      item: FramesStack[number];
+    }
+  | { action: "CLEAR" };
+
 function framesStackReducer(
   state: FramesStack,
-  action: FrameReducerActions
+  action: FrameActions
 ): FramesStack {
   switch (action.action) {
     case "LOAD":
@@ -125,7 +139,7 @@ function framesStackReducer(
   }
 }
 
-export function useFrame<
+export function useAction<
   SignerStorageType = object,
   FrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
   FrameContextType extends FrameContext = FarcasterFrameContext,
@@ -305,14 +319,16 @@ export function useFrame<
           endTime = new Date();
         });
 
+        console.log("response", response.status);
+
         if (!response.ok) {
-          if (response.status >= 400 && response.status < 500) {
-            const data = (await response.clone().json()) as {
-              message?: string;
-            };
-            // Show error message if available
-            throw new PresentableError(data.message);
-          }
+          // if (response.status >= 400 && response.status < 500) {
+          //   const data = (await response.clone().json()) as {
+          //     message?: string;
+          //   };
+          //   // Show error message if available
+          //   throw new PresentableError(data.message);
+          // }
 
           if (response.status >= 500)
             throw new Error(`Failed to fetch frame: ${response.statusText}`);
@@ -321,7 +337,10 @@ export function useFrame<
         const responseData = (await response.json()) as
           | GetFrameResult
           | { location: string }
-          | { message: string };
+          | { message: string }
+          | { type: "frame"; frameUrl: string };
+
+        console.log("responseData", responseData);
 
         if ("location" in responseData) {
           const location = responseData.location;
@@ -345,6 +364,32 @@ export function useFrame<
             pendingItem: frameStackPendingItem,
             item: stackItem,
           });
+          return;
+        } else if ("frameUrl" in responseData) {
+          const stackItem: FrameStackMessage = {
+            ...frameStackPendingItem,
+            responseStatus: response.status,
+            speed: computeDurationInSeconds(startTime, endTime),
+            status: "message",
+            message: "Loading frame from frameUrl.",
+          };
+
+          dispatch({
+            action: "DONE",
+            pendingItem: frameStackPendingItem,
+            item: stackItem,
+          });
+
+          onButtonPress(
+            { image: "", buttons: [], version: "vNext" },
+            {
+              action: "post",
+              label: "action",
+              target: responseData.frameUrl,
+            },
+            1
+          );
+
           return;
         }
 
@@ -460,7 +505,7 @@ export function useFrame<
                 currentFrame.inputText !== undefined ? inputText : undefined,
               state: currentFrame.state,
               transactionId,
-              fetchFrameOverride: fetchFrameOverride,
+              fetchFrameOverride,
             });
           }
         }
@@ -490,7 +535,7 @@ export function useFrame<
             postInputText:
               currentFrame.inputText !== undefined ? inputText : undefined,
             state: currentFrame.state,
-            fetchFrameOverride: fetchFrameOverride,
+            fetchFrameOverride,
           });
           setInputText("");
         } catch (err) {
@@ -534,13 +579,10 @@ export function useFrame<
       return;
     }
 
-    // Transacting address is not included in post action
-    const { address: _, ...requiredFrameContext } = frameContext;
-
     const frameSignatureContext = {
       inputText: postInputText,
       signer: signerState.signer ?? null,
-      frameContext: requiredFrameContext,
+      frameContext,
       url: homeframeUrl,
       target,
       frameButton,

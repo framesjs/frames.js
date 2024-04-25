@@ -11,8 +11,11 @@ export function validate<TValidator extends (...args: any) => any>(
   ...validatorArgs: Parameters<TValidator>
 ): ReturnType<TValidator> | undefined {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- this is correct
+    const result = validator(...validatorArgs);
+    // reporter.valid(errorKey, result);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- this is correct
-    return validator(...validatorArgs);
+    return result;
   } catch (e) {
     reporter.error(errorKey, e);
 

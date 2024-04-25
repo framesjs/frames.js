@@ -1,4 +1,4 @@
-import type { Frame } from "../types";
+import type { Frame } from "frames.js";
 
 export type SupportedParsingSpecification = "farcaster" | "openframes";
 

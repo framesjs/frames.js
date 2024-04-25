@@ -7,7 +7,12 @@ import {
 } from "frames.js";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import React from "react";
-import { type FrameState, type FramesStack, FrameUI } from "@frames.js/render";
+import {
+  type FrameState,
+  type FramesStack,
+  FrameUI,
+  defaultTheme,
+} from "@frames.js/render";
 import { FrameImageNext } from "@frames.js/render/next";
 import { Table, TableBody, TableCell, TableRow } from "@/components/table";
 import {
@@ -15,9 +20,12 @@ import {
   BanIcon,
   CheckCircle2,
   HomeIcon,
+  InfoIcon,
+  LayoutGridIcon,
   ListIcon,
   LoaderIcon,
   MessageCircleHeart,
+  MessageSquareIcon,
   RefreshCwIcon,
   XCircle,
 } from "lucide-react";
@@ -34,6 +42,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { hasWarnings } from "../lib/utils";
+import { useRouter } from "next/navigation";
 
 type FrameDebuggerFramePropertiesTableRowsProps = {
   stackItem: FrameState["framesStack"][number];
@@ -77,16 +86,23 @@ function FrameDebuggerFramePropertiesTableRow({
       return { validProperties, invalidProperties, isValid: false };
     }
 
+    if (stackItem.status === "message") {
+      return { validProperties, invalidProperties, isValid: true };
+    }
+
     const result = stackItem.frame;
 
     // we need to check validation errors first because getFrame incorrectly return a value for a key even if it's invalid
     for (const [key, errors] of Object.entries(result.reports)) {
-      invalidProperties.push([key, errors]);
-      visitedInvalidProperties.push(key);
+      invalidProperties.push([key, errors.filter((e) => e.level === "error")]);
+      if (errors.filter((e) => e.level === "error").length > 0)
+        visitedInvalidProperties.push(key);
     }
 
     // @todo frame here can be Partial if there are errors we should handle that somehow
     const flattenedFrame = getFrameFlattened(result.frame as Frame);
+
+    delete flattenedFrame["frames.js:version"]; // TODO: get correct frames.js version
 
     let hasExperimentalProperties = false;
 
@@ -199,6 +215,10 @@ const FramesRequestCardContentIcon: React.FC<{
 
   if (stackItem.status === "requestError") {
     return <XCircle size={20} color="red" />;
+  }
+
+  if (stackItem.status === "message") {
+    return <InfoIcon size={20} color="blue" />;
   }
 
   if (stackItem.frame?.status === "failure") {
@@ -315,6 +335,7 @@ export function FrameDebugger({
   mockHubContext?: Partial<MockHubActionContext>;
   setMockHubContext?: Dispatch<SetStateAction<Partial<MockHubActionContext>>>;
 }) {
+  const router = useRouter();
   const [copySuccess, setCopySuccess] = useState(false);
   useEffect(() => {
     if (copySuccess) {
@@ -505,18 +526,71 @@ export function FrameDebugger({
                 </div>
               </CardContent>
             </Card>
+          ) : frameState.frame && "message" in frameState.frame ? (
+            <Card>
+              <CardContent className="p-2">
+                <div className="flex flex-col space-y-2">
+                  <div className="flex gap-2 items-center">
+                    <MessageSquareIcon size={20} color="grey" />{" "}
+                    {frameState.frame.message}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           ) : (
-            <div className="border rounded-lg overflow-hidden">
-              <FrameUI
-                frameState={frameState}
-                theme={{
-                  bg: "white",
-                }}
-                FrameImage={FrameImageNext}
-              />
-            </div>
+            <>
+              <div className="border rounded-lg overflow-hidden">
+                <FrameUI
+                  frameState={frameState}
+                  theme={{
+                    bg: "white",
+                  }}
+                  FrameImage={FrameImageNext}
+                />
+              </div>
+              <div className="ml-auto text-sm text-slate-500">{url}</div>
+              <div className="space-y-1">
+                {frameState.frame?.status === "done" &&
+                  frameState.frame.frame.frame.buttons
+                    ?.filter((button) =>
+                      button.target?.startsWith(
+                        "https://warpcast.com/~/add-cast-action"
+                      )
+                    )
+                    .map((button) => {
+                      // Link to debug target
+                      return (
+                        <button
+                          key={button.target}
+                          className="border text-sm text-gray-800 rounded flex p-2 w-full gap-2"
+                          onClick={() => {
+                            const url = new URL(button.target!);
+                            const params = new URLSearchParams({
+                              url: url.searchParams.get("url")!,
+                            });
+
+                            router.push(`/?${params.toString()}`);
+                          }}
+                          style={{
+                            flex: "1 1 0px",
+                            // fixme: hover style
+                            backgroundColor: defaultTheme.buttonBg,
+                            borderColor: defaultTheme.buttonBorderColor,
+                            color: defaultTheme.buttonColor,
+                            cursor: "pointer",
+                          }}
+                        >
+                          <LayoutGridIcon size={20} />
+                          <span>
+                            Debug{" "}
+                            <span className="font-bold">{button.label}</span>
+                          </span>
+                        </button>
+                      );
+                    })}
+              </div>
+            </>
           )}
-          <div className="ml-auto text-sm text-slate-500">{url}</div>
         </div>
 
         {frameState.framesStack.length !== 0 ? (

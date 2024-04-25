@@ -5,6 +5,7 @@ import type {
   TransactionTargetResponse,
   getFrame,
 } from "frames.js";
+import type { Dispatch } from "react";
 import type { FarcasterFrameContext } from "./farcaster/frames";
 
 export type OnTransactionFunc = (
@@ -122,16 +123,40 @@ export type FrameStackRequestError = FrameStackBase & {
   requestError: unknown;
 };
 
+export type FrameStackMessage = FrameStackBase & {
+  status: "message";
+  message: string;
+};
+
 export type FramesStackItem =
   | FrameStackPending
   | FrameStackDone
-  | FrameStackRequestError;
+  | FrameStackRequestError
+  | FrameStackMessage;
 
 export type FramesStack = FramesStackItem[];
+
+export type FrameReducerActions =
+  | {
+      action: "LOAD";
+      item: FrameStackPending;
+    }
+  | {
+      action: "REQUEST_ERROR";
+      pendingItem: FrameStackPending;
+      item: FrameStackRequestError;
+    }
+  | {
+      action: "DONE";
+      pendingItem: FrameStackPending;
+      item: FramesStack[number];
+    }
+  | { action: "CLEAR" };
 
 export type FrameState = {
   fetchFrame: (request: FrameRequest) => void | Promise<void>;
   clearFrameStack: () => void;
+  dispatchFrameStack: Dispatch<FrameReducerActions>;
   /** The frame at the top of the stack (at index 0) */
   frame: FramesStackItem | undefined;
   /** A stack of frames with additional context, with the most recent frame at index 0 */
@@ -141,7 +166,8 @@ export type FrameState = {
   onButtonPress: (
     frame: Frame,
     frameButton: FrameButton,
-    index: number
+    index: number,
+    fetchFrameOverride?: (request: FrameRequest) => Promise<void>
   ) => void | Promise<void>;
   homeframeUrl: string | null | undefined;
 };
