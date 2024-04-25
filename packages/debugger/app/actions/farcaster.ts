@@ -20,6 +20,8 @@ export function parseFarcasterAction(
       },
       actionMetadata.name
     );
+  } else {
+    reporter.error("name", "Name is required");
   }
 
   if (actionMetadata.icon) {
@@ -34,6 +36,8 @@ export function parseFarcasterAction(
       },
       actionMetadata.icon
     );
+  } else {
+    reporter.error("icon", "Icon is required");
   }
 
   if (actionMetadata.description) {
@@ -48,6 +52,8 @@ export function parseFarcasterAction(
       },
       actionMetadata.description
     );
+  } else {
+    reporter.error("description", "Description is required");
   }
 
   if (actionMetadata.aboutUrl) {
@@ -62,6 +68,8 @@ export function parseFarcasterAction(
       },
       actionMetadata.aboutUrl
     );
+  } else {
+    reporter.error("aboutUrl", "About URL is required");
   }
 
   if (actionMetadata.action) {
@@ -71,6 +79,8 @@ export function parseFarcasterAction(
         `Invalid action type "${actionMetadata.action.type}"`
       );
     }
+  } else {
+    reporter.error("action", "Action is required");
   }
 
   if (reporter.hasErrors()) {
