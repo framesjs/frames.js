@@ -449,7 +449,8 @@ export function useAction<
   async function onButtonPress(
     currentFrame: Frame,
     frameButton: FrameButton,
-    index: number
+    index: number,
+    fetchFrameOverride: typeof fetchFrame = fetchFrame
   ): Promise<void> {
     if (!signerState.hasSigner && !dangerousSkipSigning) {
       signerState.onSignerlessFramePress();
@@ -504,6 +505,7 @@ export function useAction<
                 currentFrame.inputText !== undefined ? inputText : undefined,
               state: currentFrame.state,
               transactionId,
+              fetchFrameOverride,
             });
           }
         }
@@ -533,6 +535,7 @@ export function useAction<
             postInputText:
               currentFrame.inputText !== undefined ? inputText : undefined,
             state: currentFrame.state,
+            fetchFrameOverride,
           });
           setInputText("");
         } catch (err) {
@@ -554,6 +557,7 @@ export function useAction<
     target,
     state,
     transactionId,
+    fetchFrameOverride,
   }: {
     frameButton: FrameButton;
     buttonIndex: number;
@@ -561,8 +565,8 @@ export function useAction<
     state?: string;
     dangerousSkipSigning?: boolean;
     transactionId?: `0x${string}`;
-
     target: string;
+    fetchFrameOverride?: typeof fetchFrame;
   }): Promise<void> {
     const currentFrameStackItem = framesStack[0];
 
@@ -590,7 +594,9 @@ export function useAction<
       ? await unsignedFrameAction(frameSignatureContext)
       : await signerState.signFrameAction(frameSignatureContext);
 
-    await fetchFrame({
+    const _fetchFrame = fetchFrameOverride ?? fetchFrame;
+
+    await _fetchFrame({
       // post_url stuff
       url: searchParams.get("postUrl") ?? "/",
       method: "POST",
@@ -670,6 +676,7 @@ export function useAction<
     clearFrameStack: () => {
       dispatch({ action: "CLEAR" });
     },
+    dispatchFrameStack: dispatch,
     onButtonPress,
     fetchFrame,
     homeframeUrl,

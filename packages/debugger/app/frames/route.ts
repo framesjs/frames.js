@@ -59,7 +59,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   // TODO: refactor useful logic back into render package
 
   if (specification === "farcaster") {
-    await persistMockResponsesForDebugHubRequests(req.clone());
+    await persistMockResponsesForDebugHubRequests(req);
   }
 
   if (!postUrl) {
@@ -103,6 +103,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       const json = (await r.json()) as
         | { message: string }
         | { type: string; frameUrl: string };
+
       if ("message" in json) {
         return Response.json({ message: json.message }, { status: r.status });
       } else if (

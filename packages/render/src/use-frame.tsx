@@ -20,6 +20,7 @@ import type {
   FrameStackRequestError,
   GetFrameResult,
   FrameStackMessage,
+  FrameReducerActions,
 } from "./types";
 import { PresentableError } from "./errors";
 import type { FarcasterFrameContext } from "./farcaster";
@@ -97,26 +98,9 @@ function computeDurationInSeconds(start: Date, end: Date): number {
   return Number(((end.getTime() - start.getTime()) / 1000).toFixed(2));
 }
 
-type FrameActions =
-  | {
-      action: "LOAD";
-      item: FrameStackPending;
-    }
-  | {
-      action: "REQUEST_ERROR";
-      pendingItem: FrameStackPending;
-      item: FrameStackRequestError;
-    }
-  | {
-      action: "DONE";
-      pendingItem: FrameStackPending;
-      item: FramesStack[number];
-    }
-  | { action: "CLEAR" };
-
 function framesStackReducer(
   state: FramesStack,
-  action: FrameActions
+  action: FrameReducerActions
 ): FramesStack {
   switch (action.action) {
     case "LOAD":
@@ -144,7 +128,7 @@ function framesStackReducer(
 export function useFrame<
   SignerStorageType = object,
   FrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
-  FrameContextType extends FrameContext = FarcasterFrameContext
+  FrameContextType extends FrameContext = FarcasterFrameContext,
 >({
   homeframeUrl,
   frameContext,
@@ -421,7 +405,8 @@ export function useFrame<
   async function onButtonPress(
     currentFrame: Frame,
     frameButton: FrameButton,
-    index: number
+    index: number,
+    fetchFrameOverride: typeof fetchFrame = fetchFrame
   ): Promise<void> {
     if (!signerState.hasSigner && !dangerousSkipSigning) {
       signerState.onSignerlessFramePress();
@@ -476,6 +461,7 @@ export function useFrame<
                 currentFrame.inputText !== undefined ? inputText : undefined,
               state: currentFrame.state,
               transactionId,
+              fetchFrameOverride: fetchFrameOverride,
             });
           }
         }
@@ -505,6 +491,7 @@ export function useFrame<
             postInputText:
               currentFrame.inputText !== undefined ? inputText : undefined,
             state: currentFrame.state,
+            fetchFrameOverride: fetchFrameOverride,
           });
           setInputText("");
         } catch (err) {
@@ -526,6 +513,7 @@ export function useFrame<
     target,
     state,
     transactionId,
+    fetchFrameOverride,
   }: {
     frameButton: FrameButton;
     buttonIndex: number;
@@ -533,8 +521,8 @@ export function useFrame<
     state?: string;
     dangerousSkipSigning?: boolean;
     transactionId?: `0x${string}`;
-
     target: string;
+    fetchFrameOverride?: typeof fetchFrame;
   }): Promise<void> {
     const currentFrameStackItem = framesStack[0];
 
@@ -565,7 +553,19 @@ export function useFrame<
       ? await unsignedFrameAction(frameSignatureContext)
       : await signerState.signFrameAction(frameSignatureContext);
 
-    await fetchFrame({
+    const _fetchFrame = fetchFrameOverride ?? fetchFrame;
+
+    console.log({
+      // post_url stuff
+      url: searchParams.get("postUrl") ?? "/",
+      method: "POST",
+      request: {
+        searchParams,
+        body,
+      },
+    });
+
+    await _fetchFrame({
       // post_url stuff
       url: searchParams.get("postUrl") ?? "/",
       method: "POST",
@@ -645,6 +645,7 @@ export function useFrame<
     clearFrameStack: () => {
       dispatch({ action: "CLEAR" });
     },
+    dispatchFrameStack: dispatch,
     onButtonPress,
     fetchFrame,
     homeframeUrl,

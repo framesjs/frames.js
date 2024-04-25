@@ -10,6 +10,11 @@ import {
   FarcasterFrameContext,
   FarcasterSigner,
   FrameActionBodyPayload,
+  FrameRequest,
+  FrameStackMessage,
+  FrameStackPending,
+  FrameStackRequestError,
+  GetFrameResult,
   defaultTheme,
 } from "@frames.js/render";
 import { ParsingReport } from "frames.js";
@@ -27,6 +32,7 @@ import { useAction as useActionFrame } from "../actions/use-action";
 import { FrameDebugger } from "./frame-debugger";
 import IconByName from "./octicons";
 import { MockHubActionContext } from "../utils/mock-hub-utils";
+import { useFrame } from "@frames.js/render/use-frame";
 
 type FrameDebuggerFramePropertiesTableRowsProps = {
   actionMetadataItem: ParseActionResult;
@@ -45,6 +51,10 @@ function paramsToObject(entries: IterableIterator<[string, string]>): object {
     result[key] = value;
   }
   return result;
+}
+
+function computeDurationInSeconds(start: Date, end: Date): number {
+  return Number(((end.getTime() - start.getTime()) / 1000).toFixed(2));
 }
 
 function isPropertyExperimental([key, value]: [string, string]) {
@@ -201,11 +211,168 @@ export function ActionDebugger({
     }
   }, [copySuccess, setCopySuccess]);
 
-  const [openAccordions, setOpenAccordions] = useState<string[]>([]);
+  const actionFrameState = useFrame(farcasterFrameConfig);
 
-  const [isLoading, setIsLoading] = useState(false);
+  async function fetchFrame(
+    frameRequest: FrameRequest,
+    shouldClear = false
+  ): Promise<void> {
+    const startTime = new Date();
 
-  const actionFrameState = useActionFrame(farcasterFrameConfig);
+    if (shouldClear) {
+      // this clears initial frame since that is loading from SSR since we aren't able to finish it.
+      // not an ideal solution
+      actionFrameState.dispatchFrameStack({ action: "CLEAR" });
+    }
+
+    if (frameRequest.method === "GET") {
+      // We don't handle GET requests when debugging actions
+    } else {
+      const searchParams = new URLSearchParams(
+        frameRequest.request.searchParams
+      );
+
+      searchParams.set("specification", "farcaster");
+
+      const frameStackPendingItem: FrameStackPending = {
+        method: "POST" as const,
+        request: {
+          searchParams,
+          body: frameRequest.request.body,
+        },
+        timestamp: startTime,
+        url: frameRequest.url,
+        status: "pending",
+      };
+
+      actionFrameState.dispatchFrameStack({
+        action: "LOAD",
+        item: frameStackPendingItem,
+      });
+
+      const proxiedUrl = `/frames?${frameStackPendingItem.request.searchParams.toString()}`;
+
+      let response;
+      let endTime = new Date();
+
+      try {
+        response = await fetch(proxiedUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...farcasterFrameConfig.extraButtonRequestPayload,
+            ...frameRequest.request.body,
+          }),
+        }).finally(() => {
+          endTime = new Date();
+        });
+
+        console.log("response", response.status);
+
+        if (!response.ok) {
+          // if (response.status >= 400 && response.status < 500) {
+          //   const data = (await response.clone().json()) as {
+          //     message?: string;
+          //   };
+          //   // Show error message if available
+          //   throw new PresentableError(data.message);
+          // }
+
+          if (response.status >= 500)
+            throw new Error(`Failed to fetch frame: ${response.statusText}`);
+        }
+
+        const responseData = (await response.json()) as
+          | GetFrameResult
+          | { location: string }
+          | { message: string }
+          | { type: "frame"; frameUrl: string };
+
+        console.log("responseData", responseData);
+
+        if ("location" in responseData) {
+          const location = responseData.location;
+
+          if (window.confirm(`You are about to be redirected to ${location}`)) {
+            window.open(location, "_blank")?.focus();
+          }
+
+          return;
+        } else if ("message" in responseData) {
+          const stackItem: FrameStackMessage = {
+            ...frameStackPendingItem,
+            responseStatus: response.status,
+            speed: computeDurationInSeconds(startTime, endTime),
+            status: "message",
+            message: responseData.message,
+          };
+
+          actionFrameState.dispatchFrameStack({
+            action: "DONE",
+            pendingItem: frameStackPendingItem,
+            item: stackItem,
+          });
+          return;
+        } else if ("frameUrl" in responseData) {
+          const stackItem: FrameStackMessage = {
+            ...frameStackPendingItem,
+            responseStatus: response.status,
+            speed: computeDurationInSeconds(startTime, endTime),
+            status: "message",
+            message: "Loading frame from frameUrl.",
+          };
+
+          actionFrameState.dispatchFrameStack({
+            action: "DONE",
+            pendingItem: frameStackPendingItem,
+            item: stackItem,
+          });
+
+          actionFrameState.onButtonPress(
+            { image: "", buttons: [], version: "vNext" },
+            {
+              action: "post",
+              label: "action",
+              target: responseData.frameUrl,
+            },
+            1
+          );
+
+          return;
+        }
+
+        actionFrameState.dispatchFrameStack({
+          action: "DONE",
+          pendingItem: frameStackPendingItem,
+          item: {
+            ...frameStackPendingItem,
+            frame: responseData,
+            status: "done",
+            speed: computeDurationInSeconds(startTime, endTime),
+            responseStatus: response.status,
+          },
+        });
+      } catch (err) {
+        const stackItem: FrameStackRequestError = {
+          ...frameStackPendingItem,
+          responseStatus: response?.status ?? 500,
+          requestError: err,
+          speed: computeDurationInSeconds(startTime, endTime),
+          status: "requestError",
+        };
+
+        actionFrameState.dispatchFrameStack({
+          action: "REQUEST_ERROR",
+          pendingItem: frameStackPendingItem,
+          item: stackItem,
+        });
+
+        console.error(err);
+      }
+    }
+  }
 
   const [showFrameDebugger, setShowFrameDebugger] = useState(false);
 
@@ -262,17 +429,13 @@ export function ActionDebugger({
                 </div>
                 <button
                   type="button"
-                  disabled={isLoading}
-                  className={`p-2 ${
-                    isLoading ? "bg-gray-100" : ""
-                  } border text-sm text-gray-800 rounded w-full mt-2`}
+                  className={`p-2 border text-sm text-gray-800 rounded w-full mt-2`}
                   style={{
                     flex: "1 1 0px",
                     // fixme: hover style
                     backgroundColor: defaultTheme.buttonBg,
                     borderColor: defaultTheme.buttonBorderColor,
                     color: defaultTheme.buttonColor,
-                    cursor: isLoading ? undefined : "pointer",
                   }}
                   onClick={() => {
                     setShowFrameDebugger(true);
@@ -284,7 +447,8 @@ export function ActionDebugger({
                           label: "action",
                           target: actionMetadataItem.action.url,
                         },
-                        1
+                        1,
+                        fetchFrame
                       )
                     ).catch((e: unknown) => {
                       // eslint-disable-next-line no-console -- provide feedback to the user
