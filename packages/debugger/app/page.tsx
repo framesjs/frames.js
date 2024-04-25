@@ -105,36 +105,47 @@ export default function App({
       );
   }, [protocolConfiguration]);
 
+  const refreshUrl = useCallback(
+    (newUrl?: string) => {
+      if (!url || !protocolConfiguration?.specification) {
+        return;
+      }
+
+      const searchParams = new URLSearchParams({
+        url: newUrl || url,
+        specification: protocolConfiguration?.specification,
+        actions: "true",
+      });
+      const proxiedUrl = `/frames?${searchParams.toString()}`;
+
+      fetch(proxiedUrl)
+        .then(async (res) => {
+          if (!res.ok) {
+            const json = await res.json();
+            throw new Error(json.message);
+          }
+          return res.json();
+        })
+        .then((json) => {
+          if (json.type === "action") {
+            setInitialAction(json);
+            setInitialFrame(undefined);
+          } else if (json.type === "frame") {
+            setInitialFrame(json);
+            setInitialAction(undefined);
+          }
+        });
+    },
+    [url, protocolConfiguration]
+  );
+
   useEffect(() => {
     if (!url || !protocolConfiguration?.specification) {
       return;
     }
 
-    const searchParams = new URLSearchParams({
-      url,
-      specification: protocolConfiguration?.specification,
-      actions: "true",
-    });
-    const proxiedUrl = `/frames?${searchParams.toString()}`;
-
-    fetch(proxiedUrl)
-      .then(async (res) => {
-        if (!res.ok) {
-          const json = await res.json();
-          throw new Error(json.message);
-        }
-        return res.json();
-      })
-      .then((json) => {
-        if (json.type === "action") {
-          setInitialAction(json);
-          setInitialFrame(undefined);
-        } else if (json.type === "frame") {
-          setInitialFrame(json);
-          setInitialAction(undefined);
-        }
-      });
-  }, [url, protocolConfiguration]);
+    refreshUrl(url);
+  }, [url, protocolConfiguration, refreshUrl]);
 
   const farcasterSignerState = useFarcasterIdentity();
   const xmtpSignerState = useXmtpIdentity();
@@ -238,12 +249,14 @@ export default function App({
     },
   };
 
-  const farcasterFrameState = useFrame({
+  const farcasterFrameConfig = {
     ...useFrameConfig,
     signerState: farcasterSignerState,
     specification: "farcaster",
     frameContext: farcasterFrameContext.frameContext,
-  });
+  } as const;
+
+  const farcasterFrameState = useFrame(farcasterFrameConfig);
 
   const xmtpFrameState = useFrame({
     ...useFrameConfig,
@@ -339,19 +352,20 @@ export default function App({
       </div>
       {url ? (
         <>
-          {initialAction && selectedFrameState && (
+          {initialAction && (
             <div>
               <ActionDebugger
                 actionMetadataItem={initialAction}
-                frameState={selectedFrameState}
+                farcasterFrameConfig={farcasterFrameConfig}
+                refreshUrl={refreshUrl}
+                mockHubContext={mockHubContext}
+                setMockHubContext={setMockHubContext}
               ></ActionDebugger>
             </div>
           )}
 
-          <div className="border-t mx-4"></div>
-
           {selectedFrameState &&
-            (initialFrame || selectedFrameState.frame) &&
+            initialFrame &&
             protocolConfiguration?.specification && (
               <FrameDebugger
                 frameState={selectedFrameState}

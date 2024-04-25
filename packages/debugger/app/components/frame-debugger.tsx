@@ -95,6 +95,8 @@ function FrameDebuggerFramePropertiesTableRow({
     // @todo frame here can be Partial if there are errors we should handle that somehow
     const flattenedFrame = getFrameFlattened(result.frame as Frame);
 
+    delete flattenedFrame["frames.js:version"]; // TODO: get correct frames.js version
+
     let hasExperimentalProperties = false;
 
     for (const [key, value] of Object.entries(flattenedFrame)) {
@@ -706,8 +708,8 @@ export function FrameDebugger({
                           {frameState.frame.speed > 5
                             ? `Request took more than 5s (${frameState.frame.speed} seconds). This may be normal: first request will take longer in development (as next.js builds), but in production, clients will timeout requests after 5s`
                             : frameState.frame.speed > 4
-                            ? `Warning: Request took more than 4s (${frameState.frame.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
-                            : `${frameState.frame.speed} seconds`}
+                              ? `Warning: Request took more than 4s (${frameState.frame.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
+                              : `${frameState.frame.speed} seconds`}
                         </TableCell>
                       </TableRow>
                       <FrameDebuggerFramePropertiesTableRow

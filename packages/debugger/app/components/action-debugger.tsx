@@ -6,12 +6,27 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
+import {
+  FarcasterFrameContext,
+  FarcasterSigner,
+  FrameActionBodyPayload,
+  defaultTheme,
+} from "@frames.js/render";
 import { ParsingReport } from "frames.js";
-import { AlertTriangle, CheckCircle2, InfoIcon, XCircle } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  InfoIcon,
+  RefreshCwIcon,
+  XCircle,
+} from "lucide-react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
+import { Button } from "../../@/components/ui/button";
 import { ParseActionResult } from "../actions/types";
+import { useAction as useActionFrame } from "../actions/use-action";
+import { FrameDebugger } from "./frame-debugger";
 import IconByName from "./octicons";
-import { FrameState, defaultTheme } from "@frames.js/render";
+import { MockHubActionContext } from "../utils/mock-hub-utils";
 
 type FrameDebuggerFramePropertiesTableRowsProps = {
   actionMetadataItem: ParseActionResult;
@@ -61,10 +76,13 @@ function ActionDebuggerPropertiesTableRow({
       });
     }
 
-    const invalidKeys = invalidProperties.reduce((acc, [key]) => {
-      acc[key] = true;
-      return acc;
-    }, {} as Record<string, boolean>);
+    const invalidKeys = invalidProperties.reduce(
+      (acc, [key]) => {
+        acc[key] = true;
+        return acc;
+      },
+      {} as Record<string, boolean>
+    );
 
     return {
       validProperties: validProperties.filter(([key]) => !invalidKeys[key]),
@@ -157,10 +175,22 @@ function ShortenedText({
 
 export function ActionDebugger({
   actionMetadataItem,
-  frameState,
+  farcasterFrameConfig,
+  refreshUrl,
+  mockHubContext,
+  setMockHubContext,
 }: {
   actionMetadataItem: ParseActionResult;
-  frameState: FrameState;
+  farcasterFrameConfig: Parameters<
+    typeof useActionFrame<
+      FarcasterSigner,
+      FrameActionBodyPayload,
+      FarcasterFrameContext
+    >
+  >[0];
+  refreshUrl: (arg0?: string) => void;
+  mockHubContext?: Partial<MockHubActionContext>;
+  setMockHubContext?: Dispatch<SetStateAction<Partial<MockHubActionContext>>>;
 }) {
   const [copySuccess, setCopySuccess] = useState(false);
   useEffect(() => {
@@ -175,113 +205,131 @@ export function ActionDebugger({
 
   const [isLoading, setIsLoading] = useState(false);
 
+  const actionFrameState = useActionFrame(farcasterFrameConfig);
+
+  const [showFrameDebugger, setShowFrameDebugger] = useState(false);
+
   return (
-    <div className="flex flex-row items-start p-4 gap-4 bg-slate-50 max-w-full w-full h-full">
-      <div className="flex flex-col gap-4 w-[300px] min-w-[300px]">
-        {/* <Card>
-          <CardContent className="p-2">
-            <div>
-              <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-2 pt-4">
-                  Action Context
-                </label>
-                <>
-                  <label className="flex items-center gap-2">Cast text</label>
-                </>
-              </div>
-            </div>
-          </CardContent>
-        </Card> */}
-      </div>
-      <div className="flex flex-col gap-4 w-[500px] min-w-[500px]">
-        <Card>
-          <CardContent className="p-2">
-            <div>
-              <div className="flex items-center">
-                <div className="flex items-center grow space-x-2">
-                  <div>
-                    <IconByName
-                      iconName={actionMetadataItem.action.icon || "alert"}
-                      size={32}
-                      fill="#64748B"
-                    />
-                  </div>
-                  <div>
-                    <div className="text-md font-medium">
-                      {actionMetadataItem.action.name}
-                    </div>
-                    <div className="text-sm text-slate-500">
-                      {actionMetadataItem.action.description}
-                    </div>
-                  </div>
-                </div>
-                <div className="p-2">
-                  <a
-                    href={actionMetadataItem.action.aboutUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:underline"
-                    title="Learn more about this action"
-                  >
-                    <InfoIcon size={20} color="#64748B" />
-                  </a>
-                </div>
-              </div>
-              <button
-                type="button"
-                disabled={isLoading}
-                className={`p-2 ${
-                  isLoading ? "bg-gray-100" : ""
-                } border text-sm text-gray-800 rounded w-full mt-2`}
-                style={{
-                  flex: "1 1 0px",
-                  // fixme: hover style
-                  backgroundColor: defaultTheme.buttonBg,
-                  borderColor: defaultTheme.buttonBorderColor,
-                  color: defaultTheme.buttonColor,
-                  cursor: isLoading ? undefined : "pointer",
-                }}
-                onClick={() => {
-                  console.log("Run action");
-                  Promise.resolve(
-                    frameState.onButtonPress(
-                      { image: "", buttons: [], version: "vNext" },
-                      {
-                        action: "post",
-                        label: "action",
-                        target: actionMetadataItem.action.url,
-                      },
-                      1
-                    )
-                  ).catch((e: unknown) => {
-                    // eslint-disable-next-line no-console -- provide feedback to the user
-                    console.error(e);
-                  });
-                }}
-              >
-                Run
-              </button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      <div className="flex flex-row gap-4 w-full">
-        <div className="h-full min-w-0 w-full">
+    <>
+      <div className="flex flex-row items-start p-4 gap-4 bg-slate-50 max-w-full w-full h-full">
+        <div className="flex flex-col gap-4 w-[300px] min-w-[300px]">
+          <div className="flex flex-row gap-2">
+            <Button
+              className="flex flex-row gap-3 items-center shadow-sm border"
+              variant={"outline"}
+              onClick={() => {
+                // TODO: loading indicators
+                refreshUrl();
+              }}
+            >
+              <RefreshCwIcon size={20} />
+            </Button>
+          </div>
+        </div>
+        <div className="flex flex-col gap-4 w-[500px] min-w-[500px]">
           <Card>
-            <CardContent className="p-0">
-              <div className="px-2">
-                <Table>
-                  <TableBody>
-                    <ActionDebuggerPropertiesTableRow
-                      actionMetadataItem={actionMetadataItem}
-                    ></ActionDebuggerPropertiesTableRow>
-                  </TableBody>
-                </Table>
+            <CardContent className="p-2">
+              <div>
+                <div className="flex items-center">
+                  <div className="flex items-center grow space-x-2">
+                    <div>
+                      <IconByName
+                        iconName={actionMetadataItem.action.icon || "alert"}
+                        size={32}
+                        fill="#64748B"
+                      />
+                    </div>
+                    <div>
+                      <div className="text-md font-medium">
+                        {actionMetadataItem.action.name}
+                      </div>
+                      <div className="text-sm text-slate-500">
+                        {actionMetadataItem.action.description}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-2">
+                    <a
+                      href={actionMetadataItem.action.aboutUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline"
+                      title="Learn more about this action"
+                    >
+                      <InfoIcon size={20} color="#64748B" />
+                    </a>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  className={`p-2 ${
+                    isLoading ? "bg-gray-100" : ""
+                  } border text-sm text-gray-800 rounded w-full mt-2`}
+                  style={{
+                    flex: "1 1 0px",
+                    // fixme: hover style
+                    backgroundColor: defaultTheme.buttonBg,
+                    borderColor: defaultTheme.buttonBorderColor,
+                    color: defaultTheme.buttonColor,
+                    cursor: isLoading ? undefined : "pointer",
+                  }}
+                  onClick={() => {
+                    setShowFrameDebugger(true);
+                    Promise.resolve(
+                      actionFrameState.onButtonPress(
+                        { image: "", buttons: [], version: "vNext" },
+                        {
+                          action: "post",
+                          label: "action",
+                          target: actionMetadataItem.action.url,
+                        },
+                        1
+                      )
+                    ).catch((e: unknown) => {
+                      // eslint-disable-next-line no-console -- provide feedback to the user
+                      console.error(e);
+                    });
+                  }}
+                >
+                  Run
+                </button>
               </div>
             </CardContent>
           </Card>
         </div>
+        <div className="flex flex-row gap-4 w-full">
+          <div className="h-full min-w-0 w-full">
+            <Card>
+              <CardContent className="p-0">
+                <div className="px-2">
+                  <Table>
+                    <TableBody>
+                      <ActionDebuggerPropertiesTableRow
+                        actionMetadataItem={actionMetadataItem}
+                      ></ActionDebuggerPropertiesTableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
-    </div>
+
+      {showFrameDebugger && (
+        <div>
+          <div className="border-t mx-4"></div>
+          {/* <pre>{JSON.stringify(actionFrameState.frame, null, 2)}</pre> */}
+          <FrameDebugger
+            frameState={actionFrameState}
+            url={actionMetadataItem.action.url ?? ""}
+            mockHubContext={mockHubContext}
+            setMockHubContext={setMockHubContext}
+            specification={"farcaster"}
+          ></FrameDebugger>
+        </div>
+      )}
+    </>
   );
 }

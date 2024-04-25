@@ -54,14 +54,6 @@ export async function POST(req: NextRequest): Promise<Response> {
       return Response.json(transaction);
     }
 
-    // Content type is JSON, could be an action
-    if (r.headers.get("content-type")?.includes("application/json")) {
-      const json = (await r.json()) as { message?: string };
-      if ("message" in json) {
-        return Response.json({ message: json.message }, { status: r.status });
-      }
-    }
-
     const htmlString = await r.text();
 
     const result = getFrame({
