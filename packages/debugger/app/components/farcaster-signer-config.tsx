@@ -240,11 +240,11 @@ function SelectedIdentity({ onLogout, onRemove, user }: SelectedIdentityProps) {
             className="underline"
             rel="noopener noreferrer"
           >
-            <Button>open url</Button>
+            <Button>Open URL</Button>
           </a>
           <hr />
           <Button onClick={onLogout} variant={"secondary"}>
-            Impersonate instead
+            Cancel
           </Button>
         </div>
       </div>
@@ -439,7 +439,7 @@ const SignInWithFarcasterDialogContent = forwardRef<
         <DialogTitle>Sign in with Farcaster</DialogTitle>
         <DialogDescription>
           <span className="mb-2 block">
-            Uses real identity. Works with remote frames and other libraries.
+            Uses real signer. Works with remote frames and other libraries.
           </span>
           <span className="text-orange-400">
             Be careful this action costs warps.
