@@ -14,19 +14,22 @@ function constructCastActionUrl(params: { url: string }): string {
 }
 
 export const GET = frames(async (ctx) => {
-  const actionUrl = new URL(appURL());
-  actionUrl.pathname =
-    "/examples/new-api-cast-actions/frames/actions/check-fid";
-
   const installActionUrl = constructCastActionUrl({
-    url: actionUrl.toString(),
+    url: `${appURL()}/examples/new-api-cast-actions/frames/actions/check-fid`,
+  });
+
+  const installFrameActionUrl = constructCastActionUrl({
+    url: `${appURL()}/examples/new-api-cast-actions/frames/actions/check-fid-frame`,
   });
 
   return {
     image: <div>FID Action</div>,
     buttons: [
       <Button action="link" target={installActionUrl}>
-        Install
+        Install message response
+      </Button>,
+      <Button action="link" target={installFrameActionUrl}>
+        Install frame response
       </Button>,
     ],
   };

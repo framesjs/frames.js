@@ -9,9 +9,9 @@ export const GET = async (req: NextRequest) => {
       type: "post",
     },
     icon: "number",
-    name: "Check FID",
+    name: "Check FID Frame",
     aboutUrl: `${appURL()}/examples/new-api-cast-actions`,
-    description: "Check the FID of the caster.",
+    description: "Check the FID of the caster and returns a frame.",
   };
 
   return Response.json(actionMetadata);
@@ -19,6 +19,7 @@ export const GET = async (req: NextRequest) => {
 
 export const POST = frames(async (ctx) => {
   return Response.json({
-    message: `The user's FID is ${ctx.message?.castId?.fid}`,
+    type: "frame",
+    frameUrl: `${appURL()}/examples/new-api-cast-actions/frames/check-fid`,
   });
 });
