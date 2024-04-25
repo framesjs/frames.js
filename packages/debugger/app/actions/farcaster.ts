@@ -1,5 +1,5 @@
 import { ActionMetadata } from "frames.js";
-import { Reporter, validate } from "frames.js/parsing";
+import { Reporter, validate } from "./parsing";
 import { ParseActionResult } from "./types";
 
 export function parseFarcasterAction(

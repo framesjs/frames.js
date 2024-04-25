@@ -13,7 +13,7 @@ export function validate<TValidator extends (...args: any) => any>(
   try {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- this is correct
     const result = validator(...validatorArgs);
-    reporter.valid(errorKey, result);
+    // reporter.valid(errorKey, result);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- this is correct
     return result;
   } catch (e) {
