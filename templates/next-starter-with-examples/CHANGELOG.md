@@ -1,5 +1,14 @@
 # template-next-starter-with-examples
 
+## 0.0.9
+
+### Patch Changes
+
+- 52adb07: feat: v2 action url deeplink example
+- 31e1fb0: fix: add appURL function which determines determines the base url for examples templates
+- Updated dependencies [3a7b64c]
+  - frames.js@0.14.1
+
 ## 0.0.8
 
 ### Patch Changes

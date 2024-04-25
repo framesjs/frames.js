@@ -1,5 +1,14 @@
 # @frames.js/render
 
+## 0.2.2
+
+### Patch Changes
+
+- c2acf9e: fix: only include address context in transaction requests
+- e65983d: feat: improve debugger farcaster identities management
+- Updated dependencies [3a7b64c]
+  - frames.js@0.14.1
+
 ## 0.2.1
 
 ### Patch Changes

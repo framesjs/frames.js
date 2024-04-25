@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.14.1
+
+### Patch Changes
+
+- 3a7b64c: fix: pass previous state if it exists and is not modified in frames response
+
 ## 0.14.0
 
 ### Minor Changes

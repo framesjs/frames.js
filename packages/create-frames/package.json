@@ -1,6 +1,6 @@
 {
   "name": "create-frames",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "type": "module",
   "bin": "bin.js",
   "license": "MIT",

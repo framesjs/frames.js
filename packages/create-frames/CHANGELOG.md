@@ -1,5 +1,11 @@
 # create-frames
 
+## 0.1.8
+
+### Patch Changes
+
+- e65983d: feat: improve debugger farcaster identities management
+
 ## 0.1.7
 
 ### Patch Changes

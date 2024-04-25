@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.2.2
+
+### Patch Changes
+
+- e65983d: feat: improve debugger farcaster identities management
+
 ## 0.2.1
 
 ### Patch Changes

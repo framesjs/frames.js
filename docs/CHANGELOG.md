@@ -1,5 +1,15 @@
 # docs
 
+## 0.2.3
+
+### Patch Changes
+
+- d6b8502: docs: add link to custom fonts example
+- 31e1fb0: docs: update deployment guide
+- 4927729: fix: nohoist docs dependencies to fix client side dev bundle
+- Updated dependencies [3a7b64c]
+  - frames.js@0.14.1
+
 ## 0.2.2
 
 ### Patch Changes
