@@ -6,12 +6,19 @@ import type { SerializedNode } from "..";
 import { deserializeJsx, verifySignature } from "..";
 import type { ImageAspectRatio } from "../../../types";
 
+type ImageWorkerImageOptions = Omit<
+  ImageResponseOptions,
+  "width" | "height"
+> & {
+  sizes?: Record<ImageAspectRatio, { width: number; height: number }>;
+};
+
 export function createImagesWorker(
   options: {
     /** The secret used to sign the jsx payload, if not specified no authentication checks will be done */
     secret?: string;
     /** Image options to pass the default image renderer (`\@vercel/og`) */
-    imageOptions?: ImageResponseOptions;
+    imageOptions?: ImageWorkerImageOptions;
   } = {}
 ): (
   /**
@@ -51,22 +58,25 @@ export function createImagesWorker(
       const aspectRatio = (url.searchParams.get("aspectRatio") ||
         "1.91:1") as ImageAspectRatio;
 
+      if (aspectRatio !== "1:1" && aspectRatio !== "1.91:1") {
+        throw new Error("Invalid aspect ratio");
+      }
+
       if (jsxToResponse) {
         const response = await jsxToResponse(jsx, { aspectRatio });
         return response;
       }
 
-      const height = 600;
-      const width =
-        aspectRatio === "1.91:1" ? Math.round(height * 1.91) : height;
+      const defaultSizes: ImageWorkerImageOptions["sizes"] = {
+        "1:1": { width: 1146, height: 1146 },
+        "1.91:1": { width: 1146, height: 600 },
+      };
+      const sizes = { ...defaultSizes, ...options.imageOptions?.sizes };
 
-      return new ImageResponse(
-        <Scaffold>{jsx}</Scaffold>,
-        options.imageOptions || {
-          width,
-          height,
-        }
-      ) as Response;
+      return new ImageResponse(<Scaffold>{jsx}</Scaffold>, {
+        ...options.imageOptions,
+        ...sizes[aspectRatio],
+      }) as Response;
     };
   };
 }
