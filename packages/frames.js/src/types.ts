@@ -165,7 +165,7 @@ export type EthSendTransactionParams = {
   /** transaction to address */
   to: `0x${string}`;
   /** value of ether to send with the transaction in wei */
-  value: string;
+  value?: string;
   /** optional transaction call data */
   data?: `0x${string}`;
 };
