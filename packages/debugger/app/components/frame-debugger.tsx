@@ -7,7 +7,12 @@ import {
 } from "frames.js";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import React from "react";
-import { type FrameState, type FramesStack, FrameUI } from "@frames.js/render";
+import {
+  type FrameState,
+  type FramesStack,
+  FrameUI,
+  defaultTheme,
+} from "@frames.js/render";
 import { FrameImageNext } from "@frames.js/render/next";
 import { Table, TableBody, TableCell, TableRow } from "@/components/table";
 import {
@@ -16,6 +21,7 @@ import {
   CheckCircle2,
   HomeIcon,
   InfoIcon,
+  LayoutGridIcon,
   ListIcon,
   LoaderIcon,
   MessageCircleHeart,
@@ -36,6 +42,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { hasWarnings } from "../lib/utils";
+import { useRouter } from "next/navigation";
 
 type FrameDebuggerFramePropertiesTableRowsProps = {
   stackItem: FrameState["framesStack"][number];
@@ -328,6 +335,7 @@ export function FrameDebugger({
   mockHubContext?: Partial<MockHubActionContext>;
   setMockHubContext?: Dispatch<SetStateAction<Partial<MockHubActionContext>>>;
 }) {
+  const router = useRouter();
   const [copySuccess, setCopySuccess] = useState(false);
   useEffect(() => {
     if (copySuccess) {
@@ -541,6 +549,46 @@ export function FrameDebugger({
                 />
               </div>
               <div className="ml-auto text-sm text-slate-500">{url}</div>
+              <div className="space-y-1">
+                {frameState.frame?.status === "done" &&
+                  frameState.frame.frame.frame.buttons
+                    ?.filter((button) =>
+                      button.target?.startsWith(
+                        "https://warpcast.com/~/add-cast-action"
+                      )
+                    )
+                    .map((button) => {
+                      // Link to debug target
+                      return (
+                        <button
+                          key={button.target}
+                          className="border text-sm text-gray-800 rounded flex p-2 w-full gap-2"
+                          onClick={() => {
+                            const url = new URL(button.target!);
+                            const params = new URLSearchParams({
+                              url: url.searchParams.get("url")!,
+                            });
+
+                            router.push(`/?${params.toString()}`);
+                          }}
+                          style={{
+                            flex: "1 1 0px",
+                            // fixme: hover style
+                            backgroundColor: defaultTheme.buttonBg,
+                            borderColor: defaultTheme.buttonBorderColor,
+                            color: defaultTheme.buttonColor,
+                            cursor: "pointer",
+                          }}
+                        >
+                          <LayoutGridIcon size={20} />
+                          <span>
+                            Debug{" "}
+                            <span className="font-bold">{button.label}</span>
+                          </span>
+                        </button>
+                      );
+                    })}
+              </div>
             </>
           )}
         </div>
