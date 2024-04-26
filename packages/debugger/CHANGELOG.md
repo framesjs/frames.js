@@ -1,5 +1,14 @@
 # @frames.js/debugger
 
+## 0.2.3
+
+### Patch Changes
+
+- 71d2eaf: fix: single pending approval for farcaster signers
+  fix: only allow single pending signer and replace if new signer request is created
+  fix: protocol selection tab persistence
+- feat: actions support
+
 ## 0.2.2
 
 ### Patch Changes

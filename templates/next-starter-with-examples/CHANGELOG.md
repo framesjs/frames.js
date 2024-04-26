@@ -1,5 +1,14 @@
 # template-next-starter-with-examples
 
+## 0.0.10
+
+### Patch Changes
+
+- 539c320: fix: lock next version to 14.1.4 in templates
+- Updated dependencies [d5c683e]
+- Updated dependencies [6ac2524]
+  - frames.js@0.15.0
+
 ## 0.0.9
 
 ### Patch Changes

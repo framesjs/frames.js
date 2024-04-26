@@ -1,6 +1,6 @@
 {
   "name": "template-next-starter-with-examples",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "private": true,
   "type": "module",
   "scripts": {
@@ -14,7 +14,7 @@
     "@vercel/kv": "^1.0.1",
     "@xmtp/frames-validator": "^0.5.0",
     "clsx": "^2.1.0",
-    "frames.js": "^0.14.1",
+    "frames.js": "^0.15.0",
     "next": "14.1.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -24,7 +24,7 @@
     "node": ">=18.17.0"
   },
   "devDependencies": {
-    "@frames.js/debugger": "^0.2.2",
+    "@frames.js/debugger": "^0.2.3",
     "@types/node": "^18.17.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",

@@ -1,5 +1,11 @@
 # create-frames
 
+## 0.1.9
+
+### Patch Changes
+
+- 539c320: fix: lock next version to 14.1.4 in templates
+
 ## 0.1.8
 
 ### Patch Changes

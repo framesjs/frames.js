@@ -1,5 +1,15 @@
 # frames.js
 
+## 0.15.0
+
+### Minor Changes
+
+- 6ac2524: fix: Breaking! Images Worker image options now accept sizes by supported aspect ratio instead of a single width and height
+
+### Patch Changes
+
+- d5c683e: fix: optional transaction value param
+
 ## 0.14.1
 
 ### Patch Changes

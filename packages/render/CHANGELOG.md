@@ -1,5 +1,14 @@
 # @frames.js/render
 
+## 0.2.3
+
+### Patch Changes
+
+- f7d0193: feat: expose frame stack reducer dispatch and allow fetch frame override for post buttons
+- Updated dependencies [d5c683e]
+- Updated dependencies [6ac2524]
+  - frames.js@0.15.0
+
 ## 0.2.2
 
 ### Patch Changes
