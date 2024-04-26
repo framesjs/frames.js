@@ -227,12 +227,15 @@ export function useFarcasterIdentity(): Omit<
     try {
       const keypair = await createKeypairEDDSA();
       const keypairString = convertKeypairToHex(keypair);
-      const authorizationResponse = await fetch(`/signer`, {
-        method: "POST",
-        body: JSON.stringify({
-          publicKey: keypairString.publicKey,
-        }),
-      });
+      const authorizationResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_SIGNER_BASE_URL || "https://debugger.framesjs.org/"}signer`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            publicKey: keypairString.publicKey,
+          }),
+        }
+      );
       const authorizationBody:
         | {
             signature: string;
