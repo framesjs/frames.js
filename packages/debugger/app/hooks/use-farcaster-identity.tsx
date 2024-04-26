@@ -122,9 +122,15 @@ const identityReducer: Reducer<State, Action> = (state, action) => {
         signature: action.signature,
       };
 
+      const identities = state.identities
+        // Remove all current pending approvals
+        .filter((identity) => identity.status !== "pending_approval")
+        // Add new pending approval
+        .concat(identity);
+
       return {
         activeIdentity: identity,
-        identities: state.identities.concat(identity),
+        identities: identities,
       };
     }
     case "FARCASTER_SIGN_IN_SUCCESS": {
