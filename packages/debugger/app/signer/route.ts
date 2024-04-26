@@ -53,12 +53,19 @@ export async function POST(req: NextRequest, res: NextResponse) {
       },
     });
 
-    return Response.json({
-      signature,
-      requestFid: parseInt(appFid),
-      deadline,
-      requestSigner: account.address,
-    });
+    return Response.json(
+      {
+        signature,
+        requestFid: parseInt(appFid),
+        deadline,
+        requestSigner: account.address,
+      },
+      {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+      }
+    );
   } catch (err) {
     console.error(err);
     return NextResponse.error();
