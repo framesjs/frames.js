@@ -59,7 +59,11 @@ export const createFrames: CreateFramesForElysia = function createFramesForElysi
     const framesHandler = frames(handler, handlerOptions);
 
     return async function handleElysiaRequest(c) {
-      return framesHandler(c.request);
+      return framesHandler(new Request(c.request.url, {
+        method: c.request.method,
+        headers: c.request.headers,
+        body: JSON.stringify((c.body as BodyInit)),
+      }));
     } satisfies Handler;
   };
 };

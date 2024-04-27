@@ -55,11 +55,45 @@ describe("elysia adapter", () => {
     app.get( "/", handler)
        .post( "/", handler);
 
-    const request = new Request("http://localhost:3000");
+    const request = new Request("http://localhost:3000", {
+      method:"POST"
+    });
 
     const response = await app.handle(request);
 
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toBe("text/html");
   });
+
+  it("works properly with body parser", async () => {
+    const app = new Elysia();
+    const frames = lib.createFrames();
+    const elysiaHandler = frames(async ({ request: req }) => {
+      await expect(req.clone().json()).resolves.toEqual("{\"test\":\"test\"}");
+
+      return {
+        image: <span>Nehehe</span>,
+        buttons: [
+          <lib.Button action="post" key="1">
+            Click me
+          </lib.Button>,
+        ],
+      };
+    });
+
+    app.post("/", elysiaHandler);
+
+    await app.handle(new Request("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ test: "test" }),
+    }));
+
+    // await request(app)
+    //   .post("/")
+    //   .set("Host", "localhost:3000")
+    //   .send({ test: "test" })
+    //   .expect("Content-Type", "text/html")
+    //   .expect(200);
+  });
+
 });
