@@ -12,6 +12,7 @@ By default it runs on port 3010, at [http://localhost:3010](http://localhost:301
 
 Features
 - fully interactive frames
+- multi step actions support
 - connect wallet + transactions
 - performance analysis
 - frame validations
@@ -19,15 +20,20 @@ Features
 - inspect state
 - mock hub states
 - impersonate a user, or login with a real farcaster signer
+- test Open Frames with an XMTP signer
 
-## Local Debugger CLI
+## Local Installation
 
-You can install and run the frames.js debugger independently of your frame, including for frames.js that don't use frames.js via
+You can install and run the frames.js debugger independently of your frame, including for frames that don't use frames.js.
 
-`npm install -g @frames.js/debugger`
+```sh
+$ npm install -g @frames.js/debugger
+```
 
-`frames`
-
+The debugger can then be launched from the command line with the `frames` command.
+```sh
+$ frames
+```
 ## Hosted Debugger
 
-We've provided a [hosted version](https://debugger.framesjs.org/?url=https%3A%2F%2Fframesjs.org) of the debugger for convenience. Note it won't work with localhost urls without a service like `ngrok`, which is why we recommend running a local debugger.
+We've provided a [hosted version](https://debugger.framesjs.org/?url=https%3A%2F%2Fframesjs.org) of the debugger for convenience. Note it won't work with localhost urls without a tunneling service like `ngrok`, which is why we recommend running a local debugger.
