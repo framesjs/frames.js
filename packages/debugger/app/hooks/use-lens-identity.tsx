@@ -1,0 +1,181 @@
+"use client";
+
+import { SignerStateInstance } from "@frames.js/render";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { useEffect, useState } from "react";
+import { useAccount, useConfig } from "wagmi";
+import { getAccount, signMessage } from "wagmi/actions";
+import { LOCAL_STORAGE_KEYS } from "../constants";
+import { LensFrameContext } from "./use-lens-context";
+import { LensClient, production } from "@lens-protocol/client";
+
+type LensSigner = {
+  profileId: string;
+  accessToken: string;
+  handle: string;
+  address: `0x${string}`;
+};
+
+type LensFrameRequest = {
+  clientProtocol: string;
+  untrustedData: {
+    specVersion: string;
+    profileId: string;
+    pubId: string;
+    url: string;
+    buttonIndex: number;
+    unixTimestamp: number;
+    deadline: number;
+    inputText: string;
+    state: string;
+    actionResponse: string;
+    identityToken: string;
+  };
+  trustedData: {
+    messageBytes: string;
+  };
+};
+
+type LensSignerInstance = SignerStateInstance<
+  LensSigner,
+  LensFrameRequest,
+  LensFrameContext
+>;
+
+export function useLensIdentity(): LensSignerInstance {
+  const [isLoading, setLoading] = useState(false);
+  const [lensSigner, setLensSigner] = useState<LensSigner | null>(null);
+  const connect = useConnectModal();
+  const config = useConfig();
+  const { address } = useAccount();
+
+  const lensClient = new LensClient({
+    environment: production,
+  });
+
+  function getSignerFromLocalStorage() {
+    if (typeof window !== "undefined") {
+      const storedData = localStorage.getItem(LOCAL_STORAGE_KEYS.LENS_PROFILE);
+      if (storedData) {
+        const signerRaw = JSON.parse(storedData);
+        const signer: LensSigner = {
+          profileId: signerRaw.profileId,
+          accessToken: signerRaw.accessToken,
+          address: signerRaw.address,
+          handle: signerRaw.handle,
+        };
+        return signer;
+      }
+      return null;
+    }
+
+    return null;
+  }
+
+  useEffect(() => {
+    const signer = getSignerFromLocalStorage();
+    if (signer) setLensSigner(signer);
+  }, []);
+
+  function logout() {
+    localStorage.removeItem(LOCAL_STORAGE_KEYS.LENS_PROFILE);
+    setLensSigner(null);
+  }
+
+  async function onSignerlessFramePress() {
+    setLoading(true);
+    await createAndStoreSigner();
+    setLoading(false);
+  }
+
+  async function createAndStoreSigner() {
+    try {
+      if (!lensSigner) {
+        if (!address) {
+          connect.openConnectModal?.();
+          return;
+        }
+        const managedProfiles = await lensClient.wallet.profilesManaged({
+          for: address,
+        });
+        if (!managedProfiles.items[0]) {
+          throw new Error("No Lens profiles managed by connected address");
+        }
+        const { id, text } = await lensClient.authentication.generateChallenge({
+          signedBy: address,
+          for: managedProfiles.items[0].id, // TODO: if address manages multiple profiles, trigger modal to select instead of defaulting to first profile
+        });
+        const signature = await signMessage(config, {
+          message: {
+            raw:
+              typeof text === "string"
+                ? Buffer.from(text)
+                : Buffer.from(text as Uint8Array),
+          },
+        });
+        await lensClient.authentication.authenticate({ id, signature });
+
+        const accessTokenResult =
+          await lensClient.authentication.getAccessToken();
+        const accessToken = accessTokenResult.unwrap();
+        const profileId = await lensClient.authentication.getProfileId();
+        const profileInfo = await lensClient.profile.fetch({
+          forProfileId: profileId,
+        });
+        const handle = profileInfo?.handle?.localName + ".lens" || "";
+        if (profileId) {
+          setLensSigner({
+            accessToken,
+            profileId,
+            address,
+            handle,
+          });
+        }
+        throw new Error("Signature authentication failed");
+      }
+    } catch (error) {
+      console.error("frames.js: API Call failed", error);
+    }
+  }
+
+  return {
+    signer: lensSigner,
+    hasSigner: !!lensSigner?.accessToken,
+    async signFrameAction(actionContext) {
+      if (!lensSigner) {
+        throw new Error("No lens signer active");
+      }
+
+      const result = await lensClient.frames.signFrameAction({
+        url: actionContext.url,
+        inputText: actionContext.inputText,
+        state: actionContext.state,
+        buttonIndex: actionContext.buttonIndex,
+        actionResponse: actionContext.actionResponse,
+        profileId: lensSigner.profileId,
+        pubId: actionContext.pubId,
+        specVersion: "1.0.0",
+      });
+
+      if (result.isFailure()) {
+        throw new Error("credential expired or not authenticated");
+      }
+
+      const searchParams = new URLSearchParams({
+        postType: actionContext.transactionId
+          ? "post"
+          : actionContext.frameButton.action,
+        postUrl: actionContext.frameButton.target ?? "",
+      });
+
+      return {
+        body: result.value,
+        searchParams,
+      };
+    },
+    isLoading: null,
+    isLoadingSigner: isLoading,
+    onSignerlessFramePress,
+    logout,
+  };
+}
