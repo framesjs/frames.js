@@ -1,5 +1,13 @@
 # @frames.js/render
 
+## 0.2.4
+
+### Patch Changes
+
+- bb9c33d: feat: `allowPartialFrame` option for FrameUI
+- Updated dependencies [9054c48]
+  - frames.js@0.15.1
+
 ## 0.2.3
 
 ### Patch Changes

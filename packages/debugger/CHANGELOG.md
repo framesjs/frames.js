@@ -1,5 +1,13 @@
 # @frames.js/debugger
 
+## 0.2.4
+
+### Patch Changes
+
+- 92f6a4a: fix: debugger signer cors allow all
+- 57f084e: feat: add degen chain support
+- 92f6a4a: feat: delegate signer metadata signatures to hosted debugger by default
+
 ## 0.2.3
 
 ### Patch Changes

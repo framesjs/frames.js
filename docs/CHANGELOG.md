@@ -1,5 +1,14 @@
 # docs
 
+## 0.2.5
+
+### Patch Changes
+
+- 1ca4f74: chore: update debugger docs
+- b285e3b: Fix typo in Remix integration code
+- Updated dependencies [9054c48]
+  - frames.js@0.15.1
+
 ## 0.2.4
 
 ### Patch Changes

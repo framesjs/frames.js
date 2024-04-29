@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.15.1
+
+### Patch Changes
+
+- 9054c48: feat: export frame parsers
+
 ## 0.15.0
 
 ### Minor Changes

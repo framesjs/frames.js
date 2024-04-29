@@ -1,5 +1,12 @@
 # template-next-starter-with-examples
 
+## 0.0.11
+
+### Patch Changes
+
+- Updated dependencies [9054c48]
+  - frames.js@0.15.1
+
 ## 0.0.10
 
 ### Patch Changes

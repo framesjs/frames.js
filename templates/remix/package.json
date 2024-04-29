@@ -1,6 +1,6 @@
 {
   "name": "template-remix",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "private": true,
   "type": "module",
   "engines": {
@@ -10,13 +10,13 @@
     "@remix-run/node": "^2.8.1",
     "@remix-run/react": "^2.8.1",
     "@remix-run/serve": "^2.8.1",
-    "frames.js": "^0.15.0",
+    "frames.js": "^0.15.1",
     "isbot": "^4.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@frames.js/debugger": "^0.2.3",
+    "@frames.js/debugger": "^0.2.4",
     "@remix-run/dev": "^2.8.1",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
