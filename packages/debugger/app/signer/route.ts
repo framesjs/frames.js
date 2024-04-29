@@ -28,7 +28,12 @@ export async function POST(req: NextRequest, res: NextResponse) {
         message:
           "define the FARCASTER_DEVELOPER_MNEMONIC and FARCASTER_DEVELOPER_FID environment variables to create a signer",
       },
-      { status: 400 }
+      {
+        status: 400,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+      }
     );
   }
   try {
@@ -68,6 +73,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
     );
   } catch (err) {
     console.error(err);
-    return NextResponse.error();
+    const res = NextResponse.error();
+    res.headers.set("Access-Control-Allow-Origin", "*");
+    return res;
   }
 }
