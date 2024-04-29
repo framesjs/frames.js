@@ -18,10 +18,10 @@ type LensFrameRequest = {
     inputText: string;
     state: string;
     actionResponse: string;
+    identityToken: string;
   };
   trustedData: {
     messageBytes: string;
-    identityToken: string;
   };
 };
 
@@ -72,7 +72,7 @@ export async function getLensFrameMessage(
   });
 
   const response = await lensClient.frames.verifyFrameSignature({
-    identityToken: frameActionPayload.trustedData.identityToken,
+    identityToken: frameActionPayload.untrustedData.identityToken,
     signature: frameActionPayload.trustedData.messageBytes,
     signedTypedData: typedData,
   });
