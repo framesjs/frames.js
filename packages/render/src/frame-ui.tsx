@@ -1,6 +1,6 @@
 import type { ImgHTMLAttributes } from "react";
 import React, { useState } from "react";
-import type { FrameButton } from "frames.js";
+import type { Frame, FrameButton } from "frames.js";
 import type { FrameTheme, FrameState } from "./types";
 import { PresentableError } from "./errors";
 
@@ -24,14 +24,15 @@ export type FrameUIProps = {
   frameState: FrameState;
   theme?: FrameTheme;
   FrameImage?: React.FC<ImgHTMLAttributes<HTMLImageElement> & { src: string }>;
+  allowPartialFrame?: boolean;
 };
-
 
 /** A UI component only, that should be easy for any app to integrate */
 export function FrameUI({
   frameState,
   theme,
   FrameImage,
+  allowPartialFrame,
 }: FrameUIProps): React.JSX.Element | null {
   const [isImageLoading, setIsImageLoading] = useState(true);
   const currentFrame = frameState.frame;
@@ -60,7 +61,16 @@ export function FrameUI({
   const frameResult =
     currentFrame.status === "done" ? currentFrame.frame : null;
 
-  if (frameResult && frameResult.status === 'failure') {
+  if (
+    frameResult &&
+    frameResult.status === "failure" &&
+    !(
+      allowPartialFrame &&
+      // Need at least image and buttons to render a partial frame
+      frameResult.frame.image &&
+      frameResult.frame.buttons
+    )
+  ) {
     return <div>Invalid Frame</div>;
   }
 
@@ -88,40 +98,37 @@ export function FrameUI({
               : "An error occurred"}
           </div>
         ) : null}
-        {!!frameResult &&
-          typeof frameResult.frame.image === "string" && (
-            <ImageEl
-              src={frameResult.frame.image}
-              key={frameResult.frame.image}
-              alt="Frame image"
-              width="100%"
-              style={{
-                filter: isLoading ? "blur(4px)" : undefined,
-                borderTopLeftRadius: `${resolvedTheme.buttonRadius}px`,
-                borderTopRightRadius: `${resolvedTheme.buttonRadius}px`,
-                border: `1px solid ${resolvedTheme.buttonBorderColor}`,
-                objectFit: "cover",
-                width: "100%",
-                aspectRatio:
-                  (frameResult.frame.imageAspectRatio ??
-                    "1.91:1") === "1:1"
-                    ? "1/1"
-                    : "1.91/1",
-              }}
-              onLoadStart={() => {
-                setIsImageLoading(true);
-              }}
-              onLoad={() => {
-                setIsImageLoading(false);
-              }}
-              onError={() => {
-                setIsImageLoading(false);
-              }}
-            />
-          )}
+        {!!frameResult && typeof frameResult.frame.image === "string" && (
+          <ImageEl
+            src={frameResult.frame.image}
+            key={frameResult.frame.image}
+            alt="Frame image"
+            width="100%"
+            style={{
+              filter: isLoading ? "blur(4px)" : undefined,
+              borderTopLeftRadius: `${resolvedTheme.buttonRadius}px`,
+              borderTopRightRadius: `${resolvedTheme.buttonRadius}px`,
+              border: `1px solid ${resolvedTheme.buttonBorderColor}`,
+              objectFit: "cover",
+              width: "100%",
+              aspectRatio:
+                (frameResult.frame.imageAspectRatio ?? "1.91:1") === "1:1"
+                  ? "1/1"
+                  : "1.91/1",
+            }}
+            onLoadStart={() => {
+              setIsImageLoading(true);
+            }}
+            onLoad={() => {
+              setIsImageLoading(false);
+            }}
+            onError={() => {
+              setIsImageLoading(false);
+            }}
+          />
+        )}
       </div>
-      {!!frameResult &&
-      frameResult.frame.inputText ? (
+      {!!frameResult && frameResult.frame.inputText ? (
         <input
           className="p-[6px] mx-2 border box-border"
           style={{
@@ -164,7 +171,8 @@ export function FrameUI({
                 onClick={() => {
                   Promise.resolve(
                     frameState.onButtonPress(
-                      frameResult.frame,
+                      // Partial frame could have enough data to handle button press
+                      frameResult.frame as Frame,
                       frameButton,
                       index
                     )

@@ -546,6 +546,7 @@ export function FrameDebugger({
                     bg: "white",
                   }}
                   FrameImage={FrameImageNext}
+                  allowPartialFrame={true}
                 />
               </div>
               <div className="ml-auto text-sm text-slate-500">{url}</div>
