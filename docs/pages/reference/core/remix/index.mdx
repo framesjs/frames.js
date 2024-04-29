@@ -32,7 +32,7 @@ import { fetchMetadata } from "frames.js/remix";
 export async function loader({ request }) {
   return {
     // provide full URL to your /frames route
-    metaTags: await fetchMatadata(new URL("/frames", request.url)),
+    metaTags: await fetchMetadata(new URL("/frames", request.url)),
   };
 }
 
