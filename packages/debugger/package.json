@@ -67,8 +67,8 @@
     "tailwindcss": "^3.3.0",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.3.3",
-    "viem": "^2.7.12",
-    "wagmi": "^2.5.7"
+    "viem": "^2.9.28",
+    "wagmi": "^2.7.0"
   },
   "engineStrict": true,
   "scripts": {
