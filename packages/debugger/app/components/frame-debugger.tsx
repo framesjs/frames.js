@@ -100,10 +100,16 @@ function FrameDebuggerFramePropertiesTableRow({
         visitedInvalidProperties.push(key);
     }
 
-    // @todo frame here can be Partial if there are errors we should handle that somehow
-    const flattenedFrame = getFrameFlattened(result.frame as Frame);
+    const flattenedFrame = getFrameFlattened(result.frame, {
+      "frames.js:version":
+        "frames.js:version" in result.frame && typeof result.frame["frames.js:version"] === "string"
+          ? result.frame["frames.js:version"]
+          : undefined,
+    });
 
-    delete flattenedFrame["frames.js:version"]; // TODO: get correct frames.js version
+    if (result.framesVersion) {
+      validProperties.push(["frames.js:version", result.framesVersion]);
+    }
 
     let hasExperimentalProperties = false;
 

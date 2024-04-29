@@ -17,6 +17,8 @@ type ParseFramesWithReportsOptions = {
 
 export type ParseFramesWithReportsResult = {
   [K in SupportedParsingSpecification]: ParseResult;
+} & {
+  framesVersion?: string;
 };
 
 /**
@@ -35,6 +37,10 @@ export function parseFramesWithReports({
     fallbackPostUrl,
   });
 
+  const framesVersion = document(
+    "meta[name='frames.js:version'], meta[property='frames.js:version']"
+  ).attr("content");
+
   return {
     farcaster,
     openframes: parseOpenFramesFrame(document, {
@@ -42,5 +48,6 @@ export function parseFramesWithReports({
       reporter: openFramesReporter,
       fallbackPostUrl,
     }),
+    framesVersion,
   };
 }

@@ -4,7 +4,9 @@ import type {
 } from "./frame-parsers/types";
 import { parseFramesWithReports } from "./parseFramesWithReports";
 
-type GetFrameResult = ParseResult;
+type GetFrameResult = ParseResult & {
+  framesVersion?: string;
+};
 
 type GetFrameOptions = {
   htmlString: string;
@@ -33,5 +35,8 @@ export function getFrame({
     html: htmlString,
   });
 
-  return parsedFrames[specification];
+  return {
+    ...parsedFrames[specification],
+    framesVersion: parsedFrames.framesVersion,
+  };
 }

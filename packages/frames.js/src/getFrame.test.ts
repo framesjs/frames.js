@@ -1,3 +1,4 @@
+import { version as framesVersion } from "../package.json";
 import { getFrame } from "./getFrame";
 import { getFrameHtml } from "./getFrameHtml";
 import type { Frame } from "./types";
@@ -110,6 +111,7 @@ describe("getFrame", () => {
         postUrl: "https://example.com/",
       },
       reports: {},
+      framesVersion: undefined,
     });
   });
 
@@ -160,6 +162,7 @@ describe("getFrame", () => {
       status: "success",
       frame: { ...exampleFrame, accepts: undefined },
       reports: {},
+      framesVersion,
     });
   });
 
@@ -236,5 +239,20 @@ describe("getFrame", () => {
     expect(JSON.parse(result.frame.state!)).toEqual({
       test: "'><&",
     });
+  });
+
+  it("should parse frames.js version from meta tags", () => {
+    const html = `
+    <meta name="frames.js:version" content="1.0.0" />
+    <meta name="fc:frame" content="vNext" />
+    <meta name="fc:frame:image" content="http://example.com/image.png" />
+    <meta name="og:image" content="http://example.com/image.png" />
+    <meta name="fc:frame:state" content="{&quot;test&quot;:&quot;&#39;&gt;&lt;&&quot;}"/>
+    <title>test</title>
+  `;
+
+    const result = getFrame({ htmlString: html, url: "https://example.com" });
+
+    expect(result.framesVersion).toEqual("1.0.0");
   });
 });
