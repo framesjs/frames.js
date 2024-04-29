@@ -5,20 +5,19 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import * as React from "react";
 import { WagmiProvider } from "wagmi";
 import {
+  anvil,
   arbitrum,
+  arbitrumSepolia,
   base,
+  baseSepolia,
+  degen,
   mainnet,
   optimism,
-  polygon,
-  zora,
-  anvil,
-  baseSepolia,
   optimismSepolia,
-  arbitrumSepolia,
-  zoraSepolia,
+  polygon,
   sepolia,
-  scrollSepolia,
-  liskSepolia,
+  zora,
+  zoraSepolia,
 } from "wagmi/chains";
 
 const config = getDefaultConfig({
@@ -31,6 +30,7 @@ const config = getDefaultConfig({
     arbitrum,
     base,
     zora,
+    degen,
     anvil,
     // sepolia testnets
     baseSepolia,
@@ -38,8 +38,6 @@ const config = getDefaultConfig({
     arbitrumSepolia,
     zoraSepolia,
     sepolia,
-    scrollSepolia,
-    liskSepolia,
   ],
   ssr: true,
 });
