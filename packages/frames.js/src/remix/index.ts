@@ -7,7 +7,7 @@ export { Button, type types } from "../core";
 
 export { fetchMetadata } from "./fetchMetadata";
 
-type CreateFramesForRemix = types.CreateFramesFunctionDefinition<
+export type CreateFramesReturn = types.CreateFramesFunctionDefinition<
   CoreMiddleware,
   (args: LoaderFunctionArgs | ActionFunctionArgs) => Promise<Response>
 >;
@@ -37,7 +37,7 @@ type CreateFramesForRemix = types.CreateFramesFunctionDefinition<
  * ```
  */
 // @ts-expect-error -- the function works fine but somehow it does not satisfy the expected type
-export const createFrames: CreateFramesForRemix = function createFramesForRemix(
+export const createFrames: CreateFramesReturn = function createFramesForRemix(
   options?: types.FramesOptions<any, any>
 ) {
   const frames = coreCreateFrames(options);

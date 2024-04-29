@@ -7,7 +7,7 @@ export { Button, type types } from "../core";
 
 export { fetchMetadata } from "./fetchMetadata";
 
-type CreateFramesForNextJS = types.CreateFramesFunctionDefinition<
+export type CreateFramesReturn = types.CreateFramesFunctionDefinition<
   CoreMiddleware,
   (req: NextRequest) => Promise<NextResponse>
 >;
@@ -37,7 +37,7 @@ type CreateFramesForNextJS = types.CreateFramesFunctionDefinition<
  * ```
  */
 // @ts-expect-error -- this is correct but the function does not satisfy the type
-export const createFrames: CreateFramesForNextJS =
+export const createFrames: CreateFramesReturn =
   function createFramesForNextJS(options?: types.FramesOptions<any, any>) {
     const frames = coreCreateFrames(options);
 

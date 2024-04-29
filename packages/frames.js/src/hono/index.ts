@@ -5,7 +5,7 @@ import type { CoreMiddleware } from "../middleware";
 
 export { Button, type types } from "../core";
 
-type CreateFramesForHono = types.CreateFramesFunctionDefinition<
+export type CreateFramesReturn = types.CreateFramesFunctionDefinition<
   CoreMiddleware,
   Handler
 >;
@@ -36,7 +36,7 @@ type CreateFramesForHono = types.CreateFramesFunctionDefinition<
  * ```
  */
 // @ts-expect-error -- this code is correct just function doesn't satisfy the type
-export const createFrames: CreateFramesForHono = function createFramesForHono(
+export const createFrames: CreateFramesReturn = function createFramesForHono(
   options?: types.FramesOptions<types.JsonValue | undefined, undefined>
 ) {
   const frames = coreCreateFrames(options);
