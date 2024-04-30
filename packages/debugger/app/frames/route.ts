@@ -53,8 +53,9 @@ export async function POST(req: NextRequest): Promise<Response> {
     req.nextUrl.searchParams.get("postType") === "post_redirect";
   const isTransactionRequest =
     req.nextUrl.searchParams.get("postType") === "tx";
-  const postUrl = req.nextUrl.searchParams.get("postUrl");
-  const specification = "farcaster";
+  const postUrlRaw = req.nextUrl.searchParams.get("postUrl");
+  const specification =
+    req.nextUrl.searchParams.get("specification") || "farcaster";
 
   // TODO: refactor useful logic back into render package
 
@@ -62,8 +63,15 @@ export async function POST(req: NextRequest): Promise<Response> {
     await persistMockResponsesForDebugHubRequests(req);
   }
 
-  if (!postUrl) {
+  if (!postUrlRaw) {
     return Response.error();
+  }
+
+  const postUrl = new URL(postUrlRaw);
+
+  // Remove trailing slash (causes redirect issues)
+  if (postUrl.pathname.endsWith("/")) {
+    postUrl.pathname = postUrl.pathname.slice(0, -1);
   }
 
   try {
@@ -73,7 +81,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
-      redirect: isPostRedirect ? "manual" : undefined,
+      redirect: isPostRedirect ? "manual" : "follow",
       body: JSON.stringify(body),
     });
 
