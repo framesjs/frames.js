@@ -2,6 +2,16 @@ import { FrameActionPayload, getFrame } from "frames.js";
 import { type NextRequest } from "next/server";
 import { getAction } from "../actions/getAction";
 import { persistMockResponsesForDebugHubRequests } from "../utils/mock-hub-utils";
+import type { SupportedParsingSpecification } from "frames.js";
+
+export function isSpecificationValid(
+  specification: unknown
+): specification is SupportedParsingSpecification {
+  return (
+    typeof specification === "string" &&
+    ["farcaster", "openframes"].includes(specification)
+  );
+}
 
 /** Proxies fetching a frame through a backend to avoid CORS issues and preserve user IP privacy */
 export async function GET(request: NextRequest): Promise<Response> {
@@ -54,7 +64,12 @@ export async function POST(req: NextRequest): Promise<Response> {
   const isTransactionRequest =
     req.nextUrl.searchParams.get("postType") === "tx";
   const postUrl = req.nextUrl.searchParams.get("postUrl");
-  const specification = "farcaster";
+  const specification =
+    req.nextUrl.searchParams.get("specification") ?? "farcaster";
+
+  if (!isSpecificationValid(specification)) {
+    return Response.json({ message: "Invalid specification" }, { status: 400 });
+  }
 
   // TODO: refactor useful logic back into render package
 
