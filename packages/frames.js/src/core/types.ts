@@ -54,6 +54,7 @@ export type FramesContext<TState extends JsonValue | undefined = JsonValue> = {
    * Current request URL
    */
   url: URL;
+  stateSigningSecret?: string;
 };
 
 type AllowedFramesContextShape = Record<string, any>;
@@ -122,7 +123,10 @@ type FramesMiddlewareNextFunction<
 > = (context?: TReturnedContext) => FramesMiddlewareReturnType<TState>;
 
 export type FramesMiddlewareReturnType<TState extends JsonValue | undefined> =
-  Promise<FramesHandlerFunctionReturnType<TState> | Response>;
+  Promise<
+    | FramesHandlerFunctionReturnType<TState>
+    | FramesHandlerFunctionReturnType<string> // this handles serialized state
+  >;
 
 export type FramesMiddleware<
   TState extends JsonValue | undefined,
@@ -264,6 +268,11 @@ export type FramesOptions<
   middleware?: TFrameMiddleware extends undefined
     ? FramesMiddleware<any, any>[]
     : TFrameMiddleware;
+  /**
+   * If provided the state will be signed with this secret and validated on subsequent requests.
+   * If the signature is not valid, error is thrown.
+   */
+  stateSigningSecret?: string;
 };
 
 export type CreateFramesFunctionDefinition<

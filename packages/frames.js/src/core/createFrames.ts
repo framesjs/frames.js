@@ -19,6 +19,7 @@ export function createFrames<
   initialState,
   middleware,
   baseUrl,
+  stateSigningSecret,
 }: FramesOptions<TState, TMiddlewares> = {}): FramesRequestHandlerFunction<
   TState,
   typeof coreMiddleware,
@@ -80,6 +81,7 @@ export function createFrames<
         request,
         url: new URL(request.url),
         baseUrl: resolveBaseUrl(request, url, basePath),
+        stateSigningSecret,
       };
 
       const result = await composedMiddleware(context);

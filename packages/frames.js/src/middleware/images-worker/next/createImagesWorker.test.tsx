@@ -70,6 +70,36 @@ describe("createImagesWorker", () => {
     expect(response.status).toBe(401);
   });
 
+  it("should return an unauthorized response if the signature is missing", async () => {
+    const frame: FrameDefinition<undefined> = {
+      image: <div>Test</div>,
+    };
+
+    const mw = imagesWorkerMiddleware({
+      secret: "MY_TEST_SECRET",
+      imagesRoute: imagesRouteUrl,
+    });
+
+    const result = (await mw(context, () =>
+      Promise.resolve(frame)
+    )) as FrameDefinition<undefined>;
+
+    expect(typeof result.image).toBe("string");
+
+    const url = new URL(result.image as string);
+
+    url.searchParams.delete("signature");
+
+    const imagesRoute = createImagesWorker({
+      secret: "MY_TEST_SECRET",
+    });
+
+    const GET = imagesRoute();
+    const response = await GET(new Request(url));
+
+    expect(response.status).toBe(401);
+  });
+
   it("should render using a custom renderer if provided", async () => {
     const frame: FrameDefinition<undefined> = {
       image: <div>Test</div>,

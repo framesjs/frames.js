@@ -1,10 +1,11 @@
 import { ImageResponse } from "@vercel/og";
-import type { ImageResponseOptions, NextRequest } from "next/server";
+import type { ImageResponseOptions } from "next/server";
 import type { ReactElement } from "react";
 import React from "react";
 import type { SerializedNode } from "..";
-import { deserializeJsx, verifySignature } from "..";
+import { deserializeJsx } from "..";
 import type { ImageAspectRatio } from "../../../types";
+import { verifyHMACSignature } from "../../../lib/crypto";
 
 type ImageWorkerImageOptions = Omit<
   ImageResponseOptions,
@@ -31,9 +32,9 @@ export function createImagesWorker(
     arg0: ReactElement,
     options?: { aspectRatio: ImageAspectRatio }
   ) => Promise<Response>
-) => (req: NextRequest) => Promise<Response> {
+) => (req: Request) => Promise<Response> {
   return (jsxToResponse) => {
-    return async (req: NextRequest): Promise<Response> => {
+    return async (req: Request): Promise<Response> => {
       const url = new URL(req.url);
       const serialized = url.searchParams.get("jsx");
 
@@ -42,13 +43,13 @@ export function createImagesWorker(
       }
 
       if (options.secret) {
-        try {
-          verifySignature(
-            serialized,
-            url.searchParams.get("signature") || "",
-            options.secret
-          );
-        } catch (error) {
+        const isValid = await verifyHMACSignature(
+          serialized,
+          Buffer.from(url.searchParams.get("signature") ?? "", "hex"),
+          options.secret
+        );
+
+        if (!isValid) {
           return new Response("Unauthorized", { status: 401 });
         }
       }

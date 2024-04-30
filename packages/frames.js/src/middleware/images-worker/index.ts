@@ -1,4 +1,3 @@
-import { createHmac } from "node:crypto";
 import type React from "react";
 import {
   createElement,
@@ -7,6 +6,7 @@ import {
 } from "react";
 import type { FramesMiddleware } from "../../core/types";
 import { generateTargetURL, isFrameDefinition } from "../../core/utils";
+import { createHMACSignature } from "../../lib/crypto";
 
 export function imagesWorkerMiddleware({
   imagesRoute,
@@ -39,11 +39,9 @@ export function imagesWorkerMiddleware({
     });
 
     if (secret) {
-      const signature = createHmac("sha256", secret)
-        .update(imageJsonString)
-        .digest("hex");
+      const signature = await createHMACSignature(imageJsonString, secret);
 
-      searchParams.append("signature", signature);
+      searchParams.append("signature", signature.toString("hex"));
     }
 
     const imageUrl = generateTargetURL({
@@ -156,20 +154,4 @@ function serializeChild(
 
 export function serializeJsx(children: ReactElement): SerializedNode[] {
   return ReactChildren.map(children, serializeChild);
-}
-
-export function verifySignature(
-  data: string,
-  signature: string,
-  secret: string
-): boolean {
-  const expectedSignature = createHmac("sha256", secret)
-    .update(data)
-    .digest("hex");
-
-  if (expectedSignature !== signature) {
-    throw new Error("Invalid signature");
-  }
-
-  return true;
 }

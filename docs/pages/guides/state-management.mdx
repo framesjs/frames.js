@@ -70,3 +70,22 @@ const handler = frames(async ({ ctx }) => {
 export const GET = handler;
 export const POST = handler;
 ```
+
+## State protection using a signature
+
+In cases where frame state needs to be trusted, set the `stateSigningSecret` option in `createFrames` to sign and verify the state signature on each frame request to guarantee its integrity.
+
+```ts [frames.ts]
+import { createFrames } from "@framesjs/next";
+
+export type State = {
+  count: number;
+};
+
+export const frames = createFrames<State>({
+  initialState: {
+    count: 0,
+  },
+  stateSigningSecret: "my-secret-key", // [!code focus]
+});
+```
