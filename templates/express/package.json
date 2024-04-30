@@ -11,7 +11,7 @@
     "sirv": "^2.0.4"
   },
   "devDependencies": {
-    "@frames.js/debugger": "^0.2.4",
+    "@frames.js/debugger": "^0.2.5",
     "@types/express": "^4.17.21",
     "@types/node": "^18.17.0",
     "@types/react": "^18.2.45",

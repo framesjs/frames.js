@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.2.5
+
+### Patch Changes
+
+- b004687: fix: add specification search param back into debugger proxy
+
 ## 0.2.4
 
 ### Patch Changes

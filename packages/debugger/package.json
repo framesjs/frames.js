@@ -5,7 +5,7 @@
     "frames.js",
     "farcaster"
   ],
-  "version": "0.2.4",
+  "version": "0.2.5",
   "bin": {
     "frames": "./bin/debugger.js"
   },
