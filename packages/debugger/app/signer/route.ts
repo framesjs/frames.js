@@ -14,28 +14,32 @@ const SIGNED_KEY_REQUEST_TYPE = [
   { name: "deadline", type: "uint256" },
 ] as const;
 
-export async function POST(req: NextRequest, res: NextResponse) {
-  if (
-    !process.env.FARCASTER_DEVELOPER_MNEMONIC ||
-    !process.env.FARCASTER_DEVELOPER_FID
-  ) {
-    console.error(
-      "define the FARCASTER_DEVELOPER_MNEMONIC and FARCASTER_DEVELOPER_FID environment variables to create a signer"
-    );
-    return NextResponse.json(
-      {
-        code: 1,
-        message:
-          "define the FARCASTER_DEVELOPER_MNEMONIC and FARCASTER_DEVELOPER_FID environment variables to create a signer",
+export async function POST(req: NextRequest) {
+  if (process.env.SIGNER_URL) {
+    console.log("redirecting to public signer url configured by SIGNER_URL");
+
+    return NextResponse.redirect(new URL(process.env.SIGNER_URL).toString(), {
+      status: 307,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
       },
-      {
-        status: 400,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-        },
-      }
+    });
+  } else if (
+    !process.env.FARCASTER_DEVELOPER_FID ||
+    !process.env.FARCASTER_DEVELOPER_MNEMONIC
+  ) {
+    console.warn(
+      "FARCASTER_DEVELOPER_FID or FARCASTER_DEVELOPER_MNEMONIC not set, using frames.js debugger hosted signer"
     );
+
+    return NextResponse.redirect("https://debugger.framesjs.org/signer", {
+      status: 307,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
   }
+
   try {
     const { publicKey } = await req.json();
 

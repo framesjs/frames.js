@@ -228,7 +228,8 @@ export function useFarcasterIdentity(): Omit<
       const keypair = await createKeypairEDDSA();
       const keypairString = convertKeypairToHex(keypair);
       const authorizationResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_SIGNER_BASE_URL || "https://debugger.framesjs.org/"}signer`,
+        // real signer or local one are handled by local route so we don't need to expose anything to client side bundle
+        '/signer',
         {
           method: "POST",
           body: JSON.stringify({
