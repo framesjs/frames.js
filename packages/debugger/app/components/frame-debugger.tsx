@@ -10,6 +10,7 @@ import React from "react";
 import {
   type FrameState,
   type FramesStack,
+  type FramesStackItem,
   FrameUI,
   defaultTheme,
 } from "@frames.js/render";
@@ -25,7 +26,6 @@ import {
   ListIcon,
   LoaderIcon,
   MessageCircleHeart,
-  MessageSquareIcon,
   RefreshCwIcon,
   XCircle,
 } from "lucide-react";
@@ -46,7 +46,7 @@ import { useRouter } from "next/navigation";
 import { WithTooltip } from "./with-tooltip";
 
 type FrameDebuggerFramePropertiesTableRowsProps = {
-  stackItem: FrameState["framesStack"][number];
+  stackItem: FramesStackItem;
 };
 
 function paramsToObject(entries: IterableIterator<[string, string]>): object {
@@ -208,7 +208,7 @@ function ShortenedText({
 }
 
 const FramesRequestCardContentIcon: React.FC<{
-  stackItem: FramesStack[number];
+  stackItem: FramesStackItem;
 }> = ({ stackItem }) => {
   if (stackItem.status === "pending") {
     return <LoaderIcon className="animate-spin" size={20} />;
@@ -238,9 +238,6 @@ const FramesRequestCardContent: React.FC<{
   fetchFrame: FrameState["fetchFrame"];
 }> = ({ fetchFrame, stack }) => {
   return stack.map((frameStackItem, i) => {
-    const frame =
-      frameStackItem.status === "done" ? frameStackItem.frame : undefined;
-
     return (
       <button
         className={`px-4 py-3 flex flex-col gap-2 ${
@@ -258,6 +255,7 @@ const FramesRequestCardContent: React.FC<{
                   url: frameStackItem.url,
                   method: frameStackItem.method,
                   request: frameStackItem.request,
+                  sourceFrame: frameStackItem.sourceFrame,
                 }
           );
         }}
@@ -423,6 +421,7 @@ export function FrameDebugger({
                           method: "POST",
                           request: latestFrame.request,
                           url: latestFrame.url,
+                          sourceFrame: latestFrame.sourceFrame,
                         }
                   );
                 }
@@ -530,17 +529,6 @@ export function FrameDebugger({
                   <Skeleton className="h-[260px] w-full rounded-xl rounded-b-none" />
                   <Skeleton className="h-[38px] mx-2" />
                   <Skeleton className="h-[38px] mx-2" />
-                </div>
-              </CardContent>
-            </Card>
-          ) : frameState.frame && "message" in frameState.frame ? (
-            <Card>
-              <CardContent className="p-2">
-                <div className="flex flex-col space-y-2">
-                  <div className="flex gap-2 items-center">
-                    <MessageSquareIcon size={20} color="grey" />{" "}
-                    {frameState.frame.message}
-                  </div>
                 </div>
               </CardContent>
             </Card>

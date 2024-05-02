@@ -86,26 +86,32 @@ export interface SignerStateInstance<
   logout?: () => void;
 }
 
-export type FrameRequest =
-  | {
-      method: "GET";
-      url: string;
-    }
-  | {
-      method: "POST";
-      request: {
-        body: object;
-        searchParams: URLSearchParams;
-      };
-      url: string;
-    };
+type FrameGETRequest = {
+  method: "GET";
+  url: string;
+};
+
+type FramePOSTRequest = {
+  method: "POST";
+  request: {
+    body: object;
+    searchParams: URLSearchParams;
+  };
+  url: string;
+  /**
+   * The frame that was the source of the button press
+   */
+  sourceFrame: Frame;
+};
+
+export type FrameRequest = FrameGETRequest | FramePOSTRequest;
 
 export type FrameStackBase = {
   timestamp: Date;
   /** speed in seconds */
   speed: number;
   responseStatus: number;
-} & FrameRequest;
+};
 
 export type FrameStackPending = {
   timestamp: Date;
@@ -114,20 +120,23 @@ export type FrameStackPending = {
 
 export type GetFrameResult = ReturnType<typeof getFrame>;
 
-export type FrameStackDone = FrameStackBase & {
-  frame: GetFrameResult;
-  status: "done";
-};
+export type FrameStackDone = FrameStackBase &
+  FrameRequest & {
+    frame: GetFrameResult;
+    status: "done";
+  };
 
-export type FrameStackRequestError = FrameStackBase & {
-  status: "requestError";
-  requestError: unknown;
-};
+export type FrameStackRequestError = FrameStackBase &
+  FrameRequest & {
+    status: "requestError";
+    requestError: unknown;
+  };
 
-export type FrameStackMessage = FrameStackBase & {
-  status: "message";
-  message: string;
-};
+export type FrameStackMessage = FrameStackBase &
+  FramePOSTRequest & {
+    status: "message";
+    message: string;
+  };
 
 export type FramesStackItem =
   | FrameStackPending
@@ -150,7 +159,7 @@ export type FrameReducerActions =
   | {
       action: "DONE";
       pendingItem: FrameStackPending;
-      item: FramesStack[number];
+      item: FramesStackItem;
     }
   | { action: "CLEAR" }
   | {
@@ -160,7 +169,15 @@ export type FrameReducerActions =
     };
 
 export type FrameState = {
-  fetchFrame: (request: FrameRequest) => void | Promise<void>;
+  fetchFrame: (
+    request: FrameRequest,
+    /**
+     * If true, the frame stack will be cleared before the new frame is loaded
+     *
+     * @defaultValue false
+     */
+    shouldClear?: boolean
+  ) => Promise<void>;
   clearFrameStack: () => void;
   dispatchFrameStack: Dispatch<FrameReducerActions>;
   /** The frame at the top of the stack (at index 0) */

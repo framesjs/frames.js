@@ -1,7 +1,12 @@
 import type { ImgHTMLAttributes } from "react";
 import React, { useState } from "react";
 import type { Frame, FrameButton } from "frames.js";
-import type { FrameTheme, FrameState } from "./types";
+import type {
+  FrameTheme,
+  FrameState,
+  FrameStackMessage,
+  FrameStackRequestError,
+} from "./types";
 import { PresentableError } from "./errors";
 
 export const defaultTheme: Required<FrameTheme> = {
@@ -13,12 +18,95 @@ export const defaultTheme: Required<FrameTheme> = {
   bg: "#efefef",
 };
 
+const messageSquareIcon = (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  </svg> 
+);
+
+const octagonXIcon = (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2" />
+    <path d="m15 9-6 6" />
+    <path d="m9 9 6 6" />
+  </svg>
+);
+
 const getThemeWithDefaults = (theme: FrameTheme): FrameTheme => {
   return {
     ...defaultTheme,
     ...theme,
   };
 };
+
+type MessageTooltipProps = {
+  message: string;
+  /**
+   * @defaultValue 'message'
+   */
+  variant?: "message" | "error";
+  /**
+   * @defaultValue false
+   */
+  inline?: boolean;
+};
+
+function MessageTooltip({
+  inline = false,
+  message,
+  variant = "message",
+}: MessageTooltipProps): JSX.Element {
+  return (
+    <div
+      className={`${
+        inline
+          ? ""
+          : "absolute bottom-2 border border-slate-100 rounded-sm shadow-md inset-x-2"
+      } items-center p-2 flex gap-2 text-sm text-red-500`}
+    >
+      {variant === "message" ? messageSquareIcon : octagonXIcon}
+      {message}
+    </div>
+  );
+}
+
+function getErrorMessageFromFramesStackItem(
+  item: FrameStackMessage | FrameStackRequestError
+): string {
+  if (item.status === "message") {
+    return item.message;
+  }
+
+  if (
+    item.requestError instanceof PresentableError ||
+    item.requestError instanceof Error
+  ) {
+    return item.requestError.message;
+  }
+
+  return "An error occurred";
+}
 
 export type FrameUIProps = {
   frameState: FrameState;
@@ -40,7 +128,7 @@ export function FrameUI({
   const resolvedTheme = getThemeWithDefaults(theme ?? {});
 
   if (!frameState.homeframeUrl) {
-    return <div>Missing frame url</div>;
+    return <MessageTooltip inline message="Missing frame url" />;
   }
 
   if (!currentFrame) {
@@ -52,26 +140,28 @@ export function FrameUI({
     !(currentFrame.requestError instanceof PresentableError) &&
     !(currentFrame.requestError instanceof Error)
   ) {
-    return <div>Failed to load Frame</div>;
+    return <MessageTooltip inline message="Failed to load frame" />;
   }
 
-  /**
-   * This value is available in render only if currentFrame status is done and doesn't contain errors
-   */
-  const frameResult =
-    currentFrame.status === "done" ? currentFrame.frame : null;
-
   if (
-    frameResult &&
-    frameResult.status === "failure" &&
+    currentFrame.status === "done" &&
+    currentFrame.frame.status === "failure" &&
     !(
       allowPartialFrame &&
       // Need at least image and buttons to render a partial frame
-      frameResult.frame.image &&
-      frameResult.frame.buttons
+      currentFrame.frame.frame.image &&
+      currentFrame.frame.frame.buttons
     )
   ) {
-    return <div>Invalid Frame</div>;
+    return <MessageTooltip inline message="Invalid frame" />;
+  }
+
+  let frame: Frame | Partial<Frame> | undefined;
+
+  if (currentFrame.status === "done") {
+    frame = currentFrame.frame.frame;
+  } else if (currentFrame.status === "message") {
+    frame = currentFrame.sourceFrame;
   }
 
   const ImageEl = FrameImage ? FrameImage : "img";
@@ -83,25 +173,20 @@ export function FrameUI({
       <div className="relative w-full" style={{ height: "100%" }}>
         {" "}
         {/* Ensure the container fills the height */}
-        {currentFrame.status === "requestError" ? (
-          <div
-            className="absolute px-4 py-2 rounded-sm"
-            style={{
-              zIndex: 2,
-              backgroundColor: "rgba(0, 0, 0, 0.7)",
-              color: "white",
-            }}
-          >
-            {currentFrame.requestError instanceof PresentableError ||
-            currentFrame.requestError instanceof Error
-              ? currentFrame.requestError.message
-              : "An error occurred"}
-          </div>
+        {currentFrame.status === "requestError" ||
+        currentFrame.status === "message" ? (
+          <MessageTooltip
+            inline={!!frame && !frame.image}
+            message={getErrorMessageFromFramesStackItem(currentFrame)}
+            variant={
+              currentFrame.status === "requestError" ? "error" : "message"
+            }
+          />
         ) : null}
-        {!!frameResult && typeof frameResult.frame.image === "string" && (
+        {!!frame && !!frame.image && (
           <ImageEl
-            src={frameResult.frame.image}
-            key={frameResult.frame.image}
+            src={frame.image}
+            key={frame.image}
             alt="Frame image"
             width="100%"
             style={{
@@ -112,7 +197,7 @@ export function FrameUI({
               objectFit: "cover",
               width: "100%",
               aspectRatio:
-                (frameResult.frame.imageAspectRatio ?? "1.91:1") === "1:1"
+                (frame.imageAspectRatio ?? "1.91:1") === "1:1"
                   ? "1/1"
                   : "1.91/1",
             }}
@@ -128,7 +213,7 @@ export function FrameUI({
           />
         )}
       </div>
-      {!!frameResult && frameResult.frame.inputText ? (
+      {!!frame && frame.inputText ? (
         <input
           className="p-[6px] mx-2 border box-border"
           style={{
@@ -137,79 +222,71 @@ export function FrameUI({
           }}
           value={frameState.inputText}
           type="text"
-          placeholder={frameResult.frame.inputText}
+          placeholder={frame.inputText}
           onChange={(e) => {
             frameState.setInputText(e.target.value);
           }}
         />
       ) : null}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          gap: "8px",
-        }}
-        className="px-2 pb-2"
-      >
-        {!!frameResult &&
-          frameResult.frame.buttons?.map(
-            (frameButton: FrameButton, index: number) => (
-              <button
-                type="button"
-                disabled={isLoading}
-                className={`p-2 ${
-                  isLoading ? "bg-gray-100" : ""
-                } border text-sm text-gray-800 rounded`}
-                style={{
-                  flex: "1 1 0px",
-                  // fixme: hover style
-                  backgroundColor: resolvedTheme.buttonBg,
-                  borderColor: resolvedTheme.buttonBorderColor,
-                  color: resolvedTheme.buttonColor,
-                  cursor: isLoading ? undefined : "pointer",
-                }}
-                onClick={() => {
-                  Promise.resolve(
-                    frameState.onButtonPress(
-                      // Partial frame could have enough data to handle button press
-                      frameResult.frame as Frame,
-                      frameButton,
-                      index
-                    )
-                  ).catch((e: unknown) => {
-                    // eslint-disable-next-line no-console -- provide feedback to the user
-                    console.error(e);
-                  });
-                }}
-                // eslint-disable-next-line react/no-array-index-key -- this is fine
-                key={index}
-              >
-                {frameButton.action === "mint" ? `⬗ ` : ""}
-                {frameButton.label}
-                {frameButton.action === "tx" ? (
-                  <svg
-                    aria-hidden="true"
-                    focusable="false"
-                    role="img"
-                    viewBox="0 0 16 16"
-                    className="ml-1 mb-[2px] text-gray-400 inline-block select-none align-text-middle overflow-visible"
-                    width="12"
-                    height="12"
-                    fill="currentColor"
-                  >
-                    <path d="M9.504.43a1.516 1.516 0 0 1 2.437 1.713L10.415 5.5h2.123c1.57 0 2.346 1.909 1.22 3.004l-7.34 7.142a1.249 1.249 0 0 1-.871.354h-.302a1.25 1.25 0 0 1-1.157-1.723L5.633 10.5H3.462c-1.57 0-2.346-1.909-1.22-3.004L9.503.429Zm1.047 1.074L3.286 8.571A.25.25 0 0 0 3.462 9H6.75a.75.75 0 0 1 .694 1.034l-1.713 4.188 6.982-6.793A.25.25 0 0 0 12.538 7H9.25a.75.75 0 0 1-.683-1.06l2.008-4.418.003-.006a.036.036 0 0 0-.004-.009l-.006-.006-.008-.001c-.003 0-.006.002-.009.004Z" />
-                  </svg>
-                ) : (
-                  ""
-                )}
-                {frameButton.action === "post_redirect" ||
-                frameButton.action === "link"
-                  ? ` ↗`
-                  : ""}
-              </button>
-            )
-          )}
-      </div>
+      {!!frame && !!frame.buttons && frame.buttons.length > 0 ? (
+        <div className="flex gap-[8px] px-2 pb-2">
+          {frame.buttons.map((frameButton: FrameButton, index: number) => (
+            <button
+              type="button"
+              disabled={isLoading}
+              className={`p-2 ${
+                isLoading ? "bg-gray-100" : ""
+              } border text-sm text-gray-800 rounded`}
+              style={{
+                flex: "1 1 0px",
+                // fixme: hover style
+                backgroundColor: resolvedTheme.buttonBg,
+                borderColor: resolvedTheme.buttonBorderColor,
+                color: resolvedTheme.buttonColor,
+                cursor: isLoading ? undefined : "pointer",
+              }}
+              onClick={() => {
+                Promise.resolve(
+                  frameState.onButtonPress(
+                    // Partial frame could have enough data to handle button press
+                    frame as Frame,
+                    frameButton,
+                    index
+                  )
+                ).catch((e: unknown) => {
+                  // eslint-disable-next-line no-console -- provide feedback to the user
+                  console.error(e);
+                });
+              }}
+              // eslint-disable-next-line react/no-array-index-key -- this is fine
+              key={index}
+            >
+              {frameButton.action === "mint" ? `⬗ ` : ""}
+              {frameButton.label}
+              {frameButton.action === "tx" ? (
+                <svg
+                  aria-hidden="true"
+                  focusable="false"
+                  role="img"
+                  viewBox="0 0 16 16"
+                  className="ml-1 mb-[2px] text-gray-400 inline-block select-none align-text-middle overflow-visible"
+                  width="12"
+                  height="12"
+                  fill="currentColor"
+                >
+                  <path d="M9.504.43a1.516 1.516 0 0 1 2.437 1.713L10.415 5.5h2.123c1.57 0 2.346 1.909 1.22 3.004l-7.34 7.142a1.249 1.249 0 0 1-.871.354h-.302a1.25 1.25 0 0 1-1.157-1.723L5.633 10.5H3.462c-1.57 0-2.346-1.909-1.22-3.004L9.503.429Zm1.047 1.074L3.286 8.571A.25.25 0 0 0 3.462 9H6.75a.75.75 0 0 1 .694 1.034l-1.713 4.188 6.982-6.793A.25.25 0 0 0 12.538 7H9.25a.75.75 0 0 1-.683-1.06l2.008-4.418.003-.006a.036.036 0 0 0-.004-.009l-.006-.006-.008-.001c-.003 0-.006.002-.009.004Z" />
+                </svg>
+              ) : (
+                ""
+              )}
+              {frameButton.action === "post_redirect" ||
+              frameButton.action === "link"
+                ? ` ↗`
+                : ""}
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

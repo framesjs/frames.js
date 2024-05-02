@@ -241,6 +241,7 @@ export function ActionDebugger({
         timestamp: startTime,
         url: frameRequest.url,
         status: "pending",
+        sourceFrame: frameRequest.sourceFrame,
       };
 
       actionFrameState.dispatchFrameStack({
