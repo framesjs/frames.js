@@ -33,6 +33,7 @@ import { FrameDebugger } from "./frame-debugger";
 import IconByName from "./octicons";
 import { MockHubActionContext } from "../utils/mock-hub-utils";
 import { useFrame } from "@frames.js/render/use-frame";
+import { WithTooltip } from "./with-tooltip";
 
 type FrameDebuggerFramePropertiesTableRowsProps = {
   actionMetadataItem: ParseActionResult;
@@ -86,13 +87,10 @@ function ActionDebuggerPropertiesTableRow({
       });
     }
 
-    const invalidKeys = invalidProperties.reduce(
-      (acc, [key]) => {
-        acc[key] = true;
-        return acc;
-      },
-      {} as Record<string, boolean>
-    );
+    const invalidKeys = invalidProperties.reduce((acc, [key]) => {
+      acc[key] = true;
+      return acc;
+    }, {} as Record<string, boolean>);
 
     return {
       validProperties: validProperties.filter(([key]) => !invalidKeys[key]),
@@ -381,16 +379,18 @@ export function ActionDebugger({
       <div className="flex flex-row items-start p-4 gap-4 bg-slate-50 max-w-full w-full h-full">
         <div className="flex flex-col gap-4 w-[300px] min-w-[300px]">
           <div className="flex flex-row gap-2">
-            <Button
-              className="flex flex-row gap-3 items-center shadow-sm border"
-              variant={"outline"}
-              onClick={() => {
-                // TODO: loading indicators
-                refreshUrl();
-              }}
-            >
-              <RefreshCwIcon size={20} />
-            </Button>
+            <WithTooltip tooltip={<p>Reload URL</p>}>
+              <Button
+                className="flex flex-row gap-3 items-center shadow-sm border"
+                variant={"outline"}
+                onClick={() => {
+                  // TODO: loading indicators
+                  refreshUrl();
+                }}
+              >
+                <RefreshCwIcon size={20} />
+              </Button>
+            </WithTooltip>
           </div>
         </div>
         <div className="flex flex-col gap-4 w-[500px] min-w-[500px]">
