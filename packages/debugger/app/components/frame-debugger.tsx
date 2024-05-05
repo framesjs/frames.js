@@ -43,6 +43,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { hasWarnings } from "../lib/utils";
 import { useRouter } from "next/navigation";
+import { WithTooltip } from "./with-tooltip";
 
 type FrameDebuggerFramePropertiesTableRowsProps = {
   stackItem: FrameState["framesStack"][number];
@@ -369,61 +370,67 @@ export function FrameDebugger({
     <div className="flex flex-row items-start p-4 gap-4 bg-slate-50 max-w-full w-full h-full">
       <div className="flex flex-col gap-4 w-[300px] min-w-[300px]">
         <div className="flex flex-row gap-2">
-          <Button
-            className="flex flex-row gap-3 items-center shadow-sm border"
-            variant={"outline"}
-            disabled={!frameState?.homeframeUrl}
-            onClick={() => {
-              if (frameState?.homeframeUrl)
-                // fetch home frame again
-                frameState.fetchFrame({
-                  url: frameState?.homeframeUrl,
-                  method: "GET",
-                });
-            }}
-          >
-            <HomeIcon size={20} />
-          </Button>
-          <Button
-            className="flex flex-row gap-3 items-center shadow-sm border"
-            variant={"outline"}
-            disabled={!frameState?.homeframeUrl}
-            onClick={() => {
-              if (frameState?.homeframeUrl) {
-                frameState.clearFrameStack();
-                frameState.fetchFrame({
-                  url: frameState?.homeframeUrl,
-                  method: "GET",
-                });
-              }
-            }}
-          >
-            <BanIcon size={20} />
-          </Button>
-          <Button
-            className="flex flex-row gap-3 items-center shadow-sm border"
-            variant={"outline"}
-            onClick={() => {
-              const [latestFrame] = frameState.framesStack;
+          <WithTooltip tooltip={<p>Fetch home frame</p>}>
+            <Button
+              className="flex flex-row gap-3 items-center shadow-sm border"
+              variant={"outline"}
+              disabled={!frameState?.homeframeUrl}
+              onClick={() => {
+                if (frameState?.homeframeUrl)
+                  // fetch home frame again
+                  frameState.fetchFrame({
+                    url: frameState?.homeframeUrl,
+                    method: "GET",
+                  });
+              }}
+            >
+              <HomeIcon size={20} />
+            </Button>
+          </WithTooltip>
+          <WithTooltip tooltip={<p>Clear history and fetch home frame</p>}>
+            <Button
+              className="flex flex-row gap-3 items-center shadow-sm border"
+              variant={"outline"}
+              disabled={!frameState?.homeframeUrl}
+              onClick={() => {
+                if (frameState?.homeframeUrl) {
+                  frameState.clearFrameStack();
+                  frameState.fetchFrame({
+                    url: frameState?.homeframeUrl,
+                    method: "GET",
+                  });
+                }
+              }}
+            >
+              <BanIcon size={20} />
+            </Button>
+          </WithTooltip>
+          <WithTooltip tooltip={<p>Reload current frame</p>}>
+            <Button
+              className="flex flex-row gap-3 items-center shadow-sm border"
+              variant={"outline"}
+              onClick={() => {
+                const [latestFrame] = frameState.framesStack;
 
-              if (latestFrame) {
-                frameState.fetchFrame(
-                  latestFrame.method === "GET"
-                    ? {
-                        method: "GET",
-                        url: latestFrame.url,
-                      }
-                    : {
-                        method: "POST",
-                        request: latestFrame.request,
-                        url: latestFrame.url,
-                      }
-                );
-              }
-            }}
-          >
-            <RefreshCwIcon size={20} />
-          </Button>
+                if (latestFrame) {
+                  frameState.fetchFrame(
+                    latestFrame.method === "GET"
+                      ? {
+                          method: "GET",
+                          url: latestFrame.url,
+                        }
+                      : {
+                          method: "POST",
+                          request: latestFrame.request,
+                          url: latestFrame.url,
+                        }
+                  );
+                }
+              }}
+            >
+              <RefreshCwIcon size={20} />
+            </Button>
+          </WithTooltip>
         </div>
         <Card className="max-h-[400px] overflow-y-auto">
           <CardContent className="p-0">
@@ -757,8 +764,8 @@ export function FrameDebugger({
                           {frameState.frame.speed > 5
                             ? `Request took more than 5s (${frameState.frame.speed} seconds). This may be normal: first request will take longer in development (as next.js builds), but in production, clients will timeout requests after 5s`
                             : frameState.frame.speed > 4
-                              ? `Warning: Request took more than 4s (${frameState.frame.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
-                              : `${frameState.frame.speed} seconds`}
+                            ? `Warning: Request took more than 4s (${frameState.frame.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
+                            : `${frameState.frame.speed} seconds`}
                         </TableCell>
                       </TableRow>
                       <FrameDebuggerFramePropertiesTableRow

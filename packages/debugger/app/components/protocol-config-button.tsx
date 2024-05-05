@@ -14,6 +14,7 @@ import { useXmtpIdentity } from "../hooks/use-xmtp-identity";
 import { cn } from "../lib/utils";
 import FarcasterSignerWindow from "./farcaster-signer-config";
 import { useMemo } from "react";
+import { WithTooltip } from "./with-tooltip";
 
 export type ProtocolConfiguration =
   | {
@@ -78,21 +79,23 @@ export const ProtocolConfigurationButton: React.FC<{
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant={isSignerValid ? "outline" : "destructive"}>
-          {value ? (
-            <>
-              {value.protocol}{" "}
-              {value.specification === "openframes"
-                ? `(${value.specification})`
-                : // Farcaster
+        <WithTooltip tooltip={<p>Protocol and identity management</p>}>
+          <Button variant={isSignerValid ? "outline" : "destructive"}>
+            {value ? (
+              <>
+                {value.protocol}{" "}
+                {value.specification === "openframes"
+                  ? `(${value.specification})`
+                  : // Farcaster
                   farcasterSignerState.signer?.status !== "pending_approval"
                   ? `(${farcasterSignerState.signer?.fid ?? "select identity"})`
                   : "select identity"}
-            </>
-          ) : (
-            <>Select a protocol</>
-          )}
-        </Button>
+              </>
+            ) : (
+              <>Select a protocol</>
+            )}
+          </Button>
+        </WithTooltip>
       </PopoverTrigger>
       <PopoverContent>
         <Tabs value={value?.protocol} defaultValue="none">
