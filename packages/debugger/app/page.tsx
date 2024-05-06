@@ -4,7 +4,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  UseFrameReturn,
+  type UseFrameReturn,
   fallbackFrameContext,
   type OnTransactionFunc,
 } from "@frames.js/render";
@@ -13,7 +13,13 @@ import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import { sendTransaction, switchChain } from "@wagmi/core";
 import type { FrameActionPayload } from "frames.js";
 import { useRouter } from "next/navigation";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { zeroAddress } from "viem";
 import { useAccount, useChainId, useConfig } from "wagmi";
 import pkg from "../package.json";
@@ -33,6 +39,8 @@ import { ActionDebugger } from "./components/action-debugger";
 import { ParseActionResult } from "./actions/types";
 import type { ParseResult } from "frames.js/frame-parsers";
 import { Loader2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 
 const FALLBACK_URL =
   process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
@@ -42,6 +50,9 @@ export default function App({
 }: {
   searchParams: Record<string, string>;
 }): JSX.Element {
+  const { toast } = useToast();
+  const urlInputRef = useRef<HTMLInputElement>(null);
+  const selectProtocolButtonRef = useRef<HTMLButtonElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const [protocolConfiguration, setProtocolConfiguration] =
@@ -143,25 +154,69 @@ export default function App({
           }
         })
         .catch((e) => {
+          toast({
+            title: "Error loading url",
+            description: "Please check the console for more information",
+            variant: "destructive",
+          });
           console.error(e);
-          alert(`Error loading url, see console for details`);
         })
         .finally(() => {
           setIsLoading(false);
         });
     },
-    [url, protocolConfiguration, setInitialAction, setInitialFrame]
+    [url, protocolConfiguration, toast]
   );
 
   useEffect(() => {
-    if (!url || !protocolConfiguration?.specification) {
+    if (!url) {
+      return;
+    }
+
+    if (!protocolConfiguration) {
+      toast({
+        title: "Select Protocol",
+        description: "Please select a protocol to debug the URL",
+        variant: "destructive",
+        action: (
+          <ToastAction
+            altText="Select"
+            onClick={() => {
+              selectProtocolButtonRef.current?.click();
+            }}
+            type="button"
+          >
+            Select
+          </ToastAction>
+        ),
+      });
       return;
     }
 
     refreshUrl(url);
-  }, [url, protocolConfiguration, refreshUrl]);
+  }, [url, protocolConfiguration, refreshUrl, toast]);
 
-  const farcasterSignerState = useFarcasterIdentity();
+  const farcasterSignerState = useFarcasterIdentity({
+    onMissingIdentity() {
+      toast({
+        title: "Please select an identity",
+        description:
+          "In order to test the buttons you need to select an identity first",
+        variant: "destructive",
+        action: (
+          <ToastAction
+            altText="Select identity"
+            onClick={() => {
+              selectProtocolButtonRef.current?.click();
+            }}
+            type="button"
+          >
+            Select identity
+          </ToastAction>
+        ),
+      });
+    },
+  });
   const xmtpSignerState = useXmtpIdentity();
 
   const farcasterFrameContext = useFarcasterFrameContext({
@@ -181,7 +236,12 @@ export default function App({
     async ({ transactionData }) => {
       const { params, chainId, method } = transactionData;
       if (!chainId.startsWith("eip155:")) {
-        alert(`debugger: Unrecognized chainId ${chainId}`);
+        toast({
+          title: "Invalid chainId",
+          description: `Unrecognized chainId ${chainId}`,
+          variant: "destructive",
+        });
+
         return null;
       }
 
@@ -193,7 +253,6 @@ export default function App({
       const requestedChainId = parseInt(chainId.split("eip155:")[1]!);
 
       if (currentChainId !== requestedChainId) {
-        console.log("switching chain");
         await switchChain(config, {
           chainId: requestedChainId,
         });
@@ -201,7 +260,6 @@ export default function App({
 
       try {
         // Send the transaction
-        console.log("sending tx");
         const transactionId = await sendTransaction(config, {
           to: params.to,
           data: params.data,
@@ -209,11 +267,16 @@ export default function App({
         });
         return transactionId;
       } catch (error) {
+        toast({
+          title: "Error sending transaction",
+          description: "Please check the console for more information",
+          variant: "destructive",
+        });
         console.error(error);
         return null;
       }
     },
-    [account.address, currentChainId, config, openConnectModal]
+    [account.address, currentChainId, config, openConnectModal, toast]
   );
 
   const useFrameConfig: Omit<
@@ -257,7 +320,11 @@ export default function App({
           onTransaction({ ...t, transactionData: json.data });
         })
         .catch((e) => {
-          alert(e);
+          toast({
+            title: "Error minting",
+            description: "Please check the console for more information",
+            variant: "destructive",
+          });
           console.error(e);
         });
     },
@@ -312,26 +379,84 @@ export default function App({
             className="flex flex-row"
             onSubmit={(e) => {
               e.preventDefault();
+
               const newUrl =
                 new FormData(e.currentTarget).get("url")?.toString() || "";
 
-              if (
-                !(newUrl.startsWith("http://") || newUrl.startsWith("https://"))
-              ) {
-                alert("URL must start with http:// or https://");
+              if (!newUrl) {
+                toast({
+                  title: "Missing URL",
+                  description: "Please provide a URL to debug",
+                  variant: "destructive",
+                  action: (
+                    <ToastAction
+                      altText="Fix"
+                      onClick={() => {
+                        urlInputRef.current?.focus();
+                      }}
+                      type="button"
+                    >
+                      Fix
+                    </ToastAction>
+                  ),
+                });
                 return;
               }
 
               try {
-                const parsedUrl = new URL(newUrl).toString();
+                const parsedUrl = new URL(newUrl);
 
-                if (searchParams.url === parsedUrl) {
+                if (
+                  parsedUrl.protocol !== "http:" &&
+                  parsedUrl.protocol !== "https:"
+                ) {
+                  throw new Error("Invalid protocol");
+                }
+
+                if (!protocolConfiguration) {
+                  toast({
+                    title: "Select Protocol",
+                    description: "Please select a protocol to debug the URL",
+                    variant: "destructive",
+                    action: (
+                      <ToastAction
+                        altText="Select"
+                        onClick={() => {
+                          selectProtocolButtonRef.current?.click();
+                        }}
+                        type="button"
+                      >
+                        Select
+                      </ToastAction>
+                    ),
+                  });
+                  return;
+                }
+
+                if (searchParams.url === parsedUrl.toString()) {
                   location.reload();
                 }
 
-                router.push(`?url=${encodeURIComponent(parsedUrl)}`);
+                router.push(`?url=${encodeURIComponent(parsedUrl.toString())}`);
               } catch (e) {
-                alert("URL must be in valid format");
+                toast({
+                  title: "Invalid URL",
+                  description:
+                    "URL must start with http:// or https:// and be in valid format",
+                  variant: "destructive",
+                  action: (
+                    <ToastAction
+                      altText="Fix"
+                      onClick={() => {
+                        urlInputRef.current?.focus();
+                      }}
+                      type="button"
+                    >
+                      Fix
+                    </ToastAction>
+                  ),
+                });
+
                 return;
               }
             }}
@@ -339,6 +464,7 @@ export default function App({
             <Input
               type="text"
               name="url"
+              ref={urlInputRef}
               className="w-[400px] px-2 py-1 border border-gray-400 rounded-l rounded-r-none"
               defaultValue={url ?? FALLBACK_URL}
               placeholder="Enter URL"
@@ -362,6 +488,7 @@ export default function App({
             xmtpSignerState={xmtpSignerState}
             farcasterFrameContext={farcasterFrameContext}
             xmtpFrameContext={xmtpFrameContext}
+            ref={selectProtocolButtonRef}
           ></ProtocolConfigurationButton>
 
           <div className="ml-auto">

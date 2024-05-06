@@ -3,6 +3,7 @@ import "./globals.css";
 import "@rainbow-me/rainbowkit/styles.css";
 import { Providers } from "./providers";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "Frame Debugger",
@@ -20,6 +21,7 @@ export default function RootLayout({
         <TooltipProvider>
           <Providers>{children}</Providers>
         </TooltipProvider>
+        <Toaster></Toaster>
       </body>
     </html>
   );
