@@ -6,6 +6,7 @@ import type {
   getFrame,
 } from "frames.js";
 import type { Dispatch } from "react";
+import type { ParseResult } from "frames.js/frame-parsers";
 import type { FarcasterFrameContext } from "./farcaster/frames";
 
 export type OnTransactionFunc = (
@@ -15,7 +16,7 @@ export type OnTransactionFunc = (
 export type UseFrameReturn<
   SignerStorageType = object,
   FrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
-  FrameContextType extends FrameContext = FarcasterFrameContext,
+  FrameContextType extends FrameContext = FarcasterFrameContext
 > = {
   /** skip frame signing, for frames that don't verify signatures */
   dangerousSkipSigning?: boolean;
@@ -31,8 +32,8 @@ export type UseFrameReturn<
   >;
   /** the url of the homeframe, if null / undefined won't load a frame */
   homeframeUrl: string | null | undefined;
-  /** the initial frame. if not specified will fetch it from the url prop */
-  frame?: Frame;
+  /** the initial frame. if not specified will fetch it from the homeframeUrl prop */
+  frame?: Frame | ParseResult;
   /** connected wallet address of the user */
   connectedAddress: `0x${string}` | undefined;
   /** a function to handle mint buttons */
@@ -56,7 +57,7 @@ export type UseFrameReturn<
 export interface SignerStateInstance<
   SignerStorageType = object,
   FrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
-  FrameContextType extends FrameContext = FarcasterFrameContext,
+  FrameContextType extends FrameContext = FarcasterFrameContext
 > {
   signer?: SignerStorageType | null;
   hasSigner: boolean;
@@ -151,7 +152,12 @@ export type FrameReducerActions =
       pendingItem: FrameStackPending;
       item: FramesStack[number];
     }
-  | { action: "CLEAR" };
+  | { action: "CLEAR" }
+  | {
+      action: "RESET_INITIAL_FRAME";
+      resultOrFrame: ParseResult | Frame;
+      homeframeUrl: string | null | undefined;
+    };
 
 export type FrameState = {
   fetchFrame: (request: FrameRequest) => void | Promise<void>;
