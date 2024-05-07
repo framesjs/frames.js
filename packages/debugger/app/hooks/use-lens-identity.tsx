@@ -4,7 +4,7 @@ import { SignerStateInstance } from "@frames.js/render";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useEffect, useState } from "react";
 import { useAccount, useConfig } from "wagmi";
-import { getAccount, signMessage } from "wagmi/actions";
+import { signMessage } from "wagmi/actions";
 import { LOCAL_STORAGE_KEYS } from "../constants";
 import { LensFrameContext } from "./use-lens-context";
 import { LensClient, production } from "@lens-protocol/client";
@@ -12,6 +12,7 @@ import { LensClient, production } from "@lens-protocol/client";
 type LensSigner = {
   profileId: string;
   accessToken: string;
+  identityToken: string;
   handle: string;
   address: `0x${string}`;
 };
@@ -61,6 +62,7 @@ export function useLensIdentity(): LensSignerInstance {
         const signer: LensSigner = {
           profileId: signerRaw.profileId,
           accessToken: signerRaw.accessToken,
+          identityToken: signerRaw.identityToken,
           address: signerRaw.address,
           handle: signerRaw.handle,
         };
@@ -117,7 +119,10 @@ export function useLensIdentity(): LensSignerInstance {
 
         const accessTokenResult =
           await lensClient.authentication.getAccessToken();
+        const identityTokenResult =
+          await lensClient.authentication.getIdentityToken();
         const accessToken = accessTokenResult.unwrap();
+        const identityToken = identityTokenResult.unwrap();
         const profileId = await lensClient.authentication.getProfileId();
         const profileInfo = await lensClient.profile.fetch({
           forProfileId: profileId,
@@ -128,6 +133,7 @@ export function useLensIdentity(): LensSignerInstance {
             accessToken,
             profileId,
             address,
+            identityToken,
             handle,
           });
         }
@@ -148,12 +154,12 @@ export function useLensIdentity(): LensSignerInstance {
 
       const result = await lensClient.frames.signFrameAction({
         url: actionContext.url,
-        inputText: actionContext.inputText,
-        state: actionContext.state,
+        inputText: actionContext.inputText || "",
+        state: actionContext.state || "",
         buttonIndex: actionContext.buttonIndex,
-        actionResponse: actionContext.actionResponse,
+        actionResponse: actionContext.transactionId || "",
         profileId: lensSigner.profileId,
-        pubId: actionContext.pubId,
+        pubId: actionContext.frameContext.pubId || "",
         specVersion: "1.0.0",
       });
 
@@ -169,7 +175,17 @@ export function useLensIdentity(): LensSignerInstance {
       });
 
       return {
-        body: result.value,
+        body: {
+          clientProtocol: "1.0.0",
+          untrustedData: {
+            ...result.value.signedTypedData.value,
+            identityToken: lensSigner.identityToken,
+            unixTimestamp: Date.now(),
+          },
+          trustedData: {
+            messageBytes: result.value.signature,
+          },
+        },
         searchParams,
       };
     },
