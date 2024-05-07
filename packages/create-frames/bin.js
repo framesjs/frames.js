@@ -1,8 +1,16 @@
 #!/usr/bin/env node
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+import { dirname, resolve } from "node:path";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { getTemplates } from "./utils/getTemplates.js";
 import { create } from "./create.js";
+
+const packageJsonFilePath = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "./package.json"
+);
 
 // use only default command
 yargs(hideBin(process.argv))
@@ -27,4 +35,5 @@ yargs(hideBin(process.argv))
       create(args);
     }
   )
+  .version(JSON.parse(readFileSync(packageJsonFilePath)).version)
   .parse();
