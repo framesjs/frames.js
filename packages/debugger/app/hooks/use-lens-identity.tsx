@@ -2,7 +2,7 @@
 
 import { SignerStateInstance } from "@frames.js/render";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAccount, useConfig } from "wagmi";
 import { signMessage } from "wagmi/actions";
 import { LOCAL_STORAGE_KEYS } from "../constants";
@@ -61,9 +61,11 @@ export function useLensIdentity(): LensSignerInstance {
   const config = useConfig();
   const { address } = useAccount();
 
-  const lensClient = new LensClient({
-    environment: production,
-  });
+  const lensClient = useRef(
+    new LensClient({
+      environment: production,
+    })
+  ).current;
 
   function getSignerFromLocalStorage() {
     if (typeof window !== "undefined") {
@@ -120,7 +122,6 @@ export function useLensIdentity(): LensSignerInstance {
         },
       });
       await lensClient.authentication.authenticate({ id, signature });
-      const authenticated = await lensClient.authentication.isAuthenticated();
       const accessTokenResult =
         await lensClient.authentication.getAccessToken();
       const identityTokenResult =
@@ -201,7 +202,7 @@ export function useLensIdentity(): LensSignerInstance {
         postType: actionContext.transactionId
           ? "post"
           : actionContext.frameButton.action,
-        postUrl: actionContext.frameButton.target ?? "",
+        postUrl: actionContext.frameButton.target ?? actionContext.target ?? "",
       });
 
       return {
