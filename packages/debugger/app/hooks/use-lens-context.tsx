@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { LOCAL_STORAGE_KEYS } from "../constants";
 
 export type LensFrameContext = {
-  profileId: string;
   pubId: string;
 };
 

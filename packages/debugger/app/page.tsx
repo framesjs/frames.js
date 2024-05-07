@@ -47,6 +47,7 @@ import {
 } from "./components/debugger-console";
 import { useLensIdentity } from "./hooks/use-lens-identity";
 import { useLensFrameContext } from "./hooks/use-lens-context";
+import { ProfileSelectorModal } from "./components/lens-profile-select";
 
 const FALLBACK_URL =
   process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
@@ -254,8 +255,7 @@ export default function App({
 
   const lensFrameContext = useLensFrameContext({
     fallbackContext: {
-      profileId: "0x01",
-      pubId: "0x01",
+      pubId: "0x01-0x01",
     },
   });
 
@@ -618,6 +618,14 @@ export default function App({
           </>
         ) : null}
       </div>
+      {lensSignerState.showProfileSelector && (
+        <ProfileSelectorModal
+          profiles={lensSignerState.availableProfiles}
+          onSelect={lensSignerState.handleSelectProfile}
+          show={lensSignerState.showProfileSelector}
+          onClose={lensSignerState.closeProfileSelector}
+        />
+      )}
     </DebuggerConsoleContextProvider>
   );
 }
