@@ -216,6 +216,7 @@ export function useFarcasterIdentity({ onMissingIdentity }: UseFarcasterIdentity
 > & {
   signer: StoredIdentity | null;
   onSignerlessFramePress: () => Promise<void>;
+  onCreateSignerPress: () => Promise<void>;
   impersonateUser: (fid: number) => Promise<void>;
   logout: () => void;
   removeIdentity: () => void;
@@ -321,6 +322,12 @@ export function useFarcasterIdentity({ onMissingIdentity }: UseFarcasterIdentity
     onMissingIdentity();
   }, [onMissingIdentity]);
 
+  const onCreateSignerPress = useCallback(async () => {
+    setLoading(true);
+    await createFarcasterSigner();
+    setLoading(false);
+  }, [createFarcasterSigner]);
+
   const logout = useCallback(() => {
     dispatch({ type: "LOGOUT" });
   }, [dispatch]);
@@ -419,6 +426,7 @@ export function useFarcasterIdentity({ onMissingIdentity }: UseFarcasterIdentity
     isLoadingSigner: isLoading,
     impersonateUser,
     onSignerlessFramePress,
+    onCreateSignerPress,
     logout,
     removeIdentity,
     identities: state.identities,
