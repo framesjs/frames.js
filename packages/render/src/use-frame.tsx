@@ -15,7 +15,6 @@ import type {
   FrameActionBodyPayload,
   FramesStack,
   FrameStackPending,
-  FrameRequest,
   UseFrameReturn,
   OnTransactionArgs,
   FrameStackRequestError,
@@ -23,7 +22,6 @@ import type {
   FrameStackMessage,
   FrameReducerActions,
 } from "./types";
-import { PresentableError } from "./errors";
 import type { FarcasterFrameContext } from "./farcaster";
 
 function onMintFallback({ target }: OnMintArgs): void {
@@ -110,7 +108,8 @@ function framesStackReducer(
   switch (action.action) {
     case "LOAD":
       return [action.item, ...state];
-    case "DONE": {
+    case "DONE":
+    case "REQUEST_ERROR": {
       const index = state.findIndex(
         (item) => item.timestamp === action.pendingItem.timestamp
       );
@@ -231,10 +230,10 @@ export function useFrame<
     }
   );
 
-  async function fetchFrame(
-    frameRequest: FrameRequest,
+  const fetchFrame: FrameState["fetchFrame"] = async function fetchFrame(
+    frameRequest,
     shouldClear = false
-  ): Promise<void> {
+  ) {
     const startTime = new Date();
 
     if (shouldClear) {
@@ -250,6 +249,7 @@ export function useFrame<
         url: frameRequest.url,
         status: "pending",
       };
+
       dispatch({ action: "LOAD", item: frameStackPendingItem });
 
       const searchParams = new URLSearchParams({
@@ -316,6 +316,7 @@ export function useFrame<
         timestamp: startTime,
         url: frameRequest.url,
         status: "pending",
+        sourceFrame: frameRequest.sourceFrame,
       };
 
       dispatch({ action: "LOAD", item: frameStackPendingItem });
@@ -344,18 +345,50 @@ export function useFrame<
             const data = (await response.clone().json()) as {
               message?: string;
             };
+
+            // handle error message
+            if (
+              typeof data === "object" &&
+              "message" in data &&
+              typeof data.message === "string"
+            ) {
+              const stackItem: FrameStackMessage = {
+                ...frameStackPendingItem,
+                responseStatus: response.status,
+                speed: computeDurationInSeconds(startTime, endTime),
+                status: "message",
+                type: "error",
+                message: data.message,
+              };
+
+              dispatch({
+                action: "DONE",
+                pendingItem: frameStackPendingItem,
+                item: stackItem,
+              });
+
+              return;
+            }
+
+            console.error(
+              `frames.js: The server returned an error but it does not contain message property. Status code: ${response.status}`,
+              data
+            );
+
             // Show error message if available
-            throw new PresentableError(data.message);
+            throw new Error(
+              "Unknown error occurred. Please check the console for more information."
+            );
           }
 
-          if (response.status >= 500)
+          if (response.status >= 500) {
             throw new Error(`Failed to fetch frame: ${response.statusText}`);
+          }
         }
 
         const responseData = (await response.json()) as
           | GetFrameResult
-          | { location: string }
-          | { message: string };
+          | { location: string };
 
         if ("location" in responseData) {
           const location = responseData.location;
@@ -364,21 +397,6 @@ export function useFrame<
             window.open(location, "_blank")?.focus();
           }
 
-          return;
-        } else if ("message" in responseData) {
-          const stackItem: FrameStackMessage = {
-            ...frameStackPendingItem,
-            responseStatus: response.status,
-            speed: computeDurationInSeconds(startTime, endTime),
-            status: "message",
-            message: responseData.message,
-          };
-
-          dispatch({
-            action: "DONE",
-            pendingItem: frameStackPendingItem,
-            item: stackItem,
-          });
           return;
         }
 
@@ -411,7 +429,7 @@ export function useFrame<
         console.error(err);
       }
     }
-  }
+  };
 
   const fetchFrameRef = useRef(fetchFrame);
   fetchFrameRef.current = fetchFrame;
@@ -489,6 +507,7 @@ export function useFrame<
 
           if (transactionId) {
             await onPostButton({
+              currentFrame,
               frameButton,
               target:
                 frameButton.post_url ||
@@ -516,6 +535,7 @@ export function useFrame<
           }
 
           await onPostButton({
+            currentFrame,
             frameButton,
             /** https://docs.farcaster.xyz/reference/frames/spec#handling-clicks
     
@@ -544,6 +564,7 @@ export function useFrame<
   }
 
   async function onPostButton({
+    currentFrame,
     buttonIndex,
     postInputText,
     frameButton,
@@ -553,6 +574,7 @@ export function useFrame<
     transactionId,
     fetchFrameOverride,
   }: {
+    currentFrame: Frame;
     frameButton: FrameButton;
     buttonIndex: number;
     postInputText: string | undefined;
@@ -562,13 +584,11 @@ export function useFrame<
     target: string;
     fetchFrameOverride?: typeof fetchFrame;
   }): Promise<void> {
-    const currentFrameStackItem = framesStack[0];
-
     if (!isDangerousSkipSigning && !signerState.hasSigner) {
       console.error("frames.js: missing required auth state");
       return;
     }
-    if (!currentFrameStackItem || !homeframeUrl) {
+    if (!homeframeUrl) {
       console.error("frames.js: missing required value for post");
       return;
     }
@@ -601,6 +621,7 @@ export function useFrame<
         searchParams,
         body,
       },
+      sourceFrame: currentFrame,
     });
   }
 

@@ -87,10 +87,13 @@ function ActionDebuggerPropertiesTableRow({
       });
     }
 
-    const invalidKeys = invalidProperties.reduce((acc, [key]) => {
-      acc[key] = true;
-      return acc;
-    }, {} as Record<string, boolean>);
+    const invalidKeys = invalidProperties.reduce(
+      (acc, [key]) => {
+        acc[key] = true;
+        return acc;
+      },
+      {} as Record<string, boolean>
+    );
 
     return {
       validProperties: validProperties.filter(([key]) => !invalidKeys[key]),
@@ -241,6 +244,7 @@ export function ActionDebugger({
         timestamp: startTime,
         url: frameRequest.url,
         status: "pending",
+        sourceFrame: frameRequest.sourceFrame,
       };
 
       actionFrameState.dispatchFrameStack({
@@ -270,14 +274,6 @@ export function ActionDebugger({
         console.log("response", response.status);
 
         if (!response.ok) {
-          // if (response.status >= 400 && response.status < 500) {
-          //   const data = (await response.clone().json()) as {
-          //     message?: string;
-          //   };
-          //   // Show error message if available
-          //   throw new PresentableError(data.message);
-          // }
-
           if (response.status >= 500)
             throw new Error(`Failed to fetch frame: ${response.statusText}`);
         }
@@ -304,6 +300,7 @@ export function ActionDebugger({
             responseStatus: response.status,
             speed: computeDurationInSeconds(startTime, endTime),
             status: "message",
+            type: "info",
             message: responseData.message,
           };
 
@@ -319,6 +316,7 @@ export function ActionDebugger({
             responseStatus: response.status,
             speed: computeDurationInSeconds(startTime, endTime),
             status: "message",
+            type: "info",
             message: "Loading frame from frameUrl.",
           };
 

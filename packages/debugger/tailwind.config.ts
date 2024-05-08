@@ -13,6 +13,8 @@ const config = {
     "../../node_modules/frames.js/dist/render/next/*.{ts,tsx,js,css}",
     "../../node_modules/frames.js/dist/render/*.{ts,tsx,js,css}",
     "../../node_modules/frames.js/dist/**/*.{ts,tsx,js,css}",
+    "./node_modules/@frames.js/render/**/*.{ts,tsx,js,jsx,css}",
+    "../../node_modules/@frames.js/render/**/*.{ts,tsx,js,jsx,css}",
   ],
   prefix: "",
   theme: {

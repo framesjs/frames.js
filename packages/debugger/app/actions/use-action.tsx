@@ -20,6 +20,7 @@ import type {
   GetFrameResult,
   FrameStackMessage,
   FarcasterFrameContext,
+  FramesStackItem,
 } from "@frames.js/render";
 import type { ParseResult } from "frames.js/frame-parsers";
 
@@ -109,7 +110,7 @@ type FrameActions =
   | {
       action: "DONE";
       pendingItem: FrameStackPending;
-      item: FramesStack[number];
+      item: FramesStackItem;
     }
   | { action: "CLEAR" }
   | {
@@ -335,6 +336,7 @@ export function useAction<
         timestamp: startTime,
         url: frameRequest.url,
         status: "pending",
+        sourceFrame: frameRequest.sourceFrame,
       };
 
       dispatch({ action: "LOAD", item: frameStackPendingItem });
@@ -361,14 +363,6 @@ export function useAction<
         console.log("response", response.status);
 
         if (!response.ok) {
-          // if (response.status >= 400 && response.status < 500) {
-          //   const data = (await response.clone().json()) as {
-          //     message?: string;
-          //   };
-          //   // Show error message if available
-          //   throw new PresentableError(data.message);
-          // }
-
           if (response.status >= 500)
             throw new Error(`Failed to fetch frame: ${response.statusText}`);
         }
@@ -395,6 +389,7 @@ export function useAction<
             responseStatus: response.status,
             speed: computeDurationInSeconds(startTime, endTime),
             status: "message",
+            type: "info",
             message: responseData.message,
           };
 
@@ -410,6 +405,7 @@ export function useAction<
             responseStatus: response.status,
             speed: computeDurationInSeconds(startTime, endTime),
             status: "message",
+            type: "info",
             message: "Loading frame from frameUrl.",
           };
 
@@ -540,6 +536,7 @@ export function useAction<
 
           if (transactionId) {
             await onPostButton({
+              currentFrame,
               frameButton,
               target:
                 frameButton.post_url ||
@@ -567,6 +564,7 @@ export function useAction<
           }
 
           await onPostButton({
+            currentFrame,
             frameButton,
             /** https://docs.farcaster.xyz/reference/frames/spec#handling-clicks
     
@@ -595,6 +593,7 @@ export function useAction<
   }
 
   async function onPostButton({
+    currentFrame,
     buttonIndex,
     postInputText,
     frameButton,
@@ -604,6 +603,7 @@ export function useAction<
     transactionId,
     fetchFrameOverride,
   }: {
+    currentFrame: Frame;
     frameButton: FrameButton;
     buttonIndex: number;
     postInputText: string | undefined;
@@ -649,6 +649,7 @@ export function useAction<
         searchParams,
         body,
       },
+      sourceFrame: currentFrame,
     });
   }
 
