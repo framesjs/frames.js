@@ -18,7 +18,7 @@ const nextConfig = {
       },
     ],
   },
-  webpack: (config) => {
+  webpack: (config, context) => {
     config.externals.push(
       "pino-pretty",
       "lokijs",
@@ -28,6 +28,17 @@ const nextConfig = {
       // so it is installed on user's system
       "@xmtp/user-preferences-bindings-wasm"
     );
+
+    // fixes file-types package so we can import it client side
+    config.plugins.push(
+      new context.webpack.NormalModuleReplacementPlugin(
+        /^node:/,
+        (resource) => {
+          resource.request = resource.request.replace(/^node:/, "");
+        }
+      )
+    );
+
     return config;
   },
 };
