@@ -26,6 +26,12 @@ const args = yargs(hideBin(process.argv))
     default:
       process.env.FARCASTER_DEVELOPER_ID || process.env.FARCASTER_DEVELOPER_FID,
   })
+  .option("signer-url", {
+    type: "string",
+    description:
+      "URL of the signer to use to create a signer. If value is not provided and no farcaster-developer-id and farcaster-developer-mnemonic is provided it uses https://debugger.framesjs.org/signer.",
+    default: process.env.SIGNER_URL,
+  })
   .option("port", {
     alias: "p",
     type: "number",
@@ -41,6 +47,7 @@ const args = yargs(hideBin(process.argv))
 
 process.env.FARCASTER_DEVELOPER_MNEMONIC = args["farcaster-developer-mnemonic"];
 process.env.FARCASTER_DEVELOPER_ID = args["farcaster-developer-fid"];
+process.env.SIGNER_URL = args["signer-url"];
 
 const dev = false;
 const hostname = "localhost";
