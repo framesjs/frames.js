@@ -1,12 +1,29 @@
 import { version as framesjsVersion } from "../package.json";
 import type { Frame, FrameFlattened } from "./types";
 
+export function getFrameFlattened(
+  frame: Frame,
+  overrides?: Partial<FrameFlattened>
+): FrameFlattened;
+export function getFrameFlattened(
+  frame: Partial<Frame>,
+  overrides?: Partial<FrameFlattened>
+): Partial<FrameFlattened>;
+
 /**
  * Takes a `Frame` and formats it as an intermediate step before rendering as html
- * @param frame - The `Frame` to flatten
  * @returns a plain object with frame metadata keys and values according to the frame spec, using their lengthened syntax, e.g. "fc:frame:image"
  */
-export function getFrameFlattened(frame: Frame): FrameFlattened {
+export function getFrameFlattened(
+  /**
+   * The frame to flatten
+   */
+  frame: Partial<Frame>,
+  /**
+   * Optional overrides to apply to the frame
+   */
+  overrides?: Partial<FrameFlattened>
+): Partial<FrameFlattened> {
   const openFrames =
     frame.accepts && Boolean(frame.accepts.length)
       ? {
@@ -43,7 +60,7 @@ export function getFrameFlattened(frame: Frame): FrameFlattened {
         }
       : {};
 
-  const metadata: FrameFlattened = {
+  const metadata: Partial<FrameFlattened> = {
     "fc:frame": frame.version,
     "fc:frame:image": frame.image,
     "og:image": frame.ogImage || frame.image,
@@ -67,6 +84,7 @@ export function getFrameFlattened(frame: Frame): FrameFlattened {
     ),
     ...openFrames,
     [`frames.js:version`]: framesjsVersion,
+    ...overrides,
   };
 
   return metadata;
