@@ -1,5 +1,14 @@
 # docs
 
+## 0.2.6
+
+### Patch Changes
+
+- 2fec9c9: feat: state signing secret option
+- Updated dependencies [2fec9c9]
+- Updated dependencies [032b413]
+  - frames.js@0.15.2
+
 ## 0.2.5
 
 ### Patch Changes

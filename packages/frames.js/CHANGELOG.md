@@ -1,5 +1,12 @@
 # frames.js
 
+## 0.15.2
+
+### Patch Changes
+
+- 2fec9c9: feat: state signing secret option
+- 032b413: feat: parse frames.js version from meta tags and show in debugger
+
 ## 0.15.1
 
 ### Patch Changes

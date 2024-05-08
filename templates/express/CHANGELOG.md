@@ -1,5 +1,13 @@
 # template-express
 
+## 0.0.10
+
+### Patch Changes
+
+- Updated dependencies [2fec9c9]
+- Updated dependencies [032b413]
+  - frames.js@0.15.2
+
 ## 0.0.9
 
 ### Patch Changes

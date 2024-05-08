@@ -1,5 +1,16 @@
 # @frames.js/render
 
+## 0.2.5
+
+### Patch Changes
+
+- 66d5a5d: feat: store source for post requests so we can render them in case of message returned from server
+- 032b413: feat: parse frames.js version from meta tags and show in debugger
+- b938940: fix: do not require double click when changing debug url in the middle of debugging session
+- Updated dependencies [2fec9c9]
+- Updated dependencies [032b413]
+  - frames.js@0.15.2
+
 ## 0.2.4
 
 ### Patch Changes

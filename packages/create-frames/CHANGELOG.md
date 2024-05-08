@@ -1,5 +1,14 @@
 # create-frames
 
+## 0.1.11
+
+### Patch Changes
+
+- 2fec9c9: feat: state signing secret option
+- 8026f38: fix(create-frames): properly parse package version for CLI command
+- 054364e: feat: initialize git repository when project is created
+- 4787c9a: fix(create-frames): move eslint config to cjs, fix eslint errors, use minor versions of nextjs
+
 ## 0.1.10
 
 ### Patch Changes

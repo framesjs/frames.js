@@ -1,5 +1,16 @@
 # @frames.js/debugger
 
+## 0.2.6
+
+### Patch Changes
+
+- 66d5a5d: fix: render frame errors and messages correctly
+- 29c5722: feat: add button tooltips to debugger
+- 032b413: feat: parse frames.js version from meta tags and show in debugger
+- b938940: fix: do not require double click when changing debug url in the middle of debugging session
+- cfa1ecb: feat: improved debugger ux by actionable notifications
+- e259432: feat: fallback to hosted debugger signer if no fid, mnemonic or signer url are provided
+
 ## 0.2.5
 
 ### Patch Changes

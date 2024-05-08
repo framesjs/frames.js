@@ -1,5 +1,15 @@
 # template-next-starter-with-examples
 
+## 0.0.12
+
+### Patch Changes
+
+- 2fec9c9: feat: state signing secret option
+- 4787c9a: fix(create-frames): move eslint config to cjs, fix eslint errors, use minor versions of nextjs
+- Updated dependencies [2fec9c9]
+- Updated dependencies [032b413]
+  - frames.js@0.15.2
+
 ## 0.0.11
 
 ### Patch Changes

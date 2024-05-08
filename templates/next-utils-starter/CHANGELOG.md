@@ -1,5 +1,14 @@
 # template-next-utils-starter
 
+## 0.0.8
+
+### Patch Changes
+
+- 4787c9a: fix(create-frames): move eslint config to cjs, fix eslint errors, use minor versions of nextjs
+- Updated dependencies [2fec9c9]
+- Updated dependencies [032b413]
+  - frames.js@0.15.2
+
 ## 0.0.7
 
 ### Patch Changes
