@@ -206,7 +206,11 @@ function getSignerFromLocalStorage(): State {
   return { activeIdentity: null, identities: [] };
 }
 
-export function useFarcasterIdentity(): Omit<
+type UseFarcasterIdentityOptions = {
+  onMissingIdentity: () => void;
+};
+
+export function useFarcasterIdentity({ onMissingIdentity }: UseFarcasterIdentityOptions): Omit<
   FarcasterSignerState,
   "logout" | "isLoading" | "onSignerlessFramePress" | "signer"
 > & {
@@ -313,11 +317,9 @@ export function useFarcasterIdentity(): Omit<
     [dispatch, setLoading]
   );
 
-  const signInUser = useCallback(async () => {
-    setLoading(true);
-    await createFarcasterSigner();
-    setLoading(false);
-  }, [setLoading, createFarcasterSigner]);
+  const onSignerlessFramePress = useCallback(async () => {
+    onMissingIdentity();
+  }, [onMissingIdentity]);
 
   const logout = useCallback(() => {
     dispatch({ type: "LOGOUT" });
@@ -358,13 +360,6 @@ export function useFarcasterIdentity(): Omit<
             if (responseBody.result.signedKeyRequest.state !== "completed") {
               throw new Error("hasnt succeeded yet");
             }
-
-            const user = {
-              ...farcasterUser,
-              ...responseBody.result,
-              fid: responseBody.result.signedKeyRequest.userFid,
-              status: "approved" as const,
-            };
 
             dispatch({
               type: "FARCASTER_SIGN_IN_SUCCESS",
@@ -423,7 +418,7 @@ export function useFarcasterIdentity(): Omit<
     signFrameAction,
     isLoadingSigner: isLoading,
     impersonateUser,
-    onSignerlessFramePress: signInUser,
+    onSignerlessFramePress,
     logout,
     removeIdentity,
     identities: state.identities,

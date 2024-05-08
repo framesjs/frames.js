@@ -16,6 +16,7 @@
     "url": "https://github.com/framesjs/frames.js/tree/main/packages/debugger"
   },
   "dependencies": {
+    "@radix-ui/react-toast": "^1.1.5",
     "@radix-ui/react-tooltip": "^1.0.7",
     "@xmtp/xmtp-js": "^11.5.0",
     "is-port-reachable": "^4.0.0",
