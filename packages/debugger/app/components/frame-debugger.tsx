@@ -219,7 +219,11 @@ const FramesRequestCardContentIcon: React.FC<{
   }
 
   if (stackItem.status === "message") {
-    return <InfoIcon size={20} color="blue" />;
+    if (stackItem.type === "info") {
+      return <InfoIcon size={20} color="blue" />;
+    } else {
+      return <XCircle size={20} color="blue" />;
+    }
   }
 
   if (stackItem.frame?.status === "failure") {
@@ -752,8 +756,8 @@ export function FrameDebugger({
                           {frameState.frame.speed > 5
                             ? `Request took more than 5s (${frameState.frame.speed} seconds). This may be normal: first request will take longer in development (as next.js builds), but in production, clients will timeout requests after 5s`
                             : frameState.frame.speed > 4
-                            ? `Warning: Request took more than 4s (${frameState.frame.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
-                            : `${frameState.frame.speed} seconds`}
+                              ? `Warning: Request took more than 4s (${frameState.frame.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
+                              : `${frameState.frame.speed} seconds`}
                         </TableCell>
                       </TableRow>
                       <FrameDebuggerFramePropertiesTableRow

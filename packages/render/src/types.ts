@@ -136,6 +136,7 @@ export type FrameStackMessage = FrameStackBase &
   FramePOSTRequest & {
     status: "message";
     message: string;
+    type: "info" | "error";
   };
 
 export type FramesStackItem =

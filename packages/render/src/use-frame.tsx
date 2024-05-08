@@ -22,7 +22,6 @@ import type {
   FrameStackMessage,
   FrameReducerActions,
 } from "./types";
-import { PresentableError } from "./errors";
 import type { FarcasterFrameContext } from "./farcaster";
 
 function onMintFallback({ target }: OnMintArgs): void {
@@ -231,7 +230,7 @@ export function useFrame<
     }
   );
 
-  const fetchFrame: FrameState['fetchFrame'] = async function fetchFrame(
+  const fetchFrame: FrameState["fetchFrame"] = async function fetchFrame(
     frameRequest,
     shouldClear = false
   ) {
@@ -348,15 +347,20 @@ export function useFrame<
             };
 
             // handle error message
-            if (typeof data === 'object' && 'message' in data && typeof data.message === 'string') {
+            if (
+              typeof data === "object" &&
+              "message" in data &&
+              typeof data.message === "string"
+            ) {
               const stackItem: FrameStackMessage = {
                 ...frameStackPendingItem,
                 responseStatus: response.status,
                 speed: computeDurationInSeconds(startTime, endTime),
                 status: "message",
+                type: "error",
                 message: data.message,
               };
-    
+
               dispatch({
                 action: "DONE",
                 pendingItem: frameStackPendingItem,
@@ -366,10 +370,15 @@ export function useFrame<
               return;
             }
 
-            console.error(`frames.js: The server returned an error but it does not contain message property. Status code: ${response.status}`, data);
+            console.error(
+              `frames.js: The server returned an error but it does not contain message property. Status code: ${response.status}`,
+              data
+            );
 
             // Show error message if available
-            throw new PresentableError('Unknown error occurred. Please check the console for more information.');
+            throw new Error(
+              "Unknown error occurred. Please check the console for more information."
+            );
           }
 
           if (response.status >= 500) {
@@ -420,7 +429,7 @@ export function useFrame<
         console.error(err);
       }
     }
-  }
+  };
 
   const fetchFrameRef = useRef(fetchFrame);
   fetchFrameRef.current = fetchFrame;

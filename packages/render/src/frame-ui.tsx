@@ -7,7 +7,6 @@ import type {
   FrameStackMessage,
   FrameStackRequestError,
 } from "./types";
-import { PresentableError } from "./errors";
 
 export const defaultTheme: Required<FrameTheme> = {
   buttonBg: "#fff",
@@ -32,7 +31,7 @@ const messageSquareIcon = (
     strokeLinejoin="round"
   >
     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-  </svg> 
+  </svg>
 );
 
 const octagonXIcon = (
@@ -83,7 +82,7 @@ function MessageTooltip({
         inline
           ? ""
           : "absolute bottom-2 border border-slate-100 rounded-sm shadow-md inset-x-2"
-      } items-center p-2 flex gap-2 text-sm text-red-500`}
+      } ${variant === "error" ? "text-red-500" : ""} items-center p-2 flex gap-2 text-sm`}
     >
       {variant === "message" ? messageSquareIcon : octagonXIcon}
       {message}
@@ -98,10 +97,7 @@ function getErrorMessageFromFramesStackItem(
     return item.message;
   }
 
-  if (
-    item.requestError instanceof PresentableError ||
-    item.requestError instanceof Error
-  ) {
+  if (item.requestError instanceof Error) {
     return item.requestError.message;
   }
 
@@ -137,7 +133,6 @@ export function FrameUI({
 
   if (
     currentFrame.status === "requestError" &&
-    !(currentFrame.requestError instanceof PresentableError) &&
     !(currentFrame.requestError instanceof Error)
   ) {
     return <MessageTooltip inline message="Failed to load frame" />;
@@ -179,7 +174,10 @@ export function FrameUI({
             inline={!!frame && !frame.image}
             message={getErrorMessageFromFramesStackItem(currentFrame)}
             variant={
-              currentFrame.status === "requestError" ? "error" : "message"
+              currentFrame.status === "requestError" ||
+              currentFrame.type === "error"
+                ? "error"
+                : "message"
             }
           />
         ) : null}
