@@ -435,17 +435,7 @@ describe("renderResponse middleware", () => {
     );
   });
 
-  it("does not return a state on initial request (method GET)", async () => {
-    console.warn = jest.fn();
-    context.request = new Request("https://example.com", {
-      method: "GET",
-      headers: {
-        Accept: FRAMES_META_TAGS_HEADER,
-      },
-    });
-
-    expect(console.warn).not.toHaveBeenCalled();
-
+  it("returns 500 if state returned from next middleware is not a string", async () => {
     const result = await render(context, async () => {
       return {
         image: <div>My image</div>,
@@ -453,15 +443,14 @@ describe("renderResponse middleware", () => {
       };
     });
 
-    expect(console.warn).toHaveBeenCalledTimes(1);
-
-    const json = (await (result as Response).json()) as Record<string, string>;
-
-    expect(json.state).toBeUndefined();
+    expect(result).toBeInstanceOf(Response);
+    expect((result as Response).status).toBe(500);
+    await expect((result as Response).text()).resolves.toBe(
+      "State must be a string"
+    );
   });
 
-  it("returns a state on POST requests (these are not initial since those are always reactions to clicks)", async () => {
-    console.warn = jest.fn();
+  it("returns a state as is from next middleware", async () => {
     context.request = new Request("https://example.com", {
       method: "POST",
       headers: {
@@ -471,15 +460,12 @@ describe("renderResponse middleware", () => {
     const result = await render(context, async () => {
       return {
         image: <div>My image</div>,
-        state: { test: true },
+        state: JSON.stringify({ test: true }),
       };
     });
 
-    expect(console.warn).not.toHaveBeenCalled();
-
     const json = (await (result as Response).json()) as Record<string, string>;
 
-    expect(console.warn).not.toHaveBeenCalled();
     expect(json["fc:frame:state"]).toEqual(JSON.stringify({ test: true }));
   });
 

@@ -25,6 +25,8 @@ class UnrecognizedButtonActionError extends Error {}
 
 class ImageRenderError extends Error {}
 
+class InvalidStateValueError extends Error {}
+
 /**
  * This middleware is responsible for rendering the response
  *
@@ -98,21 +100,17 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
       });
     }
 
-    let state: string | undefined;
-
-    // state is supported only in reactions to button clicks (POST requests)
-    if (result.state) {
-      if (context.request.method === "POST") {
-        state = JSON.stringify(result.state);
-      } else {
-        // eslint-disable-next-line no-console -- provide feedback to the user
-        console.warn(
-          "State is not supported on initial request (the one initialized when Frames are rendered for first time, that uses GET request) and will be ignored"
-        );
-      }
-    }
-
     try {
+      let state: string | undefined;
+
+      if (result.state) {
+        if (typeof result.state !== "string") {
+          throw new InvalidStateValueError("State must be a string");
+        } else {
+          state = result.state;
+        }
+      }
+
       // @todo validate frame so it is according to spec and throw a ValidationError in case it isn't
       // and handle that error in catch block
       const frame: Frame = {
@@ -238,7 +236,8 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
         e instanceof ImageRenderError ||
         e instanceof UnrecognizedButtonActionError ||
         e instanceof InvalidButtonCountError ||
-        e instanceof InvalidButtonShapeError
+        e instanceof InvalidButtonShapeError ||
+        e instanceof InvalidStateValueError
       ) {
         message = e.message;
       } else {

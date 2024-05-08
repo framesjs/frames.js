@@ -49,6 +49,17 @@ An array of middleware functions that are called before the frame handler and al
 
 Each middleware should return a promise that resolves to the next middleware, or a [Web API `Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response), or a `FrameDefinition`.
 
+### `stateSigningSecret`
+
+- Type: `string`
+
+A secret key used to sign and verify the state in the frame message. If provided, state is automatically signed with this key and verified on each frame.
+
+- If the signature is present in state data:
+  - If the secret is not provided, the state will not be verified and used as is.
+  - If the secret is provided and signature does not match error is thrown.
+  - If the secret is provided and signature matches, the state will be used as is.
+
 #### Types
 
 For strong type support in the handler, the middleware should be typed as `FramesMiddleware<any, YourContextType>`.
@@ -167,7 +178,7 @@ const handleRequest = frames(async (ctx) => {
       aspectRatio: "1:1",
     },
     buttons: [<Button action="post">Refresh</Button>],
-    headers: { // [!code focus]
+    headers: {  // [!code focus]
       // Max cache age in seconds // [!code focus]
       "Cache-Control": "max-age=0", // [!code focus]
     }, // [!code focus]

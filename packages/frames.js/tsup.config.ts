@@ -6,7 +6,7 @@ import glob from "fast-glob";
 export default defineConfig({
   // this is necessary for cloudfare workers adapter to be able to import
   // buffer from cloudflare compatiblity layer
-  external: ["node:buffer"],
+  external: ["node:buffer", "node:crypto"],
   dts: true,
   format: ["cjs", "esm"],
   clean: true,
