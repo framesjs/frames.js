@@ -10,7 +10,7 @@
     "react": "^18.2.0"
   },
   "devDependencies": {
-    "@frames.js/debugger": "^0.2.6",
+    "@frames.js/debugger": "^0.2.7",
     "@hono/vite-dev-server": "^0.10.0",
     "@types/node": "^18.17.0",
     "@types/react": "^18.2.45",

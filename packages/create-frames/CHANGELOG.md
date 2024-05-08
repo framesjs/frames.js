@@ -1,5 +1,11 @@
 # create-frames
 
+## 0.1.12
+
+### Patch Changes
+
+- chore: bump template versions
+
 ## 0.1.11
 
 ### Patch Changes

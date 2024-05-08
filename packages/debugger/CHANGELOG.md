@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.2.7
+
+### Patch Changes
+
+- fc8e469: fix(debugger): invoke farcaster signer creation on sign in press
+
 ## 0.2.6
 
 ### Patch Changes
