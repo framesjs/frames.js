@@ -11,7 +11,7 @@ import {
 import { useFrame } from "@frames.js/render/use-frame";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import { sendTransaction, switchChain } from "@wagmi/core";
-import { Frame, FrameActionPayload } from "frames.js";
+import type { FrameActionPayload } from "frames.js";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { zeroAddress } from "viem";
@@ -31,6 +31,8 @@ import {
 } from "./components/protocol-config-button";
 import { ActionDebugger } from "./components/action-debugger";
 import { ParseActionResult } from "./actions/types";
+import type { ParseResult } from "frames.js/frame-parsers";
+import { Loader2 } from "lucide-react";
 
 const FALLBACK_URL =
   process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
@@ -40,6 +42,7 @@ export default function App({
 }: {
   searchParams: Record<string, string>;
 }): JSX.Element {
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const [protocolConfiguration, setProtocolConfiguration] =
     useState<ProtocolConfiguration | null>(null);
@@ -60,7 +63,7 @@ export default function App({
       return undefined;
     }
   }, [searchParams.url]);
-  const [initialFrame, setInitialFrame] = useState<Frame & { type: string }>();
+  const [initialFrame, setInitialFrame] = useState<ParseResult>();
   const [initialAction, setInitialAction] = useState<ParseActionResult>();
   const [mockHubContext, setMockHubContext] = useState<
     Partial<MockHubActionContext>
@@ -118,13 +121,17 @@ export default function App({
       });
       const proxiedUrl = `/frames?${searchParams.toString()}`;
 
+      setIsLoading(true);
       fetch(proxiedUrl)
         .then(async (res) => {
           if (!res.ok) {
             const json = await res.json();
             throw new Error(json.message);
           }
-          return res.json();
+          return res.json() as Promise<
+            | ({ type: "action" } & ParseActionResult)
+            | ({ type: "frame" } & ParseResult)
+          >;
         })
         .then((json) => {
           if (json.type === "action") {
@@ -138,6 +145,9 @@ export default function App({
         .catch((e) => {
           console.error(e);
           alert(`Error loading url, see console for details`);
+        })
+        .finally(() => {
+          setIsLoading(false);
         });
     },
     [url, protocolConfiguration, setInitialAction, setInitialFrame]
@@ -333,7 +343,12 @@ export default function App({
               defaultValue={url ?? FALLBACK_URL}
               placeholder="Enter URL"
             />
-            <Button className="rounded-l-none" type="submit">
+            <Button
+              className="rounded-l-none"
+              disabled={isLoading}
+              type="submit"
+            >
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Debug
             </Button>
           </form>

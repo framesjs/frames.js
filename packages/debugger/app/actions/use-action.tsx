@@ -21,6 +21,7 @@ import type {
   FrameStackMessage,
   FarcasterFrameContext,
 } from "@frames.js/render";
+import type { ParseResult } from "frames.js/frame-parsers";
 
 function onMintFallback({ target }: OnMintArgs): void {
   window.alert(`Mint requested: ${target}`);
@@ -110,7 +111,16 @@ type FrameActions =
       pendingItem: FrameStackPending;
       item: FramesStack[number];
     }
-  | { action: "CLEAR" };
+  | { action: "CLEAR" }
+  | {
+      action: "RESET_INITIAL_FRAME";
+      resultOrFrame: ParseResult | Frame;
+      homeframeUrl: string | null | undefined;
+    };
+
+function isParseResult(result: Frame | ParseResult): result is ParseResult {
+  return "status" in result;
+}
 
 function framesStackReducer(
   state: FramesStack,
@@ -132,6 +142,39 @@ function framesStackReducer(
 
       return state.slice();
     }
+    case "RESET_INITIAL_FRAME": {
+      const originalInitialFrame = state[0];
+      const frame = isParseResult(action.resultOrFrame)
+        ? action.resultOrFrame.frame
+        : action.resultOrFrame;
+      // initial frame is always set with done state
+      const shouldReset =
+        !originalInitialFrame ||
+        (originalInitialFrame.status === "done" &&
+          originalInitialFrame.frame.frame !== frame);
+
+      if (shouldReset) {
+        return [
+          {
+            method: "GET",
+            responseStatus: 200,
+            timestamp: new Date(),
+            url: action.homeframeUrl ?? "",
+            speed: 0,
+            frame: isParseResult(action.resultOrFrame)
+              ? action.resultOrFrame
+              : {
+                  status: "success",
+                  reports: {},
+                  frame: action.resultOrFrame,
+                },
+            status: "done",
+          },
+        ];
+      }
+
+      return state;
+    }
     case "CLEAR":
       return [];
     default:
@@ -142,7 +185,7 @@ function framesStackReducer(
 export function useAction<
   SignerStorageType = object,
   FrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
-  FrameContextType extends FrameContext = FarcasterFrameContext,
+  FrameContextType extends FrameContext = FarcasterFrameContext
 >({
   homeframeUrl,
   frameContext,
@@ -164,21 +207,15 @@ export function useAction<
   FrameContextType
 >): FrameState {
   const [inputText, setInputText] = useState("");
-  const initialFrame = useMemo(() => {
-    if (frame) {
-      return { frame };
-    }
-    return undefined;
-  }, [frame]);
   const reducerInitArg = useMemo(
-    () => ({ initialFrame, homeframeUrl }),
-    [initialFrame, homeframeUrl]
+    () => ({ frame, homeframeUrl }),
+    [frame, homeframeUrl]
   );
   const [framesStack, dispatch] = useReducer(
     framesStackReducer,
     reducerInitArg,
     (args): FramesStack => {
-      if (args.initialFrame) {
+      if (args.frame) {
         return [
           {
             method: "GET",
@@ -186,11 +223,13 @@ export function useAction<
             timestamp: new Date(),
             url: args.homeframeUrl ?? "",
             speed: 0,
-            frame: {
-              status: "success",
-              frame: args.initialFrame.frame,
-              reports: {},
-            },
+            frame: isParseResult(args.frame)
+              ? args.frame
+              : {
+                  reports: {},
+                  frame: args.frame,
+                  status: "success",
+                },
             status: "done",
           },
         ];
@@ -429,7 +468,7 @@ export function useAction<
 
   // Load initial frame if not defined
   useEffect(() => {
-    if (!initialFrame && homeframeUrl) {
+    if (!frame && homeframeUrl) {
       fetchFrameRef
         .current(
           {
@@ -443,8 +482,14 @@ export function useAction<
         .catch((e) => {
           console.error(e);
         });
+    } else if (frame) {
+      dispatch({
+        action: "RESET_INITIAL_FRAME",
+        resultOrFrame: frame,
+        homeframeUrl,
+      });
     }
-  }, [initialFrame, homeframeUrl]);
+  }, [frame, homeframeUrl]);
 
   async function onButtonPress(
     currentFrame: Frame,
