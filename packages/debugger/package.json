@@ -60,7 +60,6 @@
     "cmdk": "^0.2.1",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.1.0",
-    "file-type": "^19.0.0",
     "frames.js": "^0.15.2",
     "lucide-react": "^0.344.0",
     "postcss": "^8",

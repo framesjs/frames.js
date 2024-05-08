@@ -4,7 +4,6 @@ import {
   type Frame,
   ParsingReport,
   SupportedParsingSpecification,
-  FrameFlattened,
 } from "frames.js";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import React from "react";
@@ -45,11 +44,9 @@ import { cn } from "@/lib/utils";
 import { hasWarnings } from "../lib/utils";
 import { useRouter } from "next/navigation";
 import { WithTooltip } from "./with-tooltip";
-import { InvalidImageAspectRatioError, InvalidImageError, InvalidImageTypeError, validateFrameImage } from "../lib/validateFrameImage";
 
 type FrameDebuggerFramePropertiesTableRowsProps = {
   stackItem: FramesStackItem;
-  specification: SupportedParsingSpecification;
 };
 
 function paramsToObject(entries: IterableIterator<[string, string]>): object {
@@ -74,9 +71,7 @@ function isPropertyExperimental([key, value]: [string, string]) {
 
 function FrameDebuggerFramePropertiesTableRow({
   stackItem,
-  specification,
 }: FrameDebuggerFramePropertiesTableRowsProps) {
-  const [currentStackItem, setCurrentStackItem] = useState(stackItem);
   const properties = useMemo(() => {
     /** tuple of key and value */
     const validProperties: [string, string][] = [];
@@ -84,19 +79,19 @@ function FrameDebuggerFramePropertiesTableRow({
     const invalidProperties: [string, ParsingReport[]][] = [];
     const visitedInvalidProperties: string[] = [];
 
-    if (currentStackItem.status === "pending") {
+    if (stackItem.status === "pending") {
       return { validProperties, invalidProperties, isValid: true };
     }
 
-    if (currentStackItem.status === "requestError") {
+    if (stackItem.status === "requestError") {
       return { validProperties, invalidProperties, isValid: false };
     }
 
-    if (currentStackItem.status === "message") {
+    if (stackItem.status === "message") {
       return { validProperties, invalidProperties, isValid: true };
     }
 
-    const result = currentStackItem.frame;
+    const result = stackItem.frame;
 
     // we need to check validation errors first because getFrame incorrectly return a value for a key even if it's invalid
     for (const [key, errors] of Object.entries(result.reports)) {
@@ -107,8 +102,7 @@ function FrameDebuggerFramePropertiesTableRow({
 
     const flattenedFrame = getFrameFlattened(result.frame, {
       "frames.js:version":
-        "frames.js:version" in result.frame &&
-        typeof result.frame["frames.js:version"] === "string"
+        "frames.js:version" in result.frame && typeof result.frame["frames.js:version"] === "string"
           ? result.frame["frames.js:version"]
           : undefined,
     });
@@ -136,89 +130,7 @@ function FrameDebuggerFramePropertiesTableRow({
       isValid: invalidProperties.length === 0,
       hasExperimentalProperties,
     };
-  }, [currentStackItem]);
-
-  useEffect(() => {
-    setCurrentStackItem(stackItem);
   }, [stackItem]);
-
-  useEffect(() => {
-    if (stackItem.status === "done" && stackItem.frame.frame.image) {
-      const imageKey: keyof FrameFlattened =
-      specification === "farcaster" ? "fc:frame:image" : "of:image";
-    const imageAspectRatioKey: keyof FrameFlattened =
-      specification === "farcaster"
-        ? "fc:frame:image:aspect_ratio"
-        : "of:image:aspect_ratio";
-
-
-      const src = stackItem.frame.frame.image;
-
-      validateFrameImage({
-        src,
-        aspectRatio: stackItem.frame.frame.imageAspectRatio ?? "",
-      }).catch(e => {
-        if (e instanceof InvalidImageAspectRatioError) {
-          setCurrentStackItem({
-            ...stackItem,
-            frame: {
-              ...stackItem.frame,
-              status: "failure",
-              reports: {
-                ...stackItem.frame.reports,
-                [imageAspectRatioKey]: [
-                  ...(stackItem.frame.reports[imageAspectRatioKey] ?? []),
-                  {
-                    source: specification,
-                    level: "error",
-                    message: e.message,
-                  },
-                ],
-              },
-            },
-          });
-        } else if (e instanceof InvalidImageTypeError || e instanceof InvalidImageError) {
-          setCurrentStackItem({
-            ...stackItem,
-            frame: {
-              ...stackItem.frame,
-              status: "failure",
-              reports: {
-                ...stackItem.frame.reports,
-                [imageKey]: [
-                  ...(stackItem.frame.reports[imageKey] ?? []),
-                  {
-                    source: specification,
-                    level: "error",
-                    message: e.message,
-                  },
-                ],
-              },
-            },
-          });
-        } else {
-          setCurrentStackItem({
-            ...stackItem,
-            frame: {
-              ...stackItem.frame,
-              status: "failure",
-              reports: {
-                ...stackItem.frame.reports,
-                [imageKey]: [
-                  ...(stackItem.frame.reports[imageKey] ?? []),
-                  {
-                    source: specification,
-                    level: "error",
-                    message: e instanceof Error ? e.message : `Failed to load image, invalid file type or corrupted image file`,
-                  },
-                ],
-              },
-            },
-          });
-        }
-      });
-    }
-  }, [stackItem, specification]);
 
   return (
     <>
@@ -855,7 +767,6 @@ export function FrameDebugger({
                         </TableCell>
                       </TableRow>
                       <FrameDebuggerFramePropertiesTableRow
-                        specification={specification}
                         stackItem={frameState.frame}
                       ></FrameDebuggerFramePropertiesTableRow>
                     </TableBody>
