@@ -85,7 +85,6 @@ export async function POST(req: NextRequest): Promise<Response> {
     const r = await fetch(postUrl, {
       method: "POST",
       headers: {
-        Accept: "application/json",
         "Content-Type": "application/json",
       },
       redirect: isPostRedirect ? "manual" : undefined,
@@ -101,8 +100,21 @@ export async function POST(req: NextRequest): Promise<Response> {
       );
     }
 
+    // this is an error, just return response as is
+    if (r.status >= 500) {
+      return Response.json(await r.text(), { status: r.status });
+      if (r.headers.get("content-type")?.includes("/json")) {
+        const json = await r.json();
+        return Response.json(json, { status: r.status });
+      }
+
+      return Response.json(await r.text(), { status: r.status });
+    }
+
     if (r.status >= 400 && r.status < 500) {
       const json = (await r.json()) as { message?: string };
+
+      // this is message response
       if ("message" in json) {
         return Response.json({ message: json.message }, { status: r.status });
       }
