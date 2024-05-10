@@ -240,7 +240,7 @@ export function ActionDebugger({
 
       const proxiedUrl = `/frames?${frameStackPendingItem.request.searchParams.toString()}`;
 
-      let response;
+      let response: Response | undefined;
       let endTime = new Date();
 
       try {
@@ -337,12 +337,23 @@ export function ActionDebugger({
           },
         });
       } catch (err) {
+        let responseBody: unknown;
+
+        if (response) {
+          if (response.headers.get("content-type")?.includes("/json")) {
+            responseBody = await response.json();
+          } else {
+            responseBody = await response.text();
+          }
+        }
+
         const stackItem: FrameStackRequestError = {
           ...frameStackPendingItem,
           responseStatus: response?.status ?? 500,
           requestError: err,
           speed: computeDurationInSeconds(startTime, endTime),
           status: "requestError",
+          responseBody,
         };
 
         actionFrameState.dispatchFrameStack({

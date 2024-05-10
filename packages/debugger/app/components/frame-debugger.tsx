@@ -815,7 +815,11 @@ export const FrameDebugger = React.forwardRef<
                             borderRadius: "4px",
                           }}
                         >
-                          {getFrameHtmlHead(frameResult.frame)
+                          {getFrameHtmlHead(
+                            "sourceFrame" in frameState.frame
+                              ? frameState.frame.sourceFrame
+                              : frameState.frame.frame.frame
+                          )
                             .split("<meta")
                             .filter((t) => !!t)
                             // hacky...
