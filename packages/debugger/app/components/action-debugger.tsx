@@ -39,21 +39,6 @@ type FrameDebuggerFramePropertiesTableRowsProps = {
   actionMetadataItem: ParseActionResult;
 };
 
-function paramsToObject(entries: IterableIterator<[string, string]>): object {
-  const result: Record<string, any> = {};
-  for (const [key, value] of entries) {
-    // each 'entry' is a [key, value] tupple
-    if (value.startsWith("{")) {
-      try {
-        result[key] = JSON.parse(value);
-        continue;
-      } catch (err) {}
-    }
-    result[key] = value;
-  }
-  return result;
-}
-
 function computeDurationInSeconds(start: Date, end: Date): number {
   return Number(((end.getTime() - start.getTime()) / 1000).toFixed(2));
 }
@@ -72,31 +57,28 @@ function ActionDebuggerPropertiesTableRow({
     /** tuple of key and error message */
     const invalidProperties: [string, ParsingReport[]][] = [];
     const visitedInvalidProperties: string[] = [];
-
     const result = actionMetadataItem;
 
     // we need to check validation errors first because getFrame incorrectly return a value for a key even if it's invalid
-    for (const [key, parseResults] of Object.entries(result.reports)) {
-      // Group errors by level
-      parseResults.forEach((result) => {
-        if (result.level === "valid") {
-          validProperties.push([key, result.message]);
-        } else {
-          invalidProperties.push([key, parseResults]);
-        }
-      });
+    for (const [key, reports] of Object.entries(result.reports)) {
+      invalidProperties.push([key, reports]);
+      visitedInvalidProperties.push(key);
     }
 
-    const invalidKeys = invalidProperties.reduce(
-      (acc, [key]) => {
-        acc[key] = true;
-        return acc;
-      },
-      {} as Record<string, boolean>
-    );
+    for (const [key, value] of Object.entries(result.action)) {
+      if (visitedInvalidProperties.includes(key) || value == null) {
+        continue;
+      }
+
+      if (typeof value === "object") {
+        validProperties.push([key, JSON.stringify(value)]);
+      } else {
+        validProperties.push([key, value]);
+      }
+    }
 
     return {
-      validProperties: validProperties.filter(([key]) => !invalidKeys[key]),
+      validProperties,
       invalidProperties,
       isValid: invalidProperties.length === 0,
       hasExperimentalProperties: false,
@@ -104,66 +86,70 @@ function ActionDebuggerPropertiesTableRow({
   }, [actionMetadataItem]);
 
   return (
-    <>
-      {properties.validProperties.map(([propertyKey, value]) => {
-        return (
-          <TableRow key={`${propertyKey}-valid`}>
-            <TableCell>
-              {isPropertyExperimental([propertyKey, value]) ? (
-                <span className="whitespace-nowrap flex">
-                  <div className="inline">
-                    <CheckCircle2 size={20} color="orange" />
-                  </div>
-                  <div className="inline text-slate-500">*</div>
-                </span>
-              ) : (
-                <CheckCircle2 size={20} color="green" />
-              )}
-            </TableCell>
-            <TableCell>{propertyKey}</TableCell>
-            <TableCell className="text-slate-500">
-              <ShortenedText text={value} maxLength={30} />
-            </TableCell>
-          </TableRow>
-        );
-      })}
-      {properties.invalidProperties.flatMap(([propertyKey, errorMessages]) => {
-        return errorMessages.map((errorMessage, i) => {
+    <Table>
+      <TableBody>
+        {properties.validProperties.map(([propertyKey, value]) => {
           return (
-            <TableRow key={`${propertyKey}-${i}-invalid`}>
+            <TableRow key={`${propertyKey}-valid`}>
               <TableCell>
-                {errorMessage.level === "error" ? (
-                  <XCircle size={20} color="red" />
+                {isPropertyExperimental([propertyKey, value]) ? (
+                  <span className="whitespace-nowrap flex">
+                    <div className="inline">
+                      <CheckCircle2 size={20} color="orange" />
+                    </div>
+                    <div className="inline text-slate-500">*</div>
+                  </span>
                 ) : (
-                  <AlertTriangle size={20} color="orange" />
+                  <CheckCircle2 size={20} color="green" />
                 )}
               </TableCell>
               <TableCell>{propertyKey}</TableCell>
               <TableCell className="text-slate-500">
-                <p
-                  className={cn(
-                    "font-bold",
-                    errorMessage.level === "error"
-                      ? "text-red-500"
-                      : "text-orange-500"
-                  )}
-                >
-                  {errorMessage.message}
-                </p>
+                <ShortenedText text={value} maxLength={30} />
               </TableCell>
             </TableRow>
           );
-        });
-      })}
-      {properties.hasExperimentalProperties && (
-        <TableRow>
-          <TableCell colSpan={3} className="text-slate-500">
-            *This property is experimental and may not have been adopted in
-            clients yet
-          </TableCell>
-        </TableRow>
-      )}
-    </>
+        })}
+        {properties.invalidProperties.flatMap(
+          ([propertyKey, errorMessages]) => {
+            return errorMessages.map((errorMessage, i) => {
+              return (
+                <TableRow key={`${propertyKey}-${i}-invalid`}>
+                  <TableCell>
+                    {errorMessage.level === "error" ? (
+                      <XCircle size={20} color="red" />
+                    ) : (
+                      <AlertTriangle size={20} color="orange" />
+                    )}
+                  </TableCell>
+                  <TableCell>{propertyKey}</TableCell>
+                  <TableCell className="text-slate-500">
+                    <p
+                      className={cn(
+                        "font-bold",
+                        errorMessage.level === "error"
+                          ? "text-red-500"
+                          : "text-orange-500"
+                      )}
+                    >
+                      {errorMessage.message}
+                    </p>
+                  </TableCell>
+                </TableRow>
+              );
+            });
+          }
+        )}
+        {properties.hasExperimentalProperties && (
+          <TableRow>
+            <TableCell colSpan={3} className="text-slate-500">
+              *This property is experimental and may not have been adopted in
+              clients yet
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
   );
 }
 
@@ -374,7 +360,7 @@ export function ActionDebugger({
 
   return (
     <>
-      <div className="flex flex-row items-start p-4 gap-4 bg-slate-50 max-w-full w-full h-full">
+      <div className="flex flex-row items-start p-4 gap-4 bg-slate-50 max-w-full w-full">
         <div className="flex flex-col gap-4 w-[300px] min-w-[300px]">
           <div className="flex flex-row gap-2">
             <WithTooltip tooltip={<p>Reload URL</p>}>
@@ -463,16 +449,10 @@ export function ActionDebugger({
         <div className="flex flex-row gap-4 w-full">
           <div className="h-full min-w-0 w-full">
             <Card>
-              <CardContent className="p-0">
-                <div className="px-2">
-                  <Table>
-                    <TableBody>
-                      <ActionDebuggerPropertiesTableRow
-                        actionMetadataItem={actionMetadataItem}
-                      ></ActionDebuggerPropertiesTableRow>
-                    </TableBody>
-                  </Table>
-                </div>
+              <CardContent className="p-0 px-2">
+                <ActionDebuggerPropertiesTableRow
+                  actionMetadataItem={actionMetadataItem}
+                ></ActionDebuggerPropertiesTableRow>
               </CardContent>
             </Card>
           </div>
