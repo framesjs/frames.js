@@ -165,7 +165,7 @@ function framesStackReducer(
 export function useFrame<
   SignerStorageType = object,
   FrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
-  FrameContextType extends FrameContext = FarcasterFrameContext
+  FrameContextType extends FrameContext = FarcasterFrameContext,
 >({
   homeframeUrl,
   frameContext,
@@ -258,7 +258,7 @@ export function useFrame<
       });
       const proxiedUrl = `${frameGetProxy}?${searchParams.toString()}`;
 
-      let response;
+      let response: Response | undefined;
       let endTime = new Date();
       try {
         response = await fetch(proxiedUrl).finally(() => {
@@ -283,6 +283,17 @@ export function useFrame<
           },
         });
       } catch (err) {
+        let responseBody: unknown;
+
+        // if there is no response, it is probably network error
+        if (response) {
+          if (response.headers.get("content-type")?.includes("/json")) {
+            responseBody = await response.clone().json();
+          } else {
+            responseBody = await response.clone().text();
+          }
+        }
+
         const stackItem: FrameStackRequestError = {
           ...frameStackPendingItem,
           url: frameRequest.url,
@@ -290,6 +301,7 @@ export function useFrame<
           requestError: err,
           speed: computeDurationInSeconds(startTime, endTime),
           status: "requestError",
+          responseBody,
         };
 
         dispatch({
@@ -323,7 +335,7 @@ export function useFrame<
 
       const proxiedUrl = `${frameActionProxy}?${frameStackPendingItem.request.searchParams.toString()}`;
 
-      let response;
+      let response: Response | undefined;
       let endTime = new Date();
 
       try {
@@ -412,12 +424,23 @@ export function useFrame<
           },
         });
       } catch (err) {
+        let responseBody: unknown;
+
+        if (response) {
+          if (response.headers.get("content-type")?.includes("/json")) {
+            responseBody = await response.clone().json();
+          } else {
+            responseBody = await response.clone().text();
+          }
+        }
+
         const stackItem: FrameStackRequestError = {
           ...frameStackPendingItem,
           responseStatus: response?.status ?? 500,
           requestError: err,
           speed: computeDurationInSeconds(startTime, endTime),
           status: "requestError",
+          responseBody,
         };
 
         dispatch({

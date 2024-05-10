@@ -16,7 +16,7 @@ export type OnTransactionFunc = (
 export type UseFrameReturn<
   SignerStorageType = object,
   FrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
-  FrameContextType extends FrameContext = FarcasterFrameContext
+  FrameContextType extends FrameContext = FarcasterFrameContext,
 > = {
   /** skip frame signing, for frames that don't verify signatures */
   dangerousSkipSigning?: boolean;
@@ -57,7 +57,7 @@ export type UseFrameReturn<
 export interface SignerStateInstance<
   SignerStorageType = object,
   FrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
-  FrameContextType extends FrameContext = FarcasterFrameContext
+  FrameContextType extends FrameContext = FarcasterFrameContext,
 > {
   signer?: SignerStorageType | null;
   hasSigner: boolean;
@@ -130,6 +130,7 @@ export type FrameStackRequestError = FrameStackBase &
   FrameRequest & {
     status: "requestError";
     requestError: unknown;
+    responseBody: unknown;
   };
 
 export type FrameStackMessage = FrameStackBase &
