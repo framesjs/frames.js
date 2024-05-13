@@ -55,7 +55,7 @@ export default function App({
   searchParams: Record<string, string>;
 }): JSX.Element {
   const debuggerRef = useRef<FrameDebuggerRef>(null);
-  const logs = useDebuggerConsole();
+  const { logs, clear: clearLogs } = useDebuggerConsole();
   const { toast } = useToast();
   const urlInputRef = useRef<HTMLInputElement>(null);
   const selectProtocolButtonRef = useRef<HTMLButtonElement>(null);
@@ -209,8 +209,9 @@ export default function App({
       return;
     }
 
+    clearLogs();
     refreshUrl(url);
-  }, [url, protocolConfiguration, refreshUrl, toast]);
+  }, [url, protocolConfiguration, refreshUrl, toast, clearLogs]);
 
   const farcasterSignerState = useFarcasterIdentity({
     onMissingIdentity() {

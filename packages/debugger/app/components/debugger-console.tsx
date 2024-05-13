@@ -1,8 +1,18 @@
 import { Console, Hook, Unhook } from "console-feed";
 import type { Message } from "console-feed/lib/definitions/Component";
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
-export function useDebuggerConsole(): Message[] {
+export function useDebuggerConsole(): {
+  logs: Message[];
+  clear: () => void;
+} {
   const [consoleLogs, setConsoleLogs] = useState<Message[]>([]);
 
   useEffect(() => {
@@ -17,7 +27,11 @@ export function useDebuggerConsole(): Message[] {
     };
   }, []);
 
-  return consoleLogs;
+  const clear = useCallback(() => {
+    setConsoleLogs([]);
+  }, []);
+
+  return { logs: consoleLogs, clear };
 }
 
 const context = createContext<Message[]>([]);
@@ -26,8 +40,25 @@ context.displayName = "DebuggerConsoleContext";
 
 export const DebuggerConsoleContextProvider = context.Provider;
 
-export function DebuggerConsole() {
-  const logs = useContext(context);
+type DebuggerConsoleProps = {
+  onMount: (element: HTMLDivElement) => void;
+};
 
-  return <Console logs={logs} variant="light"></Console>;
+export function DebuggerConsole({ onMount }: DebuggerConsoleProps) {
+  const logs = useContext(context);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const onMountRef = useRef(onMount);
+  onMountRef.current = onMount;
+
+  useEffect(() => {
+    if (wrapperRef.current) {
+      onMountRef.current(wrapperRef.current);
+    }
+  }, []);
+
+  return (
+    <div ref={wrapperRef}>
+      <Console logs={logs} variant="light"></Console>
+    </div>
+  );
 }

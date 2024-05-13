@@ -7,9 +7,12 @@ import {
 import {
   Dispatch,
   SetStateAction,
+  useCallback,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import React from "react";
@@ -393,6 +396,7 @@ export const FrameDebugger = React.forwardRef<
     { specification, url, frameState, mockHubContext, setMockHubContext },
     ref
   ) => {
+    const debuggerConsoleTabRef = useRef<HTMLDivElement>(null);
     const [activeTab, setActiveTab] = useState<TabValues>("diagnostics");
     const router = useRouter();
     const [copySuccess, setCopySuccess] = useState(false);
@@ -422,20 +426,24 @@ export const FrameDebugger = React.forwardRef<
       }
     }, [isLoading, latestFrame?.timestamp, openAccordions]);
 
+    /**
+     * This handles the case where the user clicks on the console button in toast, in that case he wants to scroll to the bottom
+     * otherwise we should keep the scroll position as is.
+     */
+    const wantsToScrollConsoleToBottomRef = useRef(false);
+
     useImperativeHandle(
       ref,
       () => {
         return {
           showConsole() {
+            wantsToScrollConsoleToBottomRef.current = true;
             setActiveTab("console");
           },
         };
       },
       []
     );
-
-    const frameResult =
-      latestFrame?.status === "done" ? latestFrame.frame : undefined;
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[300px_500px_1fr] p-4 gap-4 bg-slate-50 max-w-full w-full">
@@ -682,8 +690,25 @@ export const FrameDebugger = React.forwardRef<
                       stackItem={frameState.frame}
                     ></FrameDiagnostics>
                   </TabsContent>
-                  <TabsContent className="overflow-y-auto" value="console">
-                    <DebuggerConsole></DebuggerConsole>
+                  <TabsContent
+                    className="overflow-y-auto"
+                    ref={debuggerConsoleTabRef}
+                    value="console"
+                  >
+                    <DebuggerConsole
+                      onMount={(element) => {
+                        if (
+                          wantsToScrollConsoleToBottomRef.current &&
+                          debuggerConsoleTabRef.current
+                        ) {
+                          wantsToScrollConsoleToBottomRef.current = false;
+                          debuggerConsoleTabRef.current.scrollTo(
+                            0,
+                            element.scrollHeight
+                          );
+                        }
+                      }}
+                    ></DebuggerConsole>
                   </TabsContent>
                   <TabsContent className="overflow-y-auto" value="request">
                     <h2 className="my-4 text-muted-foreground font-semibold text-sm">
