@@ -23,7 +23,7 @@ import React, {
 import { zeroAddress } from "viem";
 import { useAccount, useChainId, useConfig } from "wagmi";
 import pkg from "../package.json";
-import { FrameDebugger } from "./components/frame-debugger";
+import { FrameDebugger, FrameDebuggerRef } from "./components/frame-debugger";
 import { LOCAL_STORAGE_KEYS } from "./constants";
 import { useFarcasterFrameContext } from "./hooks/use-farcaster-context";
 import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
@@ -41,6 +41,10 @@ import type { ParseResult } from "frames.js/frame-parsers";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
+import {
+  DebuggerConsoleContextProvider,
+  useDebuggerConsole,
+} from "./components/debugger-console";
 
 const FALLBACK_URL =
   process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
@@ -50,6 +54,8 @@ export default function App({
 }: {
   searchParams: Record<string, string>;
 }): JSX.Element {
+  const debuggerRef = useRef<FrameDebuggerRef>(null);
+  const { logs, clear: clearLogs } = useDebuggerConsole();
   const { toast } = useToast();
   const urlInputRef = useRef<HTMLInputElement>(null);
   const selectProtocolButtonRef = useRef<HTMLButtonElement>(null);
@@ -158,6 +164,16 @@ export default function App({
             title: "Error loading url",
             description: "Please check the console for more information",
             variant: "destructive",
+            action: debuggerRef.current ? (
+              <ToastAction
+                altText="Show console"
+                onClick={() => {
+                  debuggerRef.current?.showConsole();
+                }}
+              >
+                Show console
+              </ToastAction>
+            ) : undefined,
           });
           console.error(e);
         })
@@ -193,8 +209,9 @@ export default function App({
       return;
     }
 
+    clearLogs();
     refreshUrl(url);
-  }, [url, protocolConfiguration, refreshUrl, toast]);
+  }, [url, protocolConfiguration, refreshUrl, toast, clearLogs]);
 
   const farcasterSignerState = useFarcasterIdentity({
     onMissingIdentity() {
@@ -240,6 +257,16 @@ export default function App({
           title: "Invalid chainId",
           description: `Unrecognized chainId ${chainId}`,
           variant: "destructive",
+          action: debuggerRef.current ? (
+            <ToastAction
+              altText="Show console"
+              onClick={() => {
+                debuggerRef.current?.showConsole();
+              }}
+            >
+              Show console
+            </ToastAction>
+          ) : undefined,
         });
 
         return null;
@@ -271,6 +298,16 @@ export default function App({
           title: "Error sending transaction",
           description: "Please check the console for more information",
           variant: "destructive",
+          action: debuggerRef.current ? (
+            <ToastAction
+              altText="Show console"
+              onClick={() => {
+                debuggerRef.current?.showConsole();
+              }}
+            >
+              Show console
+            </ToastAction>
+          ) : undefined,
         });
         console.error(error);
         return null;
@@ -324,6 +361,16 @@ export default function App({
             title: "Error minting",
             description: "Please check the console for more information",
             variant: "destructive",
+            action: debuggerRef.current ? (
+              <ToastAction
+                altText="Show console"
+                onClick={() => {
+                  debuggerRef.current?.showConsole();
+                }}
+              >
+                Show console
+              </ToastAction>
+            ) : undefined,
           });
           console.error(e);
         });
@@ -353,8 +400,8 @@ export default function App({
   }[protocolConfiguration?.protocol ?? "farcaster"];
 
   return (
-    <div className="bg-slate-50 min-h-lvh">
-      <div className="">
+    <DebuggerConsoleContextProvider value={logs}>
+      <div className="bg-slate-50 min-h-lvh grid grid-rows-[auto_1fr]">
         <div className="flex flex-row gap-4 border-b p-2 px-4 items-center h-full bg-white">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -495,34 +542,35 @@ export default function App({
             <ConnectButton showBalance={false}></ConnectButton>
           </div>
         </div>
-      </div>
-      {url ? (
-        <>
-          {initialAction && (
-            <div>
-              <ActionDebugger
-                actionMetadataItem={initialAction}
-                farcasterFrameConfig={farcasterFrameConfig}
-                refreshUrl={refreshUrl}
-                mockHubContext={mockHubContext}
-                setMockHubContext={setMockHubContext}
-              ></ActionDebugger>
-            </div>
-          )}
-
-          {selectedFrameState &&
-            initialFrame &&
-            protocolConfiguration?.specification && (
-              <FrameDebugger
-                frameState={selectedFrameState}
-                url={url}
-                mockHubContext={mockHubContext}
-                setMockHubContext={setMockHubContext}
-                specification={protocolConfiguration?.specification}
-              ></FrameDebugger>
+        {url ? (
+          <>
+            {initialAction && (
+              <div>
+                <ActionDebugger
+                  actionMetadataItem={initialAction}
+                  farcasterFrameConfig={farcasterFrameConfig}
+                  refreshUrl={refreshUrl}
+                  mockHubContext={mockHubContext}
+                  setMockHubContext={setMockHubContext}
+                ></ActionDebugger>
+              </div>
             )}
-        </>
-      ) : null}
-    </div>
+
+            {selectedFrameState &&
+              initialFrame &&
+              protocolConfiguration?.specification && (
+                <FrameDebugger
+                  frameState={selectedFrameState}
+                  url={url}
+                  mockHubContext={mockHubContext}
+                  setMockHubContext={setMockHubContext}
+                  specification={protocolConfiguration?.specification}
+                  ref={debuggerRef}
+                ></FrameDebugger>
+              )}
+          </>
+        ) : null}
+      </div>
+    </DebuggerConsoleContextProvider>
   );
 }

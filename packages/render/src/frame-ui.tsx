@@ -124,7 +124,9 @@ export function FrameUI({
   const resolvedTheme = getThemeWithDefaults(theme ?? {});
 
   if (!frameState.homeframeUrl) {
-    return <MessageTooltip inline message="Missing frame url" />;
+    return (
+      <MessageTooltip inline message="Missing frame url" variant="error" />
+    );
   }
 
   if (!currentFrame) {
@@ -135,7 +137,9 @@ export function FrameUI({
     currentFrame.status === "requestError" &&
     !(currentFrame.requestError instanceof Error)
   ) {
-    return <MessageTooltip inline message="Failed to load frame" />;
+    return (
+      <MessageTooltip inline message="Failed to load frame" variant="error" />
+    );
   }
 
   if (
@@ -148,7 +152,7 @@ export function FrameUI({
       currentFrame.frame.frame.buttons
     )
   ) {
-    return <MessageTooltip inline message="Invalid frame" />;
+    return <MessageTooltip inline message="Invalid frame" variant="error" />;
   }
 
   let frame: Frame | Partial<Frame> | undefined;

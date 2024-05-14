@@ -45,7 +45,7 @@ export function getFrameHtml(
  * @param frame - The `Frame` to get the <head> contents for
  * @returns an string with tags to be included in a <head>
  */
-export function getFrameHtmlHead(frame: Frame): string {
+export function getFrameHtmlHead(frame: Partial<Frame>): string {
   const flattened = getFrameFlattened(frame);
 
   const tags = Object.entries(flattened)

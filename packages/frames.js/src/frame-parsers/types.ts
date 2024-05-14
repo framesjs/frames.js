@@ -8,7 +8,6 @@ export interface Reporter {
    * Report a warning. Warning can't be used in case the frame is invalid and not renderable.
    */
   warn: (key: string, message: unknown, source?: ParsingReportSource) => void;
-  valid: (key: string, message: unknown, source?: ParsingReportSource) => void;
   hasReports: () => boolean;
   hasErrors: () => boolean;
   toObject: () => Record<string, ParsingReport[]>;
@@ -35,7 +34,7 @@ export type ParsedFrame = {
 
 export type ParsingReportSource = SupportedParsingSpecification;
 
-export type ParsingReportLevel = "error" | "warning" | "valid";
+export type ParsingReportLevel = "error" | "warning";
 
 export type ParsingReport = {
   message: string;
