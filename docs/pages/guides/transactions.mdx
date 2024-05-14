@@ -31,7 +31,7 @@ Note:
 - The address is only available when the user has connected a wallet to the client the frame button pressed is has a `tx` action.
 - `connectedAddress` differs from the `requesterVerifiedAddresses` returned by the [`farcasterHubContext`](/middleware/farcaster-hub-context) middleware.
 
-```tsx [./app/frames/tx-data/route.tsx]
+```tsx [./app/txdata/route.tsx]
 import { frames } from "../frames";
 
 export const POST = frames(async (ctx) => {
