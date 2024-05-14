@@ -13,25 +13,25 @@
     "noUncheckedIndexedAccess": true,
     "plugins": [
       {
-        "name": "next",
-      },
+        "name": "next"
+      }
     ],
     "paths": {
-      "@/*": ["./@/*"],
+      "@/*": ["./@/*"]
     },
     "jsx": "preserve",
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
     "target": "ES2022",
-    "allowJs": true,
+    "allowJs": true
   },
   "include": [
     "next-env.d.ts",
     "next.config.js",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
+    ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules"]
 }
