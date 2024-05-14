@@ -1,5 +1,12 @@
 # frames.js
 
+## 0.15.3
+
+### Patch Changes
+
+- 3779fd0: feat: remove valid reports and allow partial frames in `getFrameHtmlHead()`
+- 5156ae7: fix(frames.js): correctly generate button target url if pathname is not set
+
 ## 0.15.2
 
 ### Patch Changes

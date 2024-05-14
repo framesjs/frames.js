@@ -1,5 +1,11 @@
 # create-frames
 
+## 0.1.13
+
+### Patch Changes
+
+- chore: release new templates
+
 ## 0.1.12
 
 ### Patch Changes

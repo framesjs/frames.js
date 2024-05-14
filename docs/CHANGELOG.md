@@ -1,5 +1,14 @@
 # docs
 
+## 0.2.7
+
+### Patch Changes
+
+- bfab335: fix: $ escaping in docs
+- Updated dependencies [3779fd0]
+- Updated dependencies [5156ae7]
+  - frames.js@0.15.3
+
 ## 0.2.6
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.2.8
+
+### Patch Changes
+
+- 3779fd0: feat(debugger): console logs in tab, new request and diagnostics tabs, ui cleanup
+
 ## 0.2.7
 
 ### Patch Changes

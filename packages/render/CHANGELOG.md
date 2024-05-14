@@ -1,5 +1,14 @@
 # @frames.js/render
 
+## 0.2.6
+
+### Patch Changes
+
+- 3779fd0: feat: add `responseBody` to `requestError` stack item
+- Updated dependencies [3779fd0]
+- Updated dependencies [5156ae7]
+  - frames.js@0.15.3
+
 ## 0.2.5
 
 ### Patch Changes

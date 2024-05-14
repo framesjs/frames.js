@@ -1,5 +1,13 @@
 # template-remix
 
+## 0.0.11
+
+### Patch Changes
+
+- Updated dependencies [3779fd0]
+- Updated dependencies [5156ae7]
+  - frames.js@0.15.3
+
 ## 0.0.10
 
 ### Patch Changes
