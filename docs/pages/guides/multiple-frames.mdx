@@ -45,12 +45,12 @@ export const GET = frames(async () => {
       // With query params
       <Button
         action="post"
-        target={{ pathname: "/frames/route1", query: { foo: "bar" } }}
+        target={{ pathname: "/route1", query: { foo: "bar" } }}
       >
         Go to route 1
       </Button>,
       // Without query params
-      <Button action="post" target="/frames/route2">
+      <Button action="post" target="/route2">
         Go to route 2
       </Button>,
     ],
@@ -106,7 +106,7 @@ export const POST = frames(async (ctx) => {
   return {
     image: <div tw="flex">Route 1 foo: {foo}</div>, // foo: bar
     buttons: [
-      <Button action="post" target="/frames/route2">
+      <Button action="post" target="/route2">
         Go to route 2
       </Button>,
     ],
@@ -127,7 +127,7 @@ export const POST = frames(async () => {
   return {
     image: <div tw="flex">Route 2</div>,
     buttons: [
-      <Button action="post" target="/frames/route1">
+      <Button action="post" target="/route1">
         Go to route 1
       </Button>,
     ],
@@ -146,8 +146,8 @@ const frameHandler = frames(async () => {
   return {
     image: <div tw="flex">Welcome</div>
     buttons: [
-      <Button action="post" target="/frames/route1">Go to route 1</Button>,
-      <Button action="post" target="/frames/route2">Go to route 2</Button>,
+      <Button action="post" target="/route1">Go to route 1</Button>,
+      <Button action="post" target="/route2">Go to route 2</Button>,
     ],
   };
 });
@@ -159,7 +159,7 @@ export const POST = frameHandler;
 You can then navigate back to the initial frame by linking to the initial route.
 
 ```tsx
-<Button action="post" target="/frames">
+<Button action="post" target="/">
   Go back
 </Button>
 ```
