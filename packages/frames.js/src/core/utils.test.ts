@@ -2,7 +2,46 @@ import {
   generatePostButtonTargetURL,
   parseButtonInformationFromTargetURL,
   resolveBaseUrl,
+  generateTargetURL,
 } from "./utils";
+
+describe("generateTargetURL", () => {
+  it("generates a correct URL with baseUrl if pathname is missing", () => {
+    const baseUrl = new URL("http://test.com/frames");
+    const target = { query: { test: "test" } };
+
+    expect(generateTargetURL({ baseUrl, target }).toString()).toBe(
+      "http://test.com/frames?test=test"
+    );
+  });
+
+  it("generates a correct URL if pathname is set", () => {
+    const baseUrl = new URL("http://test.com/frames");
+    const target = { pathname: "/test", query: { test: "test" } };
+
+    expect(generateTargetURL({ baseUrl, target }).toString()).toBe(
+      "http://test.com/frames/test?test=test"
+    );
+  });
+
+  it("generates a correct URL if target is an absolute URL", () => {
+    const baseUrl = new URL("http://test.com");
+    const target = "http://test.com/test";
+
+    expect(generateTargetURL({ baseUrl, target }).toString()).toBe(
+      "http://test.com/test"
+    );
+  });
+
+  it("generates a correct URL if target is an absolute URL with query params", () => {
+    const baseUrl = new URL("http://test.com");
+    const target = "http://test.com/test?test=test";
+
+    expect(generateTargetURL({ baseUrl, target }).toString()).toBe(
+      "http://test.com/test?test=test"
+    );
+  });
+});
 
 describe("resolveBaseUrl", () => {
   it("uses URL from request if no baseUrl is provided", () => {

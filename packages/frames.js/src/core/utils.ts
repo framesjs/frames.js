@@ -10,7 +10,7 @@ const buttonActionToCode = {
 const BUTTON_INFORMATION_SEARCH_PARAM_NAME = "__bi";
 
 export function joinPaths(pathA: string, pathB: string): string {
-  return pathB === "/"
+  return pathB === "/" || pathB === ""
     ? pathA
     : [pathA, pathB].join("/").replace(/\/{2,}/g, "/");
 }
