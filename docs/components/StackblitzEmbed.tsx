@@ -7,8 +7,11 @@ function removeMultiSlashes(str: string): string {
   return str.replace(/\/{2,}/g, "/");
 }
 
+function removeSlashPrefix(str: string): string {
+  return str.replace(/^\//, "");
+}
+
 type StackblitzEmbedProps = {
-  directory: string;
   file: string;
   /**
    * Sets the initial path of stackblitz's browser
@@ -18,11 +21,9 @@ type StackblitzEmbedProps = {
 
 // eslint-disable-next-line import/no-default-export -- this is expected
 export default function StackblitzEmbed({
-  directory,
   file,
   initialBrowserPath,
 }: StackblitzEmbedProps): JSX.Element {
-  const fileInDirectory = removeMultiSlashes(`${directory}/${file}`);
   const src = new URL(
     removeMultiSlashes(
       `/github/${repository}/tree/${branchName}/templates/next-starter-with-examples`
@@ -30,7 +31,7 @@ export default function StackblitzEmbed({
     `https://stackblitz.com`
   );
 
-  src.searchParams.set("file", fileInDirectory);
+  src.searchParams.set("file", removeSlashPrefix(file));
   src.searchParams.set("initialpath", initialBrowserPath);
   src.searchParams.set("view", "preview");
   src.searchParams.set("embed", "1");
@@ -38,7 +39,7 @@ export default function StackblitzEmbed({
 
   const githubURL = new URL(
     removeMultiSlashes(
-      `/tree/${branchName}/templates/next-starter-with-examples/${fileInDirectory}`
+      `/tree/${branchName}/templates/next-starter-with-examples/${file}`
     ),
     `https://github.com/`
   );
@@ -53,7 +54,6 @@ export default function StackblitzEmbed({
       }}
     >
       <iframe
-        allow="cross-origin-isolated"
         src={src.toString()}
         style={{ height: 400, width: "100%" }}
         title="Stackblitz embed"

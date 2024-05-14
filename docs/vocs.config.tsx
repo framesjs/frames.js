@@ -6,8 +6,6 @@ import pkg from "../packages/frames.js/package.json";
 declare global {
   interface ImportMeta {
     env: {
-      VITE_RENDERER_URL?: string;
-      VITE_EXAMPLES_URL?: string;
       /**
        * Set in vocs.config.tsx
        */

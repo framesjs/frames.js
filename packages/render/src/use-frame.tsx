@@ -488,7 +488,7 @@ export function useFrame<
     fetchFrameOverride: typeof fetchFrame = fetchFrame
   ): Promise<void> {
     if (!signerState.hasSigner && !dangerousSkipSigning) {
-      await signerState.onSignerlessFramePress();
+      signerState.onSignerlessFramePress();
       // don't continue, let the app handle
       return;
     }
