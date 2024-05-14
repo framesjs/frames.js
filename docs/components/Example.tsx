@@ -1,15 +1,5 @@
 import { ExternalLinkIcon, GithubIcon } from "lucide-react";
 
-// @see https://vitejs.dev/guide/env-and-mode
-declare global {
-  interface ImportMeta {
-    env: {
-      VITE_RENDERER_URL?: string;
-      VITE_EXAMPLES_URL?: string;
-    };
-  }
-}
-
 type ExampleProps = {
   /**
    * Allows to override renderer URL. By default it takes value from process.env.VITE_RENDERER_URL or uses 'http://localhost:3011'

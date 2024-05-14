@@ -1,5 +1,32 @@
+import { spawnSync } from "node:child_process";
 import { type SidebarItem, defineConfig } from "vocs";
 import pkg from "../packages/frames.js/package.json";
+
+// @see https://vitejs.dev/guide/env-and-mode
+declare global {
+  interface ImportMeta {
+    env: {
+      VITE_RENDERER_URL?: string;
+      VITE_EXAMPLES_URL?: string;
+      /**
+       * Set in vocs.config.tsx
+       */
+      VITE_GIT_REF?: string;
+    };
+  }
+}
+
+let detectedBranchName: string | undefined = process.env.VERCEL_GIT_COMMIT_REF;
+
+detectedBranchName ||= spawnSync("git", ["rev-parse", "--abbrev-ref", "HEAD"])
+  .stdout.toString()
+  .trim();
+detectedBranchName ||= "main";
+
+/**
+ * Provide for StackblitzEmbed component so we can generate URLs to example in current branch (good for PR previews)
+ */
+process.env.VITE_GIT_REF = detectedBranchName;
 
 const examplesSidebarItems: SidebarItem[] = [
   {
@@ -458,6 +485,16 @@ export default defineConfig({
       ],
     },
   ],
+  vite: {
+    server: {
+      // this must be also set on vercel
+      headers: {
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Cross-Origin-Resource-Policy": "cross-origin",
+      },
+    },
+  },
 });
 
 function toPatchVersionRange(version: string): string {
