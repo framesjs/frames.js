@@ -3,14 +3,11 @@
 import { SignerStateInstance } from "@frames.js/render";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useEffect, useRef, useState } from "react";
-import { useAccount, useConfig } from "wagmi";
-import { signMessage } from "wagmi/actions";
+import { useAccount, useConfig, useConnections } from "wagmi";
+import { signMessage, signTypedData, switchChain } from "wagmi/actions";
 import { LOCAL_STORAGE_KEYS } from "../constants";
 import { LensFrameContext } from "./use-lens-context";
-import {
-  ProfileSelectorModal,
-  Profile,
-} from "../components/lens-profile-select";
+import { Profile } from "../components/lens-profile-select";
 import { LensClient, production } from "@lens-protocol/client";
 
 type LensSigner = {
@@ -60,6 +57,7 @@ export function useLensIdentity(): LensSignerInstance {
   const connect = useConnectModal();
   const config = useConfig();
   const { address } = useAccount();
+  const activeConnection = useConnections();
 
   const lensClient = useRef(
     new LensClient({
@@ -183,42 +181,101 @@ export function useLensIdentity(): LensSignerInstance {
       if (!lensSigner) {
         throw new Error("No lens signer active");
       }
-      const result = await lensClient.frames.signFrameAction({
-        url: actionContext.url,
-        inputText: actionContext.inputText || "",
-        state: actionContext.state || "",
-        buttonIndex: actionContext.buttonIndex,
-        actionResponse: actionContext.transactionId || "",
-        profileId: lensSigner.profileId,
-        pubId: actionContext.frameContext.pubId || "",
-        specVersion: "1.0.0",
+      const profileManagers = await lensClient.profile.managers({
+        for: lensSigner.profileId,
       });
+      const lensManagerEnabled = profileManagers.items.some(
+        (manager) => manager.isLensManager
+      );
+      if (lensManagerEnabled) {
+        const result = await lensClient.frames.signFrameAction({
+          url: actionContext.url,
+          inputText: actionContext.inputText || "",
+          state: actionContext.state || "",
+          buttonIndex: actionContext.buttonIndex,
+          actionResponse: actionContext.transactionId || "",
+          profileId: lensSigner.profileId,
+          pubId: actionContext.frameContext.pubId || "",
+          specVersion: "1.0.0",
+        });
 
-      if (result.isFailure()) {
-        throw new Error("credential expired or not authenticated");
+        if (result.isFailure()) {
+          throw new Error("credential expired or not authenticated");
+        }
+
+        const searchParams = new URLSearchParams({
+          postType: actionContext.transactionId
+            ? "post"
+            : actionContext.frameButton.action,
+          postUrl:
+            actionContext.frameButton.target ?? actionContext.target ?? "",
+        });
+
+        return {
+          body: {
+            clientProtocol: "1.0.0",
+            untrustedData: {
+              ...result.value.signedTypedData.value,
+              identityToken: lensSigner.identityToken,
+              unixTimestamp: Date.now(),
+            },
+            trustedData: {
+              messageBytes: result.value.signature,
+            },
+          },
+          searchParams,
+        };
+      } else {
+        const typedData = await lensClient.frames.createFrameTypedData({
+          url: actionContext.url,
+          inputText: actionContext.inputText || "",
+          state: actionContext.state || "",
+          buttonIndex: actionContext.buttonIndex,
+          actionResponse: actionContext.transactionId || "",
+          profileId: lensSigner.profileId,
+          pubId: actionContext.frameContext.pubId || "",
+          specVersion: "1.0.0",
+          deadline: Math.floor(Date.now() / 1000) + 86400, // 1 day
+        });
+
+        if (activeConnection[0]?.chainId !== typedData.domain.chainId) {
+          await switchChain(config, { chainId: typedData.domain.chainId });
+        }
+
+        const signature = await signTypedData(config, {
+          domain: {
+            ...typedData.domain,
+            verifyingContract: typedData.domain
+              .verifyingContract as `0x${string}`,
+          },
+          types: typedData.types,
+          message: typedData.value,
+          primaryType: "FrameData",
+        });
+
+        const searchParams = new URLSearchParams({
+          postType: actionContext.transactionId
+            ? "post"
+            : actionContext.frameButton.action,
+          postUrl:
+            actionContext.frameButton.target ?? actionContext.target ?? "",
+        });
+
+        return {
+          body: {
+            clientProtocol: "1.0.0",
+            untrustedData: {
+              ...typedData.value,
+              identityToken: lensSigner.identityToken,
+              unixTimestamp: Date.now(),
+            },
+            trustedData: {
+              messageBytes: signature,
+            },
+          },
+          searchParams,
+        };
       }
-
-      const searchParams = new URLSearchParams({
-        postType: actionContext.transactionId
-          ? "post"
-          : actionContext.frameButton.action,
-        postUrl: actionContext.frameButton.target ?? actionContext.target ?? "",
-      });
-
-      return {
-        body: {
-          clientProtocol: "1.0.0",
-          untrustedData: {
-            ...result.value.signedTypedData.value,
-            identityToken: lensSigner.identityToken,
-            unixTimestamp: Date.now(),
-          },
-          trustedData: {
-            messageBytes: result.value.signature,
-          },
-        },
-        searchParams,
-      };
     },
     isLoading: null,
     isLoadingSigner: isLoading,
