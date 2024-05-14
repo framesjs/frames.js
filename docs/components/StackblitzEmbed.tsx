@@ -10,12 +10,17 @@ function removeMultiSlashes(str: string): string {
 type StackblitzEmbedProps = {
   directory: string;
   file: string;
+  /**
+   * Sets the initial path of stackblitz's browser
+   */
+  initialBrowserPath: string;
 };
 
 // eslint-disable-next-line import/no-default-export -- this is expected
 export default function StackblitzEmbed({
   directory,
   file,
+  initialBrowserPath,
 }: StackblitzEmbedProps): JSX.Element {
   const fileInDirectory = removeMultiSlashes(`${directory}/${file}`);
   const src = new URL(
@@ -26,9 +31,10 @@ export default function StackblitzEmbed({
   );
 
   src.searchParams.set("file", fileInDirectory);
-  src.searchParams.set("initialpath", directory);
+  src.searchParams.set("initialpath", initialBrowserPath);
   src.searchParams.set("view", "preview");
   src.searchParams.set("embed", "1");
+  src.searchParams.set("ctl", "1"); // click to load
 
   const githubURL = new URL(
     removeMultiSlashes(
