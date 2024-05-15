@@ -213,7 +213,7 @@ export function useLensIdentity(): LensSignerInstance {
 
         return {
           body: {
-            clientProtocol: "1.0.0",
+            clientProtocol: "lens@1.0.0",
             untrustedData: {
               ...result.value.signedTypedData.value,
               identityToken: lensSigner.identityToken,
@@ -263,7 +263,7 @@ export function useLensIdentity(): LensSignerInstance {
 
         return {
           body: {
-            clientProtocol: "1.0.0",
+            clientProtocol: "lens@1.0.0",
             untrustedData: {
               ...typedData.value,
               identityToken: lensSigner.identityToken,
