@@ -3,18 +3,18 @@ title: "Caching"
 description: ""
 ---
 
-import StackblitzEmbed from "../../components/StackblitzEmbed";
+import StackblitzLink from "../../components/StackblitzLink";
 
 # Caching
+
+<StackblitzLink
+  entrypointFile="app/examples/new-api-cache-control/page.tsx"
+  browserPath="/examples/new-api-cache-control"
+/>
 
 You can set the caching policy of your frames by defining the `Cache-Control` headers of your frame's **image response**
 
 Since images are returned as an inline Data URL by default, this will require you to create a separate endpoint for your dynamic images that you want to avoid caching for.
-
-<StackblitzEmbed
-  file="app/examples/new-api-cache-control/page.tsx"
-  initialBrowserPath="/examples/new-api-cache-control"
-/>
 
 ```tsx [frames/route.tsx]
 // ...
