@@ -68,12 +68,13 @@ export async function getLensFrameMessage(
     environment: lensClientEnvironment,
   });
 
-  const typedData = await lensClient.frames.createFrameTypedData({
-    ...frameActionPayload.untrustedData,
-  });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- de-structure fields due to strict GraphQL checking of createFrameTypedData
+  const { identityToken, unixTimestamp, ...untrustedData } =
+    frameActionPayload.untrustedData;
+  const typedData = await lensClient.frames.createFrameTypedData(untrustedData);
 
   const response = await lensClient.frames.verifyFrameSignature({
-    identityToken: frameActionPayload.untrustedData.identityToken,
+    identityToken,
     signature: frameActionPayload.trustedData.messageBytes,
     signedTypedData: typedData,
   });
