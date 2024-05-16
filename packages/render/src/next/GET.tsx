@@ -2,11 +2,14 @@ import { getFrame } from "frames.js";
 import type { NextRequest } from "next/server";
 import { isSpecificationValid } from "./validators";
 
-
 /** Proxies fetching a frame through a backend to avoid CORS issues and preserve user IP privacy */
-export async function GET(request: NextRequest): Promise<Response> {
-  const url = request.nextUrl.searchParams.get("url");
-  const specification = request.nextUrl.searchParams.get('specification') ?? 'farcaster';
+export async function GET(request: Request | NextRequest): Promise<Response> {
+  const searchParams =
+    "nextUrl" in request
+      ? request.nextUrl.searchParams
+      : new URL(request.url).searchParams;
+  const url = searchParams.get("url");
+  const specification = searchParams.get("specification") ?? "farcaster";
 
   if (!url) {
     return Response.json({ message: "Invalid URL" }, { status: 400 });
