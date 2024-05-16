@@ -1,0 +1,8 @@
+name = "my-cloudflare-frames-worker"
+main = "src/index.tsx"
+compatibility_date = "2024-03-20"
+compatibility_flags = ["nodejs_compat"]
+
+# this will be available in your handler under ctx.cf.env[SOME_KEY]
+[vars]
+MY_APP_LABEL = "Clicked:"

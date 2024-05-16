@@ -1,4 +1,5 @@
 import { createFrames, Button } from "frames.js/cloudflare-workers";
+import type { JsonValue } from "frames.js/types";
 
 type Env = {
   /**
@@ -7,7 +8,7 @@ type Env = {
   MY_APP_LABEL: string;
 };
 
-const frames = createFrames<Env>();
+const frames = createFrames<JsonValue | undefined, Env>();
 
 const fetch = frames(async (ctx) => {
   const hasClicked = !!(ctx.message && ctx.searchParams.clicked);
