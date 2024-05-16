@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { buttonVariants, Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/dialog";
 import type { StoredIdentity } from "../hooks/use-farcaster-identity";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
 
 type FarcasterSignerConfigProps = {
   farcasterUser: StoredIdentity | null;
@@ -230,20 +231,20 @@ function SelectedIdentity({ onLogout, onRemove, user }: SelectedIdentityProps) {
   if (user.status === "pending_approval") {
     return (
       <div className="border-t pt-4 mt-4">
-        <div className="signer-approval-container mr-4 flex flex-col gap-2">
+        <div className="signer-approval-container flex flex-col gap-2 items-center">
           Scan with your camera app
           <QRCode value={user.signerApprovalUrl} size={128} />
-          <div className="or-divider">OR</div>
+          <div className="or-divider text-muted-foreground">OR</div>
           <a
             href={user.signerApprovalUrl}
             target="_blank"
-            className="underline"
+            className={cn(buttonVariants(), "w-full")}
             rel="noopener noreferrer"
           >
-            <Button>Open URL</Button>
+            Open URL
           </a>
           <hr />
-          <Button onClick={onLogout} variant={"secondary"}>
+          <Button className="w-full" onClick={onLogout} variant={"secondary"}>
             Cancel
           </Button>
         </div>
