@@ -210,7 +210,9 @@ type UseFarcasterIdentityOptions = {
   onMissingIdentity: () => void;
 };
 
-export function useFarcasterIdentity({ onMissingIdentity }: UseFarcasterIdentityOptions): Omit<
+export function useFarcasterIdentity({
+  onMissingIdentity,
+}: UseFarcasterIdentityOptions): Omit<
   FarcasterSignerState,
   "logout" | "isLoading" | "onSignerlessFramePress" | "signer"
 > & {
@@ -234,7 +236,7 @@ export function useFarcasterIdentity({ onMissingIdentity }: UseFarcasterIdentity
       const keypairString = convertKeypairToHex(keypair);
       const authorizationResponse = await fetch(
         // real signer or local one are handled by local route so we don't need to expose anything to client side bundle
-        '/signer',
+        "/signer",
         {
           method: "POST",
           body: JSON.stringify({
@@ -279,13 +281,26 @@ export function useFarcasterIdentity({ onMissingIdentity }: UseFarcasterIdentity
           result: { signedKeyRequest: { token: string; deeplinkUrl: string } };
         };
 
+        // this deeplink works only on iOS, make sure it works on android too by using app link
+        const deepLinkUrl = new URL(signedKeyRequest.deeplinkUrl);
+        const signedKeyRequestToken = deepLinkUrl.searchParams.get("token");
+        const signerApprovalUrl = new URL(
+          "https://client.warpcast.com/deeplinks/signed-key-request"
+        );
+
+        if (!signedKeyRequestToken) {
+          throw new Error("No token found in the deep link URL");
+        }
+
+        signerApprovalUrl.searchParams.set("token", signedKeyRequestToken);
+
         dispatch({
           type: "START_FARCASTER_SIGN_IN",
           publicKey: keypairString.publicKey,
           privateKey: keypairString.privateKey,
           deadline,
           token: signedKeyRequest.token,
-          signerApprovalUrl: signedKeyRequest.deeplinkUrl,
+          signerApprovalUrl: signerApprovalUrl.toString(),
           requestFid: parseInt(requestFid, 10),
           requestSigner,
           signature,
