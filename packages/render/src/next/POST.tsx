@@ -4,15 +4,14 @@ import type { NextRequest } from "next/server";
 import { isSpecificationValid } from "./validators";
 
 /** Proxies frame actions to avoid CORS issues and preserve user IP privacy */
-export async function POST(req: NextRequest): Promise<Response> {
+export async function POST(req: Request | NextRequest): Promise<Response> {
+  const searchParams =
+    "nextUrl" in req ? req.nextUrl.searchParams : new URL(req.url).searchParams;
   const body = (await req.json()) as FrameActionPayload;
-  const isPostRedirect =
-    req.nextUrl.searchParams.get("postType") === "post_redirect";
-  const isTransactionRequest =
-    req.nextUrl.searchParams.get("postType") === "tx";
-  const postUrl = req.nextUrl.searchParams.get("postUrl");
-  const specification =
-    req.nextUrl.searchParams.get("specification") ?? "farcaster";
+  const isPostRedirect = searchParams.get("postType") === "post_redirect";
+  const isTransactionRequest = searchParams.get("postType") === "tx";
+  const postUrl = searchParams.get("postUrl");
+  const specification = searchParams.get("specification") ?? "farcaster";
 
   if (!postUrl) {
     return Response.error();

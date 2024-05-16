@@ -45,6 +45,16 @@
         "default": "./dist/next/index.cjs"
       }
     },
+    "./next/route-handlers": {
+      "import": {
+        "types": "./dist/next/route-handlers.d.ts",
+        "default": "./dist/next/route-handlers.js"
+      },
+      "require": {
+        "types": "./dist/next/route-handlers.d.cts",
+        "default": "./dist/next/route-handlers.cjs"
+      }
+    },
     "./farcaster": {
       "import": {
         "types": "./dist/farcaster/index.d.ts",
