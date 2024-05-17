@@ -132,13 +132,19 @@ export function useLensIdentity(): LensSignerInstance {
       });
       const handle = profileInfo?.handle?.localName + ".lens" || "";
       if (profileId) {
-        setLensSigner({
+        const signer = {
           accessToken,
           profileId,
           address,
           identityToken,
           handle,
-        });
+        };
+        setLensSigner(signer);
+
+        localStorage.setItem(
+          LOCAL_STORAGE_KEYS.LENS_PROFILE,
+          JSON.stringify(signer)
+        );
       }
     } catch (error) {
       console.error("frames.js: Create Lens signer failed", error);

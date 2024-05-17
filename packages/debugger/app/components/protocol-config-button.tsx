@@ -88,8 +88,17 @@ export const ProtocolConfigurationButton = forwardRef<
         valid = !!xmtpSignerState.signer;
       }
 
+      if (value?.protocol === "lens") {
+        valid = !!lensSignerState.signer;
+      }
+
       return valid;
-    }, [farcasterSignerState.signer, value?.protocol, xmtpSignerState.signer]);
+    }, [
+      farcasterSignerState.signer,
+      value?.protocol,
+      xmtpSignerState.signer,
+      lensSignerState.signer,
+    ]);
 
     return (
       <Popover>
@@ -119,7 +128,7 @@ export const ProtocolConfigurationButton = forwardRef<
             <TabsList
               className={cn(
                 "w-full grid",
-                !value ? "grid-cols-3" : "grid-cols-2"
+                !value ? "grid-cols-4" : "grid-cols-3"
               )}
             >
               {!value && <TabsTrigger value="none">None</TabsTrigger>}
