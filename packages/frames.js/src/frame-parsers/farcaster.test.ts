@@ -107,7 +107,7 @@ describe("farcaster frame parser", () => {
   });
 
   describe("og:image", () => {
-    it("fails if og image is missing", () => {
+    it("warns if og image is missing", () => {
       const $ = load(`
     <meta name="fc:frame" content="vNext"/>
     <meta name="fc:frame:image" content="http://example.com/image.png"/>
@@ -115,12 +115,12 @@ describe("farcaster frame parser", () => {
     `);
 
       expect(parseFarcasterFrame($, { reporter, fallbackPostUrl })).toEqual({
-        status: "failure",
+        status: "success",
         reports: {
           "og:image": [
             {
-              level: "error",
-              message: 'Missing required meta tag "og:image"',
+              level: "warning",
+              message: 'Missing meta tag "og:image"',
               source: "farcaster",
             },
           ],

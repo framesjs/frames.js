@@ -57,7 +57,7 @@ export function parseFarcasterFrame(
   }
 
   if (!parsedFrame.ogImage) {
-    reporter.error("og:image", 'Missing required meta tag "og:image"');
+    reporter.warn("og:image", 'Missing meta tag "og:image"');
   } else {
     frame.ogImage = validate(
       reporter,

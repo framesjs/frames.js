@@ -255,4 +255,65 @@ describe("getFrame", () => {
 
     expect(result.framesVersion).toEqual("1.0.0");
   });
+
+  it("should parse a frame that does not have an og:image tag", () => {
+    const htmlString = `
+    <meta name="fc:frame" content="vNext" />
+    <meta name="fc:frame:image" content="http://example.com/image.png" />
+    <meta name="fc:frame:button:1" content="Green" />
+    <meta name="fc:frame:button:2" content="Purple" />
+    <meta name="fc:frame:button:3" content="Red" />
+    <meta name="fc:frame:button:4" content="Blue" />
+    <meta name="fc:frame:post_url" content="https://example.com" />
+    <meta name="fc:frame:input:text" content="Enter a message" />
+    <title>test</title>
+  `;
+
+    const parseResult = getFrame({
+      htmlString,
+      url: "https://example.com",
+    });
+
+    expect(parseResult).toEqual({
+      status: "success",
+      frame: {
+        version: "vNext",
+        image: "http://example.com/image.png",
+        ogImage: undefined,
+        buttons: [
+          {
+            label: "Green",
+            action: "post",
+            target: undefined,
+          },
+          {
+            label: "Purple",
+            action: "post",
+            target: undefined,
+          },
+          {
+            label: "Red",
+            action: "post",
+            target: undefined,
+          },
+          {
+            label: "Blue",
+            action: "post",
+            target: undefined,
+          },
+        ],
+        postUrl: "https://example.com/",
+        inputText: "Enter a message",
+      },
+      reports: {
+        "og:image": [
+          {
+            level: "warning",
+            message: 'Missing meta tag "og:image"',
+            source: "farcaster",
+          },
+        ],
+      },
+    });
+  });
 });

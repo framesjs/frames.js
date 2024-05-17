@@ -230,7 +230,7 @@ describe("open frames frame parser", () => {
   });
 
   describe("og:image", () => {
-    it("fails if og image is missing", () => {
+    it("warns if og image is missing", () => {
       const $ = load(`
     <meta name="of:version" content="vNext"/>
     <meta name="of:accepts:some_protocol" content="vNext"/> 
@@ -245,12 +245,12 @@ describe("open frames frame parser", () => {
           reporter,
         })
       ).toEqual({
-        status: "failure",
+        status: "success",
         reports: {
           "og:image": [
             {
-              level: "error",
-              message: 'Missing required meta tag "og:image"',
+              level: "warning",
+              message: 'Missing meta tag "og:image"',
               source: "openframes",
             },
           ],
