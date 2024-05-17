@@ -1,6 +1,3 @@
-import { TransactionTargetResponse } from "frames.js";
-import { getFrameMessage } from "frames.js/next/server";
-import { NextRequest, NextResponse } from "next/server";
 import {
   Abi,
   createPublicClient,
@@ -9,17 +6,13 @@ import {
   http,
 } from "viem";
 import { optimism } from "viem/chains";
+import { frames } from "../frames";
 import { storageRegistryABI } from "./contracts/storage-registry";
+import { transaction } from "frames.js/core";
 
-export async function POST(
-  req: NextRequest
-): Promise<NextResponse<TransactionTargetResponse>> {
-  const json = await req.json();
-
-  const frameMessage = await getFrameMessage(json);
-
-  if (!frameMessage) {
-    throw new Error("No frame message");
+export const POST = frames(async (ctx) => {
+  if (!ctx?.message) {
+    throw new Error("Invalid frame message");
   }
 
   // Get current storage price
@@ -28,7 +21,7 @@ export async function POST(
   const calldata = encodeFunctionData({
     abi: storageRegistryABI,
     functionName: "rent",
-    args: [BigInt(frameMessage.requesterFid), units],
+    args: [BigInt(ctx.message.requesterFid), units],
   });
 
   const publicClient = createPublicClient({
@@ -46,7 +39,7 @@ export async function POST(
 
   const unitPrice = await storageRegistry.read.price([units]);
 
-  return NextResponse.json({
+  return transaction({
     chainId: "eip155:10", // OP Mainnet 10
     method: "eth_sendTransaction",
     params: {
@@ -56,4 +49,4 @@ export async function POST(
       value: unitPrice.toString(),
     },
   });
-}
+});

@@ -171,6 +171,7 @@ export type EthSendTransactionParams = {
 };
 
 export type TransactionTargetResponse = {
+  /** A chain ID starting with 'eip155:' e.g. 'eip155:1' for Ethereum mainnet */
   chainId: string;
   method: "eth_sendTransaction";
   params: EthSendTransactionParams;
