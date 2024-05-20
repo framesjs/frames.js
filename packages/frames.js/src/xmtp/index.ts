@@ -21,10 +21,8 @@ export function isXmtpFrameActionPayload(
 export async function getXmtpFrameMessage(
   frameActionPayload: XmtpOpenFramesRequest
 ): Promise<XmtpFrameMessageReturnType> {
-  const { actionBody, verifiedWalletAddress } = await validateFramesPost({
-    ...frameActionPayload,
-    clientProtocol: frameActionPayload.clientProtocol,
-  });
+  const { actionBody, verifiedWalletAddress } =
+    await validateFramesPost(frameActionPayload);
 
   return {
     ...actionBody,

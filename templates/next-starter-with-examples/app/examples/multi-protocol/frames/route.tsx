@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-key */
 import { Button } from "frames.js/next";
 import { frames } from "./frames";
 
@@ -9,7 +10,7 @@ const handleRequest = frames(async (ctx) => {
       </div>
     ),
     buttons: [
-      <Button action="post" key="1" target="/who-am-i">
+      <Button action="post" target="/who-am-i">
         Who am I?
       </Button>,
     ],
