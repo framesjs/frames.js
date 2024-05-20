@@ -1,10 +1,10 @@
 import type { NextRequest } from "next/server";
-import type { FrameDefinition, FramesContext } from "../../../core/types";
-import { resolveBaseUrl } from "../../../core/utils";
-import { imagesWorkerMiddleware } from "..";
-import { createImagesWorker } from ".";
+import type { FrameDefinition, FramesContext } from "../../core/types";
+import { resolveBaseUrl } from "../../core/utils";
+import { createImagesWorkerRequestHandler } from "./handler";
+import { imagesWorkerMiddleware } from ".";
 
-describe("createImagesWorker", () => {
+describe("createImagesWorkerRequestHandler", () => {
   const frameRequest = new Request("https://example.com");
   const context: FramesContext<undefined> = {
     basePath: "/",
@@ -32,9 +32,9 @@ describe("createImagesWorker", () => {
 
     const request = new Request(result.image as string);
 
-    const imagesRoute = createImagesWorker();
+    const imagesRoute = createImagesWorkerRequestHandler();
 
-    const GET = imagesRoute();
+    const GET = imagesRoute;
 
     const response = await GET(request as unknown as NextRequest);
 
@@ -59,11 +59,11 @@ describe("createImagesWorker", () => {
 
     const request = new Request(result.image as string);
 
-    const imagesRoute = createImagesWorker({
+    const imagesRoute = createImagesWorkerRequestHandler({
       secret: "SOME_INCORRECT_SECRET",
     });
 
-    const GET = imagesRoute();
+    const GET = imagesRoute;
 
     const response = await GET(request as unknown as NextRequest);
 
@@ -90,11 +90,11 @@ describe("createImagesWorker", () => {
 
     url.searchParams.delete("signature");
 
-    const imagesRoute = createImagesWorker({
+    const imagesRoute = createImagesWorkerRequestHandler({
       secret: "MY_TEST_SECRET",
     });
 
-    const GET = imagesRoute();
+    const GET = imagesRoute;
     const response = await GET(new Request(url));
 
     expect(response.status).toBe(401);
@@ -117,7 +117,7 @@ describe("createImagesWorker", () => {
 
     const request = new Request(result.image as string);
 
-    const imagesRoute = createImagesWorker({
+    const imagesRoute = createImagesWorkerRequestHandler({
       imageOptions: {
         sizes: {
           "1:1": {
@@ -130,9 +130,10 @@ describe("createImagesWorker", () => {
           },
         },
       },
+      jsxToResponse: async (_) => new Response("Test", { status: 200 })
     });
 
-    const GET = imagesRoute(async (_) => new Response("Test", { status: 200 }));
+    const GET = imagesRoute;
 
     const response = await GET(request as unknown as NextRequest);
 

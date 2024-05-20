@@ -1,11 +1,12 @@
 import { ImageResponse } from "@vercel/og";
-import type { ImageResponseOptions } from "next/server";
 import type { ReactElement } from "react";
 import React from "react";
-import type { SerializedNode } from "..";
-import { deserializeJsx } from "..";
-import type { ImageAspectRatio } from "../../../types";
-import { verifyHMACSignature } from "../../../lib/crypto";
+import type { ImageAspectRatio } from "../../types";
+import { verifyHMACSignature } from "../../lib/crypto";
+import type { SerializedNode } from ".";
+import { deserializeJsx } from ".";
+
+type ImageResponseOptions = ConstructorParameters<typeof ImageResponse>[1];
 
 type ImageWorkerImageOptions = Omit<
   ImageResponseOptions,
@@ -14,14 +15,11 @@ type ImageWorkerImageOptions = Omit<
   sizes?: Record<ImageAspectRatio, { width: number; height: number }>;
 };
 
-export function createImagesWorker(
-  options: {
-    /** The secret used to sign the jsx payload, if not specified no authentication checks will be done */
-    secret?: string;
-    /** Image options to pass the default image renderer (`\@vercel/og`) */
-    imageOptions?: ImageWorkerImageOptions;
-  } = {}
-): (
+export type ImageWorkerOptions = {
+  /** The secret used to sign the jsx payload, if not specified no authentication checks will be done */
+  secret?: string;
+  /** Image options to pass the default image renderer (`\@vercel/og`) */
+  imageOptions?: ImageWorkerImageOptions;
   /**
    * An async function that converts a JSX element to a response
    * @param jsx - The JSX element to convert to a response
@@ -32,9 +30,12 @@ export function createImagesWorker(
     arg0: ReactElement,
     options?: { aspectRatio: ImageAspectRatio }
   ) => Promise<Response>
-) => (req: Request) => Promise<Response> {
-  return (jsxToResponse) => {
-    return async (req: Request): Promise<Response> => {
+};
+
+export function createImagesWorkerRequestHandler(
+  { secret, jsxToResponse, imageOptions }: ImageWorkerOptions = {}
+): (req: Request) => Promise<Response> {
+  return async (req: Request): Promise<Response> => {
       const url = new URL(req.url);
       const serialized = url.searchParams.get("jsx");
 
@@ -42,11 +43,11 @@ export function createImagesWorker(
         throw new Error("No jsx");
       }
 
-      if (options.secret) {
+      if (secret) {
         const isValid = await verifyHMACSignature(
           serialized,
           Buffer.from(url.searchParams.get("signature") ?? "", "hex"),
-          options.secret
+          secret
         );
 
         if (!isValid) {
@@ -72,14 +73,13 @@ export function createImagesWorker(
         "1:1": { width: 1146, height: 1146 },
         "1.91:1": { width: 1146, height: 600 },
       };
-      const sizes = { ...defaultSizes, ...options.imageOptions?.sizes };
+      const sizes = { ...defaultSizes, ...imageOptions?.sizes };
 
       return new ImageResponse(<Scaffold>{jsx}</Scaffold>, {
-        ...options.imageOptions,
+        ...imageOptions,
         ...sizes[aspectRatio],
       }) as Response;
     };
-  };
 }
 
 /* eslint-disable react/no-unknown-property -- tw is a Tailwind CSS prop */

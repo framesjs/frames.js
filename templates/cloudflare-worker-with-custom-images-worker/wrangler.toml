@@ -5,4 +5,3 @@ compatibility_flags = ["nodejs_compat"]
 
 # this will be available in your handler under ctx.cf.env[SOME_KEY]
 [vars]
-MY_APP_LABEL = "Clicked:"
