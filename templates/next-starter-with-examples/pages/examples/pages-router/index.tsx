@@ -10,7 +10,7 @@ export const getServerSideProps = async function getServerSideProps() {
       metadata: await fetchMetadata(
         new URL(
           "/api/frames",
-          process.env.VERCEL_URL || "http://localhost:3000"
+          process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"
         )
       ),
     },

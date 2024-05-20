@@ -38,9 +38,14 @@ export async function generateMetadata() {
       // ...
       ...(await fetchMetadata(
         // provide full URL to your /frames endpoint
-        new URL("/frames", process.env.VERCEL_URL || "http://localhost:3000")
+        new URL(
+          "/frames",
+          process.env.VERCEL_URL
+            ? `https://$${process.env.VERCEL_URL}`
+            : "http://localhost:3000"
+        )
       )),
-    }
+    },
   };
 }
 

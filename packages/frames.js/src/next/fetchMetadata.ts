@@ -19,7 +19,7 @@ import { FRAMES_META_TAGS_HEADER } from "../core/constants";
  *     ...(await fetchMetadata(
  *       new URL(
  *        "/examples/new-api/frames",
- *        process.env.VERCEL_URL || "http://localhost:3000"
+ *        process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"
  *       )),
  *     ),
  *   },
@@ -36,7 +36,7 @@ import { FRAMES_META_TAGS_HEADER } from "../core/constants";
  *  return {
  *    props: {
  *      metadata: await fetchMetadata(
- *        new URL("/api", process.env.VERCEL_URL || "http://localhost:3000")
+ *        new URL("/api", process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
  *      ),
  *    },
  *  };
