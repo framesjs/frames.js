@@ -68,10 +68,11 @@ export default function Page() {
     frameContext: fallbackFrameContext,
     // map to your identity if you have one
     signerState: {
-      hasSigner: true,
+      hasSigner: farcasterSigner !== undefined,
       signer: farcasterSigner,
       onSignerlessFramePress: () => {
-        // Implement me
+        // Only run if `hasSigner` is set to `false`
+        // This is a good place to throw an error or prompt the user to login
         alert("A frame button was pressed without a signer. Perhaps you want to prompt a login");
       },
       signFrameAction: signFrameAction,
