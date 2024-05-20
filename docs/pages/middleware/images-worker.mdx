@@ -4,7 +4,7 @@ The images worker serializes JSX images in frame definition responses into a URL
 
 It does this by serializing the JSX component tree into a string which is passed to the image worker route via a query param in a URL. The worker deserializes the JSX and renders it into a PNG image as a separate response.
 
-## Usage
+## Usage in Next.js
 
 :::steps
 
@@ -26,7 +26,7 @@ export const GET = imagesRoute();
 
 ```ts [./frames/frames.ts]
 import { createFrames } from "frames.js/next";
-import { imagesWorkerMiddleware } from "frames.js/middleware/images-worker";  // [!code focus]
+import { imagesWorkerMiddleware } from "frames.js/middleware/images-worker"; // [!code focus]
 
 export const frames = createFrames({
   // ...
@@ -41,8 +41,69 @@ export const frames = createFrames({
 
 :::
 
-
 See the [basic images worker example](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples/new-api-images-worker) for a complete example.
+
+## Usage in Cloudflare Workers
+
+:::steps
+
+### Create images worker handler
+
+Optionally specify a secret to secure the endpoint.
+
+```tsx [./src/images-worker.ts]
+import { createImagesWorkerRequestHandler } from "frames.js/middleware/images-worker/handler";
+
+export const handleImagesWorkerRequest = createImagesWorkerRequestHandler({
+  secret: "SOME_SECRET_VALUE",
+});
+```
+
+### Add the `imagesWorkerMiddleware` middleware to your Frames app
+
+```tsx [./src/frames.tsx]
+import { createFrames } from "frames.js/cloudflare-worker";
+import { imagesWorkerMiddleware } from "frames.js/middleware/images-worker";
+
+export const frames = createFrames({
+  // ...
+  middleware: [
+    imagesWorkerMiddleware({
+      imageRoute: "/images",
+      secret: "SOME_SECRET_VALUE",
+    }),
+  ],
+});
+
+export const handleFramesRequest = frames(async () => {
+  return {
+    image: <span>Hello, World!</span>,
+  };
+});
+```
+
+### Create a Cloudflare Worker handler
+
+```ts [./src/index.ts]
+import { handleFramesRequest } from "./frames";
+import { handleImagesWorkerRequest } from "./images-worker";
+
+export default {
+  async fetch(req, env, ctx) {
+    const url = new URL(req.url);
+
+    if (url.pathname === "/images") {
+      return handleImagesWorkerRequest(req);
+    }
+
+    return handleFramesRequest(req, env, ctx);
+  },
+} satisfies ExportedHandler;
+```
+
+:::
+
+See the [Cloudflare Worker with custom images worker example](https://github.com/framesjs/frames.js/tree/main/templates/cloudflare-worker-with-custom-images-worker) for a complete example.
 
 ## `imagesWorkerMiddleware` Options
 
@@ -59,7 +120,7 @@ A secret value to sign the serialized JSX string with. This is used to prevent u
 
 The route to the images worker endpoint. Should be an absolute URL or a path relative to the root of the app.
 
-## `createImagesWorker` - Options
+## `createImagesWorkerRequestHandler()` - Options
 
 ### `secret`
 
@@ -73,6 +134,39 @@ If defined it will only render images with a valid signature that was produced b
 - Type: [`ImageResponseOptions`](https://nextjs.org/docs/app/api-reference/functions/image-response)
 
 Options passed to the default image renderer which is used to render the JSX into a PNG image, [`@vercel/og`](https://www.npmjs.com/package/@vercel/og).
+
+### `jsxToResponse`
+
+- Type: `(jsx: ReactElement, options?: { aspectRatio: ImageAspectRatio }) => Promise<Response>`
+- Default: `undefined`
+
+A function that takes a JSX element and returns a response. By default, it uses the `@vercel/og` image renderer to render the JSX into a PNG image. The renderer should respect the `aspectRatio` option if it is provided.
+
+See the [custom images worker example](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples/new-api-images-worker-custom) for an example of how to specify a custom renderer.
+
+## `createImagesWorker()` - Options
+
+### `secret`
+
+- Type: `string`
+- Default: `undefined`
+
+If defined it will only render images with a valid signature that was produced by the same secret. Should match the secret value passed to the `imagesWorkerMiddleware` middleware.
+
+### `imageOptions`
+
+- Type: [`ImageResponseOptions`](https://nextjs.org/docs/app/api-reference/functions/image-response)
+
+Options passed to the default image renderer which is used to render the JSX into a PNG image, [`@vercel/og`](https://www.npmjs.com/package/@vercel/og).
+
+### `jsxToResponse`
+
+- Type: `(jsx: ReactElement, options?: { aspectRatio: ImageAspectRatio }) => Promise<Response>`
+- Default: `undefined`
+
+A function that takes a JSX element and returns a response. By default, it uses the `@vercel/og` image renderer to render the JSX into a PNG image. The renderer should respect the `aspectRatio` option if it is provided.
+
+See the [custom images worker example](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples/new-api-images-worker-custom) for an example of how to specify a custom renderer.
 
 ## `imagesRoute` - Options
 

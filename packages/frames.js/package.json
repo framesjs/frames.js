@@ -187,6 +187,16 @@
         "default": "./dist/middleware/images-worker/index.cjs"
       }
     },
+    "./middleware/images-worker/handler": {
+      "import": {
+        "types": "./dist/middleware/images-worker/handler.d.ts",
+        "default": "./dist/middleware/images-worker/handler.js"
+      },
+      "require": {
+        "types": "./dist/middleware/images-worker/handler.d.cts",
+        "default": "./dist/middleware/images-worker/handler.cjs"
+      }
+    },
     "./middleware/images-worker/next": {
       "import": {
         "types": "./dist/middleware/images-worker/next/index.d.ts",
