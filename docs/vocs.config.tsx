@@ -155,6 +155,10 @@ const sidebar = [
             text: "error",
             link: "/reference/core/error",
           },
+          {
+            text: "transaction",
+            link: "/reference/core/transaction",
+          },
         ],
       },
       {

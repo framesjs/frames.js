@@ -18,6 +18,36 @@ buttons: [
 ];
 ```
 
+In your `/txdata` route you should handle the request and return transaction data that conforms to the [`TransactionTargetResponse` type](/reference/js/types#reference). The `transaction` helper function can be used to create the transaction data.
+
+```tsx [./app/frames/txdata/route.tsx]
+import { frames } from "../frames";
+import { transaction } from "frames.js/core";
+
+export const POST = frames(async (ctx) => {
+  // Do something with the request data to generate transaction data
+
+  // Create calldata for the transaction using Viem's `encodeFunctionData`
+  const myCalldata = encodeFunctionData({
+    abi: myContractAbi,
+    functionName: "myFunction",
+    args: [myArg1, myArg2],
+  });
+
+  // Return transaction data that conforms to the correct type
+  return transaction({
+    chainId: "eip155:10", // OP Mainnet
+    method: "eth_sendTransaction",
+    params: {
+      abi: myContractAbi,
+      to: myContractAddress,
+      data: calldata,
+      value: myValue.toString(),
+    },
+  });
+});
+```
+
 Use the [Transactions starter](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples/new-api-transaction) as a template to build your transaction Frames.
 
 ## Using the connected wallet address
@@ -31,8 +61,9 @@ Note:
 - The address is only available when the user has connected a wallet to the client the frame button pressed is has a `tx` action.
 - `connectedAddress` differs from the `requesterVerifiedAddresses` returned by the [`farcasterHubContext`](/middleware/farcaster-hub-context) middleware.
 
-```tsx [./app/frames/tx-data/route.tsx]
+```tsx [./app/frames/txdata/route.tsx]
 import { frames } from "../frames";
+import { transaction } from "frames.js/core";
 
 export const POST = frames(async (ctx) => {
   if (!ctx.message) {
@@ -43,6 +74,6 @@ export const POST = frames(async (ctx) => {
 
   // Do something with the user's connected address that will be executing the tx
 
-  return txData;
+  return transaction(txData);
 });
 ```

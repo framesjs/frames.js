@@ -1,0 +1,38 @@
+# transaction
+
+`transaction()` can be used to return a response containing the transaction data conforming to the frames spec.
+
+## Parameters
+
+### `txdata`
+
+Type: `TransactionTargetResponse`
+
+The transaction data to return.
+
+## Usage
+
+```tsx
+export const POST = frames(async (ctx) => {
+  // Do something with the request data to generate transaction data
+
+  // Create calldata for the transaction using Viem's `encodeFunctionData`
+  const myCalldata = encodeFunctionData({
+    abi: myContractAbi,
+    functionName: "myFunction",
+    args: [myArg1, myArg2],
+  });
+
+  // Return transaction data that conforms to the correct type
+  return transaction({
+    chainId: "eip155:10", // OP Mainnet
+    method: "eth_sendTransaction",
+    params: {
+      abi: myContractAbi,
+      to: myContractAddress,
+      data: calldata,
+      value: myValue.toString(),
+    },
+  });
+});
+```
