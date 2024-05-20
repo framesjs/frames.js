@@ -18,7 +18,7 @@ export { fetchMetadata } from "../fetchMetadata";
  *  return {
  *   props: {
  *    metadata: await fetchMetadata(
- *     new URL("/api", process.env.VERCEL_URL || "http://localhost:3000")
+ *     new URL("/api", process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
  *    ),
  *  },
  * };
