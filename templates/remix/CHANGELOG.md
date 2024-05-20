@@ -1,5 +1,16 @@
 # template-remix
 
+## 0.0.12
+
+### Patch Changes
+
+- 6d66b67: fix(create-frames): upgrade typescript and remove declaration options from tsconfig
+- Updated dependencies [0f9a59c]
+- Updated dependencies [d24572d]
+- Updated dependencies [a99a5ca]
+- Updated dependencies [2251c93]
+  - frames.js@0.16.0
+
 ## 0.0.11
 
 ### Patch Changes

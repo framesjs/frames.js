@@ -1,5 +1,16 @@
 # @frames.js/render
 
+## 0.2.7
+
+### Patch Changes
+
+- 8984e8d: feat(render): export next route handlers in isolated file
+- Updated dependencies [0f9a59c]
+- Updated dependencies [d24572d]
+- Updated dependencies [a99a5ca]
+- Updated dependencies [2251c93]
+  - frames.js@0.16.0
+
 ## 0.2.6
 
 ### Patch Changes

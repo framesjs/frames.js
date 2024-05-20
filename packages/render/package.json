@@ -1,6 +1,6 @@
 {
   "name": "@frames.js/render",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "type": "module",
   "main": "./dist/index.cjs",
   "types": "index.d.cts",
@@ -94,6 +94,6 @@
   },
   "dependencies": {
     "@farcaster/core": "^0.14.7",
-    "frames.js": "^0.15.3"
+    "frames.js": "^0.16.0"
   }
 }

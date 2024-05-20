@@ -1,5 +1,17 @@
 # template-cloudflare-worker
 
+## 0.0.12
+
+### Patch Changes
+
+- 6d66b67: fix(create-frames): upgrade typescript and remove declaration options from tsconfig
+- 2251c93: fix(create-frames): correctly pass Env to handler
+- Updated dependencies [0f9a59c]
+- Updated dependencies [d24572d]
+- Updated dependencies [a99a5ca]
+- Updated dependencies [2251c93]
+  - frames.js@0.16.0
+
 ## 0.0.11
 
 ### Patch Changes

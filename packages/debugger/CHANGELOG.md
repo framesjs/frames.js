@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.2.9
+
+### Patch Changes
+
+- 0d61c53: fix(debugger): Open URL button should be a link, use app link in qr code so it is useful on adroid devices as well
+
 ## 0.2.8
 
 ### Patch Changes

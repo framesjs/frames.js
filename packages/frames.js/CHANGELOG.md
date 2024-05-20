@@ -1,5 +1,17 @@
 # frames.js
 
+## 0.16.0
+
+### Minor Changes
+
+- 0f9a59c: feat: warn if og tag is missing instead of error
+
+### Patch Changes
+
+- d24572d: feat: add transaction helper function
+- a99a5ca: fix: properly format url based on VERCEL_URL
+- 2251c93: feat(frames.js): new images worker handler entrypoint for web api based request handlers
+
 ## 0.15.3
 
 ### Patch Changes
