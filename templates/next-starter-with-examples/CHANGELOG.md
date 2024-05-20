@@ -1,5 +1,11 @@
 # template-next-starter-with-examples
 
+## 0.0.15
+
+### Patch Changes
+
+- fix: update .env.sample in examples template
+
 ## 0.0.14
 
 ### Patch Changes
