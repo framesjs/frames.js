@@ -2325,24 +2325,12 @@
   dependencies:
     which "^3.0.0"
 
-"@open-frames/proxy-client@^0.2.0":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@open-frames/proxy-client/-/proxy-client-0.2.1.tgz#876c5a1cdf5acfe85b56d656f4cc73d15c9843a9"
-  integrity sha512-+TmF4dtqRiU0a1HA0BrkIhgf/8z6E+q/7W6XA80icpm/7s4G9fK9a++Vy8+ZWbQ/HVttwL3oVrBDbRrvIZWGOA==
-  dependencies:
-    "@open-frames/proxy-types" "0.1.1"
-
 "@open-frames/proxy-client@^0.3.2":
   version "0.3.2"
   resolved "https://registry.yarnpkg.com/@open-frames/proxy-client/-/proxy-client-0.3.2.tgz#449349a483db38ee05c1dfdbcc05e42d15ce6f7e"
   integrity sha512-tRVA5vzCjFk3s/5V7YFBu3ntkvwM+QHVGO5p3ch9q+Kt3X8VPiQClM6ggXYvfzI9pOtb4F+Ees2OdcYUoLsL4g==
   dependencies:
     "@open-frames/proxy-types" "0.2.2"
-
-"@open-frames/proxy-types@0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@open-frames/proxy-types/-/proxy-types-0.1.1.tgz#e4a7376cbf94c51c3c9377512a524f5030c18f8b"
-  integrity sha512-opAzEGigLiUrZusz58L/NMt+u6+B+XlUbnpK1IjnPbOlpB57MgQDVfrdKzM04Um+0WWmi0bFRqeGJjUqjUgNAA==
 
 "@open-frames/proxy-types@0.2.2":
   version "0.2.2"
@@ -4817,14 +4805,12 @@
   resolved "https://registry.yarnpkg.com/@web3-storage/multipart-parser/-/multipart-parser-1.0.0.tgz#6b69dc2a32a5b207ba43e556c25cc136a56659c4"
   integrity sha512-BEO6al7BYqcnfX15W2cnGR+Q566ACXAT9UQykORCWW80lmkpWsnEob6zJS1ZVBKsSJC8+7vJkHwlp+lXG1UCdw==
 
-"@xmtp/frames-client@^0.4.3":
-  version "0.4.3"
-  resolved "https://registry.yarnpkg.com/@xmtp/frames-client/-/frames-client-0.4.3.tgz#d18e2adb13122dc7b5d601d51e1bc42ad525bbb4"
-  integrity sha512-VGQ9E/+2nIbBUZ+StQn/ROIWi2X7mnzTpAuUuTDFkCVpAcPgbLZ1GL2W3/SEp7cAZbXwhm54tCnJeJ2kw/pf8Q==
+"@xmtp/consent-proof-signature@^0.1.3":
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/@xmtp/consent-proof-signature/-/consent-proof-signature-0.1.3.tgz#19f05c353fdece52a1ab9cce197c60587dc47e78"
+  integrity sha512-2uTKOd7ov6QnDgCFNnL+4Hx9osxRLSpdBNrbpKauWp8/qrrMEe6yBwFRNq40ieElo1mo1usB8DbhSH0jalcIdw==
   dependencies:
-    "@noble/hashes" "^1.3.3"
-    "@open-frames/proxy-client" "^0.2.0"
-    "@xmtp/proto" "3.45.0"
+    "@xmtp/proto" "3.56.0"
     long "^5.2.3"
 
 "@xmtp/frames-client@^0.5.1":
@@ -4877,6 +4863,36 @@
     rxjs "^7.8.0"
     undici "^5.8.1"
 
+"@xmtp/proto@3.54.0":
+  version "3.54.0"
+  resolved "https://registry.yarnpkg.com/@xmtp/proto/-/proto-3.54.0.tgz#1b6be9fa2268a51b730bf484af3bf0ebc2621505"
+  integrity sha512-X0jDRR19/tH0qRB8mM/H/vBueQAK22VZF4QUnDN7TgnbNaOYL5DvSmPfXFH+xzeGKQ5S0zgwc+qFJbI4xoKNHw==
+  dependencies:
+    long "^5.2.0"
+    protobufjs "^7.0.0"
+    rxjs "^7.8.0"
+    undici "^5.8.1"
+
+"@xmtp/proto@3.56.0":
+  version "3.56.0"
+  resolved "https://registry.yarnpkg.com/@xmtp/proto/-/proto-3.56.0.tgz#48dfbfed6f97e1d14775a10caf274f23238f0594"
+  integrity sha512-zW8/s7x9je0keYjJpu/c5zmYK5wE14MxcDWLkxzMwRmrajwdy69BNN0NgVJ1uBzMUqGTjnGQJANDev8lpa58qQ==
+  dependencies:
+    long "^5.2.0"
+    protobufjs "^7.0.0"
+    rxjs "^7.8.0"
+    undici "^5.8.1"
+
+"@xmtp/proto@^3.58.0":
+  version "3.58.0"
+  resolved "https://registry.yarnpkg.com/@xmtp/proto/-/proto-3.58.0.tgz#a2ea752b302edd32a01641fc70f4a936998e34a2"
+  integrity sha512-+SjO/bAVy9ij9EanBbDr2cYX3T/Y6K0NZwZM7C5ysadjhenpqMu+eOvbPEUN9jBrQ/Ih3epNngz1VWPZp33vzg==
+  dependencies:
+    long "^5.2.0"
+    protobufjs "^7.0.0"
+    rxjs "^7.8.0"
+    undici "^5.8.1"
+
 "@xmtp/user-preferences-bindings-wasm@^0.3.6":
   version "0.3.6"
   resolved "https://registry.yarnpkg.com/@xmtp/user-preferences-bindings-wasm/-/user-preferences-bindings-wasm-0.3.6.tgz#4ca58dca940574483caa8cbd4d9c609577b1e0f1"
@@ -4889,6 +4905,20 @@
   dependencies:
     "@noble/secp256k1" "1.7.1"
     "@xmtp/proto" "3.45.0"
+    "@xmtp/user-preferences-bindings-wasm" "^0.3.6"
+    async-mutex "^0.5.0"
+    elliptic "^6.5.4"
+    long "^5.2.3"
+    viem "2.7.15"
+
+"@xmtp/xmtp-js@^11.6.2":
+  version "11.6.2"
+  resolved "https://registry.yarnpkg.com/@xmtp/xmtp-js/-/xmtp-js-11.6.2.tgz#8106586f4bdd7d299cbec0d7b281ab93c1ea895c"
+  integrity sha512-BVEW84UrmD1JyaIZj+FSZ3AA5WOYEtaiHRJvzQTeuTa8AxuT9YT1Dfzcd/OQemU+Lg7nMW7u3BrmHtf+QCT3tg==
+  dependencies:
+    "@noble/secp256k1" "1.7.1"
+    "@xmtp/consent-proof-signature" "^0.1.3"
+    "@xmtp/proto" "3.54.0"
     "@xmtp/user-preferences-bindings-wasm" "^0.3.6"
     async-mutex "^0.5.0"
     elliptic "^6.5.4"
