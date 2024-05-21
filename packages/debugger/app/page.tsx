@@ -326,6 +326,7 @@ export default function App({
     frameGetProxy: "/frames",
     frameContext: {
       ...fallbackFrameContext,
+      address: account.address || fallbackFrameContext.address,
     },
     connectedAddress: account.address,
     extraButtonRequestPayload: { mockData: mockHubContext },
@@ -381,7 +382,10 @@ export default function App({
     ...useFrameConfig,
     signerState: farcasterSignerState,
     specification: "farcaster",
-    frameContext: farcasterFrameContext.frameContext,
+    frameContext: {
+      ...farcasterFrameContext.frameContext,
+      address: account.address || farcasterFrameContext.frameContext.address,
+    },
   } as const;
 
   const farcasterFrameState = useFrame(farcasterFrameConfig);
