@@ -1,6 +1,8 @@
 import type {
   Frame,
   FrameButton,
+  FrameButtonPost,
+  FrameButtonTx,
   SupportedParsingSpecification,
   TransactionTargetResponse,
   getFrame,
@@ -54,6 +56,23 @@ export type UseFrameReturn<
   specification?: SupportedParsingSpecification;
 };
 
+export type SignerStateActionContext<
+  SignerStorageType = object,
+  FrameContextType extends FrameContext = FarcasterFrameContext,
+> = {
+  target?: string;
+  frameButton: FrameButton;
+  buttonIndex: number;
+  url: string;
+  inputText?: string;
+  signer: SignerStorageType | null;
+  state?: string;
+  transactionId?: `0x${string}`;
+  address?: `0x${string}`;
+  /** Transacting address is not included in non-transaction frame actions */
+  frameContext: FrameContextType | Omit<FrameContextType, "address">;
+};
+
 export interface SignerStateInstance<
   SignerStorageType = object,
   FrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
@@ -61,19 +80,9 @@ export interface SignerStateInstance<
 > {
   signer?: SignerStorageType | null;
   hasSigner: boolean;
-  signFrameAction: (actionContext: {
-    target?: string;
-    frameButton: FrameButton;
-    buttonIndex: number;
-    url: string;
-    inputText?: string;
-    signer: SignerStorageType | null;
-    state?: string;
-    transactionId?: `0x${string}`;
-    address?: `0x${string}`;
-    /** Transacting address is not included in non-transaction frame actions */
-    frameContext: FrameContextType | Omit<FrameContextType, "address">;
-  }) => Promise<{
+  signFrameAction: (
+    actionContext: SignerStateActionContext<SignerStorageType, FrameContextType>
+  ) => Promise<{
     body: FrameActionBodyType;
     searchParams: URLSearchParams;
   }>;
@@ -86,18 +95,16 @@ export interface SignerStateInstance<
   logout?: () => void;
 }
 
-type FrameGETRequest = {
+export type FrameGETRequest = {
   method: "GET";
   url: string;
 };
 
-type FramePOSTRequest = {
+export type FramePOSTRequest = {
   method: "POST";
-  request: {
-    body: object;
-    searchParams: URLSearchParams;
-  };
-  url: string;
+  frameButton: FrameButtonPost | FrameButtonTx;
+  signerStateActionContext: SignerStateActionContext<any, any>;
+  isDangerousSkipSigning: boolean;
   /**
    * The frame that was the source of the button press
    */
@@ -111,34 +118,60 @@ export type FrameStackBase = {
   /** speed in seconds */
   speed: number;
   responseStatus: number;
+  requestDetails: {
+    body?: object;
+    searchParams?: URLSearchParams;
+  };
+  url: string;
 };
 
-export type FrameStackPending = {
+export type FrameStackPostPending = {
+  method: "POST";
   timestamp: Date;
   status: "pending";
-} & FrameRequest;
+  request: FramePOSTRequest;
+  requestDetails: {
+    body?: object;
+    searchParams?: URLSearchParams;
+  };
+  url: string;
+};
+
+export type FrameStackGetPending = {
+  method: "GET";
+  timestamp: Date;
+  status: "pending";
+  request: FrameGETRequest;
+  requestDetails: {
+    body?: object;
+    searchParams?: URLSearchParams;
+  };
+  url: string;
+};
+
+export type FrameStackPending = FrameStackGetPending | FrameStackPostPending;
 
 export type GetFrameResult = ReturnType<typeof getFrame>;
 
-export type FrameStackDone = FrameStackBase &
-  FrameRequest & {
-    frame: GetFrameResult;
-    status: "done";
-  };
+export type FrameStackDone = FrameStackBase & {
+  request: FrameRequest;
+  frame: GetFrameResult;
+  status: "done";
+};
 
-export type FrameStackRequestError = FrameStackBase &
-  FrameRequest & {
-    status: "requestError";
-    requestError: unknown;
-    responseBody: unknown;
-  };
+export type FrameStackRequestError = FrameStackBase & {
+  request: FrameRequest;
+  status: "requestError";
+  requestError: unknown;
+  responseBody: unknown;
+};
 
-export type FrameStackMessage = FrameStackBase &
-  FramePOSTRequest & {
-    status: "message";
-    message: string;
-    type: "info" | "error";
-  };
+export type FrameStackMessage = FrameStackBase & {
+  request: FramePOSTRequest;
+  status: "message";
+  message: string;
+  type: "info" | "error";
+};
 
 export type FramesStackItem =
   | FrameStackPending
@@ -152,6 +185,15 @@ export type FrameReducerActions =
   | {
       action: "LOAD";
       item: FrameStackPending;
+    }
+  | {
+      action: "ADD_REQUEST_DETAILS";
+      pendingItem: FrameStackPending;
+      requestDetails: {
+        body?: object;
+        searchParams?: URLSearchParams;
+      };
+      url: string;
     }
   | {
       action: "REQUEST_ERROR";

@@ -81,7 +81,7 @@ function MessageTooltip({
       className={`${
         inline
           ? ""
-          : "absolute bottom-2 border border-slate-100 rounded-sm shadow-md inset-x-2"
+          : "absolute bottom-2 border border-slate-100 rounded-sm shadow-md inset-x-2 bg-white"
       } ${variant === "error" ? "text-red-500" : ""} items-center p-2 flex gap-2 text-sm`}
     >
       {variant === "message" ? messageSquareIcon : octagonXIcon}
@@ -160,7 +160,12 @@ export function FrameUI({
   if (currentFrame.status === "done") {
     frame = currentFrame.frame.frame;
   } else if (currentFrame.status === "message") {
-    frame = currentFrame.sourceFrame;
+    frame = currentFrame.request.sourceFrame;
+  } else if (currentFrame.status === "requestError") {
+    frame =
+      "sourceFrame" in currentFrame.request
+        ? currentFrame.request.sourceFrame
+        : undefined;
   }
 
   const ImageEl = FrameImage ? FrameImage : "img";
@@ -175,7 +180,7 @@ export function FrameUI({
         {currentFrame.status === "requestError" ||
         currentFrame.status === "message" ? (
           <MessageTooltip
-            inline={!!frame && !frame.image}
+            inline={!frame || !("image" in frame) || !frame.image}
             message={getErrorMessageFromFramesStackItem(currentFrame)}
             variant={
               currentFrame.status === "requestError" ||

@@ -21,7 +21,7 @@ export const POST = frames(async (ctx) => {
   const calldata = encodeFunctionData({
     abi: storageRegistryABI,
     functionName: "rent",
-    args: [BigInt(ctx.message.requesterFid), units],
+    args: [BigInt(ctx.message.requesterFid), units] as const,
   });
 
   const publicClient = createPublicClient({

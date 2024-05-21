@@ -7,10 +7,8 @@ import {
 import {
   Dispatch,
   SetStateAction,
-  useCallback,
   useEffect,
   useImperativeHandle,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -25,7 +23,6 @@ import {
 } from "@frames.js/render";
 import { FrameImageNext } from "@frames.js/render/next";
 import { JSONTree } from "react-json-tree";
-import {} from "react-base16-styling";
 import {
   Table,
   TableBody,
@@ -298,24 +295,12 @@ const FramesRequestCardContent: React.FC<{
         } hover:bg-slate-50 w-full`}
         key={i}
         onClick={() => {
-          fetchFrame(
-            frameStackItem.method === "GET"
-              ? {
-                  method: "GET",
-                  url: frameStackItem.url,
-                }
-              : {
-                  url: frameStackItem.url,
-                  method: frameStackItem.method,
-                  request: frameStackItem.request,
-                  sourceFrame: frameStackItem.sourceFrame,
-                }
-          );
+          fetchFrame(frameStackItem.request);
         }}
       >
         <span className="flex text-left flex-row w-full">
           <span className="border text-gray-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">
-            {frameStackItem.method}
+            {frameStackItem.request.method}
           </span>
           <span className="border text-gray-500 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">
             {new URL(frameStackItem.url).protocol}
@@ -492,19 +477,7 @@ export const FrameDebugger = React.forwardRef<
                   const [latestFrame] = frameState.framesStack;
 
                   if (latestFrame) {
-                    frameState.fetchFrame(
-                      latestFrame.method === "GET"
-                        ? {
-                            method: "GET",
-                            url: latestFrame.url,
-                          }
-                        : {
-                            method: "POST",
-                            request: latestFrame.request,
-                            url: latestFrame.url,
-                            sourceFrame: latestFrame.sourceFrame,
-                          }
-                    );
+                    frameState.fetchFrame(latestFrame.request);
                   }
                 }}
               >
@@ -724,7 +697,9 @@ export const FrameDebugger = React.forwardRef<
                         </TableRow>
                         <TableRow>
                           <TableHead>Method</TableHead>
-                          <TableCell>{frameState.frame.method}</TableCell>
+                          <TableCell>
+                            {frameState.frame.request.method}
+                          </TableCell>
                         </TableRow>
                         <TableRow>
                           <TableHead>Query Params</TableHead>
@@ -740,12 +715,12 @@ export const FrameDebugger = React.forwardRef<
                             ></JSONTree>
                           </TableCell>
                         </TableRow>
-                        {frameState.frame.method === "POST" ? (
+                        {frameState.frame.request.method === "POST" ? (
                           <TableRow>
                             <TableHead>Payload</TableHead>
                             <TableCell>
                               <JSONTree
-                                data={frameState.frame.request.body}
+                                data={frameState.frame.requestDetails.body}
                                 invertTheme
                                 theme="default"
                               ></JSONTree>
@@ -796,6 +771,19 @@ export const FrameDebugger = React.forwardRef<
                                 </TableCell>
                               </TableRow>
                             )}
+                            {frameState.frame.status === "requestError" &&
+                              !!frameState.frame.requestError && (
+                                <TableRow>
+                                  <TableHead>Error</TableHead>
+                                  <TableCell>
+                                    <JSONTree
+                                      data={frameState.frame.requestError}
+                                      theme="default"
+                                      invertTheme
+                                    ></JSONTree>
+                                  </TableCell>
+                                </TableRow>
+                              )}
                           </TableBody>
                         </Table>
                       </>
@@ -819,9 +807,9 @@ export const FrameDebugger = React.forwardRef<
                               // Copy the text inside the text field
                               navigator.clipboard.writeText(
                                 getFrameHtmlHead(
-                                  "sourceFrame" in frameState.frame
-                                    ? frameState.frame.sourceFrame
-                                    : frameState.frame.frame.frame
+                                  frameState.frame.status === "done"
+                                    ? frameState.frame.frame.frame
+                                    : frameState.frame.request.sourceFrame
                                 )
                               );
                               setCopySuccess(true);
@@ -841,8 +829,8 @@ export const FrameDebugger = React.forwardRef<
                           }}
                         >
                           {getFrameHtmlHead(
-                            "sourceFrame" in frameState.frame
-                              ? frameState.frame.sourceFrame
+                            "sourceFrame" in frameState.frame.request
+                              ? frameState.frame.request.sourceFrame
                               : frameState.frame.frame.frame
                           )
                             .split("<meta")
