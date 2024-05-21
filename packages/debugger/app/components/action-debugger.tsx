@@ -10,11 +10,6 @@ import {
   FarcasterFrameContext,
   FarcasterSigner,
   FrameActionBodyPayload,
-  FrameRequest,
-  FrameStackMessage,
-  FrameStackPending,
-  FrameStackRequestError,
-  GetFrameResult,
   defaultTheme,
 } from "@frames.js/render";
 import { ParsingReport } from "frames.js";
@@ -28,7 +23,6 @@ import {
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { Button } from "../../@/components/ui/button";
 import { ParseActionResult } from "../actions/types";
-import { useAction as useActionFrame } from "../actions/use-action";
 import { FrameDebugger } from "./frame-debugger";
 import IconByName from "./octicons";
 import { MockHubActionContext } from "../utils/mock-hub-utils";
@@ -38,10 +32,6 @@ import { WithTooltip } from "./with-tooltip";
 type FrameDebuggerFramePropertiesTableRowsProps = {
   actionMetadataItem: ParseActionResult;
 };
-
-function computeDurationInSeconds(start: Date, end: Date): number {
-  return Number(((end.getTime() - start.getTime()) / 1000).toFixed(2));
-}
 
 function isPropertyExperimental([key, value]: [string, string]) {
   // tx is experimental
@@ -179,7 +169,7 @@ export function ActionDebugger({
 }: {
   actionMetadataItem: ParseActionResult;
   farcasterFrameConfig: Parameters<
-    typeof useActionFrame<
+    typeof useFrame<
       FarcasterSigner,
       FrameActionBodyPayload,
       FarcasterFrameContext
@@ -199,174 +189,6 @@ export function ActionDebugger({
   }, [copySuccess, setCopySuccess]);
 
   const actionFrameState = useFrame(farcasterFrameConfig);
-
-  async function fetchFrame(
-    frameRequest: FrameRequest,
-    shouldClear = false
-  ): Promise<void> {
-    const startTime = new Date();
-
-    if (shouldClear) {
-      // this clears initial frame since that is loading from SSR since we aren't able to finish it.
-      // not an ideal solution
-      actionFrameState.dispatchFrameStack({ action: "CLEAR" });
-    }
-
-    if (frameRequest.method === "GET") {
-      // We don't handle GET requests when debugging actions
-    } else {
-      const searchParams = new URLSearchParams(
-        frameRequest.request.searchParams
-      );
-
-      searchParams.set("specification", "farcaster");
-
-      const frameStackPendingItem: FrameStackPending = {
-        method: "POST" as const,
-        request: {
-          searchParams,
-          body: frameRequest.request.body,
-        },
-        timestamp: startTime,
-        url: frameRequest.url,
-        status: "pending",
-        sourceFrame: frameRequest.sourceFrame,
-      };
-
-      actionFrameState.dispatchFrameStack({
-        action: "LOAD",
-        item: frameStackPendingItem,
-      });
-
-      const proxiedUrl = `/frames?${frameStackPendingItem.request.searchParams.toString()}`;
-
-      let response: Response | undefined;
-      let endTime = new Date();
-
-      try {
-        response = await fetch(proxiedUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...farcasterFrameConfig.extraButtonRequestPayload,
-            ...frameRequest.request.body,
-          }),
-        }).finally(() => {
-          endTime = new Date();
-        });
-
-        console.log("response", response.status);
-
-        if (!response.ok) {
-          if (response.status >= 500)
-            throw new Error(`Failed to fetch frame: ${response.statusText}`);
-        }
-
-        const responseData = (await response.json()) as
-          | GetFrameResult
-          | { location: string }
-          | { message: string }
-          | { type: "frame"; frameUrl: string };
-
-        console.log("responseData", responseData);
-
-        if ("location" in responseData) {
-          const location = responseData.location;
-
-          if (window.confirm(`You are about to be redirected to ${location}`)) {
-            window.open(location, "_blank")?.focus();
-          }
-
-          return;
-        } else if ("message" in responseData) {
-          const stackItem: FrameStackMessage = {
-            ...frameStackPendingItem,
-            responseStatus: response.status,
-            speed: computeDurationInSeconds(startTime, endTime),
-            status: "message",
-            type: "info",
-            message: responseData.message,
-          };
-
-          actionFrameState.dispatchFrameStack({
-            action: "DONE",
-            pendingItem: frameStackPendingItem,
-            item: stackItem,
-          });
-          return;
-        } else if ("frameUrl" in responseData) {
-          const stackItem: FrameStackMessage = {
-            ...frameStackPendingItem,
-            responseStatus: response.status,
-            speed: computeDurationInSeconds(startTime, endTime),
-            status: "message",
-            type: "info",
-            message: "Loading frame from frameUrl.",
-          };
-
-          actionFrameState.dispatchFrameStack({
-            action: "DONE",
-            pendingItem: frameStackPendingItem,
-            item: stackItem,
-          });
-
-          actionFrameState.onButtonPress(
-            { image: "", buttons: [], version: "vNext" },
-            {
-              action: "post",
-              label: "action",
-              target: responseData.frameUrl,
-            },
-            1
-          );
-
-          return;
-        }
-
-        actionFrameState.dispatchFrameStack({
-          action: "DONE",
-          pendingItem: frameStackPendingItem,
-          item: {
-            ...frameStackPendingItem,
-            frame: responseData,
-            status: "done",
-            speed: computeDurationInSeconds(startTime, endTime),
-            responseStatus: response.status,
-          },
-        });
-      } catch (err) {
-        let responseBody: unknown;
-
-        if (response) {
-          if (response.headers.get("content-type")?.includes("/json")) {
-            responseBody = await response.json();
-          } else {
-            responseBody = await response.text();
-          }
-        }
-
-        const stackItem: FrameStackRequestError = {
-          ...frameStackPendingItem,
-          responseStatus: response?.status ?? 500,
-          requestError: err,
-          speed: computeDurationInSeconds(startTime, endTime),
-          status: "requestError",
-          responseBody,
-        };
-
-        actionFrameState.dispatchFrameStack({
-          action: "REQUEST_ERROR",
-          pendingItem: frameStackPendingItem,
-          item: stackItem,
-        });
-
-        console.error(err);
-      }
-    }
-  }
-
   const [showFrameDebugger, setShowFrameDebugger] = useState(false);
 
   return (
@@ -443,7 +265,10 @@ export function ActionDebugger({
                           target: actionMetadataItem.action.url,
                         },
                         1,
-                        fetchFrame
+                        (request) => {
+                          // clear the request stack
+                          return actionFrameState.fetchFrame(request, true);
+                        }
                       )
                     ).catch((e: unknown) => {
                       // eslint-disable-next-line no-console -- provide feedback to the user

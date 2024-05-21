@@ -235,7 +235,8 @@ export function useFetchFrame({
 
   async function fetchPOSTRequest(
     request: FramePOSTRequest,
-    options?: { pendingFrameStackItem: FrameStackPending; startTime: Date }
+    options?: { pendingFrameStackItem: FrameStackPending; startTime: Date },
+    shouldClear?: boolean
   ): Promise<void> {
     // Transacting address is not included in post action
     const { address: _, ...requiredFrameContext } = request
@@ -256,6 +257,10 @@ export function useFetchFrame({
         homeframeUrl ||
         "", // this will be also filled after action is signed
     };
+
+    if (shouldClear) {
+      stackDispatch({ action: "CLEAR" });
+    }
 
     // if there are no options passed there is no preflight happening (for example in case of transactions we first fetch transaction data and then post it to frame)
     // in that case options are passed so we can manipulate the pending item
@@ -336,7 +341,9 @@ export function useFetchFrame({
 
       const responseData = (await response.json()) as
         | GetFrameResult
-        | { location: string };
+        | { location: string }
+        | { message: string }
+        | { type: "frame"; frameUrl: string };
 
       if ("location" in responseData) {
         const location = responseData.location;
@@ -344,6 +351,60 @@ export function useFetchFrame({
         if (window.confirm(`You are about to be redirected to ${location}`)) {
           window.open(location, "_blank")?.focus();
         }
+
+        return;
+      }
+
+      // cast action message response
+      if ("message" in responseData) {
+        stackDispatch({
+          action: "DONE",
+          pendingItem: frameStackPendingItem,
+          item: {
+            ...frameStackPendingItem,
+            status: "message",
+            message: responseData.message,
+            type: "info",
+            responseStatus: response.status,
+            speed: computeDurationInSeconds(startTime, endTime),
+          },
+        });
+
+        return;
+      }
+
+      // cast action frame response, fetch the frame
+      if ("frameUrl" in responseData) {
+        await fetchPOSTRequest(
+          {
+            // @todo make sourceFrame optional? or somehow identify it whether it is an action or not
+            sourceFrame: {
+              image: "",
+              version: "vNext",
+            },
+            frameButton: {
+              action: "post",
+              label: "action",
+              target: responseData.frameUrl,
+            },
+            isDangerousSkipSigning: request.isDangerousSkipSigning,
+            method: "POST",
+            signerStateActionContext: {
+              ...request.signerStateActionContext,
+              buttonIndex: 1,
+              frameButton: {
+                action: "post",
+                label: "action",
+                target: responseData.frameUrl,
+              },
+              target: responseData.frameUrl,
+            },
+          },
+          {
+            pendingFrameStackItem: frameStackPendingItem,
+            startTime,
+          }
+        );
 
         return;
       }
@@ -394,12 +455,17 @@ export function useFetchFrame({
   }
 
   async function fetchTransactionRequest(
-    request: FramePOSTRequest
+    request: FramePOSTRequest,
+    shouldClear?: boolean
   ): Promise<void> {
     const button = request.frameButton;
 
     if (button.action !== "tx") {
       throw new Error("Invalid frame button action, tx expected");
+    }
+
+    if (shouldClear) {
+      stackDispatch({ action: "CLEAR" });
     }
 
     const startTime = new Date();
@@ -569,10 +635,10 @@ export function useFetchFrame({
     }
 
     if (request.frameButton.action === "tx") {
-      return fetchTransactionRequest(request);
+      return fetchTransactionRequest(request, shouldClear);
     }
 
-    return fetchPOSTRequest(request);
+    return fetchPOSTRequest(request, undefined, shouldClear);
   };
 }
 

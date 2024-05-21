@@ -103,12 +103,6 @@ export async function POST(req: NextRequest): Promise<Response> {
     // this is an error, just return response as is
     if (r.status >= 500) {
       return Response.json(await r.text(), { status: r.status });
-      if (r.headers.get("content-type")?.includes("/json")) {
-        const json = await r.json();
-        return Response.json(json, { status: r.status });
-      }
-
-      return Response.json(await r.text(), { status: r.status });
     }
 
     if (r.status >= 400 && r.status < 500) {
