@@ -9,7 +9,6 @@ packageJson.dependencies.next = "14.1.4";
 packageJson.devDependencies["@next/swc-wasm-nodejs"] = "14.1.4";
 
 fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
-fs.copyFileSync("scripts/stackblitz-yarn.lock", "yarn.lock");
 
 console.log("Installing dependencies");
 spawnSync("yarn", ["install"], {
