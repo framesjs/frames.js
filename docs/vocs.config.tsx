@@ -1,7 +1,99 @@
-import { defineConfig } from "vocs";
+import { spawnSync } from "node:child_process";
+import { type SidebarItem, defineConfig } from "vocs";
 import pkg from "../packages/frames.js/package.json";
 
-const sidebar = [
+// @see https://vitejs.dev/guide/env-and-mode
+declare global {
+  interface ImportMeta {
+    env: {
+      /**
+       * Set in vocs.config.tsx
+       */
+      VITE_GIT_REF?: string;
+    };
+  }
+}
+
+let detectedBranchName: string | undefined = process.env.VERCEL_GIT_COMMIT_REF;
+
+detectedBranchName ||= spawnSync("git", ["rev-parse", "--abbrev-ref", "HEAD"])
+  .stdout.toString()
+  .trim();
+detectedBranchName ||= "main";
+
+/**
+ * Provide for StackblitzEmbed component so we can generate URLs to example in current branch (good for PR previews)
+ */
+process.env.VITE_GIT_REF = detectedBranchName;
+
+const examplesSidebarItems: SidebarItem[] = [
+  {
+    text: "Basic",
+    link: "/examples/basic",
+  },
+  {
+    text: "Cache Control",
+    link: "/examples/cache-control",
+  },
+  {
+    text: "Cast Actions",
+    link: "/examples/cast-actions",
+  },
+  {
+    text: "Custom Font",
+    link: "/examples/custom-font",
+  },
+  {
+    text: "Custom Middleware",
+    link: "/examples/custom-middleware",
+  },
+  {
+    text: "Error Handling",
+    link: "/examples/error-handling",
+  },
+  {
+    text: "Images Worker",
+    link: "/examples/images-worker",
+  },
+  {
+    text: "Custom Images Worker",
+    link: "/examples/custom-images-worker",
+  },
+  {
+    text: "Mint Button",
+    link: "/examples/mint-button",
+  },
+  {
+    text: "Multi Page",
+    link: "/examples/multi-page",
+  },
+  {
+    text: "Multi Protocol",
+    link: "/examples/multi-protocol",
+  },
+  {
+    text: "Only Followers Can Mint",
+    link: "/examples/only-followers-can-mint",
+  },
+  {
+    text: "Post Redirect",
+    link: "/examples/post-redirect",
+  },
+  {
+    text: "State",
+    link: "/examples/state",
+  },
+  {
+    text: "State via Query Params",
+    link: "/examples/state-via-query-params",
+  },
+  {
+    text: "Transaction",
+    link: "/examples/transaction",
+  },
+];
+
+const sidebar: SidebarItem[] = [
   {
     text: "Introduction",
     link: "/",
@@ -79,6 +171,16 @@ const sidebar = [
     ],
   },
   {
+    text: "CLI",
+    collapsed: false,
+    items: [
+      {
+        text: "Creating a project from template",
+        link: "/cli/creating-a-project-from-template",
+      },
+    ],
+  },
+  {
     text: "Write your frame with",
     collapsed: false,
     items: [
@@ -129,6 +231,11 @@ const sidebar = [
   {
     text: "Troubleshooting",
     link: "/troubleshooting",
+  },
+  {
+    text: "Examples",
+    collapsed: true,
+    items: examplesSidebarItems,
   },
   {
     text: "Reference",
@@ -326,7 +433,7 @@ export default defineConfig({
   iconUrl: "/favicon.png",
   rootDir: ".",
   head({ path }) {
-    if (path === "/")
+    if (path === "/") {
       return (
         <>
           {/** on production this is rewritten by vercel */}
@@ -349,14 +456,11 @@ export default defineConfig({
           <script defer src="/_vercel/insights/script.js" />
         </>
       );
-    else
-      return (
-        <>
-          <script defer src="/_vercel/insights/script.js" />
-        </>
-      );
+    }
+
+    return <script defer src="/_vercel/insights/script.js" />;
   },
-  sidebar: sidebar,
+  sidebar,
   topNav: [
     { text: "Github", link: "https://github.com/framesjs/frames.js" },
     {
@@ -378,23 +482,20 @@ export default defineConfig({
         },
       ],
     },
-    // {
-    //   text: version,
-    //   items: [
-    //     {
-    //       text: "Changelog",
-    //       link: "https://github.com/wevm/vocs/blob/main/src/CHANGELOG.md",
-    //     },
-    //     {
-    //       text: "Contributing",
-    //       link: "https://github.com/wevm/vocs/blob/main/.github/CONTRIBUTING.md",
-    //     },
-    //   ],
-    // },
   ],
+  vite: {
+    server: {
+      // this must be also set on vercel
+      headers: {
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Cross-Origin-Resource-Policy": "cross-origin",
+      },
+    },
+  },
 });
 
-function toPatchVersionRange(version: string) {
+function toPatchVersionRange(version: string): string {
   const [major, minor] = version.split(".").slice(0, 2);
   return `${major}.${minor}.x`;
 }

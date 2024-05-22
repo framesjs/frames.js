@@ -8,9 +8,8 @@ import {
   getPreviousFrame,
   useFramesReducer,
 } from "frames.js/next/server";
-import Link from "next/link";
-import { currentURL } from "../../utils";
-import { DEFAULT_DEBUGGER_HUB_URL, createDebugUrl } from "../../debug";
+import { DEFAULT_DEBUGGER_HUB_URL } from "../../debug";
+import { DebugLink } from "../../components/DebugLink";
 
 type State = {
   saidGm: boolean;
@@ -29,7 +28,6 @@ export default async function Home({
   params,
   searchParams,
 }: NextServerPageProps) {
-  const url = currentURL("/examples/user-data");
   const previousFrame = getPreviousFrame<State>(searchParams);
 
   const frameMessage = await getFrameMessage(previousFrame.postBody, {
@@ -53,7 +51,7 @@ export default async function Home({
   // then, when done, return next frame
   return (
     <div>
-      GM user data example. <Link href={createDebugUrl(url)}>Debug</Link>
+      GM user data example. <DebugLink />
       <FrameContainer
         pathname="/examples/user-data"
         postUrl="/examples/user-data/frames"

@@ -7,9 +7,7 @@ import {
   getPreviousFrame,
   useFramesReducer,
 } from "frames.js/next/server";
-import Link from "next/link";
-import { currentURL } from "../../utils";
-import { createDebugUrl } from "../../debug";
+import { DebugLink } from "../../components/DebugLink";
 
 type State = {
   pageIndex: number;
@@ -30,7 +28,6 @@ const reducer: FrameReducer<State> = (state, action) => {
 
 // This is a react server component only
 export default async function Home({ searchParams }: NextServerPageProps) {
-  const url = currentURL("/examples/multi-page");
   const previousFrame = getPreviousFrame<State>(searchParams);
   const [state] = useFramesReducer<State>(reducer, initialState, previousFrame);
   const imageUrl = `https://picsum.photos/seed/frames.js-${state.pageIndex}/1146/600`;
@@ -38,7 +35,7 @@ export default async function Home({ searchParams }: NextServerPageProps) {
   // then, when done, return next frame
   return (
     <div>
-      Multi-page example <Link href={createDebugUrl(url)}>Debug</Link>
+      Multi-page example <DebugLink />
       <FrameContainer
         pathname="/examples/multi-page"
         postUrl="/examples/multi-page/frames"

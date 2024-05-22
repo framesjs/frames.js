@@ -1,0 +1,50 @@
+---
+title: 'Creating a Project from a Template'
+description: 'A guide to demonstrate how to create a project from a template with Frames.js'
+---
+
+# Creating a Project from a Template
+
+Frames.js provides a convenient CLI tool that allows you to quickly bootstrap new Frames project from one of our templates. This guide will show you how to create a new project from a template using the Frames CLI.
+
+## Creating a project interactively
+
+To create a new project from a template interactively, run the following command:
+
+:::code-group
+
+```bash [npm]
+npm init frames
+```
+
+```bash [yarn]
+yarn create frames
+```
+
+```bash [pnpm]
+pnpm create frames
+```
+
+:::
+
+This command will prompt you to enter a name of your project, select a template from the list of available templates and then guide you through the process of setting up your new project.
+
+## Creating a project with predefined options
+
+If you want to create a new project with predefined options, you can pass the `--template` flag to the command. For example, to create a new project named `my-frames-app` with the `next` template, run the following command:
+
+:::code-group
+
+```bash [npm]
+npm init frames -- --name my-frames-app --template next
+```
+
+```bash [yarn]
+yarn create frames --name my-frames-app --template next
+```
+
+```bash [pnpm]
+pnpm create frames --name my-frames-app --template next
+```
+
+:::

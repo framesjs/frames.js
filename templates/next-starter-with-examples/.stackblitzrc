@@ -1,0 +1,7 @@
+{
+  "installDependencies": false,
+  "startCommand": "node ./scripts/run-stackblitz.js",
+  "env": {
+    "NEXT_PUBLIC_STACKBLITZ": "true"
+  }
+}
