@@ -4,7 +4,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  type UseFrameReturn,
+  type UseFrameOptions,
   fallbackFrameContext,
   type OnTransactionFunc,
 } from "@frames.js/render";
@@ -317,7 +317,7 @@ export default function App({
   );
 
   const useFrameConfig: Omit<
-    UseFrameReturn<object, FrameActionPayload>,
+    UseFrameOptions<object, FrameActionPayload>,
     "signerState" | "specification"
   > = {
     homeframeUrl: url,
