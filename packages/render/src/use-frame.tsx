@@ -113,6 +113,7 @@ export function useFrame<
   frameGetProxy,
   extraButtonRequestPayload,
   specification = "farcaster",
+  onError,
 }: UseFrameReturn<
   SignerStorageType,
   FrameActionBodyType,
@@ -137,6 +138,7 @@ export function useFrame<
     stackDispatch: dispatch,
     extraButtonRequestPayload,
     homeframeUrl,
+    onError,
   });
 
   const fetchFrameRef = useRef(fetchFrame);

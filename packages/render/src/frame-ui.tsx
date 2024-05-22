@@ -134,15 +134,6 @@ export function FrameUI({
   }
 
   if (
-    currentFrame.status === "requestError" &&
-    !(currentFrame.requestError instanceof Error)
-  ) {
-    return (
-      <MessageTooltip inline message="Failed to load frame" variant="error" />
-    );
-  }
-
-  if (
     currentFrame.status === "done" &&
     currentFrame.frame.status === "failure" &&
     !(
@@ -177,17 +168,11 @@ export function FrameUI({
       <div className="relative w-full" style={{ height: "100%" }}>
         {" "}
         {/* Ensure the container fills the height */}
-        {currentFrame.status === "requestError" ||
-        currentFrame.status === "message" ? (
+        {currentFrame.status === "message" ? (
           <MessageTooltip
             inline={!frame || !("image" in frame) || !frame.image}
             message={getErrorMessageFromFramesStackItem(currentFrame)}
-            variant={
-              currentFrame.status === "requestError" ||
-              currentFrame.type === "error"
-                ? "error"
-                : "message"
-            }
+            variant={currentFrame.type === "error" ? "error" : "message"}
           />
         ) : null}
         {!!frame && !!frame.image && (

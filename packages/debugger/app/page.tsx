@@ -331,6 +331,25 @@ export default function App({
     connectedAddress: account.address,
     extraButtonRequestPayload: { mockData: mockHubContext },
     onTransaction,
+    onError(error) {
+      console.error(error);
+
+      toast({
+        title: "Error occurred",
+        description: "Please check the console for more information",
+        variant: "destructive",
+        action: debuggerRef.current ? (
+          <ToastAction
+            altText="Show console"
+            onClick={() => {
+              debuggerRef.current?.showConsole();
+            }}
+          >
+            Show console
+          </ToastAction>
+        ) : undefined,
+      });
+    },
     onMint(t) {
       if (!confirm(`Mint ${t.target}?`)) {
         return;

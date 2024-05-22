@@ -54,6 +54,10 @@ export type UseFrameReturn<
    * @defaultValue 'farcaster'
    */
   specification?: SupportedParsingSpecification;
+  /**
+   * This function can be used to customize how error is reported to the user.
+   */
+  onError?: (error: Error) => void;
 };
 
 export type SignerStateActionContext<
@@ -162,7 +166,7 @@ export type FrameStackDone = FrameStackBase & {
 export type FrameStackRequestError = FrameStackBase & {
   request: FrameRequest;
   status: "requestError";
-  requestError: unknown;
+  requestError: Error;
   responseBody: unknown;
 };
 

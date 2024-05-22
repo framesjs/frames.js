@@ -44,6 +44,12 @@ The url of the homeframe, if null won't load a frame.
 
 The initial frame. if not specified will fetch it from the url prop.
 
+### `onError`
+
+- Type: `(e: Error) => void`
+
+A function that can be used to customize how errors are reported to a user, by default it logs errors using `console.error()`.
+
 ### `onMint`
 
 - Type: `(t: onMintArgs) => void`

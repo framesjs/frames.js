@@ -46,12 +46,20 @@ type UseFetchFrameOptions = {
   ) => ReturnType<SignerStateInstance["signFrameAction"]>;
   onTransaction: OnTransactionFunc;
   homeframeUrl: string | undefined | null;
+  /**
+   * This function can be used to customize how error is reported to the user.
+   */
+  onError?: (error: Error) => void;
 };
 
 type FetchFrameFn = (
   request: FrameRequest,
   shouldClear?: boolean
 ) => Promise<void>;
+
+const defaultErrorHandler = (error: Error): void => {
+  console.error(error);
+};
 
 export function useFetchFrame({
   stackDispatch,
@@ -62,6 +70,7 @@ export function useFetchFrame({
   signFrameAction,
   onTransaction,
   homeframeUrl,
+  onError = defaultErrorHandler,
 }: UseFetchFrameOptions): FetchFrameFn {
   async function handleFailedResponse({
     response,
@@ -115,11 +124,13 @@ export function useFetchFrame({
       );
     }
 
+    const requestError = new Error(
+      `The server returned an error but it does not contain message property. Status code: ${response.status}`
+    );
+
     pushRequestErrorToStack({
       frameStackPendingItem,
-      requestError: new Error(
-        `The server returned an error but it does not contain message property. Status code: ${response.status}`
-      ),
+      requestError,
       responseStatus: response.status,
       startTime,
       endTime,
@@ -136,7 +147,7 @@ export function useFetchFrame({
     responseBody,
   }: {
     frameStackPendingItem: FrameStackPending;
-    requestError?: Error;
+    requestError: Error;
     responseStatus: number;
     startTime: Date;
     endTime: Date;
@@ -151,13 +162,14 @@ export function useFetchFrame({
         timestamp: frameStackPendingItem.timestamp,
         url: frameStackPendingItem.url,
         responseStatus,
-        requestError:
-          requestError ?? new Error(`Failed to fetch frame: ${responseStatus}`),
+        requestError,
         speed: computeDurationInSeconds(startTime, endTime),
         status: "requestError",
         responseBody,
       },
     });
+
+    onError(requestError);
   }
 
   async function fetchGETRequest(
@@ -189,7 +201,7 @@ export function useFetchFrame({
     });
     const proxiedUrl = `${frameGetProxy}?${searchParams.toString()}`;
 
-    const response = await fetchRequest(proxiedUrl, { method: "GET" });
+    const response = await tryCall(fetch(proxiedUrl, { method: "GET" }));
     const endTime = new Date();
 
     if (response instanceof Response) {
@@ -229,8 +241,6 @@ export function useFetchFrame({
       responseStatus: 500,
       requestError: response,
     });
-
-    console.error(response);
   }
 
   async function fetchPOSTRequest(
@@ -269,22 +279,12 @@ export function useFetchFrame({
     }
 
     // get rid of address from request.signerStateActionContext.frameContext and pass that to sign frame action
-    const signedDataOrError = await signFrameAction(
-      request.isDangerousSkipSigning,
-      {
+    const signedDataOrError = await tryCall(
+      signFrameAction(request.isDangerousSkipSigning, {
         ...request.signerStateActionContext,
         frameContext: requiredFrameContext,
-      }
-    ).catch((e) => {
-      if (e instanceof Error) {
-        return e;
-      }
-
-      console.error(e);
-      return new Error(
-        "Unexpected error thrown by signFrameAction, see the console for details"
-      );
-    });
+      })
+    );
 
     if (signedDataOrError instanceof Error) {
       pushRequestErrorToStack({
@@ -315,16 +315,18 @@ export function useFetchFrame({
 
     const proxiedUrl = `${frameActionProxy}?${searchParams.toString()}`;
 
-    const response = await fetchRequest(proxiedUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ...extraButtonRequestPayload,
-        ...body,
-      }),
-    });
+    const response = await tryCall(
+      fetch(proxiedUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...extraButtonRequestPayload,
+          ...body,
+        }),
+      })
+    );
     const endTime = new Date();
 
     if (response instanceof Response) {
@@ -377,7 +379,7 @@ export function useFetchFrame({
       if ("frameUrl" in responseData) {
         await fetchPOSTRequest(
           {
-            // @todo make sourceFrame optional? or somehow identify it whether it is an action or not
+            // actions don't have source frame, fake it
             sourceFrame: {
               image: "",
               version: "vNext",
@@ -450,8 +452,6 @@ export function useFetchFrame({
       startTime,
       requestError: response,
     });
-
-    console.error(response);
   }
 
   async function fetchTransactionRequest(
@@ -485,20 +485,13 @@ export function useFetchFrame({
 
     stackDispatch({ action: "LOAD", item: frameStackPendingItem });
 
-    const signedTransactionDataActionOrError = await signFrameAction(
-      // for transaction data we always use signer, so skip signing is false here
-      false,
-      request.signerStateActionContext
-    ).catch((e) => {
-      if (e instanceof Error) {
-        return e;
-      }
-
-      console.error(e);
-      return new Error(
-        "Unexpected error thrown by signFrameAction, see the console for details"
-      );
-    });
+    const signedTransactionDataActionOrError = await tryCall(
+      signFrameAction(
+        // for transaction data we always use signer, so skip signing is false here
+        false,
+        request.signerStateActionContext
+      )
+    );
 
     if (signedTransactionDataActionOrError instanceof Error) {
       pushRequestErrorToStack({
@@ -531,9 +524,8 @@ export function useFetchFrame({
     // fetch transaction data first
     const transactionDataProxiedUrl = `${frameActionProxy}?${signedTransactionDataActionOrError.searchParams.toString()}`;
 
-    const transactionDataResponse = await fetchRequest(
-      transactionDataProxiedUrl,
-      {
+    const transactionDataResponse = await tryCall(
+      fetch(transactionDataProxiedUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -542,7 +534,7 @@ export function useFetchFrame({
           ...extraButtonRequestPayload,
           ...signedTransactionDataActionOrError.body,
         }),
-      }
+      })
     );
     const endTime = new Date();
 
@@ -574,28 +566,19 @@ export function useFetchFrame({
       (await transactionDataResponse.json()) as TransactionTargetResponse;
 
     // get transaction id from transaction data
-    const transactionIdOrError = await onTransaction({
-      frame: request.sourceFrame,
-      frameButton: request.frameButton,
-      transactionData,
-    })
-      .then((transactionId) => {
+    const transactionIdOrError = await tryCall(
+      onTransaction({
+        frame: request.sourceFrame,
+        frameButton: request.frameButton,
+        transactionData,
+      }).then((transactionId) => {
         if (!transactionId) {
           return new Error("onTransaction did not return transaction id");
         }
 
         return transactionId;
       })
-      .catch((e) => {
-        if (e instanceof Error) {
-          return e;
-        }
-
-        console.error(e);
-        return new Error(
-          "Unexpected error thrown by onTransaction, see the console for details"
-        );
-      });
+    );
 
     if (transactionIdOrError instanceof Error) {
       pushRequestErrorToStack({
@@ -642,17 +625,16 @@ export function useFetchFrame({
   };
 }
 
-function fetchRequest(
-  ...args: Parameters<typeof fetch>
-): Promise<Response | Error> {
-  return fetch(...args).catch((e) => {
+async function tryCall<TResult>(
+  promise: Promise<TResult>
+): Promise<TResult | Error> {
+  return promise.catch((e) => {
     if (e instanceof Error) {
       return e;
     }
 
     console.error(e);
-
-    return new TypeError("Uneexpected error thrown by fetch, check console");
+    return new TypeError("Unexpected error, check the console for details");
   });
 }
 
