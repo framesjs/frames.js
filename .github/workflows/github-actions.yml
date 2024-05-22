@@ -17,9 +17,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  NEXT_PUBLIC_WALLETCONNECT_ID: "test"
-
 jobs:
   build:
     timeout-minutes: 5
