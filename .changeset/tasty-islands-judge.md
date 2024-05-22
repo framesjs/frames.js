@@ -3,4 +3,4 @@
 "create-frames": patch
 ---
 
-feat: new examples and interactive docs
+feat: new examples and stackblitz links to example code
