@@ -18,7 +18,7 @@ import type {
   FrameContext,
   SignerStateInstance,
   FrameActionBodyPayload,
-  UseFrameReturn,
+  UseFrameOptions,
   OnTransactionArgs,
 } from "./types";
 import type { FarcasterFrameContext } from "./farcaster";
@@ -114,7 +114,7 @@ export function useFrame<
   extraButtonRequestPayload,
   specification = "farcaster",
   onError,
-}: UseFrameReturn<
+}: UseFrameOptions<
   SignerStorageType,
   FrameActionBodyType,
   FrameContextType
@@ -308,13 +308,11 @@ export function useFrame<
     postInputText: string | undefined;
   }): Promise<TransactionTargetResponse | undefined> {
     // Send post request to get calldata
-    const currentFrameStackItem = framesStack[0];
-
     if (!dangerousSkipSigning && !signerState.hasSigner) {
       console.error("frames.js: missing required auth state");
       return;
     }
-    if (!currentFrameStackItem || !homeframeUrl) {
+    if (!homeframeUrl) {
       console.error("frames.js: missing required value for post");
       return;
     }
@@ -349,6 +347,6 @@ export function useFrame<
     fetchFrame,
     homeframeUrl,
     framesStack,
-    frame: framesStack[0],
+    currentFrameStackItem: framesStack[0],
   };
 }

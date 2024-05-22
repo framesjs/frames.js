@@ -104,7 +104,7 @@ function FrameDiagnostics({ stackItem }: FrameDiagnosticsProps) {
       return { validProperties, invalidProperties, isValid: true };
     }
 
-    const result = stackItem.frame;
+    const result = stackItem.frameResult;
 
     // we need to check validation errors first because getFrame incorrectly return a value for a key even if it's invalid
     for (const [key, reports] of Object.entries(result.reports)) {
@@ -272,11 +272,11 @@ const FramesRequestCardContentIcon: React.FC<{
     }
   }
 
-  if (stackItem.frame?.status === "failure") {
+  if (stackItem.frameResult?.status === "failure") {
     return <XCircle size={20} color="red" />;
   }
 
-  if (hasWarnings(stackItem.frame.reports)) {
+  if (hasWarnings(stackItem.frameResult.reports)) {
     return <AlertTriangle size={20} color="orange" />;
   }
 
@@ -396,20 +396,24 @@ export const FrameDebugger = React.forwardRef<
 
     const [openAccordions, setOpenAccordions] = useState<string[]>([]);
 
-    const [latestFrame] = frameState.framesStack;
+    const { currentFrameStackItem } = frameState;
 
-    const isLoading = frameState.frame?.status === "pending";
+    const isLoading = currentFrameStackItem?.status === "pending";
 
     useEffect(() => {
       if (!isLoading) {
         // make sure the first frame is open
-        if (!openAccordions.includes(String(latestFrame?.timestamp.getTime())))
+        if (
+          !openAccordions.includes(
+            String(currentFrameStackItem?.timestamp.getTime())
+          )
+        )
           setOpenAccordions((v) => [
             ...v,
-            String(latestFrame?.timestamp.getTime()),
+            String(currentFrameStackItem?.timestamp.getTime()),
           ]);
       }
-    }, [isLoading, latestFrame?.timestamp, openAccordions]);
+    }, [isLoading, currentFrameStackItem?.timestamp, openAccordions]);
 
     /**
      * This handles the case where the user clicks on the console button in toast, in that case he wants to scroll to the bottom
@@ -474,10 +478,8 @@ export const FrameDebugger = React.forwardRef<
                 className="flex flex-row gap-3 items-center shadow-sm border"
                 variant={"outline"}
                 onClick={() => {
-                  const [latestFrame] = frameState.framesStack;
-
-                  if (latestFrame) {
-                    frameState.fetchFrame(latestFrame.request);
+                  if (currentFrameStackItem) {
+                    frameState.fetchFrame(currentFrameStackItem.request);
                   }
                 }}
               >
@@ -600,8 +602,8 @@ export const FrameDebugger = React.forwardRef<
                 </div>
                 <div className="ml-auto text-sm text-slate-500">{url}</div>
                 <div className="space-y-1">
-                  {frameState.frame?.status === "done" &&
-                    frameState.frame.frame.frame.buttons
+                  {currentFrameStackItem?.status === "done" &&
+                    currentFrameStackItem.frameResult.frame.buttons
                       ?.filter((button) =>
                         button.target?.startsWith(
                           "https://warpcast.com/~/add-cast-action"
@@ -644,7 +646,7 @@ export const FrameDebugger = React.forwardRef<
           </div>
         </div>
         <div className="flex flex-row gap-4 order-2 md:col-span-2 lg:col-span-1 lg:order-2">
-          {frameState.frame ? (
+          {currentFrameStackItem ? (
             <Card className="w-full max-h-[600px]">
               <CardContent className="p-5 h-full">
                 <Tabs
@@ -660,7 +662,7 @@ export const FrameDebugger = React.forwardRef<
                   </TabsList>
                   <TabsContent className="overflow-y-auto" value="diagnostics">
                     <FrameDiagnostics
-                      stackItem={frameState.frame}
+                      stackItem={currentFrameStackItem}
                     ></FrameDiagnostics>
                   </TabsContent>
                   <TabsContent
@@ -692,13 +694,13 @@ export const FrameDebugger = React.forwardRef<
                         <TableRow>
                           <TableHead>URL</TableHead>
                           <TableCell className="w-full">
-                            {frameState.frame.url}
+                            {currentFrameStackItem.url}
                           </TableCell>
                         </TableRow>
                         <TableRow>
                           <TableHead>Method</TableHead>
                           <TableCell>
-                            {frameState.frame.request.method}
+                            {currentFrameStackItem.request.method}
                           </TableCell>
                         </TableRow>
                         <TableRow>
@@ -707,7 +709,7 @@ export const FrameDebugger = React.forwardRef<
                             <JSONTree
                               data={paramsToObject(
                                 new URL(
-                                  frameState.frame.url
+                                  currentFrameStackItem.url
                                 ).searchParams.entries()
                               )}
                               invertTheme
@@ -715,12 +717,12 @@ export const FrameDebugger = React.forwardRef<
                             ></JSONTree>
                           </TableCell>
                         </TableRow>
-                        {frameState.frame.request.method === "POST" ? (
+                        {currentFrameStackItem.request.method === "POST" ? (
                           <TableRow>
                             <TableHead>Payload</TableHead>
                             <TableCell>
                               <JSONTree
-                                data={frameState.frame.requestDetails.body}
+                                data={currentFrameStackItem.requestDetails.body}
                                 invertTheme
                                 theme="default"
                               ></JSONTree>
@@ -729,7 +731,7 @@ export const FrameDebugger = React.forwardRef<
                         ) : null}
                       </TableBody>
                     </Table>
-                    {frameState.frame.status !== "pending" ? (
+                    {currentFrameStackItem.status !== "pending" ? (
                       <>
                         <h2 className="my-4 text-muted-foreground font-semibold text-sm">
                           Response
@@ -739,15 +741,15 @@ export const FrameDebugger = React.forwardRef<
                             <TableRow>
                               <TableHead>Response status</TableHead>
                               <TableCell className="w-full">
-                                {frameState.frame.responseStatus}
+                                {currentFrameStackItem.responseStatus}
                               </TableCell>
                             </TableRow>
-                            {"frame" in frameState.frame ? (
+                            {"frame" in currentFrameStackItem ? (
                               <TableRow>
                                 <TableHead>Frame Response</TableHead>
                                 <TableCell>
                                   <JSONTree
-                                    data={frameState.frame.frame}
+                                    data={currentFrameStackItem.frame}
                                     invertTheme
                                     theme="default"
                                   ></JSONTree>
@@ -759,11 +761,12 @@ export const FrameDebugger = React.forwardRef<
                                 <TableCell>
                                   <JSONTree
                                     data={
-                                      frameState.frame.status === "message"
+                                      currentFrameStackItem.status === "message"
                                         ? {
-                                            message: frameState.frame.message,
+                                            message:
+                                              currentFrameStackItem.message,
                                           }
-                                        : frameState.frame.responseBody
+                                        : currentFrameStackItem.responseBody
                                     }
                                     theme="default"
                                     invertTheme
@@ -771,13 +774,13 @@ export const FrameDebugger = React.forwardRef<
                                 </TableCell>
                               </TableRow>
                             )}
-                            {frameState.frame.status === "requestError" &&
-                              !!frameState.frame.requestError && (
+                            {currentFrameStackItem.status === "requestError" &&
+                              !!currentFrameStackItem.requestError && (
                                 <TableRow>
                                   <TableHead>Error</TableHead>
                                   <TableCell>
                                     <JSONTree
-                                      data={frameState.frame.requestError}
+                                      data={currentFrameStackItem.requestError}
                                       theme="default"
                                       invertTheme
                                     ></JSONTree>
@@ -790,30 +793,23 @@ export const FrameDebugger = React.forwardRef<
                     ) : null}
                   </TabsContent>
                   <TabsContent className="overflow-y-auto" value="meta">
-                    {frameState.frame.status === "done" ? (
+                    {currentFrameStackItem.status === "done" ? (
                       <div className="py-4 flex-1">
                         <span className="font-bold">html tags </span>
                         <button
                           className="underline"
                           onClick={() => {
-                            if (!frameState.frame) {
+                            if (!currentFrameStackItem) {
                               return;
                             }
 
-                            if (
-                              frameState.frame.status === "done" ||
-                              frameState.frame.status === "message"
-                            ) {
-                              // Copy the text inside the text field
-                              navigator.clipboard.writeText(
-                                getFrameHtmlHead(
-                                  frameState.frame.status === "done"
-                                    ? frameState.frame.frame.frame
-                                    : frameState.frame.request.sourceFrame
-                                )
-                              );
-                              setCopySuccess(true);
-                            }
+                            // Copy the text inside the text field
+                            navigator.clipboard.writeText(
+                              getFrameHtmlHead(
+                                currentFrameStackItem.frameResult.frame
+                              )
+                            );
+                            setCopySuccess(true);
                           }}
                         >
                           {copySuccess
@@ -829,9 +825,9 @@ export const FrameDebugger = React.forwardRef<
                           }}
                         >
                           {getFrameHtmlHead(
-                            "sourceFrame" in frameState.frame.request
-                              ? frameState.frame.request.sourceFrame
-                              : frameState.frame.frame.frame
+                            "sourceFrame" in currentFrameStackItem.request
+                              ? currentFrameStackItem.request.sourceFrame
+                              : currentFrameStackItem.frameResult.frame
                           )
                             .split("<meta")
                             .filter((t) => !!t)

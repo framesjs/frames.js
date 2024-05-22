@@ -15,7 +15,7 @@ export type OnTransactionFunc = (
   t: OnTransactionArgs
 ) => Promise<`0x${string}` | null>;
 
-export type UseFrameReturn<
+export type UseFrameOptions<
   SignerStorageType = object,
   FrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
   FrameContextType extends FrameContext = FarcasterFrameContext,
@@ -122,6 +122,7 @@ export type FrameStackBase = {
   /** speed in seconds */
   speed: number;
   responseStatus: number;
+  responseBody: unknown;
   requestDetails: {
     body?: object;
     searchParams?: URLSearchParams;
@@ -159,7 +160,7 @@ export type GetFrameResult = ReturnType<typeof getFrame>;
 
 export type FrameStackDone = FrameStackBase & {
   request: FrameRequest;
-  frame: GetFrameResult;
+  frameResult: GetFrameResult;
   status: "done";
 };
 
@@ -167,7 +168,6 @@ export type FrameStackRequestError = FrameStackBase & {
   request: FrameRequest;
   status: "requestError";
   requestError: Error;
-  responseBody: unknown;
 };
 
 export type FrameStackMessage = FrameStackBase & {
@@ -229,7 +229,7 @@ export type FrameState = {
   clearFrameStack: () => void;
   dispatchFrameStack: Dispatch<FrameReducerActions>;
   /** The frame at the top of the stack (at index 0) */
-  frame: FramesStackItem | undefined;
+  currentFrameStackItem: FramesStackItem | undefined;
   /** A stack of frames with additional context, with the most recent frame at index 0 */
   framesStack: FramesStack;
   inputText: string;

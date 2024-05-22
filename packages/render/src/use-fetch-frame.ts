@@ -107,6 +107,7 @@ export function useFetchFrame({
           status: "message",
           type: "error",
           message: responseBody.message,
+          responseBody,
         };
 
         stackDispatch({
@@ -224,9 +225,10 @@ export function useFetchFrame({
         item: {
           ...frameStackPendingItem,
           status: "done",
-          frame: loadedFrame,
+          frameResult: loadedFrame,
           speed: computeDurationInSeconds(startTime, endTime),
           responseStatus: response.status,
+          responseBody: loadedFrame,
         },
       });
 
@@ -369,6 +371,7 @@ export function useFetchFrame({
             type: "info",
             responseStatus: response.status,
             speed: computeDurationInSeconds(startTime, endTime),
+            responseBody: responseData,
           },
         });
 
@@ -434,10 +437,11 @@ export function useFetchFrame({
           ...(options?.pendingFrameStackItem ?? frameStackPendingItem),
           // update url to the one used to send the request, this handles transaction flow where pending item is created for transaction data request
           url: frameStackPendingItem.url,
-          frame: responseData,
+          frameResult: responseData,
           status: "done",
           speed: computeDurationInSeconds(startTime, endTime),
           responseStatus: response.status,
+          responseBody: responseData,
         },
       });
 

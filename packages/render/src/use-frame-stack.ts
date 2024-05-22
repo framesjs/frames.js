@@ -62,9 +62,17 @@ function framesStackReducer(
       const shouldReset =
         !originalInitialFrame ||
         (originalInitialFrame.status === "done" &&
-          originalInitialFrame.frame.frame !== frame);
+          originalInitialFrame.frameResult.frame !== frame);
 
       if (shouldReset) {
+        const frameResult = isParseResult(action.resultOrFrame)
+          ? action.resultOrFrame
+          : {
+              status: "success" as const,
+              reports: {},
+              frame: action.resultOrFrame,
+            };
+
         return [
           {
             request: {
@@ -76,14 +84,10 @@ function framesStackReducer(
             responseStatus: 200,
             timestamp: new Date(),
             speed: 0,
-            frame: isParseResult(action.resultOrFrame)
-              ? action.resultOrFrame
-              : {
-                  status: "success",
-                  reports: {},
-                  frame: action.resultOrFrame,
-                },
+            frameResult,
             status: "done",
+            // @todo should this be result or frame?
+            responseBody: frameResult,
           },
         ];
       }
@@ -111,9 +115,17 @@ export function useFrameStack({
     [initialFrame, initialFrameUrl] as const,
     ([frame, frameUrl]): FramesStack => {
       if (frame) {
+        const frameResult = isParseResult(frame)
+          ? frame
+          : {
+              reports: {},
+              frame,
+              status: "success" as const,
+            };
         return [
           {
             responseStatus: 200,
+            responseBody: frameResult,
             timestamp: new Date(),
             requestDetails: {},
             request: {
@@ -121,13 +133,7 @@ export function useFrameStack({
               url: frameUrl ?? "",
             },
             speed: 0,
-            frame: isParseResult(frame)
-              ? frame
-              : {
-                  reports: {},
-                  frame,
-                  status: "success",
-                },
+            frameResult,
             status: "done",
             url: frameUrl ?? "",
           },

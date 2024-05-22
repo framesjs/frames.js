@@ -119,7 +119,7 @@ export function FrameUI({
   allowPartialFrame,
 }: FrameUIProps): React.JSX.Element | null {
   const [isImageLoading, setIsImageLoading] = useState(true);
-  const currentFrame = frameState.frame;
+  const currentFrame = frameState.currentFrameStackItem;
   const isLoading = currentFrame?.status === "pending" || isImageLoading;
   const resolvedTheme = getThemeWithDefaults(theme ?? {});
 
@@ -135,12 +135,12 @@ export function FrameUI({
 
   if (
     currentFrame.status === "done" &&
-    currentFrame.frame.status === "failure" &&
+    currentFrame.frameResult.status === "failure" &&
     !(
       allowPartialFrame &&
       // Need at least image and buttons to render a partial frame
-      currentFrame.frame.frame.image &&
-      currentFrame.frame.frame.buttons
+      currentFrame.frameResult.frame.image &&
+      currentFrame.frameResult.frame.buttons
     )
   ) {
     return <MessageTooltip inline message="Invalid frame" variant="error" />;
@@ -149,7 +149,7 @@ export function FrameUI({
   let frame: Frame | Partial<Frame> | undefined;
 
   if (currentFrame.status === "done") {
-    frame = currentFrame.frame.frame;
+    frame = currentFrame.frameResult.frame;
   } else if (currentFrame.status === "message") {
     frame = currentFrame.request.sourceFrame;
   } else if (currentFrame.status === "requestError") {
