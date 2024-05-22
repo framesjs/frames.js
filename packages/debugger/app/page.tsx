@@ -336,7 +336,12 @@ export default function App({
 
       toast({
         title: "Error occurred",
-        description: "Please check the console for more information",
+        description: (
+          <div className="space-y-2">
+            <p>{error.message}</p>
+            <p>Please check the console for more information</p>
+          </div>
+        ),
         variant: "destructive",
         action: debuggerRef.current ? (
           <ToastAction
