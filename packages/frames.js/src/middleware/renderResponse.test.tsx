@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/require-await -- middleware expects async functions */
 /* eslint-disable testing-library/render-result-naming-convention -- we are not using react testing library here */
 import * as vercelOg from "@vercel/og";
-import { FRAMES_META_TAGS_HEADER } from "../core";
+import { FRAMES_META_TAGS_HEADER, button } from "../core";
 import { Button } from "../core/components";
 import { error } from "../core/error";
 import { redirect } from "../core/redirect";
@@ -341,10 +341,7 @@ describe("renderResponse middleware", () => {
     const result = await render(context, async () => {
       return {
         image: <div>My image</div>,
-        buttons: [
-          // this is not a proper object created by React.createElement()
-          { action: "link", props: "invalid" },
-        ],
+        buttons: [{}],
       };
     });
 
@@ -576,5 +573,37 @@ describe("renderResponse middleware", () => {
       "fc:frame:button:2": "Click me 2",
       "fc:frame:button:2:target": expect.any(String) as string,
     });
+  });
+
+  it("renders buttons specified by plain objects", async () => {
+    context.request = new Request("https://example.com", {
+      headers: {
+        Accept: FRAMES_META_TAGS_HEADER,
+      },
+    });
+    const result = await render(context, async () => {
+      return {
+        image: <div>My image</div>,
+        buttons: [
+          button({
+            action: "tx",
+            label: "Tx button",
+            target: "/tx",
+            post_url: "/txid",
+          }),
+        ],
+      };
+    });
+
+    const json = (await (result as Response).json()) as Record<string, string>;
+
+    expect(json["fc:frame:button:1"]).toBe("Tx button");
+    expect(json["fc:frame:button:1:action"]).toBe("tx");
+    expect(json["fc:frame:button:1:target"]).toBe(
+      "https://example.com/tx?__bi=1-tx"
+    );
+    expect(json["fc:frame:button:1:post_url"]).toBe(
+      "https://example.com/txid?__bi=1-p"
+    );
   });
 });

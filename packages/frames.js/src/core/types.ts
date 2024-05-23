@@ -1,6 +1,6 @@
 import type { ImageResponse } from "@vercel/og";
 import type { ClientProtocolId } from "../types";
-import type { Button } from "./components";
+import type { Button, ButtonProps } from "./components";
 
 export type JsonObject = { [Key in string]: JsonValue } & {
   [Key in string]?: JsonValue | undefined;
@@ -59,8 +59,22 @@ export type FramesContext<TState extends JsonValue | undefined = JsonValue> = {
 
 type AllowedFramesContextShape = Record<string, any>;
 
-export type FrameButtonElement = React.ReactComponentElement<typeof Button>;
-type AllowedFrameButtonItems = FrameButtonElement | null | undefined | boolean;
+type RemapChildrenToLabelProps<T> = T extends any
+  ? Omit<T, "children"> & {
+      /** A 256-byte string which is label of the button */
+      label: string;
+    }
+  : never;
+
+export type FramePlainObjectButtonElement =
+  RemapChildrenToLabelProps<ButtonProps>;
+export type FrameButtonElement = React.ReactElement<ButtonProps, typeof Button>;
+export type AllowedFrameButtonItems =
+  | FramePlainObjectButtonElement
+  | FrameButtonElement
+  | null
+  | undefined
+  | boolean;
 
 /**
  * Frame definition, this is rendered by the frames

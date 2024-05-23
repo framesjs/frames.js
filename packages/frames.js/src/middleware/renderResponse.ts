@@ -1,11 +1,13 @@
 import { ImageResponse } from "@vercel/og";
 import { getFrameHtmlHead } from "../getFrameHtml";
 import { getFrameFlattened } from "../getFrameFlattened";
-import { type Frame } from "../types";
-import type { ButtonProps } from "../core/components";
+import type { FrameButton, Frame } from "../types";
+import { Button, type ButtonProps } from "../core/components";
 import type {
+  AllowedFrameButtonItems,
   FrameButtonElement,
   FrameDefinition,
+  FramePlainObjectButtonElement,
   FramesHandlerFunctionReturnType,
   FramesMiddleware,
 } from "../core/types";
@@ -26,6 +28,12 @@ class UnrecognizedButtonActionError extends Error {}
 class ImageRenderError extends Error {}
 
 class InvalidStateValueError extends Error {}
+
+function isFrameButtonElement(
+  button: Exclude<NonNullable<AllowedFrameButtonItems>, boolean>
+): button is FrameButtonElement {
+  return "type" in button && "props" in button && button.type === Button;
+}
 
 /**
  * This middleware is responsible for rendering the response
@@ -136,10 +144,19 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
         buttons: result.buttons
           ?.slice()
           .filter(
-            (v): v is FrameButtonElement => typeof v === "object" && v !== null
+            (v): v is Exclude<NonNullable<AllowedFrameButtonItems>, boolean> =>
+              typeof v === "object" && v !== null
           )
-          .map((button, i): NonNullable<Frame["buttons"]>[number] => {
-            if (!("type" in button && "props" in button)) {
+          .map((button, i): FrameButton => {
+            let props: ButtonProps | FramePlainObjectButtonElement;
+
+            if (isFrameButtonElement(button)) {
+              // this is JSX element
+              props = button.props;
+            } else if ("action" in button) {
+              // this is plain object
+              props = button;
+            } else {
               throw new InvalidButtonShapeError("Invalid button provided");
             }
 
@@ -147,13 +164,13 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
               throw new InvalidButtonCountError("Up to 4 buttons are allowed");
             }
 
-            const props = button.props as ButtonProps;
+            const label = "label" in props ? props.label : props.children;
 
             switch (props.action) {
               case "link":
                 return {
                   action: props.action,
-                  label: props.children,
+                  label,
                   target: generateTargetURL({
                     target: props.target,
                     baseUrl: context.baseUrl,
@@ -162,13 +179,13 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
               case "mint":
                 return {
                   action: props.action,
-                  label: props.children,
+                  label,
                   target: props.target,
                 };
               case "tx":
                 return {
                   action: props.action,
-                  label: props.children,
+                  label,
                   target: generateButtonTargetURL({
                     buttonIndex: (i + 1) as 1 | 2 | 3 | 4,
                     buttonAction: props.action,
@@ -188,7 +205,7 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
               case "post_redirect":
                 return {
                   action: props.action,
-                  label: props.children,
+                  label,
                   target: generateButtonTargetURL({
                     buttonIndex: (i + 1) as 1 | 2 | 3 | 4,
                     buttonAction: props.action,
