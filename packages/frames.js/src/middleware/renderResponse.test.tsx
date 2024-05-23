@@ -284,7 +284,6 @@ describe("renderResponse middleware", () => {
   });
 
   it("returns 500 if invalid number of buttons is provided", async () => {
-    // @ts-expect-error -- we are providing more than 4 buttons
     const result = await render(context, async () => {
       return {
         image: <div>My image</div>,
