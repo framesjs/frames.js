@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
 
   // verify independently
-  const frameMessage = await getFrameMessage(body.postBody, {
+  const frameMessage = await getFrameMessage(body, {
     hubHttpUrl: DEFAULT_DEBUGGER_HUB_URL,
   });
 

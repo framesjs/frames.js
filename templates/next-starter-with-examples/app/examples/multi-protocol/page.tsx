@@ -1,78 +1,23 @@
-import { ClientProtocolId } from "frames.js";
-import {
-  FrameButton,
-  FrameContainer,
-  FrameImage,
-  NextServerPageProps,
-  getFrameMessage,
-  getPreviousFrame,
-} from "frames.js/next/server";
-import { getXmtpFrameMessage, isXmtpFrameActionPayload } from "frames.js/xmtp";
-import { DEFAULT_DEBUGGER_HUB_URL } from "../../debug";
+import { appURL } from "../../utils";
+import type { Metadata } from "next";
+import { fetchMetadata } from "frames.js/next";
 import { DebugLink } from "../../components/DebugLink";
 
-const acceptedProtocols: ClientProtocolId[] = [
-  {
-    id: "xmtp",
-    version: "vNext",
-  },
-  {
-    id: "farcaster",
-    version: "vNext",
-  },
-];
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: "Frames.js Multi protocol Example",
+    other: {
+      ...(await fetchMetadata(
+        new URL("/examples/multi-protocol/frames", appURL())
+      )),
+    },
+  };
+}
 
-// This is a react server component only
-export default async function Home({ searchParams }: NextServerPageProps) {
-  const previousFrame = getPreviousFrame(searchParams);
-
-  let fid: number | undefined;
-  let walletAddress: string | undefined;
-
-  if (
-    previousFrame.postBody &&
-    isXmtpFrameActionPayload(previousFrame.postBody)
-  ) {
-    const frameMessage = await getXmtpFrameMessage(previousFrame.postBody);
-    walletAddress = frameMessage?.verifiedWalletAddress;
-  } else {
-    const frameMessage = await getFrameMessage(previousFrame.postBody, {
-      hubHttpUrl: DEFAULT_DEBUGGER_HUB_URL,
-    });
-
-    if (frameMessage && frameMessage?.isValid) {
-      fid = frameMessage?.requesterFid;
-      walletAddress =
-        frameMessage?.requesterCustodyAddress.length > 0
-          ? frameMessage?.requesterCustodyAddress
-          : frameMessage.requesterCustodyAddress;
-    }
-  }
-
+export default async function Home() {
   return (
     <div>
-      Multi-protocol example <DebugLink />
-      <FrameContainer
-        pathname="/examples/multi-protocol"
-        postUrl="/examples/multi-protocol/frames"
-        state={{}}
-        previousFrame={previousFrame}
-        accepts={acceptedProtocols}
-      >
-        <FrameImage>
-          <div tw="flex flex-col">
-            <div tw="flex">
-              This frame gets the interactor&apos;s wallet address or FID
-              depending on the client protocol.
-            </div>
-            {fid && <div tw="flex">FID: {fid}</div>}
-            {walletAddress && (
-              <div tw="flex">Wallet Address: {walletAddress}</div>
-            )}
-          </div>
-        </FrameImage>
-        <FrameButton>Check</FrameButton>
-      </FrameContainer>
+      Frames.js Multi protocol example <DebugLink />
     </div>
   );
 }

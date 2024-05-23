@@ -1,58 +1,23 @@
-import {
-  FrameButton,
-  FrameContainer,
-  FrameImage,
-  FrameReducer,
-  NextServerPageProps,
-  getPreviousFrame,
-  useFramesReducer,
-} from "frames.js/next/server";
+import { appURL } from "../../utils";
+import type { Metadata } from "next";
+import { fetchMetadata } from "frames.js/next";
 import { DebugLink } from "../../components/DebugLink";
 
-type State = {
-  pageIndex: number;
-};
-
-const totalPages = 5;
-const initialState: State = { pageIndex: 0 };
-
-const reducer: FrameReducer<State> = (state, action) => {
-  const buttonIndex = action.postBody?.untrustedData.buttonIndex;
-
+export async function generateMetadata(): Promise<Metadata> {
   return {
-    pageIndex: buttonIndex
-      ? (state.pageIndex + (buttonIndex === 2 ? 1 : -1)) % totalPages
-      : state.pageIndex,
+    title: "Frames.js Multi Page Example",
+    other: {
+      ...(await fetchMetadata(
+        new URL("/examples/multi-page/frames", appURL())
+      )),
+    },
   };
-};
+}
 
-// This is a react server component only
-export default async function Home({ searchParams }: NextServerPageProps) {
-  const previousFrame = getPreviousFrame<State>(searchParams);
-  const [state] = useFramesReducer<State>(reducer, initialState, previousFrame);
-  const imageUrl = `https://picsum.photos/seed/frames.js-${state.pageIndex}/1146/600`;
-
-  // then, when done, return next frame
+export default async function Home() {
   return (
     <div>
-      Multi-page example <DebugLink />
-      <FrameContainer
-        pathname="/examples/multi-page"
-        postUrl="/examples/multi-page/frames"
-        state={state}
-        previousFrame={previousFrame}
-      >
-        <FrameImage>
-          <div tw="flex flex-col">
-            <img width={573} height={300} src={imageUrl} alt="Image" />
-            <div tw="flex">
-              This is slide {state.pageIndex + 1} / {totalPages}
-            </div>
-          </div>
-        </FrameImage>
-        <FrameButton>←</FrameButton>
-        <FrameButton>→</FrameButton>
-      </FrameContainer>
+      Frames.js Multi Page example <DebugLink />
     </div>
   );
 }

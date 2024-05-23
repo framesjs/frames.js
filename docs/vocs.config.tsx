@@ -44,6 +44,10 @@ const examplesSidebarItems: SidebarItem[] = [
     link: "/examples/custom-font",
   },
   {
+    text: "Custom Farcaster Hub",
+    link: "/examples/custom-hub",
+  },
+  {
     text: "Custom Middleware",
     link: "/examples/custom-middleware",
   },
@@ -84,12 +88,20 @@ const examplesSidebarItems: SidebarItem[] = [
     link: "/examples/state",
   },
   {
+    text: "State Signing",
+    link: "/examples/state-signing",
+  },
+  {
     text: "State via Query Params",
     link: "/examples/state-via-query-params",
   },
   {
     text: "Transaction",
     link: "/examples/transaction",
+  },
+  {
+    text: "User Data",
+    link: "/examples/user-data",
   },
 ];
 
