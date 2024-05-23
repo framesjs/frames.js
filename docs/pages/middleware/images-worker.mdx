@@ -30,8 +30,10 @@ import { imagesWorkerMiddleware } from "frames.js/middleware/images-worker"; // 
 
 export const frames = createFrames({
   // ...
-  middleware: [ // [!code focus]
-    imagesWorkerMiddleware({ // [!code focus]
+  middleware: [
+    // [!code focus]
+    imagesWorkerMiddleware({
+      // [!code focus]
       imageRoute: "/images", // [!code focus]
       secret: "SOME_SECRET_VALUE", // [!code focus]
     }), // [!code focus]
@@ -41,7 +43,7 @@ export const frames = createFrames({
 
 :::
 
-See the [basic images worker example](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples/new-api-images-worker) for a complete example.
+See the [basic images worker example](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples/images-worker) for a complete example.
 
 ## Usage in Cloudflare Workers
 
@@ -142,7 +144,7 @@ Options passed to the default image renderer which is used to render the JSX int
 
 A function that takes a JSX element and returns a response. By default, it uses the `@vercel/og` image renderer to render the JSX into a PNG image. The renderer should respect the `aspectRatio` option if it is provided.
 
-See the [custom images worker example](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples/new-api-images-worker-custom) for an example of how to specify a custom renderer.
+See the [custom images worker example](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples/images-worker-custom) for an example of how to specify a custom renderer.
 
 ## `createImagesWorker()` - Options
 
@@ -166,7 +168,7 @@ Options passed to the default image renderer which is used to render the JSX int
 
 A function that takes a JSX element and returns a response. By default, it uses the `@vercel/og` image renderer to render the JSX into a PNG image. The renderer should respect the `aspectRatio` option if it is provided.
 
-See the [custom images worker example](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples/new-api-images-worker-custom) for an example of how to specify a custom renderer.
+See the [custom images worker example](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples/images-worker-custom) for an example of how to specify a custom renderer.
 
 ## `imagesRoute` - Options
 
@@ -179,4 +181,4 @@ The `imagesRoute` refers to the return value of `createImagesWorker` and is a Ne
 
 A function that takes a JSX element and returns a response. By default, it uses the `@vercel/og` image renderer to render the JSX into a PNG image. The renderer should respect the `aspectRatio` option if it is provided.
 
-See the [custom images worker example](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples/new-api-images-worker-custom) for an example of how to specify a custom renderer.
+See the [custom images worker example](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples/images-worker-custom) for an example of how to specify a custom renderer.
