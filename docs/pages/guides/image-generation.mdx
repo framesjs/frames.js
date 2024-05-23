@@ -20,7 +20,7 @@ const handleRequest = frames(async (ctx) => {
 ## Dynamic Image generation
 
 You can define a dynamic image by passing in a `JSX` element to `image` property. This uses [@vercel/og](https://vercel.com/docs/functions/og-image-generation) library under the hood, which includes a syntax for writing [tailwind CSS](https://tailwindcss.com/). You can pass in options for `@vercel/og` via the `imageOptions` property.
-There are certain constraints around dynamic images that you should be aware of - firstly, they can be slow, affecting the UX. 
+There are certain constraints around dynamic images that you should be aware of - firstly, they can be slow, affecting the UX.
 Secondly, dynamic images have a size limit of 256kB, which can easily be crossed if you use an existing image inside of the dynamic image.
 
 ```tsx
@@ -34,8 +34,8 @@ const handleRequest = frames(async (ctx) => {
       </div>
     ),
     imageOptions: {
-        // ...
-    }
+      // ...
+    },
   };
 });
 ```
@@ -47,4 +47,4 @@ The Image generation uses an experimental tailwind based system, [read their doc
 ## Using custom fonts & font-weight
 
 In order to use custom fonts or font weights, you need to load fonts for them in `imageOptions`, [reference docs here](https://vercel.com/docs/functions/og-image-generation/og-image-api).
-See a full example using frames.js [here](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples/new-api-custom-font).
+See a full example using frames.js [here](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples/custom-font).
