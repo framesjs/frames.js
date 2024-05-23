@@ -30,13 +30,21 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
   {
     fetchHubContext = true,
     hubHttpUrl = DEFAULT_HUB_API_URL,
-    hubRequestOptions = {
+    hubRequestOptions,
+  }: T = {} as T
+): Promise<FrameMessageReturnType<T>> {
+  let requestOptions: HubHttpUrlOptions["hubRequestOptions"] =
+    hubRequestOptions || {};
+
+  if (hubHttpUrl === DEFAULT_HUB_API_URL) {
+    // use public api key only if default hub url is used
+    requestOptions = {
       headers: {
         api_key: DEFAULT_HUB_API_KEY,
       },
-    },
-  }: T = {} as T
-): Promise<FrameMessageReturnType<T>> {
+    };
+  }
+
   const decodedMessage = Message.decode(
     Buffer.from(payload.trustedData.messageBytes, "hex")
   ) as FrameActionMessage;
@@ -84,36 +92,36 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
     ] = await Promise.all([
       validateFrameMessage(payload, {
         hubHttpUrl,
-        hubRequestOptions,
+        hubRequestOptions: requestOptions,
       }),
       fetch(
         `${hubHttpUrl}/v1/linkById?fid=${requesterFid}&target_fid=${castId?.fid}&link_type=follow`,
-        hubRequestOptions
+        requestOptions
       ).then((res) => res.ok || requesterFid === castId?.fid),
       fetch(
         `${hubHttpUrl}/v1/linkById?fid=${castId?.fid}&target_fid=${requesterFid}&link_type=follow`,
-        hubRequestOptions
+        requestOptions
       ).then((res) => res.ok || requesterFid === castId?.fid),
       fetch(
         `${hubHttpUrl}/v1/reactionById?fid=${requesterFid}&reaction_type=1&target_fid=${castId?.fid}&target_hash=${castId?.hash}`,
-        hubRequestOptions
+        requestOptions
       ).then((res) => res.ok),
       fetch(
         `${hubHttpUrl}/v1/reactionById?fid=${requesterFid}&reaction_type=2&target_fid=${castId?.fid}&target_hash=${castId?.hash}`,
-        hubRequestOptions
+        requestOptions
       ).then((res) => res.ok),
       getAddressesForFid({
         fid: requesterFid,
         options: {
           hubHttpUrl,
-          hubRequestOptions,
+          hubRequestOptions: requestOptions,
         },
       }),
       getUserDataForFid({
         fid: requesterFid,
         options: {
           hubHttpUrl,
-          hubRequestOptions,
+          hubRequestOptions: requestOptions,
         },
       }),
     ]);
