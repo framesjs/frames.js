@@ -5,7 +5,10 @@ import type { FrameDefinition, FrameRedirect, JsonValue } from "./types";
 const buttonActionToCode = {
   post: "p",
   post_redirect: "pr",
-};
+  tx: "tx",
+} as const;
+
+type ButtonActions = keyof typeof buttonActionToCode;
 
 const BUTTON_INFORMATION_SEARCH_PARAM_NAME = "__bi";
 
@@ -40,13 +43,8 @@ function isValidButtonIndex(index: unknown): index is 1 | 2 | 3 | 4 {
   );
 }
 
-function isValidButtonAction(
-  action: unknown
-): action is "post" | "post_redirect" {
-  return (
-    typeof action === "string" &&
-    (action === "post" || action === "post_redirect")
-  );
+function isValidButtonAction(action: unknown): action is ButtonActions {
+  return typeof action === "string" && action in buttonActionToCode;
 }
 
 export function generateTargetURL({
@@ -92,17 +90,17 @@ export function generateTargetURL({
 }
 
 /**
- * This function generates fully qualified URL for post and post_redirect buttons
+ * This function generates fully qualified URL for post, post_redirect and tx buttons
  * that also encodes the button type and button value so we can use that on next frame.
  */
-export function generatePostButtonTargetURL({
+export function generateButtonTargetURL({
   buttonIndex,
   buttonAction,
   target,
   baseUrl,
 }: {
   buttonIndex: 1 | 2 | 3 | 4;
-  buttonAction: "post" | "post_redirect";
+  buttonAction: ButtonActions;
   target: string | UrlObject | undefined;
   baseUrl: URL;
 }): string {
@@ -118,7 +116,7 @@ export function generatePostButtonTargetURL({
 }
 
 type ButtonInformation = {
-  action: "post" | "post_redirect";
+  action: ButtonActions;
   index: 1 | 2 | 3 | 4;
 };
 
@@ -153,7 +151,7 @@ export function parseButtonInformationFromTargetURL(
   const index = parseInt(buttonIndex, 10);
   const action = Object.entries(buttonActionToCode).find(
     ([, value]) => value === buttonActionCode
-  )?.[0] as "post" | "post_redirect";
+  )?.[0];
 
   if (!isValidButtonIndex(index) || !isValidButtonAction(action)) {
     return undefined;

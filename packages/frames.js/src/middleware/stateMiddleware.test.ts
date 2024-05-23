@@ -209,4 +209,21 @@ describe("stateMiddleware", () => {
       });
     });
   });
+
+  it("calls next only once and returns result as is if the result is not a frame definition", async () => {
+    const state = { foo: "bar" };
+    const ctx = {
+      message: { state: JSON.stringify(state) },
+      initialState: {},
+      request: new Request("http://localhost", { method: "POST" }),
+    };
+    const mw = stateMiddleware();
+    const res = new Response();
+    const next = jest.fn(() => Promise.resolve(res));
+
+    const result = await mw(ctx as unknown as FramesContext, next);
+
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(result).toBe(res);
+  });
 });

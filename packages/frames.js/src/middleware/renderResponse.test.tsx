@@ -428,7 +428,7 @@ describe("renderResponse middleware", () => {
     expect(json["fc:frame:button:1"]).toBe("Tx button");
     expect(json["fc:frame:button:1:action"]).toBe("tx");
     expect(json["fc:frame:button:1:target"]).toBe(
-      "https://example.com/tx?__bi=1-p"
+      "https://example.com/tx?__bi=1-tx"
     );
     expect(json["fc:frame:button:1:post_url"]).toBe(
       "https://example.com/txid?__bi=1-p"

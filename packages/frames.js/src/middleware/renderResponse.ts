@@ -10,7 +10,7 @@ import type {
   FramesMiddleware,
 } from "../core/types";
 import {
-  generatePostButtonTargetURL,
+  generateButtonTargetURL,
   generateTargetURL,
   isFrameRedirect,
 } from "../core/utils";
@@ -169,14 +169,14 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
                 return {
                   action: props.action,
                   label: props.children,
-                  target: generatePostButtonTargetURL({
+                  target: generateButtonTargetURL({
                     buttonIndex: (i + 1) as 1 | 2 | 3 | 4,
-                    buttonAction: "post",
+                    buttonAction: props.action,
                     target: props.target,
                     baseUrl: context.baseUrl,
                   }).toString(),
                   post_url: props.post_url
-                    ? generatePostButtonTargetURL({
+                    ? generateButtonTargetURL({
                         buttonIndex: (i + 1) as 1 | 2 | 3 | 4,
                         buttonAction: "post",
                         target: props.post_url,
@@ -189,7 +189,7 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
                 return {
                   action: props.action,
                   label: props.children,
-                  target: generatePostButtonTargetURL({
+                  target: generateButtonTargetURL({
                     buttonIndex: (i + 1) as 1 | 2 | 3 | 4,
                     buttonAction: props.action,
                     target: props.target,

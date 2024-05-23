@@ -1,7 +1,10 @@
 import { concurrentMiddleware } from "../middleware/concurrentMiddleware";
+import type { TransactionTargetResponse } from "../types";
 import { createFrames } from "./createFrames";
 import { redirect } from "./redirect";
+import { transaction } from "./transaction";
 import type { FramesMiddleware } from "./types";
+import { generateButtonTargetURL } from "./utils";
 
 describe("createFrames", () => {
   it("returns a handler function", () => {
@@ -226,5 +229,94 @@ describe("createFrames", () => {
     await expect(
       routeHandler(new Request("http://test.com/this-will-be-removed"))
     ).resolves.toHaveProperty("status", 200);
+  });
+
+  it("invokes route handler only once", async () => {
+    const handler = createFrames();
+    const mock = jest.fn();
+
+    const routeHandler = handler(() => {
+      mock();
+      return Response.json({ test: true });
+    });
+
+    await expect(
+      routeHandler(new Request("http://test.com/this-will-be-removed"))
+    ).resolves.toHaveProperty("status", 200);
+    expect(mock).toHaveBeenCalledTimes(1);
+  });
+
+  it("correctly invokes route with information about pressed button", async () => {
+    const handler = createFrames({});
+    const mock = jest.fn();
+
+    const routeHandler = handler((ctx) => {
+      mock();
+      expect(ctx.pressedButton).toBeDefined();
+
+      return {
+        image: "http://test.img",
+      };
+    });
+
+    const response = await routeHandler(
+      new Request(
+        generateButtonTargetURL({
+          buttonIndex: 1,
+          buttonAction: "post",
+          baseUrl: new URL("http://test.trololo"),
+          target: "/",
+        }),
+        {
+          method: "POST",
+        }
+      )
+    );
+
+    expect(response.status).toBe(200);
+    expect(mock).toHaveBeenCalledTimes(1);
+  });
+
+  it("correctly invokes transaction data route handler when tx button is pressed", async () => {
+    const handler = createFrames({});
+
+    const txData: TransactionTargetResponse = {
+      chainId: "eip155:10",
+      method: "eth_sendTransaction",
+      params: {
+        abi: [],
+        to: "0x0",
+        data: "0x0",
+        value: "0.0001",
+      },
+    };
+
+    const mock = jest.fn();
+
+    const routeHandler = handler((ctx) => {
+      mock();
+
+      expect(ctx.pressedButton).toBeDefined();
+
+      return transaction(txData);
+    });
+
+    const response = await routeHandler(
+      new Request(
+        generateButtonTargetURL({
+          buttonIndex: 1,
+          buttonAction: "tx",
+          baseUrl: new URL("http://test.trololo"),
+          target: "/txdata",
+        }),
+        {
+          method: "POST",
+        }
+      )
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(txData);
+    expect(mock).toHaveBeenCalledTimes(1);
   });
 });
