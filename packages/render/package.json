@@ -17,6 +17,7 @@
     "build": "NODE_OPTIONS='--max-old-space-size=16384' tsup",
     "dev": "npm run build -- --watch",
     "test:watch": "jest --watch",
+    "check:types": "tsc --noEmit",
     "check:package-types": "attw --pack .",
     "check:package-lint": "publint --strict"
   },

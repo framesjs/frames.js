@@ -90,21 +90,10 @@ export type FrameDefinition<TState extends JsonValue | undefined> = {
      */
     aspectRatio?: "1.91:1" | "1:1";
   } & ConstructorParameters<typeof ImageResponse>[1];
-  buttons?:
-    | []
-    | [AllowedFrameButtonItems]
-    | [AllowedFrameButtonItems, AllowedFrameButtonItems]
-    | [
-        AllowedFrameButtonItems,
-        AllowedFrameButtonItems,
-        AllowedFrameButtonItems,
-      ]
-    | [
-        AllowedFrameButtonItems,
-        AllowedFrameButtonItems,
-        AllowedFrameButtonItems,
-        AllowedFrameButtonItems,
-      ];
+  /**
+   * Up to 4 buttons are allowed. If more are provided error is returned.
+   */
+  buttons?: AllowedFrameButtonItems[];
   /**
    * Label for text input, if no value is provided the input is not rendered
    */
