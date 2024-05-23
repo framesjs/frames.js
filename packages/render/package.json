@@ -66,6 +66,26 @@
         "default": "./dist/farcaster/index.cjs"
       }
     },
+    "./use-fetch-frame": {
+      "import": {
+        "types": "./dist/use-fetch-frame.d.ts",
+        "default": "./dist/use-fetch-frame.js"
+      },
+      "require": {
+        "types": "./dist/use-fetch-frame.d.cts",
+        "default": "./dist/use-fetch-frame.cjs"
+      }
+    },
+    "./use-frame-stack": {
+      "import": {
+        "types": "./dist/use-frame-stack.d.ts",
+        "default": "./dist/use-frame-stack.js"
+      },
+      "require": {
+        "types": "./dist/use-frame-stack.d.cts",
+        "default": "./dist/use-frame-stack.cjs"
+      }
+    },
     "./use-frame": {
       "import": {
         "types": "./dist/use-frame.d.ts",

@@ -81,7 +81,7 @@ function MessageTooltip({
       className={`${
         inline
           ? ""
-          : "absolute bottom-2 border border-slate-100 rounded-sm shadow-md inset-x-2"
+          : "absolute bottom-2 border border-slate-100 rounded-sm shadow-md inset-x-2 bg-white"
       } ${variant === "error" ? "text-red-500" : ""} items-center p-2 flex gap-2 text-sm`}
     >
       {variant === "message" ? messageSquareIcon : octagonXIcon}
@@ -119,7 +119,7 @@ export function FrameUI({
   allowPartialFrame,
 }: FrameUIProps): React.JSX.Element | null {
   const [isImageLoading, setIsImageLoading] = useState(true);
-  const currentFrame = frameState.frame;
+  const currentFrame = frameState.currentFrameStackItem;
   const isLoading = currentFrame?.status === "pending" || isImageLoading;
   const resolvedTheme = getThemeWithDefaults(theme ?? {});
 
@@ -134,22 +134,13 @@ export function FrameUI({
   }
 
   if (
-    currentFrame.status === "requestError" &&
-    !(currentFrame.requestError instanceof Error)
-  ) {
-    return (
-      <MessageTooltip inline message="Failed to load frame" variant="error" />
-    );
-  }
-
-  if (
     currentFrame.status === "done" &&
-    currentFrame.frame.status === "failure" &&
+    currentFrame.frameResult.status === "failure" &&
     !(
       allowPartialFrame &&
       // Need at least image and buttons to render a partial frame
-      currentFrame.frame.frame.image &&
-      currentFrame.frame.frame.buttons
+      currentFrame.frameResult.frame.image &&
+      currentFrame.frameResult.frame.buttons
     )
   ) {
     return <MessageTooltip inline message="Invalid frame" variant="error" />;
@@ -158,9 +149,14 @@ export function FrameUI({
   let frame: Frame | Partial<Frame> | undefined;
 
   if (currentFrame.status === "done") {
-    frame = currentFrame.frame.frame;
+    frame = currentFrame.frameResult.frame;
   } else if (currentFrame.status === "message") {
-    frame = currentFrame.sourceFrame;
+    frame = currentFrame.request.sourceFrame;
+  } else if (currentFrame.status === "requestError") {
+    frame =
+      "sourceFrame" in currentFrame.request
+        ? currentFrame.request.sourceFrame
+        : undefined;
   }
 
   const ImageEl = FrameImage ? FrameImage : "img";
@@ -172,17 +168,11 @@ export function FrameUI({
       <div className="relative w-full" style={{ height: "100%" }}>
         {" "}
         {/* Ensure the container fills the height */}
-        {currentFrame.status === "requestError" ||
-        currentFrame.status === "message" ? (
+        {currentFrame.status === "message" ? (
           <MessageTooltip
-            inline={!!frame && !frame.image}
+            inline={!frame || !("image" in frame) || !frame.image}
             message={getErrorMessageFromFramesStackItem(currentFrame)}
-            variant={
-              currentFrame.status === "requestError" ||
-              currentFrame.type === "error"
-                ? "error"
-                : "message"
-            }
+            variant={currentFrame.type === "error" ? "error" : "message"}
           />
         ) : null}
         {!!frame && !!frame.image && (

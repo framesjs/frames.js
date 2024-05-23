@@ -3,26 +3,27 @@
 /* eslint-disable no-alert -- provide feedback */
 "use client";
 
-import { useEffect, useMemo, useReducer, useRef, useState } from "react";
-import type { Frame, FrameButton, TransactionTargetResponse } from "frames.js";
+import { useEffect, useRef, useState } from "react";
+import type {
+  Frame,
+  FrameButton,
+  FrameButtonPost,
+  FrameButtonTx,
+  TransactionTargetResponse,
+} from "frames.js";
 import { getFarcasterTime } from "@farcaster/core";
-import type { ParseResult } from "frames.js/frame-parsers";
 import type {
   FrameState,
   OnMintArgs,
   FrameContext,
   SignerStateInstance,
   FrameActionBodyPayload,
-  FramesStack,
-  FrameStackPending,
-  UseFrameReturn,
+  UseFrameOptions,
   OnTransactionArgs,
-  FrameStackRequestError,
-  GetFrameResult,
-  FrameStackMessage,
-  FrameReducerActions,
 } from "./types";
 import type { FarcasterFrameContext } from "./farcaster";
+import { useFrameStack } from "./use-frame-stack";
+import { useFetchFrame } from "./use-fetch-frame";
 
 function onMintFallback({ target }: OnMintArgs): void {
   window.alert(`Mint requested: ${target}`);
@@ -85,10 +86,6 @@ async function onTransactionFallback({
   return null;
 }
 
-function isParseResult(result: Frame | ParseResult): result is ParseResult {
-  return "status" in result;
-}
-
 export const fallbackFrameContext: FarcasterFrameContext = {
   castId: {
     fid: 1,
@@ -96,71 +93,6 @@ export const fallbackFrameContext: FarcasterFrameContext = {
   },
   address: "0x0000000000000000000000000000000000000001",
 };
-
-function computeDurationInSeconds(start: Date, end: Date): number {
-  return Number(((end.getTime() - start.getTime()) / 1000).toFixed(2));
-}
-
-function framesStackReducer(
-  state: FramesStack,
-  action: FrameReducerActions
-): FramesStack {
-  switch (action.action) {
-    case "LOAD":
-      return [action.item, ...state];
-    case "DONE":
-    case "REQUEST_ERROR": {
-      const index = state.findIndex(
-        (item) => item.timestamp === action.pendingItem.timestamp
-      );
-
-      if (index === -1) {
-        return state;
-      }
-
-      state[index] = action.item;
-
-      return state.slice();
-    }
-    case "RESET_INITIAL_FRAME": {
-      const originalInitialFrame = state[0];
-      const frame = isParseResult(action.resultOrFrame)
-        ? action.resultOrFrame.frame
-        : action.resultOrFrame;
-      // initial frame is always set with done state
-      const shouldReset =
-        !originalInitialFrame ||
-        (originalInitialFrame.status === "done" &&
-          originalInitialFrame.frame.frame !== frame);
-
-      if (shouldReset) {
-        return [
-          {
-            method: "GET",
-            responseStatus: 200,
-            timestamp: new Date(),
-            url: action.homeframeUrl ?? "",
-            speed: 0,
-            frame: isParseResult(action.resultOrFrame)
-              ? action.resultOrFrame
-              : {
-                  status: "success",
-                  reports: {},
-                  frame: action.resultOrFrame,
-                },
-            status: "done",
-          },
-        ];
-      }
-
-      return state;
-    }
-    case "CLEAR":
-      return [];
-    default:
-      return state;
-  }
-}
 
 export function useFrame<
   SignerStorageType = object,
@@ -181,278 +113,33 @@ export function useFrame<
   frameGetProxy,
   extraButtonRequestPayload,
   specification = "farcaster",
-}: UseFrameReturn<
+  onError,
+}: UseFrameOptions<
   SignerStorageType,
   FrameActionBodyType,
   FrameContextType
 >): FrameState {
   const [inputText, setInputText] = useState("");
-  const reducerInitArg = useMemo(
-    () => ({ frame, homeframeUrl }),
-    [frame, homeframeUrl]
-  );
-  const [framesStack, dispatch] = useReducer(
-    framesStackReducer,
-    reducerInitArg,
-    (args): FramesStack => {
-      if (args.frame) {
-        return [
-          {
-            method: "GET",
-            responseStatus: 200,
-            timestamp: new Date(),
-            url: args.homeframeUrl ?? "",
-            speed: 0,
-            frame: isParseResult(args.frame)
-              ? args.frame
-              : {
-                  reports: {},
-                  frame: args.frame,
-                  status: "success",
-                },
-            status: "done",
-          },
-        ];
-      } else if (args.homeframeUrl) {
-        // prevent flash of empty if will shortly set this in first rerender
-        // this is then handled by fetchFrame having second argument set to true so the stack is cleared
-        return [
-          {
-            method: "GET",
-            timestamp: new Date(),
-            url: args.homeframeUrl,
-            status: "pending",
-          },
-        ];
-      }
+  const [framesStack, dispatch] = useFrameStack({
+    initialFrame: frame,
+    initialFrameUrl: homeframeUrl,
+  });
 
-      return [];
-    }
-  );
-
-  const fetchFrame: FrameState["fetchFrame"] = async function fetchFrame(
-    frameRequest,
-    shouldClear = false
-  ) {
-    const startTime = new Date();
-
-    if (shouldClear) {
-      // this clears initial frame since that is loading from SSR since we aren't able to finish it.
-      // not an ideal solution
-      dispatch({ action: "CLEAR" });
-    }
-
-    if (frameRequest.method === "GET") {
-      const frameStackPendingItem: FrameStackPending = {
-        method: "GET" as const,
-        timestamp: startTime,
-        url: frameRequest.url,
-        status: "pending",
-      };
-
-      dispatch({ action: "LOAD", item: frameStackPendingItem });
-
-      const searchParams = new URLSearchParams({
-        url: frameRequest.url,
-        specification,
-      });
-      const proxiedUrl = `${frameGetProxy}?${searchParams.toString()}`;
-
-      let response: Response | undefined;
-      let endTime = new Date();
-      try {
-        response = await fetch(proxiedUrl).finally(() => {
-          endTime = new Date();
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch frame: ${response.statusText}`);
-        }
-
-        const loadedFrame = (await response.json()) as GetFrameResult;
-
-        dispatch({
-          action: "DONE",
-          pendingItem: frameStackPendingItem,
-          item: {
-            ...frameStackPendingItem,
-            status: "done",
-            frame: loadedFrame,
-            speed: computeDurationInSeconds(startTime, endTime),
-            responseStatus: response.status,
-          },
-        });
-      } catch (err) {
-        let responseBody: unknown;
-
-        // if there is no response, it is probably network error
-        if (response) {
-          if (response.headers.get("content-type")?.includes("/json")) {
-            responseBody = await response.clone().json();
-          } else {
-            responseBody = await response.clone().text();
-          }
-        }
-
-        const stackItem: FrameStackRequestError = {
-          ...frameStackPendingItem,
-          url: frameRequest.url,
-          responseStatus: response?.status ?? 500,
-          requestError: err,
-          speed: computeDurationInSeconds(startTime, endTime),
-          status: "requestError",
-          responseBody,
-        };
-
-        dispatch({
-          action: "REQUEST_ERROR",
-          pendingItem: frameStackPendingItem,
-          item: stackItem,
-        });
-
-        console.error(err);
-      }
-    } else {
-      const searchParams = new URLSearchParams(
-        frameRequest.request.searchParams
-      );
-
-      searchParams.set("specification", specification);
-
-      const frameStackPendingItem: FrameStackPending = {
-        method: "POST" as const,
-        request: {
-          searchParams,
-          body: frameRequest.request.body,
-        },
-        timestamp: startTime,
-        url: frameRequest.url,
-        status: "pending",
-        sourceFrame: frameRequest.sourceFrame,
-      };
-
-      dispatch({ action: "LOAD", item: frameStackPendingItem });
-
-      const proxiedUrl = `${frameActionProxy}?${frameStackPendingItem.request.searchParams.toString()}`;
-
-      let response: Response | undefined;
-      let endTime = new Date();
-
-      try {
-        response = await fetch(proxiedUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...extraButtonRequestPayload,
-            ...frameRequest.request.body,
-          }),
-        }).finally(() => {
-          endTime = new Date();
-        });
-
-        if (!response.ok) {
-          if (response.status >= 400 && response.status < 500) {
-            const data = (await response.clone().json()) as {
-              message?: string;
-            };
-
-            // handle error message
-            if (
-              typeof data === "object" &&
-              "message" in data &&
-              typeof data.message === "string"
-            ) {
-              const stackItem: FrameStackMessage = {
-                ...frameStackPendingItem,
-                responseStatus: response.status,
-                speed: computeDurationInSeconds(startTime, endTime),
-                status: "message",
-                type: "error",
-                message: data.message,
-              };
-
-              dispatch({
-                action: "DONE",
-                pendingItem: frameStackPendingItem,
-                item: stackItem,
-              });
-
-              return;
-            }
-
-            console.error(
-              `frames.js: The server returned an error but it does not contain message property. Status code: ${response.status}`,
-              data
-            );
-
-            // Show error message if available
-            throw new Error(
-              "Unknown error occurred. Please check the console for more information."
-            );
-          }
-
-          if (response.status >= 500) {
-            throw new Error(`Failed to fetch frame: ${response.statusText}`);
-          }
-        }
-
-        const responseData = (await response.json()) as
-          | GetFrameResult
-          | { location: string };
-
-        if ("location" in responseData) {
-          const location = responseData.location;
-
-          if (window.confirm(`You are about to be redirected to ${location}`)) {
-            window.open(location, "_blank")?.focus();
-          }
-
-          return;
-        }
-
-        dispatch({
-          action: "DONE",
-          pendingItem: frameStackPendingItem,
-          item: {
-            ...frameStackPendingItem,
-            frame: responseData,
-            status: "done",
-            speed: computeDurationInSeconds(startTime, endTime),
-            responseStatus: response.status,
-          },
-        });
-      } catch (err) {
-        let responseBody: unknown;
-
-        if (response) {
-          if (response.headers.get("content-type")?.includes("/json")) {
-            responseBody = await response.clone().json();
-          } else {
-            responseBody = await response.clone().text();
-          }
-        }
-
-        const stackItem: FrameStackRequestError = {
-          ...frameStackPendingItem,
-          responseStatus: response?.status ?? 500,
-          requestError: err,
-          speed: computeDurationInSeconds(startTime, endTime),
-          status: "requestError",
-          responseBody,
-        };
-
-        dispatch({
-          action: "REQUEST_ERROR",
-          pendingItem: frameStackPendingItem,
-          item: stackItem,
-        });
-
-        console.error(err);
-      }
-    }
-  };
+  const fetchFrame = useFetchFrame({
+    frameActionProxy,
+    frameGetProxy,
+    onTransaction,
+    signFrameAction(isDangerousSkipSigning, actionContext) {
+      return isDangerousSkipSigning
+        ? unsignedFrameAction(actionContext)
+        : signerState.signFrameAction(actionContext);
+    },
+    specification,
+    stackDispatch: dispatch,
+    extraButtonRequestPayload,
+    homeframeUrl,
+    onError,
+  });
 
   const fetchFrameRef = useRef(fetchFrame);
   fetchFrameRef.current = fetchFrame;
@@ -479,7 +166,7 @@ export function useFrame<
         homeframeUrl,
       });
     }
-  }, [frame, homeframeUrl]);
+  }, [frame, homeframeUrl, dispatch]);
 
   async function onButtonPress(
     currentFrame: Frame,
@@ -513,38 +200,13 @@ export function useFrame<
         break;
       }
       case "tx": {
-        const transactionData = await onTransactionRequest({
+        await onTransactionButton({
           frameButton,
-          target: frameButton.target,
           buttonIndex: index + 1,
           postInputText:
             currentFrame.inputText !== undefined ? inputText : undefined,
-          state: currentFrame.state,
+          currentFrame,
         });
-        if (transactionData) {
-          const transactionId = await onTransaction({
-            frame: currentFrame,
-            frameButton,
-            transactionData,
-          });
-
-          if (transactionId) {
-            await onPostButton({
-              currentFrame,
-              frameButton,
-              target:
-                frameButton.post_url ||
-                currentFrame.postUrl ||
-                frameButton.target, // transaction_ids must be posted to post_url or button post_url
-              buttonIndex: index + 1,
-              postInputText:
-                currentFrame.inputText !== undefined ? inputText : undefined,
-              state: currentFrame.state,
-              transactionId,
-              fetchFrameOverride,
-            });
-          }
-        }
         break;
       }
       case "post":
@@ -567,7 +229,6 @@ export function useFrame<
             POST the packet to or the frame's embed URL if neither target nor action were present.
             */
             target,
-            dangerousSkipSigning,
             buttonIndex: index + 1,
             postInputText:
               currentFrame.inputText !== undefined ? inputText : undefined,
@@ -591,23 +252,21 @@ export function useFrame<
     buttonIndex,
     postInputText,
     frameButton,
-    dangerousSkipSigning: isDangerousSkipSigning,
     target,
     state,
     transactionId,
     fetchFrameOverride,
   }: {
     currentFrame: Frame;
-    frameButton: FrameButton;
+    frameButton: FrameButtonPost;
     buttonIndex: number;
     postInputText: string | undefined;
     state?: string;
-    dangerousSkipSigning?: boolean;
     transactionId?: `0x${string}`;
     target: string;
     fetchFrameOverride?: typeof fetchFrame;
   }): Promise<void> {
-    if (!isDangerousSkipSigning && !signerState.hasSigner) {
+    if (!dangerousSkipSigning && !signerState.hasSigner) {
       console.error("frames.js: missing required auth state");
       return;
     }
@@ -616,99 +275,65 @@ export function useFrame<
       return;
     }
 
-    // Transacting address is not included in post action
-    const { address: _, ...requiredFrameContext } = frameContext;
-
-    const frameSignatureContext = {
-      inputText: postInputText,
-      signer: signerState.signer ?? null,
-      frameContext: requiredFrameContext,
-      url: homeframeUrl,
-      target,
-      frameButton,
-      buttonIndex,
-      state,
-      transactionId,
-    };
-    const { searchParams, body } = isDangerousSkipSigning
-      ? await unsignedFrameAction(frameSignatureContext)
-      : await signerState.signFrameAction(frameSignatureContext);
-
     const _fetchFrame = fetchFrameOverride ?? fetchFrame;
 
     await _fetchFrame({
-      // post_url stuff
-      url: searchParams.get("postUrl") ?? "/",
+      frameButton,
+      isDangerousSkipSigning: dangerousSkipSigning ?? false,
       method: "POST",
-      request: {
-        searchParams,
-        body,
+      signerStateActionContext: {
+        inputText: postInputText,
+        signer: signerState.signer ?? null,
+        frameContext,
+        url: homeframeUrl,
+        target,
+        frameButton,
+        buttonIndex,
+        state,
+        transactionId,
       },
       sourceFrame: currentFrame,
     });
   }
 
-  async function onTransactionRequest({
+  async function onTransactionButton({
+    currentFrame,
     buttonIndex,
     postInputText,
     frameButton,
-    target,
-    state,
   }: {
-    frameButton: FrameButton;
+    currentFrame: Frame;
+    frameButton: FrameButtonTx;
     buttonIndex: number;
     postInputText: string | undefined;
-    state?: string;
-    target: string;
   }): Promise<TransactionTargetResponse | undefined> {
     // Send post request to get calldata
-    const currentFrameStackItem = framesStack[0];
-
     if (!dangerousSkipSigning && !signerState.hasSigner) {
       console.error("frames.js: missing required auth state");
       return;
     }
-    if (!currentFrameStackItem || !homeframeUrl) {
+    if (!homeframeUrl) {
       console.error("frames.js: missing required value for post");
       return;
     }
 
-    const { searchParams, body } = await signerState.signFrameAction({
-      inputText: postInputText,
-      signer: signerState.signer ?? null,
-      frameContext,
-      address: connectedAddress,
-      url: homeframeUrl,
-      target,
+    await fetchFrame({
       frameButton,
-      buttonIndex,
-      state,
+      isDangerousSkipSigning: dangerousSkipSigning ?? false,
+      method: "POST",
+      signerStateActionContext: {
+        inputText: postInputText,
+        signer: signerState.signer ?? null,
+        frameContext,
+        address: connectedAddress,
+        url: homeframeUrl,
+        target: frameButton.target,
+        frameButton,
+        buttonIndex,
+        state: currentFrame.state,
+      },
+      sourceFrame: currentFrame,
     });
-    searchParams.append("postType", "tx");
-
-    const requestUrl = `${frameActionProxy}?${searchParams.toString()}`;
-
-    try {
-      const response = await fetch(requestUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...extraButtonRequestPayload,
-          ...body,
-        }),
-      });
-      const transactionResponse =
-        (await response.json()) as TransactionTargetResponse;
-      return transactionResponse;
-    } catch {
-      throw new Error(
-        `frames.js: Could not fetch transaction data from "${searchParams.get(
-          "postUrl"
-        )}"`
-      );
-    }
   }
 
   return {
@@ -722,6 +347,6 @@ export function useFrame<
     fetchFrame,
     homeframeUrl,
     framesStack,
-    frame: framesStack[0],
+    currentFrameStackItem: framesStack[0],
   };
 }

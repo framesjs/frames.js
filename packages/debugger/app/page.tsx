@@ -4,7 +4,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  type UseFrameReturn,
+  type UseFrameOptions,
   fallbackFrameContext,
   type OnTransactionFunc,
 } from "@frames.js/render";
@@ -317,7 +317,7 @@ export default function App({
   );
 
   const useFrameConfig: Omit<
-    UseFrameReturn<object, FrameActionPayload>,
+    UseFrameOptions<object, FrameActionPayload>,
     "signerState" | "specification"
   > = {
     homeframeUrl: url,
@@ -331,6 +331,30 @@ export default function App({
     connectedAddress: account.address,
     extraButtonRequestPayload: { mockData: mockHubContext },
     onTransaction,
+    onError(error) {
+      console.error(error);
+
+      toast({
+        title: "Error occurred",
+        description: (
+          <div className="space-y-2">
+            <p>{error.message}</p>
+            <p>Please check the console for more information</p>
+          </div>
+        ),
+        variant: "destructive",
+        action: debuggerRef.current ? (
+          <ToastAction
+            altText="Show console"
+            onClick={() => {
+              debuggerRef.current?.showConsole();
+            }}
+          >
+            Show console
+          </ToastAction>
+        ) : undefined,
+      });
+    },
     onMint(t) {
       if (!confirm(`Mint ${t.target}?`)) {
         return;
