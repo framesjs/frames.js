@@ -1,6 +1,6 @@
 # Button
 
-In order to render buttons you should use our `<Button>` component or `button()` helper. Frames.js supports the following button types:
+In order to render buttons you should use our `<Button>` component, `button()` helper or plain objects. Frames.js supports the following button types:
 
 ## Post Button
 
@@ -10,6 +10,12 @@ import { Button, button } from "frames.js/core";
 <Button action="post">Click me</Button>;
 
 button({ action: "post", label: "Click me" });
+
+// plain object
+{
+  action: "post",
+  label: "Click me",
+}
 ```
 
 This button sends a request to a URL on which it was rendered. If you want to navigate to different route in your app, you can use `target` prop which should be set to relative path.
@@ -20,6 +26,13 @@ This button sends a request to a URL on which it was rendered. If you want to na
 </Button>;
 
 button({ action: "post", target: "/next-route", label: "Click me" });
+
+// plain object
+{
+  action: "post",
+  target: "/next-route",
+  label: "Click me",
+}
 ```
 
 The `target` path will be resolved relatively to current URL.
@@ -39,6 +52,13 @@ button({
   target: { query: { foo: "bar" }, pathname: "/next-route" },
   label: "Click me",
 });
+
+// plain object
+{
+  action: "post",
+  target: { query: { foo: "bar" }, pathname: "/next-route" },
+  label: "Click me",
+}
 ```
 
 The state will be available in the frame handler via `ctx.searchParams` e.g.
@@ -68,6 +88,13 @@ button({
   target: { query: { foo: "bar" }, pathname: "/next-route" },
   label: "Click me",
 });
+
+// plain object
+{
+  action: "post_redirect",
+  target: { query: { foo: "bar" }, pathname: "/next-route" },
+  label: "Click me",
+}
 ```
 
 ## Link Button
@@ -82,6 +109,13 @@ import { Button, button } from "frames.js/core";
 </Button>;
 
 button({ action: "link", target: "https://google.com", label: "Click me" });
+
+// plain object
+{
+  action: "link",
+  target: "https://google.com",
+  label: "Click me",
+}
 ```
 
 ## Mint Button
@@ -112,6 +146,17 @@ button({
   }),
   label: "Mint",
 });
+
+// plain object
+{
+  action: "mint",
+  target: getTokenUrl({
+    address: "0x8f5ed2503b71e8492badd21d5aaef75d65ac0042",
+    chain: zora,
+    tokenId: "3",
+  }),
+  label: "Mint",
+}
 ```
 
 ## Tx Button
@@ -131,6 +176,14 @@ button({
   post_url: "/tx-success",
   label: "Buy storage",
 });
+
+// plain object
+{
+  action: "tx",
+  target: "/txdata",
+  post_url: "/tx-success",
+  label: "Buy storage",
+}
 ```
 
 ### Transaction data
