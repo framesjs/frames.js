@@ -1,3 +1,4 @@
+import { TransactionResponse } from "../core/transaction";
 import type { FramesMiddleware } from "../core/types";
 import {
   isFrameRedirect,
@@ -13,7 +14,7 @@ type FramesjsMiddlewareContext = {
    */
   pressedButton?:
     | {
-        action: "post" | "post_redirect";
+        action: "post" | "post_redirect" | "tx";
         index: 1 | 2 | 3 | 4;
       }
     | undefined;
@@ -56,6 +57,17 @@ export function framesjsMiddleware(): FramesMiddleware<
         // eslint-disable-next-line no-console -- provide feedback to the developer
         console.warn(
           "The clicked button action was post, but the response was not a frame definition"
+        );
+      }
+    } else if (pressedButton?.action === "tx") {
+      // we support only TransactionResponse as result for tx button
+      if (
+        !(result instanceof TransactionResponse) ||
+        !(result instanceof Response)
+      ) {
+        // eslint-disable-next-line no-console -- provide feedback to the developer
+        console.warn(
+          "The clicked button action was tx, but the response was not a transaction data response. Please use transaction() function to return transaction data."
         );
       }
     }

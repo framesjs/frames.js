@@ -1,5 +1,5 @@
 import {
-  generatePostButtonTargetURL,
+  generateButtonTargetURL,
   parseButtonInformationFromTargetURL,
   resolveBaseUrl,
   generateTargetURL,
@@ -103,7 +103,7 @@ describe("generatePostButtonTargetURL", () => {
     expected.searchParams.set("__bi", "1-p");
 
     expect(
-      generatePostButtonTargetURL({
+      generateButtonTargetURL({
         target: undefined,
         buttonAction: "post",
         buttonIndex: 1,
@@ -118,7 +118,7 @@ describe("generatePostButtonTargetURL", () => {
     expected.searchParams.set("__bi", "1-p");
 
     expect(
-      generatePostButtonTargetURL({
+      generateButtonTargetURL({
         buttonAction: "post",
         buttonIndex: 1,
         baseUrl: new URL("http://test.com"),
@@ -132,7 +132,7 @@ describe("generatePostButtonTargetURL", () => {
     expected.searchParams.set("__bi", "1-p");
 
     expect(
-      generatePostButtonTargetURL({
+      generateButtonTargetURL({
         target: "/test",
         buttonAction: "post",
         buttonIndex: 1,
@@ -147,7 +147,7 @@ describe("generatePostButtonTargetURL", () => {
     expected.searchParams.set("__bi", "1-p");
 
     expect(
-      generatePostButtonTargetURL({
+      generateButtonTargetURL({
         buttonAction: "post",
         buttonIndex: 1,
         baseUrl: new URL("http://test.com"),
@@ -161,7 +161,7 @@ describe("generatePostButtonTargetURL", () => {
     expected.searchParams.set("__bi", "1-pr");
 
     expect(
-      generatePostButtonTargetURL({
+      generateButtonTargetURL({
         target: "/test",
         buttonAction: "post_redirect",
         buttonIndex: 1,

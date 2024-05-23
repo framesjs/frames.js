@@ -27,64 +27,67 @@ function parseState<TState extends JsonValue | undefined>(
   return JSON.parse(state) as TState | SignedState<TState>;
 }
 
+/**
+ * Extracts state from message or returns initial state
+ */
 async function extractStateFromMessage<TState extends JsonValue | undefined>(
-  ctx: FramesContext<TState>
+  ctx: FramesContext<TState>,
+  initialState: TState
 ): Promise<TState> {
-  let state: TState = ctx.initialState;
+  let state: TState = initialState;
 
   if (
     "message" in ctx &&
     typeof ctx.message === "object" &&
     ctx.message &&
-    "state" in ctx.message
+    "state" in ctx.message &&
+    ctx.message.state
   ) {
-    // since we are stringifyng state to JSON in renderResponse middleware, we need to parse decode JSON here
+    // since we are stringifyng state to JSON in serializeState middleware, we need to decode JSON here
     // so it is easy to use in middleware chain and frames handler
-    if (ctx.message.state) {
-      try {
-        if (typeof ctx.message.state !== "string") {
-          throw new Error("State is not a string");
-        }
+    try {
+      if (typeof ctx.message.state !== "string") {
+        throw new Error("State is not a string");
+      }
 
-        const parsedState = parseState<TState>(ctx.message.state);
+      const parsedState = parseState<TState>(ctx.message.state);
 
-        if (isSignedState<TState>(parsedState)) {
-          // if state is signed verify it with secret, otherwise treat it as valid automatically (backward compatibility)
-          if (ctx.stateSigningSecret) {
-            const isValidSignature = await verifyHMACSignature(
-              JSON.stringify(parsedState.data),
-              Buffer.from(parsedState.__sig, "hex"),
-              ctx.stateSigningSecret
+      if (isSignedState<TState>(parsedState)) {
+        // if state is signed verify it with secret, otherwise treat it as valid automatically (backward compatibility)
+        if (ctx.stateSigningSecret) {
+          const isValidSignature = await verifyHMACSignature(
+            JSON.stringify(parsedState.data),
+            Buffer.from(parsedState.__sig, "hex"),
+            ctx.stateSigningSecret
+          );
+
+          if (!isValidSignature) {
+            throw new InvalidStateSignatureError(
+              "State signature verification failed"
             );
-
-            if (!isValidSignature) {
-              throw new InvalidStateSignatureError(
-                "State signature verification failed"
-              );
-            } else {
-              state = parsedState.data;
-            }
           } else {
-            // eslint-disable-next-line no-console -- provide feedback
-            console.warn(
-              "State is signed but no secret is provided, ignoring signature verification"
-            );
             state = parsedState.data;
           }
         } else {
-          state = parsedState;
+          // eslint-disable-next-line no-console -- provide feedback
+          console.warn(
+            "State is signed but no secret is provided, ignoring signature verification"
+          );
+          state = parsedState.data;
         }
-      } catch (e) {
-        if (e instanceof InvalidStateSignatureError) {
-          throw e;
-        }
-
-        // eslint-disable-next-line no-console -- provide feedback
-        console.warn(
-          "Failed to parse state from frame message, are you sure that the state was constructed by frames.js?"
-        );
-        state = ctx.initialState;
+      } else {
+        state = parsedState;
       }
+    } catch (e) {
+      if (e instanceof InvalidStateSignatureError) {
+        throw e;
+      }
+
+      // eslint-disable-next-line no-console -- provide feedback
+      console.warn(
+        "Failed to parse state from frame message, are you sure that the state was constructed by frames.js?"
+      );
+      state = ctx.initialState;
     }
   }
 
@@ -144,22 +147,26 @@ export function stateMiddleware<
   TState extends JsonValue | undefined,
 >(): FramesMiddleware<TState, StateMiddlewareContext<TState>> {
   return async (ctx, next) => {
-    const stateFromMessage: TState = await extractStateFromMessage<TState>(ctx);
+    const messageOrInitialState: TState = await extractStateFromMessage<TState>(
+      ctx,
+      ctx.initialState
+    );
 
     const nextResult = await next({
-      state: stateFromMessage,
+      state: messageOrInitialState,
     });
 
     if (isFrameDefinition(nextResult)) {
       // Include previous state if it is not present in the result
       return {
         ...nextResult,
-        state: await serializeState(nextResult.state ?? stateFromMessage, ctx),
+        state: await serializeState(
+          nextResult.state ?? messageOrInitialState,
+          ctx
+        ),
       };
     }
 
-    return next({
-      state: ctx.initialState,
-    });
+    return nextResult;
   };
 }

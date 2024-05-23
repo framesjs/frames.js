@@ -1,7 +1,7 @@
 /* eslint-disable no-console -- we are expecting console.log usage */
 import { redirect } from "../core/redirect";
 import type { FramesContext } from "../core/types";
-import { generatePostButtonTargetURL, resolveBaseUrl } from "../core/utils";
+import { generateButtonTargetURL, resolveBaseUrl } from "../core/utils";
 import { framesjsMiddleware } from "./framesjsMiddleware";
 
 describe("framesjsMiddleware middleware", () => {
@@ -24,7 +24,7 @@ describe("framesjsMiddleware middleware", () => {
   });
 
   it("provides pressedButton to context if post button is detected", async () => {
-    const url = generatePostButtonTargetURL({
+    const url = generateButtonTargetURL({
       buttonAction: "post",
       buttonIndex: 1,
       baseUrl: new URL("https://example.com"),
@@ -52,7 +52,7 @@ describe("framesjsMiddleware middleware", () => {
   });
 
   it("provides pressedButton to context if post redirect button is detected", async () => {
-    const url = generatePostButtonTargetURL({
+    const url = generateButtonTargetURL({
       buttonAction: "post_redirect",
       buttonIndex: 1,
       baseUrl: new URL("https://example.com"),
@@ -80,7 +80,7 @@ describe("framesjsMiddleware middleware", () => {
 
   it("warns if the response for post redirect button is not a redirect Response", async () => {
     console.warn = jest.fn();
-    const url = generatePostButtonTargetURL({
+    const url = generateButtonTargetURL({
       buttonAction: "post_redirect",
       buttonIndex: 1,
       baseUrl: new URL("https://example.com"),
@@ -104,7 +104,7 @@ describe("framesjsMiddleware middleware", () => {
 
   it("warns if the response for post button is a redirect definition", async () => {
     console.warn = jest.fn();
-    const url = generatePostButtonTargetURL({
+    const url = generateButtonTargetURL({
       buttonAction: "post",
       buttonIndex: 1,
       baseUrl: new URL("https://example.com"),
@@ -129,7 +129,7 @@ describe("framesjsMiddleware middleware", () => {
 
   it("warns if the response for post button is a Response", async () => {
     console.warn = jest.fn();
-    const url = generatePostButtonTargetURL({
+    const url = generateButtonTargetURL({
       buttonAction: "post",
       buttonIndex: 1,
       baseUrl: new URL("https://example.com"),
@@ -155,7 +155,7 @@ describe("framesjsMiddleware middleware", () => {
   });
 
   it('does nothing if the request method is not "POST"', async () => {
-    const url = generatePostButtonTargetURL({
+    const url = generateButtonTargetURL({
       buttonAction: "post",
       buttonIndex: 1,
       baseUrl: new URL("https://example.com"),
