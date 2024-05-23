@@ -1,5 +1,12 @@
 # frames.js
 
+## 0.16.2
+
+### Patch Changes
+
+- e86382d: feat(frames.js): improve typescript experience by allowing array of buttons instead of tuple
+- ae4fd12: fix(frames.js): do not use default api key if the default farcaster hub url isn't used
+
 ## 0.16.1
 
 ### Patch Changes

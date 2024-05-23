@@ -1,5 +1,14 @@
 # docs
 
+## 0.2.10
+
+### Patch Changes
+
+- ae4fd12: feat: remove old api examples
+- Updated dependencies [e86382d]
+- Updated dependencies [ae4fd12]
+  - frames.js@0.16.2
+
 ## 0.2.9
 
 ### Patch Changes

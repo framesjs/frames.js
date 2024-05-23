@@ -1,5 +1,14 @@
 # @frames.js/render
 
+## 0.2.9
+
+### Patch Changes
+
+- 56889cb: feat(render): handle transaction and cast actions
+- Updated dependencies [e86382d]
+- Updated dependencies [ae4fd12]
+  - frames.js@0.16.2
+
 ## 0.2.8
 
 ### Patch Changes

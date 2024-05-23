@@ -1,5 +1,12 @@
 # @frames.js/debugger
 
+## 0.2.11
+
+### Patch Changes
+
+- d6eaf5e: feat: enable gnosis chain
+- 56889cb: feat: use render package to handle cast actions and transaction errors
+
 ## 0.2.10
 
 ### Patch Changes

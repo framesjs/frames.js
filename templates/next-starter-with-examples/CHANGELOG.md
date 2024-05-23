@@ -1,5 +1,15 @@
 # template-next-starter-with-examples
 
+## 0.0.17
+
+### Patch Changes
+
+- 56889cb: feat: use render package to handle cast actions and transaction errors
+- ae4fd12: feat: remove old api examples
+- Updated dependencies [e86382d]
+- Updated dependencies [ae4fd12]
+  - frames.js@0.16.2
+
 ## 0.0.16
 
 ### Patch Changes
