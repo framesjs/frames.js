@@ -1,5 +1,12 @@
 # frames.js
 
+## 0.16.1
+
+### Patch Changes
+
+- a5e0584: fix(frames.js): do not call the route handler twice if the handler doesn't return a frame definition
+- 8d87aaa: feat(frames.js): allow plain object as button definitions so React is not requirement
+
 ## 0.16.0
 
 ### Minor Changes

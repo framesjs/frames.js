@@ -1,6 +1,6 @@
 {
   "name": "template-next-utils-starter",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,14 +11,14 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "frames.js": "^0.16.0",
+    "frames.js": "^0.16.1",
     "next": "^14.1.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^14.0.4",
-    "@frames.js/debugger": "^0.2.9",
+    "@frames.js/debugger": "^0.2.10",
     "@types/eslint": "^8.56.1",
     "@types/node": "^20.10.6",
     "@types/react": "^18.2.46",

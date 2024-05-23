@@ -1,5 +1,11 @@
 # create-frames
 
+## 0.1.16
+
+### Patch Changes
+
+- 3f2cc78: feat: new examples and stackblitz links to example code
+
 ## 0.1.15
 
 ### Patch Changes

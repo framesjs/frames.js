@@ -1,5 +1,12 @@
 # @frames.js/debugger
 
+## 0.2.10
+
+### Patch Changes
+
+- 9f71ea7: fix: connected address frame context
+- 3f2cc78: feat: new examples and stackblitz links to example code
+
 ## 0.2.9
 
 ### Patch Changes
