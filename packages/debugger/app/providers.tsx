@@ -12,6 +12,7 @@ import {
   baseSepolia,
   degen,
   mainnet,
+  gnosis,
   optimism,
   optimismSepolia,
   polygon,
@@ -32,6 +33,7 @@ const config = getDefaultConfig({
     zora,
     degen,
     anvil,
+    gnosis,
     // sepolia testnets
     baseSepolia,
     optimismSepolia,
