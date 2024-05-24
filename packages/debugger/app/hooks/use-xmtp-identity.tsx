@@ -158,6 +158,8 @@ export function useXmtpIdentity(): XmtpSignerInstance {
         ...(actionContext.frameContext.groupSecret
           ? { groupSecret: actionContext.frameContext.groupSecret }
           : {}),
+        address: actionContext.address,
+        // transactionId: actionContext.transactionId, // TODO: enable when included upstream
       });
 
       const searchParams = new URLSearchParams({
@@ -165,6 +167,7 @@ export function useXmtpIdentity(): XmtpSignerInstance {
           ? "post"
           : actionContext.frameButton.action,
         postUrl: actionContext.frameButton.target ?? "",
+        specification: "openframes",
       });
 
       return {

@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@vercel/kv": "^1.0.1",
-    "@xmtp/frames-validator": "^0.5.0",
+    "@xmtp/frames-validator": "^0.6.1",
     "clsx": "^2.1.0",
     "frames.js": "^0.16.2",
     "next": "^14.1.4",
