@@ -15,11 +15,11 @@ export type OpenFramesMessageContext<T = OpenFrameMessage> = {
 };
 
 export type ClientProtocolHandler<T = OpenFrameMessage> = {
-  getFrameMessage: (body: JSON) => Promise<T | undefined> | undefined;
-  isValidPayload: (body: JSON) => boolean;
+  getFrameMessage: (body: object) => Promise<T | undefined> | undefined;
+  isValidPayload: (body: object) => boolean;
 };
 
-async function cloneJsonBody(request: Request): Promise<JSON | undefined> {
+async function cloneJsonBody(request: Request): Promise<object | undefined> {
   try {
     // use clone just in case someone wants to read body somewhere along the way
     const body = (await request
@@ -27,7 +27,7 @@ async function cloneJsonBody(request: Request): Promise<JSON | undefined> {
       .json()
       .catch(() => {
         throw new RequestBodyNotJSONError();
-      })) as JSON;
+      })) as object;
 
     return body;
   } catch (e) {

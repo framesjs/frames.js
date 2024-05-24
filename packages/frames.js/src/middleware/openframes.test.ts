@@ -68,8 +68,8 @@ describe("openframes middleware", () => {
         version: "2024-02-09",
       },
       handler: {
-        isValidPayload: (body: JSON) => isXmtpFrameActionPayload(body),
-        getFrameMessage: async (body: JSON) => {
+        isValidPayload: (body: object) => isXmtpFrameActionPayload(body),
+        getFrameMessage: async (body: object) => {
           if (!isXmtpFrameActionPayload(body)) {
             return undefined;
           }
