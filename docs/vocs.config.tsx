@@ -451,6 +451,7 @@ export default defineConfig({
           {/** on production this is rewritten by vercel */}
           <meta property="og:type" content="website" />
           <meta name="fc:frame" content="vNext" />
+          <meta name="of:version" content="vNext" />
           <meta name="of:accepts:farcaster" content="vNext" />
           <meta name="of:accepts:xmtp" content="2024-02-09" />
           <meta
