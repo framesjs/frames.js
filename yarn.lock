@@ -4833,16 +4833,6 @@
     "@xmtp/proto" "3.56.0"
     viem "^2.9.28"
 
-"@xmtp/proto@3.45.0":
-  version "3.45.0"
-  resolved "https://registry.yarnpkg.com/@xmtp/proto/-/proto-3.45.0.tgz#2aaca656a6da85a05ae75f72340ce1ef5e4fb2ec"
-  integrity sha512-6d/UE/vqi1erpL+z/HSGvFOnJt+y7RE23g6SUUUB7tx75VAi5A0/uLwzPr/eyVkiHZGqlbktq8Rzco+HgTyTAw==
-  dependencies:
-    long "^5.2.0"
-    protobufjs "^7.0.0"
-    rxjs "^7.8.0"
-    undici "^5.8.1"
-
 "@xmtp/proto@3.51.1":
   version "3.51.1"
   resolved "https://registry.yarnpkg.com/@xmtp/proto/-/proto-3.51.1.tgz#651597ed85f6bb9c32b15142d35f72640c76a1f8"
@@ -4888,20 +4878,7 @@
   resolved "https://registry.yarnpkg.com/@xmtp/user-preferences-bindings-wasm/-/user-preferences-bindings-wasm-0.3.6.tgz#4ca58dca940574483caa8cbd4d9c609577b1e0f1"
   integrity sha512-ANi6ikrO6YBaK978sMuEEnpREvFQQnMVaNdlviaLzmc07u4Of4s/VLNnavl4qTb4F4cvwSiBWou0wSYIE5SWYg==
 
-"@xmtp/xmtp-js@^11.5.0":
-  version "11.5.0"
-  resolved "https://registry.yarnpkg.com/@xmtp/xmtp-js/-/xmtp-js-11.5.0.tgz#1b4bf40f8e2cd92bf10ee8a0c547b8683b851394"
-  integrity sha512-ZsB/EO1ts0mx000lgWsxe3S1+9/k1I+RjlIRasC1JmkzxNmf/y8bfMgKL3GdN800G3l17XzoyfTGj+JwgY9HwA==
-  dependencies:
-    "@noble/secp256k1" "1.7.1"
-    "@xmtp/proto" "3.45.0"
-    "@xmtp/user-preferences-bindings-wasm" "^0.3.6"
-    async-mutex "^0.5.0"
-    elliptic "^6.5.4"
-    long "^5.2.3"
-    viem "2.7.15"
-
-"@xmtp/xmtp-js@^11.6.2":
+"@xmtp/xmtp-js@^11.4.1":
   version "11.6.2"
   resolved "https://registry.yarnpkg.com/@xmtp/xmtp-js/-/xmtp-js-11.6.2.tgz#8106586f4bdd7d299cbec0d7b281ab93c1ea895c"
   integrity sha512-BVEW84UrmD1JyaIZj+FSZ3AA5WOYEtaiHRJvzQTeuTa8AxuT9YT1Dfzcd/OQemU+Lg7nMW7u3BrmHtf+QCT3tg==
