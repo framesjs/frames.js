@@ -45,6 +45,9 @@ import {
   DebuggerConsoleContextProvider,
   useDebuggerConsole,
 } from "./components/debugger-console";
+import { useLensIdentity } from "./hooks/use-lens-identity";
+import { useLensFrameContext } from "./hooks/use-lens-context";
+import { ProfileSelectorModal } from "./components/lens-profile-select";
 
 const FALLBACK_URL =
   process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
@@ -235,6 +238,7 @@ export default function App({
     },
   });
   const xmtpSignerState = useXmtpIdentity();
+  const lensSignerState = useLensIdentity();
 
   const farcasterFrameContext = useFarcasterFrameContext({
     fallbackContext: fallbackFrameContext,
@@ -246,6 +250,12 @@ export default function App({
       participantAccountAddresses: account.address
         ? [account.address, zeroAddress]
         : [zeroAddress],
+    },
+  });
+
+  const lensFrameContext = useLensFrameContext({
+    fallbackContext: {
+      pubId: "0x01-0x01",
     },
   });
 
@@ -421,10 +431,17 @@ export default function App({
     frameContext: xmtpFrameContext.frameContext,
   });
 
+  const lensFrameState = useFrame({
+    ...useFrameConfig,
+    signerState: lensSignerState,
+    specification: "openframes",
+    frameContext: lensFrameContext.frameContext,
+  });
+
   const selectedFrameState = {
     farcaster: farcasterFrameState,
     xmtp: xmtpFrameState,
-    lens: null,
+    lens: lensFrameState,
   }[protocolConfiguration?.protocol ?? "farcaster"];
 
   return (
@@ -564,6 +581,8 @@ export default function App({
             farcasterFrameContext={farcasterFrameContext}
             xmtpFrameContext={xmtpFrameContext}
             ref={selectProtocolButtonRef}
+            lensFrameContext={lensFrameContext}
+            lensSignerState={lensSignerState}
           ></ProtocolConfigurationButton>
 
           <div className="ml-auto">
@@ -599,6 +618,14 @@ export default function App({
           </>
         ) : null}
       </div>
+      {lensSignerState.showProfileSelector && (
+        <ProfileSelectorModal
+          profiles={lensSignerState.availableProfiles}
+          onSelect={lensSignerState.handleSelectProfile}
+          show={lensSignerState.showProfileSelector}
+          onClose={lensSignerState.closeProfileSelector}
+        />
+      )}
     </DebuggerConsoleContextProvider>
   );
 }

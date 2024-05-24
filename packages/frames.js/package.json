@@ -137,6 +137,16 @@
         "default": "./dist/xmtp/index.cjs"
       }
     },
+    "./lens": {
+      "import": {
+        "types": "./dist/lens/index.d.ts",
+        "default": "./dist/lens/index.js"
+      },
+      "require": {
+        "types": "./dist/lens/index.d.cts",
+        "default": "./dist/lens/index.cjs"
+      }
+    },
     "./core": {
       "import": {
         "types": "./dist/core/index.d.ts",
@@ -294,6 +304,7 @@
   ],
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240320.1",
+    "@lens-protocol/client": "^2.0.0",
     "@open-frames/types": "^0.0.6",
     "@remix-run/node": "^2.8.1",
     "@types/express": "^4.17.21",
@@ -311,6 +322,7 @@
   "license": "MIT",
   "peerDependencies": {
     "@cloudflare/workers-types": "^4.20240320.1",
+    "@lens-protocol/client": "^2.0.0",
     "@types/express": "^4.17.21",
     "@xmtp/frames-validator": "^0.6.1",
     "@xmtp/proto": "^3.58.0",

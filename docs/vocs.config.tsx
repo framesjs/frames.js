@@ -334,6 +334,24 @@ const sidebar: SidebarItem[] = [
               },
             ],
           },
+          {
+            text: "Lens",
+            collapsed: false,
+            items: [
+              {
+                text: "Tutorial",
+                link: "/reference/js/lens",
+              },
+              {
+                text: "getLensFrameMessage",
+                link: "/reference/js/lens/getLensFrameMessage",
+              },
+              {
+                text: "isXmtpFrameActionPayload",
+                link: "/reference/js/lens/isLensFrameActionPayload",
+              },
+            ],
+          },
         ],
       },
       {

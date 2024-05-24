@@ -11,9 +11,11 @@ import { useFarcasterFrameContext } from "../hooks/use-farcaster-context";
 import { useFarcasterIdentity } from "../hooks/use-farcaster-identity";
 import { useXmtpFrameContext } from "../hooks/use-xmtp-context";
 import { useXmtpIdentity } from "../hooks/use-xmtp-identity";
+import { useLensIdentity } from "../hooks/use-lens-identity";
+import { useLensFrameContext } from "../hooks/use-lens-context";
 import { cn } from "../lib/utils";
 import FarcasterSignerWindow from "./farcaster-signer-config";
-import { forwardRef, useMemo } from "react";
+import { forwardRef, useMemo, useState } from "react";
 import { WithTooltip } from "./with-tooltip";
 
 export type ProtocolConfiguration =
@@ -50,8 +52,10 @@ type ProtocolConfigurationButtonProps = {
   value: ProtocolConfiguration | null;
   farcasterSignerState: ReturnType<typeof useFarcasterIdentity>;
   xmtpSignerState: ReturnType<typeof useXmtpIdentity>;
+  lensSignerState: ReturnType<typeof useLensIdentity>;
   farcasterFrameContext: ReturnType<typeof useFarcasterFrameContext>;
   xmtpFrameContext: ReturnType<typeof useXmtpFrameContext>;
+  lensFrameContext: ReturnType<typeof useLensFrameContext>;
 };
 
 export const ProtocolConfigurationButton = forwardRef<
@@ -66,6 +70,8 @@ export const ProtocolConfigurationButton = forwardRef<
       xmtpSignerState,
       farcasterFrameContext,
       xmtpFrameContext,
+      lensFrameContext,
+      lensSignerState,
     },
     ref
   ) => {
@@ -82,8 +88,17 @@ export const ProtocolConfigurationButton = forwardRef<
         valid = !!xmtpSignerState.signer;
       }
 
+      if (value?.protocol === "lens") {
+        valid = !!lensSignerState.signer;
+      }
+
       return valid;
-    }, [farcasterSignerState.signer, value?.protocol, xmtpSignerState.signer]);
+    }, [
+      farcasterSignerState.signer,
+      value?.protocol,
+      xmtpSignerState.signer,
+      lensSignerState.signer,
+    ]);
 
     return (
       <Popover>
@@ -96,11 +111,11 @@ export const ProtocolConfigurationButton = forwardRef<
                   {value.specification === "openframes"
                     ? `(${value.specification})`
                     : // Farcaster
-                    farcasterSignerState.signer?.status !== "pending_approval"
-                    ? `(${
-                        farcasterSignerState.signer?.fid ?? "select identity"
-                      })`
-                    : "select identity"}
+                      farcasterSignerState.signer?.status !== "pending_approval"
+                      ? `(${
+                          farcasterSignerState.signer?.fid ?? "select identity"
+                        })`
+                      : "select identity"}
                 </>
               ) : (
                 <>Select a protocol</>
@@ -113,7 +128,7 @@ export const ProtocolConfigurationButton = forwardRef<
             <TabsList
               className={cn(
                 "w-full grid",
-                !value ? "grid-cols-3" : "grid-cols-2"
+                !value ? "grid-cols-4" : "grid-cols-3"
               )}
             >
               {!value && <TabsTrigger value="none">None</TabsTrigger>}
@@ -136,7 +151,14 @@ export const ProtocolConfigurationButton = forwardRef<
               >
                 XMTP
               </TabsTrigger>
-              {/* <TabsTrigger value="lens">Lens</TabsTrigger> */}
+              <TabsTrigger
+                value="lens"
+                onClick={() =>
+                  onChange({ protocol: "lens", specification: "openframes" })
+                }
+              >
+                Lens
+              </TabsTrigger>
             </TabsList>
             <TabsContent value={"none"}></TabsContent>
             <TabsContent value="farcaster">
@@ -273,13 +295,60 @@ export const ProtocolConfigurationButton = forwardRef<
               </div>
             </TabsContent>
             <TabsContent value="lens">
-              <Button
-                onClick={() => {
-                  onChange({ protocol: "lens", specification: "openframes" });
-                }}
-              >
-                Save
-              </Button>
+              <div>
+                <div>
+                  {lensSignerState?.signer ? (
+                    <div>
+                      <div className="mb-2">
+                        Connected as {lensSignerState.signer.handle}
+                      </div>
+                      <Button
+                        variant={"secondary"}
+                        className="w-full"
+                        onClick={() => {
+                          lensSignerState.logout?.();
+                        }}
+                      >
+                        Logout
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      className="w-full"
+                      onClick={() => {
+                        lensSignerState.onSignerlessFramePress();
+                      }}
+                    >
+                      Connect Lens
+                    </Button>
+                  )}
+                </div>
+                <div className="border-t pt-4 mt-4">
+                  <div className="text-md font-bold mb-2">Frame Context</div>
+                  {/* Configure context */}
+                  <div>Publication ID</div>
+                  <Input
+                    type="text"
+                    placeholder="Lens Publication ID (0x01-0x01)"
+                    defaultValue={lensFrameContext.frameContext.pubId}
+                    onChange={(e) => {
+                      lensFrameContext.setFrameContext((c) => ({
+                        ...lensFrameContext.frameContext,
+                        pubId: e.target.value,
+                      }));
+                    }}
+                  />
+                  <Button
+                    onClick={() => {
+                      lensFrameContext.resetFrameContext();
+                    }}
+                    variant={"secondary"}
+                    className="mt-2 w-full"
+                  >
+                    Reset
+                  </Button>
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
         </PopoverContent>
