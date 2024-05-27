@@ -13,6 +13,11 @@ import { compileCode } from "./compile-code";
 import { convertFrameDefinitionToFrame } from "./convert-frame-definition-to-frame";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
+import {
+  DebuggerConsole,
+  DebuggerConsoleContextProvider,
+  useDebuggerConsole,
+} from "../components/debugger-console";
 
 const defaultFrameDefinition = `
 const frame: FrameDefinition<any> = {
@@ -34,6 +39,7 @@ type FramePlaygroundProps = {
 export default function FramePlayground({
   searchParams,
 }: FramePlaygroundProps) {
+  const { logs } = useDebuggerConsole();
   const frameObjectCode = useMemo((): string => {
     if (searchParams.frame) {
       try {
@@ -71,7 +77,6 @@ export default function FramePlayground({
 
       setResolvedFrame(resolvedFrame);
     } catch (e) {
-      // @todo show errors in editor
       console.error(e);
     }
   }, 1000);
@@ -131,13 +136,20 @@ export default function FramePlayground({
             }}
           />
         </Card>
-        <Card className="w-1/2 min-h-[300px] p-2">
-          {resolvedFrame ? (
-            <FramePreview frame={resolvedFrame} />
-          ) : (
-            <div className="pt-[52.33%]"></div>
-          )}
-        </Card>
+        <div className="w-1/2 h-full flex flex-col gap-4">
+          <Card className="w-full min-h-[300px] p-2">
+            {resolvedFrame ? (
+              <FramePreview frame={resolvedFrame} />
+            ) : (
+              <div className="pt-[52.33%]"></div>
+            )}
+          </Card>
+          <Card className="w-full h-[400px] overflow-y-auto">
+            <DebuggerConsoleContextProvider value={logs}>
+              <DebuggerConsole />
+            </DebuggerConsoleContextProvider>
+          </Card>
+        </div>
       </div>
     </div>
   );
