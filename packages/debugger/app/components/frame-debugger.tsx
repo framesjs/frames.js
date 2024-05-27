@@ -42,6 +42,7 @@ import {
   MessageCircleHeart,
   RefreshCwIcon,
   XCircle,
+  Terminal,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { MockHubConfig } from "./mock-hub-config";
@@ -59,6 +60,7 @@ import { hasWarnings } from "../lib/utils";
 import { useRouter } from "next/navigation";
 import { WithTooltip } from "./with-tooltip";
 import { DebuggerConsole } from "./debugger-console";
+import Link from "next/link";
 
 type FrameDiagnosticsProps = {
   stackItem: FramesStackItem;
@@ -508,9 +510,15 @@ export const FrameDebugger = React.forwardRef<
               </Card>
             )}
           <div className="border rounded-lg shadow-sm bg-white">
+            <Link href="/playground" className="px-2 py-3 block">
+              <span className="text-slate-400 px-2 w-9 relative text-center inline-block">
+                <Terminal className="inline" size={16}></Terminal>
+              </span>
+              Playground
+            </Link>
             <a
               target="_blank"
-              className="px-2 py-3 block"
+              className="px-2 py-3 block border-t"
               href="https://docs.farcaster.xyz/learn/what-is-farcaster/frames"
             >
               <span className="text-slate-400 px-2 w-9 relative text-center inline-block">
