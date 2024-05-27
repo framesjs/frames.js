@@ -1,5 +1,12 @@
 # frames.js
 
+## 0.16.3
+
+### Patch Changes
+
+- b48809e: chore: bump xmtp validator version
+- 44dc3b9: feat: lens open frames helper functions
+
 ## 0.16.2
 
 ### Patch Changes

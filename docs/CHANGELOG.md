@@ -1,5 +1,14 @@
 # docs
 
+## 0.2.11
+
+### Patch Changes
+
+- 44dc3b9: feat: lens open frames helper functions
+- Updated dependencies [b48809e]
+- Updated dependencies [44dc3b9]
+  - frames.js@0.16.3
+
 ## 0.2.10
 
 ### Patch Changes

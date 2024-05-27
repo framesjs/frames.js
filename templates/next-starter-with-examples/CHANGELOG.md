@@ -1,5 +1,15 @@
 # template-next-starter-with-examples
 
+## 0.0.18
+
+### Patch Changes
+
+- 44dc3b9: feat: add lens protocol to multi protocol example
+- b48809e: feat: add back button to multi protocol example
+- Updated dependencies [b48809e]
+- Updated dependencies [44dc3b9]
+  - frames.js@0.16.3
+
 ## 0.0.17
 
 ### Patch Changes

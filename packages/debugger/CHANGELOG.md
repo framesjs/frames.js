@@ -1,5 +1,13 @@
 # @frames.js/debugger
 
+## 0.2.12
+
+### Patch Changes
+
+- 44dc3b9: feat(debugger): lens open frames
+- b48809e: chore: bump xmtp validator version
+- fb1ac4d: fix(debugger): SIGNER_URL environment variables bug
+
 ## 0.2.11
 
 ### Patch Changes
