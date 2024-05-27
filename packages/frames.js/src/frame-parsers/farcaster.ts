@@ -59,12 +59,13 @@ export function parseFarcasterFrame(
   if (!parsedFrame.ogImage) {
     reporter.warn("og:image", 'Missing meta tag "og:image"');
   } else {
-    frame.ogImage = validate(
-      reporter,
-      "og:image",
-      validateFrameImage,
-      parsedFrame.ogImage
-    );
+    try {
+      frame.ogImage = validateFrameImage(parsedFrame.ogImage);
+    } catch (error) {
+      if (error instanceof Error) {
+        reporter.warn("og:image", error.message);
+      }
+    }
   }
 
   if (parsedFrame.imageAspectRatio) {
