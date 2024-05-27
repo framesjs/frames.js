@@ -1,0 +1,5 @@
+{
+  "name": "@vercel/og",
+  "type": "module",
+  "main": "index.js"
+}
