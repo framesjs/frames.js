@@ -41,7 +41,7 @@ context.displayName = "DebuggerConsoleContext";
 export const DebuggerConsoleContextProvider = context.Provider;
 
 type DebuggerConsoleProps = {
-  onMount: (element: HTMLDivElement) => void;
+  onMount?: (element: HTMLDivElement) => void;
 };
 
 export function DebuggerConsole({ onMount }: DebuggerConsoleProps) {
@@ -52,7 +52,7 @@ export function DebuggerConsole({ onMount }: DebuggerConsoleProps) {
 
   useEffect(() => {
     if (wrapperRef.current) {
-      onMountRef.current(wrapperRef.current);
+      onMountRef.current?.(wrapperRef.current);
     }
   }, []);
 
