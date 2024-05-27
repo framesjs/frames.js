@@ -1,0 +1,3 @@
+class ImageResponse {}
+
+export { ImageResponse };
