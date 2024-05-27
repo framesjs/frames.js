@@ -45,9 +45,18 @@ const args = yargs(hideBin(process.argv))
     default: process.env.NEXT_PUBLIC_HOST,
   }).argv;
 
-process.env.FARCASTER_DEVELOPER_MNEMONIC = args["farcaster-developer-mnemonic"];
-process.env.FARCASTER_DEVELOPER_ID = args["farcaster-developer-fid"];
-process.env.SIGNER_URL = args["signer-url"];
+if (args["farcaster-developer-mnemonic"]) {
+  process.env.FARCASTER_DEVELOPER_MNEMONIC =
+    args["farcaster-developer-mnemonic"];
+}
+
+if (args["farcaster-developer-fid"]) {
+  process.env.FARCASTER_DEVELOPER_ID = args["farcaster-developer-fid"];
+}
+
+if (args["signer-url"]) {
+  process.env.SIGNER_URL = args["signer-url"];
+}
 
 const dev = false;
 const hostname = "localhost";
