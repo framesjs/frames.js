@@ -171,10 +171,13 @@ export type EthSendTransactionParams = {
 };
 
 export type TransactionTargetResponse = {
-  /** A chain ID starting with 'eip155:' e.g. 'eip155:1' for Ethereum mainnet */
+  /** A [CAIP-2](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-2.md) chain ID to identify the tx network e.g. 'eip155:1' for Ethereum mainnet */
   chainId: string;
   method: "eth_sendTransaction";
+  /** Specific parameters for chainId and method */
   params: EthSendTransactionParams;
+  /** Return false to omit the [calldata attribution](https://www.notion.so/warpcast/Frame-Transactions-Public-9d9f9f4f527249519a41bd8d16165f73#c1c3182208ce4ae4a7ffa72129b9795a) suffix. If this value is undefined or true, clients will append the attribution suffix. */
+  attribution?: boolean;
 };
 
 export type UserDataReturnType = {
