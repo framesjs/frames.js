@@ -55,6 +55,8 @@ describe("renderResponse middleware", () => {
     request,
     url: new URL("https://example.com"),
     baseUrl: resolveBaseUrl(request, undefined, "/"),
+    __debugInfo: {},
+    debug: false,
   };
 
   beforeEach(() => {

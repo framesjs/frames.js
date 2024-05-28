@@ -217,6 +217,16 @@
         "default": "./dist/middleware/images-worker/next/index.cjs"
       }
     },
+    "./middleware/jsx-utils": {
+      "import": {
+        "types": "./dist/middleware/jsx-utils.d.ts",
+        "default": "./dist/middleware/jsx-utils.js"
+      },
+      "require": {
+        "types": "./dist/middleware/jsx-utils.d.cts",
+        "default": "./dist/middleware/jsx-utils.cjs"
+      }
+    },
     "./hono": {
       "import": {
         "types": "./dist/hono/index.d.ts",

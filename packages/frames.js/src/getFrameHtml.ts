@@ -1,5 +1,5 @@
 import { getFrameFlattened } from "./getFrameFlattened";
-import type { Frame } from "./types";
+import type { Frame, FrameFlattened } from "./types";
 import { escapeHtmlAttributeValue } from "./utils";
 
 export interface GetFrameHtmlOptions {
@@ -43,10 +43,14 @@ export function getFrameHtml(
 /**
  * Formats a `Frame` ready to be included in a <head> of an html string
  * @param frame - The `Frame` to get the <head> contents for
+ * @param overrides - Optional overrides to apply to the frame
  * @returns an string with tags to be included in a <head>
  */
-export function getFrameHtmlHead(frame: Partial<Frame>): string {
-  const flattened = getFrameFlattened(frame);
+export function getFrameHtmlHead(
+  frame: Partial<Frame>,
+  overrides?: Partial<FrameFlattened>
+): string {
+  const flattened = getFrameFlattened(frame, overrides);
 
   const tags = Object.entries(flattened)
     .map(([key, value]) => {
