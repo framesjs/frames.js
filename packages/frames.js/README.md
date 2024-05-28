@@ -126,7 +126,7 @@ export default function Page() {
 
 ![](/frames/frame2.png)
 
-[Debugging your Frames locally](/guides/debugger)
+[Debugging your Frames locally](./docs/pages/guides/debugger.mdx)
 
 ## Prefer not to use a Framework?
 
