@@ -2,7 +2,7 @@ import type { PluginItem } from "@babel/core";
 import { availablePresets, transform } from "@babel/standalone";
 import * as t from "@babel/types";
 import { createElement, Fragment } from "react";
-import { Button as FrameButton } from "frames.js/core";
+import { Button as FrameButton } from "frames.js/core/components";
 
 // declare createElement and Fragment in global scope
 declare global {
