@@ -10,6 +10,7 @@ import { getLensFrameMessage, isLensFrameActionPayload } from "frames.js/lens";
 export const frames = createFrames({
   basePath: "/examples/multi-protocol/frames",
   baseUrl: appURL(),
+  debug: process.env.NODE_ENV === "development",
   initialState: {
     pageIndex: 0,
   },

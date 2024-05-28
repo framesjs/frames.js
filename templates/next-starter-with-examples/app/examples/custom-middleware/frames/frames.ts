@@ -27,4 +27,5 @@ export const frames = createFrames({
     pageIndex: 0,
   },
   middleware: [priceMiddleware],
+  debug: process.env.NODE_ENV === "development",
 });
