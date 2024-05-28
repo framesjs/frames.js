@@ -157,6 +157,16 @@
         "default": "./dist/core/index.cjs"
       }
     },
+    "./core/components": {
+      "import": {
+        "types": "./dist/core/components.d.ts",
+        "default": "./dist/core/components.js"
+      },
+      "require": {
+        "types": "./dist/core/components.d.cts",
+        "default": "./dist/core/components.cjs"
+      }
+    },
     "./types": {
       "import": {
         "types": "./dist/core/types.d.ts",
