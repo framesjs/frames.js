@@ -1,6 +1,3 @@
-// @todo add a way to debuger frame rendered in debugger in the playground (possibly an URL parameter?)
-// @todo frame definition from debugger should be converted to frame definition, but we won't get a JSX from image, since that would be already turned into an image
-// @todo maybe provide some sort of debug header that would allow frames.js to return also image definition if jsx has been used?
 "use client";
 
 import { ChevronRightIcon } from "lucide-react";
@@ -18,6 +15,11 @@ import {
   DebuggerConsoleContextProvider,
   useDebuggerConsole,
 } from "../components/debugger-console";
+import { frameDefinitionToString } from "./frame-definition-to-string";
+import {
+  PlaygroundFrame,
+  playgroundFrameToFrameDefinition,
+} from "./frame-result-to-playground-frame";
 
 const defaultFrameDefinition = `
 const frame: FrameDefinition<any> = {
@@ -43,14 +45,11 @@ export default function FramePlayground({
   const frameObjectCode = useMemo((): string => {
     if (searchParams.frame) {
       try {
-        // @todo the frame passed in URL is JSON object, just validate that it is a valid JSON
-        // and then return the string version as is
-        const parsedFrame = JSON.parse(searchParams.frame);
+        const frame = playgroundFrameToFrameDefinition(
+          JSON.parse(searchParams.frame) as PlaygroundFrame
+        );
 
-        // validate frame using zod
-
-        // @TODO validate parsedFrame is valid frame, then parse it and create a frame definition from it and then print the frame definition
-        // return searchParams.frame;
+        return frameDefinitionToString(frame);
       } catch (e) {
         console.error(e);
       }
