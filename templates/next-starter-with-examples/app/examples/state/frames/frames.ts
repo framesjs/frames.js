@@ -9,4 +9,5 @@ export const frames = createFrames<State>({
   initialState: {
     count: 0,
   },
+  debug: process.env.NODE_ENV === "development",
 });

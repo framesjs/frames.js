@@ -4,4 +4,5 @@ import { appURL } from "../../../utils";
 export const frames = createFrames({
   basePath: "/examples/post-redirect/frames",
   baseUrl: appURL(),
+  debug: process.env.NODE_ENV === "development",
 });
