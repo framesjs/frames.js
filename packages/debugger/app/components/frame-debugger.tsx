@@ -43,6 +43,7 @@ import {
   RefreshCwIcon,
   XCircle,
   Terminal,
+  TerminalIcon,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { MockHubConfig } from "./mock-hub-config";
@@ -61,6 +62,7 @@ import { useRouter } from "next/navigation";
 import { WithTooltip } from "./with-tooltip";
 import { DebuggerConsole } from "./debugger-console";
 import Link from "next/link";
+import { frameResultToPlaygroundFrame } from "../playground/frame-result-to-playground-frame";
 
 type FrameDiagnosticsProps = {
   stackItem: FramesStackItem;
@@ -423,6 +425,8 @@ export const FrameDebugger = React.forwardRef<
      */
     const wantsToScrollConsoleToBottomRef = useRef(false);
 
+    // @todo show link to playground below the frame and serialize jsx if there is any debug info
+
     useImperativeHandle(
       ref,
       () => {
@@ -598,7 +602,7 @@ export const FrameDebugger = React.forwardRef<
               </Card>
             ) : (
               <>
-                <div className="border rounded-lg overflow-hidden">
+                <div className="border rounded-lg overflow-hidden relative">
                   <FrameUI
                     frameState={frameState}
                     theme={{
@@ -607,6 +611,25 @@ export const FrameDebugger = React.forwardRef<
                     FrameImage={FrameImageNext}
                     allowPartialFrame={true}
                   />
+                  {currentFrameStackItem?.status === "done" && (
+                    <WithTooltip tooltip="Open in Playground">
+                      <Link
+                        href={{
+                          pathname: "/playground",
+                          query: {
+                            frame: JSON.stringify(
+                              frameResultToPlaygroundFrame(
+                                currentFrameStackItem.frameResult
+                              )
+                            ),
+                          },
+                        }}
+                        className="absolute top-0 right-0 p-1 m-2 border border-slate-50 rounded-full z-10 shadow"
+                      >
+                        <TerminalIcon size={24} />
+                      </Link>
+                    </WithTooltip>
+                  )}
                 </div>
                 <div className="ml-auto text-sm text-slate-500">{url}</div>
                 <div className="space-y-1">
