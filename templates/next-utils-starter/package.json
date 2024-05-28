@@ -1,6 +1,6 @@
 {
   "name": "template-next-utils-starter",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,7 +11,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "frames.js": "^0.16.3",
+    "frames.js": "^0.16.4",
     "next": "^14.1.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

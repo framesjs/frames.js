@@ -1,5 +1,12 @@
 # frames.js
 
+## 0.16.4
+
+### Patch Changes
+
+- b3431da: fix(frames.js): `attribution` attribute in `TransactionTargetResponse` type
+- 904241e: fix(frames.js): warn invalid og image
+
 ## 0.16.3
 
 ### Patch Changes

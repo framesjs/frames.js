@@ -1,10 +1,10 @@
 {
   "name": "template-next",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "private": true,
   "type": "module",
   "dependencies": {
-    "frames.js": "^0.16.3",
+    "frames.js": "^0.16.4",
     "next": "^14.1.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
