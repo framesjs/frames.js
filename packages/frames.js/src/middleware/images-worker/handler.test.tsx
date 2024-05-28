@@ -12,6 +12,8 @@ describe("createImagesWorkerRequestHandler", () => {
     request: frameRequest,
     url: new URL("https://example.com"),
     baseUrl: resolveBaseUrl(frameRequest, undefined, "/"),
+    __debugInfo: {},
+    debug: false,
   };
   const imagesRouteUrl = "https://example.com/image";
 
@@ -130,7 +132,7 @@ describe("createImagesWorkerRequestHandler", () => {
           },
         },
       },
-      jsxToResponse: async (_) => new Response("Test", { status: 200 })
+      jsxToResponse: async (_) => new Response("Test", { status: 200 }),
     });
 
     const GET = imagesRoute;
