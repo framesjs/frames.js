@@ -1,5 +1,6 @@
 import type { ImageResponse } from "@vercel/og";
 import type { ClientProtocolId } from "../types";
+import type { SerializedNode } from "../middleware/jsx-utils";
 import type { Button, ButtonProps } from "./components";
 
 export type JsonObject = { [Key in string]: JsonValue } & {
@@ -55,6 +56,16 @@ export type FramesContext<TState extends JsonValue | undefined = JsonValue> = {
    */
   url: URL;
   stateSigningSecret?: string;
+  /**
+   * Is debug mode enabled?
+   */
+  debug: boolean;
+  /**
+   * Collected debug information
+   */
+  __debugInfo: {
+    jsx?: SerializedNode[];
+  };
 };
 
 type AllowedFramesContextShape = Record<string, any>;
@@ -262,6 +273,14 @@ export type FramesOptions<
    * ```
    */
   baseUrl?: string | URL;
+  /**
+   * Enables debug mode.
+   *
+   * In debug mode, the frame will be extended with additional debug information.
+   *
+   * @defaultValue false
+   */
+  debug?: boolean;
   /**
    * Initial state, used if no state is provided in the message or you are on initial frame.
    *

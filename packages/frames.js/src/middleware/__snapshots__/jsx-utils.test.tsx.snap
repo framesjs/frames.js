@@ -1,0 +1,46 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`deserializeJsx correctly deserializes a Fragment 1`] = `
+<React.Fragment>
+  Test
+</React.Fragment>
+`;
+
+exports[`deserializeJsx correctly deserializes an HTML element 1`] = `<div />`;
+
+exports[`deserializeJsx correctly deserializes functional component 1`] = `"Hello"`;
+
+exports[`deserializeJsx correctly deserializes nested tree 1`] = `
+<div>
+  <span>
+    Test
+  </span>
+  <span>
+    Test2
+  </span>
+</div>
+`;
+
+exports[`deserializeJsx is backwards compatible with old serialized format 1`] = `
+<div>
+  <div>
+    Test
+  </div>
+  <div>
+    Test
+  </div>
+</div>
+`;
+
+exports[`deserializeJsx is backwards compatible with old serialized format 2`] = `
+<div
+  style={
+    {
+      "color": "red",
+    }
+  }
+  tw="flex bg-gray-500"
+>
+  Test
+</div>
+`;

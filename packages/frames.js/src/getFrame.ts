@@ -2,10 +2,14 @@ import type {
   ParseResult,
   SupportedParsingSpecification,
 } from "./frame-parsers/types";
+import { type SerializedNode } from "./middleware/jsx-utils";
 import { parseFramesWithReports } from "./parseFramesWithReports";
 
 type GetFrameResult = ParseResult & {
   framesVersion?: string;
+  framesDebugInfo?: {
+    jsx?: SerializedNode[];
+  };
 };
 
 type GetFrameOptions = {
@@ -38,5 +42,14 @@ export function getFrame({
   return {
     ...parsedFrames[specification],
     framesVersion: parsedFrames.framesVersion,
+    ...(parsedFrames.framesDebugInfo?.jsx
+      ? {
+          framesDebugInfo: {
+            jsx: JSON.parse(
+              parsedFrames.framesDebugInfo.jsx
+            ) as SerializedNode[],
+          },
+        }
+      : {}),
   };
 }
