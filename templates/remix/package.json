@@ -29,7 +29,7 @@
   },
   "scripts": {
     "build": "remix vite:build",
-    "dev": "concurrently \"remix vite:dev\" \"frames --url http://localhost:5173\"",
+    "dev": "node ./scripts/dev-script.js",
     "start": "remix-serve ./build/server/index.js",
     "typecheck": "tsc"
   }

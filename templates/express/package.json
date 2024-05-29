@@ -26,7 +26,7 @@
     "node": ">=18.17.0"
   },
   "scripts": {
-    "dev": "concurrently --kill-others \"node server\" \"frames --url http://localhost:5173\"",
+    "dev": "node ./scripts/dev-script.js",
     "build": "npm run build:client && npm run build:server",
     "build:client": "vite build --ssrManifest --outDir dist/client",
     "build:server": "vite build --ssr src/entry-server.tsx --outDir dist/server",

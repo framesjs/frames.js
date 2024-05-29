@@ -14,7 +14,6 @@
     "@types/node": "^18.17.0",
     "@types/react": "^18.2.45",
     "concurrently": "^8.2.2",
-    "cross-env": "^7.0.3",
     "typescript": "^5.4.5",
     "wrangler": "^3.39.0"
   },
@@ -35,7 +34,7 @@
     "node": ">=18.17.0"
   },
   "scripts": {
-    "dev": "concurrently --kill-others \"wrangler dev\" \"frames --url http://localhost:8787\"",
+    "dev": "node ./scripts/dev-script.js",
     "deploy": "wrangler deploy",
     "build": "wrangler deploy --dry-run",
     "start": "wrangler dev"
