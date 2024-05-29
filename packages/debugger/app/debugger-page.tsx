@@ -602,6 +602,7 @@ export default function DebuggerPage({
                   refreshUrl={refreshUrl}
                   mockHubContext={mockHubContext}
                   setMockHubContext={setMockHubContext}
+                  hasExamples={!!examples}
                 ></ActionDebugger>
               </div>
             )}
