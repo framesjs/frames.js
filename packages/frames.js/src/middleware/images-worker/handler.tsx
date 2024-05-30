@@ -3,6 +3,7 @@ import React from "react"; // necessary to work on server
 import type { ImageAspectRatio } from "../../types";
 import { verifyHMACSignature } from "../../lib/crypto";
 import { deserializeJsx, type SerializedNode } from "../jsx-utils";
+import { FRAMES_IMAGES_PARAM_KEY } from "../../core/constants";
 
 type ImageResponseOptions = ConstructorParameters<typeof ImageResponse>[1];
 
@@ -37,7 +38,7 @@ export function createImagesWorkerRequestHandler({
 }: ImageWorkerOptions = {}): (req: Request) => Promise<Response> {
   return async (req: Request): Promise<Response> => {
     const url = new URL(req.url);
-    const serialized = url.searchParams.get("jsx");
+    const serialized = url.searchParams.get(FRAMES_IMAGES_PARAM_KEY);
 
     if (!serialized) {
       throw new Error("No jsx");

@@ -57,7 +57,6 @@ export function createFrames<
       FramesMiddlewareReturnType<TState>
     >([
       ...coreMiddleware,
-      // @ts-expect-error hard to type internally so skipping for now
       ...globalMiddleware,
       // @ts-expect-error hard to type internally so skipping for now
       stateMiddleware<TState>(),

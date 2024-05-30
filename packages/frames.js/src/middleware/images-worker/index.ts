@@ -1,27 +1,35 @@
+import { FRAMES_IMAGES_PARAM_KEY } from "../../core/constants";
 import type { FramesMiddleware } from "../../core/types";
 import { generateTargetURL, isFrameDefinition } from "../../core/utils";
 import { createHMACSignature } from "../../lib/crypto";
 import {
-  serializeJsx,
   deserializeJsx,
+  serializeJsx,
   type SerializedNode,
 } from "../jsx-utils";
+import { createImagesWorkerRequestHandler } from "./handler";
 
-export { serializeJsx, deserializeJsx, type SerializedNode };
-
+export { deserializeJsx, serializeJsx, type SerializedNode };
 export function imagesWorkerMiddleware({
   imagesRoute,
   secret,
 }: {
-  /** The absolute URL or URL relative to the URL of this server of the image rendering worker */
-  imagesRoute: string;
+  /** The absolute URL or URL relative to the URL of this server of the image rendering worker. Defaults to the base URL specified in `createFrames`. */
+  imagesRoute?: string;
   /** Secret key used to sign JSX payloads */
   secret?: string;
-}): FramesMiddleware<any, Record<string, never>> {
+} = {}): FramesMiddleware<any, Record<string, never>> {
   const middleware: FramesMiddleware<any, Record<string, never>> = async (
     ctx,
     next
   ) => {
+    if (new URL(ctx.request.url).searchParams.get(FRAMES_IMAGES_PARAM_KEY)) {
+      // Handle images worker request
+      const worker = createImagesWorkerRequestHandler({ secret });
+      const res = await worker(ctx.request);
+      return res;
+    }
+
     const nextResult = await next();
 
     if (
@@ -34,8 +42,7 @@ export function imagesWorkerMiddleware({
     const imageJsonString = JSON.stringify(serializeJsx(nextResult.image));
 
     const searchParams = new URLSearchParams({
-      time: Date.now().toString(),
-      jsx: imageJsonString,
+      [FRAMES_IMAGES_PARAM_KEY]: imageJsonString,
       aspectRatio: nextResult.imageOptions?.aspectRatio?.toString() || "1.91:1",
     });
 
@@ -47,7 +54,7 @@ export function imagesWorkerMiddleware({
 
     const imageUrl = generateTargetURL({
       baseUrl: ctx.baseUrl,
-      target: imagesRoute,
+      target: imagesRoute || "/",
     });
 
     imageUrl.search = searchParams.toString();
