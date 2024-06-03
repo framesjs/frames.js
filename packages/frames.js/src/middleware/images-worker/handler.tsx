@@ -9,11 +9,11 @@ import { deserializeJsx } from ".";
 type ImageResponseOptions = ConstructorParameters<typeof ImageResponse>[1];
 
 type ImageWorkerImageOptions = Omit<
-  ImageResponseOptions,
+  ImageResponseOptions & {
+    sizes?: Record<ImageAspectRatio, { width: number; height: number }>;
+  },
   "width" | "height"
-> & {
-  sizes?: Record<ImageAspectRatio, { width: number; height: number }>;
-};
+>;
 
 export type ImageWorkerOptions = {
   /** The secret used to sign the jsx payload, if not specified no authentication checks will be done */
