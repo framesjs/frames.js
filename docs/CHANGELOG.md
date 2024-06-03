@@ -1,5 +1,12 @@
 # docs
 
+## 0.2.13
+
+### Patch Changes
+
+- Updated dependencies [dbae533]
+  - frames.js@0.16.5
+
 ## 0.2.12
 
 ### Patch Changes

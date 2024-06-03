@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.16.5
+
+### Patch Changes
+
+- dbae533: fix: images worker options type
+
 ## 0.16.4
 
 ### Patch Changes

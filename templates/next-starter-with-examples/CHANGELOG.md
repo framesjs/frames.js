@@ -1,5 +1,13 @@
 # template-next-starter-with-examples
 
+## 0.0.20
+
+### Patch Changes
+
+- dbae533: feat: custom fonts images worker example
+- Updated dependencies [dbae533]
+  - frames.js@0.16.5
+
 ## 0.0.19
 
 ### Patch Changes
