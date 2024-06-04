@@ -38,9 +38,15 @@ import {
 import type { types } from "frames.js/core";
 import { Fragment } from "react";
 
-export function frameDefinitionToString(
+// provided by page.tsx
+declare global {
+  const prettier: typeof import("prettier");
+  const prettierPlugins: any;
+}
+
+export async function frameDefinitionToString(
   frame: Partial<types.FrameDefinition<any>>
-): string {
+): Promise<string> {
   const id = identifier("frame");
 
   id.typeAnnotation = tsTypeAnnotation(
@@ -115,7 +121,10 @@ export function frameDefinitionToString(
     variableDeclarator(id, objectExpression(properties)),
   ]);
 
-  return generate(definition, {}).code;
+  return prettier.format(generate(definition).code, {
+    parser: "babel-ts",
+    plugins: prettierPlugins,
+  });
 }
 
 function buttonToJsx(button: types.AllowedFrameButtonItems): Expression {

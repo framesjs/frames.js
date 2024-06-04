@@ -4,6 +4,7 @@ import { ChevronRightIcon } from "lucide-react";
 import { Editor, OnChange, OnMount } from "@monaco-editor/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Frame } from "frames.js";
+import type { types } from "frames.js/core";
 import { useDebouncedCallback } from "use-debounce";
 import { FramePreview } from "./preview";
 import { compileCode } from "./compile-code";
@@ -20,17 +21,18 @@ import {
   PlaygroundFrame,
   playgroundFrameToFrameDefinition,
 } from "./frame-result-to-playground-frame";
+import { Button } from "frames.js/core/components";
+import Script from "next/script";
 
-const defaultFrameDefinition = `
-const frame: FrameDefinition<any> = {
+const defaultFrameDefinition: Partial<types.FrameDefinition<any>> = {
   image: <span>Test</span>,
   buttons: [
+    // eslint-disable-next-line react/jsx-key
     <Button action="post" target="/">
       Button
     </Button>,
   ],
 };
-`.trim();
 
 type FramePlaygroundProps = {
   searchParams: {
@@ -42,14 +44,14 @@ export default function FramePlayground({
   searchParams,
 }: FramePlaygroundProps) {
   const { logs } = useDebuggerConsole();
-  const frameObjectCode = useMemo((): string => {
+  const frameObjectCode = useMemo((): Partial<types.FrameDefinition<any>> => {
     if (searchParams.frame) {
       try {
         const frame = playgroundFrameToFrameDefinition(
           JSON.parse(searchParams.frame) as PlaygroundFrame
         );
 
-        return frameDefinitionToString(frame);
+        return frame;
       } catch (e) {
         console.error(e);
       }
@@ -58,7 +60,7 @@ export default function FramePlayground({
     return defaultFrameDefinition;
   }, [searchParams]);
 
-  const [value, setValue] = useState(() => frameObjectCode);
+  const [value, setValue] = useState("");
   const [resolvedFrame, setResolvedFrame] = useState<Partial<Frame> | null>(
     null
   );
@@ -85,6 +87,14 @@ export default function FramePlayground({
   }, []);
 
   useEffect(() => {
+    frameDefinitionToString(frameObjectCode)
+      .then(setValue)
+      .catch((e) => {
+        console.error(e);
+      });
+  }, [frameObjectCode]);
+
+  useEffect(() => {
     if (!value) {
       return;
     }
@@ -94,6 +104,18 @@ export default function FramePlayground({
 
   return (
     <div className="flex flex-col h-screen">
+      <Script
+        strategy="beforeInteractive"
+        src="https://unpkg.com/prettier@3.3.0/standalone.js"
+      ></Script>
+      <Script
+        strategy="beforeInteractive"
+        src="https://unpkg.com/prettier@3.3.0/plugins/estree.js"
+      ></Script>
+      <Script
+        strategy="beforeInteractive"
+        src="https://unpkg.com/prettier@3.3.0/plugins/babel.js"
+      ></Script>
       <div className="flex flex-row gap-4 border-b p-2 px-4 items-center bg-white">
         <Link href="/">
           <svg
