@@ -1,4 +1,4 @@
-import { FRAMES_IMAGES_PARAM_KEY } from "../../core/constants";
+import { FRAMES_IMAGES_PARAM_FLAG } from "../../core/constants";
 import type { FramesMiddleware } from "../../core/types";
 import { generateTargetURL, isFrameDefinition } from "../../core/utils";
 import { createHMACSignature } from "../../lib/crypto";
@@ -23,7 +23,7 @@ export function imagesWorkerMiddleware({
     ctx,
     next
   ) => {
-    if (new URL(ctx.request.url).searchParams.get(FRAMES_IMAGES_PARAM_KEY)) {
+    if (new URL(ctx.request.url).searchParams.get(FRAMES_IMAGES_PARAM_FLAG)) {
       // Handle images worker request
       const worker = createImagesWorkerRequestHandler({ secret });
       const res = await worker(ctx.request);
@@ -42,7 +42,8 @@ export function imagesWorkerMiddleware({
     const imageJsonString = JSON.stringify(serializeJsx(nextResult.image));
 
     const searchParams = new URLSearchParams({
-      [FRAMES_IMAGES_PARAM_KEY]: imageJsonString,
+      [FRAMES_IMAGES_PARAM_FLAG]: "true",
+      jsx: imageJsonString,
       aspectRatio: nextResult.imageOptions?.aspectRatio?.toString() || "1.91:1",
     });
 
