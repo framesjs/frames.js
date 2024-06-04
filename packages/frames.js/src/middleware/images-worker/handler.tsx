@@ -1,4 +1,5 @@
 import { ImageResponse } from "@vercel/og";
+import React from "react"; // necessary to work on server
 import type { ImageAspectRatio } from "../../types";
 import { verifyHMACSignature } from "../../lib/crypto";
 import { deserializeJsx, type SerializedNode } from "../jsx-utils";
