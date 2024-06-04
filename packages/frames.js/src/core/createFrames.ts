@@ -1,5 +1,6 @@
 import { debugImageMiddleware } from "../middleware/debugImageMiddleware";
 import { coreMiddleware } from "../middleware/default";
+import { imagesWorkerMiddleware } from "../middleware/images-worker";
 import { stateMiddleware } from "../middleware/stateMiddleware";
 import { composeMiddleware } from "./composeMiddleware";
 import type {
@@ -20,6 +21,7 @@ export function createFrames<
   initialState,
   middleware,
   baseUrl,
+  imagesRoute,
   stateSigningSecret,
   debug = false,
 }: FramesOptions<TState, TMiddlewares> = {}): FramesRequestHandlerFunction<
@@ -57,7 +59,14 @@ export function createFrames<
       FramesMiddlewareReturnType<TState>
     >([
       ...coreMiddleware,
+      // @ts-expect-error hard to type internally so skipping for now
       ...globalMiddleware,
+      // @ts-expect-error hard to type internally so skipping for now
+      imagesWorkerMiddleware({
+        imagesRoute,
+        secret: stateSigningSecret,
+        handleRequests: true,
+      }),
       // @ts-expect-error hard to type internally so skipping for now
       stateMiddleware<TState>(),
       // @ts-expect-error hard to type internally so skipping for now

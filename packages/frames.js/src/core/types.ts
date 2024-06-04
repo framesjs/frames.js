@@ -282,6 +282,16 @@ export type FramesOptions<
    */
   debug?: boolean;
   /**
+   * Images route.
+   *
+   * If provided, image rendering will be handled by this route.
+   *
+   * Must handle GET requests. Must be a route that calls `frames`. It is recommended to use the initial frame route.
+   *
+   * @defaultValue `baseUrl`.
+   */
+  imagesRoute?: string;
+  /**
    * Initial state, used if no state is provided in the message or you are on initial frame.
    *
    * Value must be JSON serializable
