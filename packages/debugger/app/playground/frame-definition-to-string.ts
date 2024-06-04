@@ -33,6 +33,7 @@ import {
   tsTypeReference,
   variableDeclaration,
   variableDeclarator,
+  addComment,
 } from "@babel/types";
 import type { types } from "frames.js/core";
 import { Fragment } from "react";
@@ -68,6 +69,17 @@ export function frameDefinitionToString(
           : reactElementToJsx(frame.image)
       )
     );
+  } else {
+    // add commented out image property with comment explaining why it's commented out
+    const value = stringLiteral("");
+
+    addComment(
+      value,
+      "trailing",
+      " Image property is empty because the frames does not have an image or the image is a data URL which is not supported. "
+    );
+
+    properties.push(objectProperty(identifier("image"), value));
   }
 
   if (frame.imageOptions?.aspectRatio) {

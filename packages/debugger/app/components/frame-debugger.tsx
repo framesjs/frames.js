@@ -510,6 +510,7 @@ export const FrameDebugger = React.forwardRef<
                       ),
                     },
                   }}
+                  target="_blank"
                 >
                   <TerminalIcon size={20} />
                 </Link>
