@@ -40,7 +40,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MockHubConfig } from "./mock-hub-config";
 import { MockHubActionContext } from "../utils/mock-hub-utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   HoverCard,
   HoverCardContent,
@@ -487,6 +487,29 @@ export const FrameDebugger = React.forwardRef<
                 <RefreshCwIcon size={20} />
               </Button>
             </WithTooltip>
+            {currentFrameStackItem?.status === "done" && (
+              <WithTooltip tooltip={<p>Open current frame in Playground</p>}>
+                <Link
+                  className={buttonVariants({
+                    variant: "outline",
+                    className:
+                      "flex flex-row gap-3 items-center shadow-sm border",
+                  })}
+                  href={{
+                    pathname: "/playground",
+                    query: {
+                      frame: JSON.stringify(
+                        frameResultToPlaygroundFrame(
+                          currentFrameStackItem.frameResult
+                        )
+                      ),
+                    },
+                  }}
+                >
+                  <TerminalIcon size={20} />
+                </Link>
+              </WithTooltip>
+            )}
           </div>
           <Card className="max-h-[400px] overflow-y-auto">
             <CardContent className="p-0">
@@ -533,25 +556,6 @@ export const FrameDebugger = React.forwardRef<
                     FrameImage={FrameImageNext}
                     allowPartialFrame={true}
                   />
-                  {currentFrameStackItem?.status === "done" && (
-                    <WithTooltip tooltip="Open in Playground">
-                      <Link
-                        href={{
-                          pathname: "/playground",
-                          query: {
-                            frame: JSON.stringify(
-                              frameResultToPlaygroundFrame(
-                                currentFrameStackItem.frameResult
-                              )
-                            ),
-                          },
-                        }}
-                        className="absolute top-0 right-0 p-1 m-2 border border-slate-50 rounded-full z-10 shadow"
-                      >
-                        <TerminalIcon size={24} />
-                      </Link>
-                    </WithTooltip>
-                  )}
                 </div>
                 <div className="ml-auto text-sm text-slate-500">{url}</div>
                 <div className="space-y-1">
