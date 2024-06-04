@@ -7561,6 +7561,11 @@ detect-package-manager@^3.0.1:
   dependencies:
     execa "^5.1.1"
 
+dets@^0.15.1:
+  version "0.15.1"
+  resolved "https://registry.yarnpkg.com/dets/-/dets-0.15.1.tgz#ee13666f64ff99f75716913072f59377fbdfa244"
+  integrity sha512-WIQ87Kt1qM+U+dGX2fI1Ac6ifR7oSD8ztJZVr1h4af4oslvJi34vwwcc1yDagEOu0xdwC+0/jzctnGrgnQUx2Q==
+
 devalue@^4.3.0:
   version "4.3.2"
   resolved "https://registry.yarnpkg.com/devalue/-/devalue-4.3.2.tgz#cc44e4cf3872ac5a78229fbce3b77e57032727b5"
