@@ -1,5 +1,5 @@
 import { generateDeclaration } from "dets";
-import { writeFile } from "node:fs/promises";
+import { writeFile, mkdir } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -13,6 +13,10 @@ const content = await generateDeclaration({
   files: ["../frames.js/src/core/**/*.ts"],
   types: ["../frames.js/src/core/index.ts"],
   noModuleDeclaration: true,
+});
+
+await mkdir(resolve(debuggerDirectory, "./public/frames.js"), {
+  recursive: true,
 });
 
 await writeFile(
