@@ -44,13 +44,15 @@ async function getExamplesFromDirectory(port) {
   }));
 }
 
-const nextPort = await getOpenPort(3000);
+const nextPort = await getOpenPort(3005);
 const debuggerPort = await getOpenPort(3010);
 let command = "npm";
 let args = ["run", "dev:monorepo"];
 
 // this sets hub url for debugger
 process.env.DEBUGGER_HUB_HTTP_URL = `http://localhost:${debuggerPort}/hub`;
+// this sets the app url for the starter so the initial server side render works properly
+process.env.APP_URL = `http://localhost:${nextPort}`;
 
 if (!process.env.FJS_MONOREPO) {
   const url = `http://localhost:${nextPort}`;
