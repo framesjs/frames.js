@@ -28,7 +28,6 @@ export function parseOpenFramesFrame(
   $: CheerioAPI,
   { fallbackPostUrl, farcasterFrame, reporter }: Options
 ): ParseResult {
-  let fallsBackToFarcaster = false;
   let fallbackFrameData: Partial<Frame> = {};
 
   // parse accepts
@@ -40,10 +39,6 @@ export function parseOpenFramesFrame(
 
       if (!protocol) {
         reporter.error(property, "Missing protocol id");
-      }
-
-      if (protocol === "farcaster") {
-        fallsBackToFarcaster = true;
       }
 
       return {
@@ -59,9 +54,7 @@ export function parseOpenFramesFrame(
     );
   }
 
-  if (fallsBackToFarcaster) {
-    fallbackFrameData = farcasterFrame;
-  }
+  fallbackFrameData = farcasterFrame;
 
   const parsedFrame: ParsedOpenFramesFrame = {
     accepts,
@@ -149,7 +142,13 @@ export function parseOpenFramesFrame(
     );
   }
 
-  const parsedButtons = parseButtons($, reporter, "of:button");
+  const parsedButtonsOf = parseButtons($, reporter, "of:button");
+
+  const parsedButtons =
+    fallbackFrameData.buttons &&
+    fallbackFrameData.buttons?.length > parsedButtonsOf.length
+      ? fallbackFrameData.buttons
+      : parsedButtonsOf;
 
   if (parsedButtons.length > 0) {
     frame.buttons = parsedButtons as typeof frame.buttons;
