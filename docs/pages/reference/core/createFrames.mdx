@@ -33,6 +33,22 @@ A string that specifies the base path for all relative URLs in the frame definit
 
 A string or URL object that specifies the base URL for all relative URLs in the frame definition. Can be used to override the URL detected from the request.
 
+### `imagesRoute`
+
+- Type: `string | null`
+
+Image rendering will be handled by this route. It defaults to `/` relative to the `basePath`. 
+
+The route must handle GET requests. It is recommended to use the initial frame route or any route that exports a `frames()` GET route handler. 
+
+Pass `null` to disable async image rendering and use inline data URLs instead.
+
+### `imageRenderingOptions`
+
+- Type `ImageWorkerOptions | () => Promise<ImageWorkerOptions>
+
+Options for the image renderer. If a function is provided, it will be called on each request to get the options.
+
 ### `initialState`
 
 - Type: generic
@@ -59,6 +75,8 @@ A secret key used to sign and verify the state in the frame message. If provided
   - If the secret is not provided, the state will not be verified and used as is.
   - If the secret is provided and signature does not match error is thrown.
   - If the secret is provided and signature matches, the state will be used as is.
+
+Also used to sign async image rendering payloads if `imagesRoute` is not `null`.
 
 #### Types
 

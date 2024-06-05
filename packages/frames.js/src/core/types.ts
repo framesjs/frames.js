@@ -1,6 +1,7 @@
 import type { ImageResponse } from "@vercel/og";
 import type { ClientProtocolId } from "../types";
 import type { SerializedNode } from "../middleware/jsx-utils";
+import type { ImageWorkerOptions } from "../middleware/images-worker/handler";
 import type { Button, ButtonProps } from "./components";
 
 export type JsonObject = { [Key in string]: JsonValue } & {
@@ -282,15 +283,21 @@ export type FramesOptions<
    */
   debug?: boolean;
   /**
-   * Images route.
+   * Image rendering will be handled by this route.
    *
-   * If provided, image rendering will be handled by this route.
+   * The route must handle GET requests. It is recommended to use the initial frame route or any route that exports a `frames()` GET route handler.
    *
-   * Must handle GET requests. Must be a route that calls `frames`. It is recommended to use the initial frame route.
+   * Pass `null` to disable async image rendering and use inline data URLs instead.
    *
    * @defaultValue `baseUrl`.
    */
-  imagesRoute?: string;
+  imagesRoute?: string | null;
+  /**
+   * Image rendering options. Can be a function that returns a promise for lazy loading.
+   */
+  imageRenderingOptions?:
+    | Omit<ImageWorkerOptions, "secret">
+    | (() => Promise<Omit<ImageWorkerOptions, "secret">>);
   /**
    * Initial state, used if no state is provided in the message or you are on initial frame.
    *
@@ -303,6 +310,8 @@ export type FramesOptions<
   /**
    * If provided the state will be signed with this secret and validated on subsequent requests.
    * If the signature is not valid, error is thrown.
+   *
+   * Also used to sign image rendering payloads.
    */
   stateSigningSecret?: string;
 };

@@ -21,7 +21,8 @@ export function createFrames<
   initialState,
   middleware,
   baseUrl,
-  imagesRoute,
+  imagesRoute = "/",
+  imageRenderingOptions,
   stateSigningSecret,
   debug = false,
 }: FramesOptions<TState, TMiddlewares> = {}): FramesRequestHandlerFunction<
@@ -60,14 +61,13 @@ export function createFrames<
     >([
       ...coreMiddleware,
       // @ts-expect-error hard to type internally so skipping for now
-      ...globalMiddleware,
-      // @ts-expect-error hard to type internally so skipping for now
       imagesWorkerMiddleware({
         imagesRoute,
+        imageRenderingOptions,
         secret: stateSigningSecret,
-        handleRequests: true,
       }),
       // @ts-expect-error hard to type internally so skipping for now
+      ...globalMiddleware,
       stateMiddleware<TState>(),
       // @ts-expect-error hard to type internally so skipping for now
       ...perRouteMiddleware,
