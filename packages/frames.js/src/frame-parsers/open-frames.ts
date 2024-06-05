@@ -149,7 +149,13 @@ export function parseOpenFramesFrame(
     );
   }
 
-  const parsedButtons = parseButtons($, reporter, "of:button");
+  const parsedButtonsOf = parseButtons($, reporter, "of:button");
+
+  const parsedButtons =
+    fallbackFrameData.buttons &&
+    fallbackFrameData.buttons?.length > parsedButtonsOf.length
+      ? fallbackFrameData.buttons
+      : parsedButtonsOf;
 
   if (parsedButtons.length > 0) {
     frame.buttons = parsedButtons as typeof frame.buttons;
