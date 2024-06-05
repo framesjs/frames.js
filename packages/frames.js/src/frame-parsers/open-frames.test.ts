@@ -35,10 +35,10 @@ describe("open frames frame parser", () => {
     });
   });
 
-  it('falls back to farcaster frame data if "of:accepts:farcaster" is present', () => {
+  it('falls back to farcaster frame data if "of:accepts:" is present and "of:" tags are not', () => {
     const $ = load(`
     <meta name="of:version" content="vNext"/>
-    <meta name="of:accepts:farcaster" content="vNext"/>
+    <meta name="of:accepts:myproto" content="1.0.0"/>
     <meta name="og:image" content="http://example.com/og-image.png"/>
     <title>Test</title>
     `);
@@ -48,6 +48,12 @@ describe("open frames frame parser", () => {
         farcasterFrame: {
           version: "vNext",
           image: "http://example.com/farcaster-image.png",
+          buttons: [
+            {
+              action: "post",
+              label: "Post",
+            },
+          ],
         },
         fallbackPostUrl,
         reporter,
@@ -56,11 +62,12 @@ describe("open frames frame parser", () => {
       status: "success",
       reports: {},
       frame: {
-        accepts: [{ id: "farcaster", version: "vNext" }],
+        accepts: [{ id: "myproto", version: "1.0.0" }],
         version: "vNext",
         image: "http://example.com/farcaster-image.png",
         ogImage: "http://example.com/og-image.png",
         postUrl: fallbackPostUrl,
+        buttons: [{ action: "post", label: "Post" }],
       },
     });
   });
