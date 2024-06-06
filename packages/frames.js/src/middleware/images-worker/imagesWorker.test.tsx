@@ -1,6 +1,5 @@
 import type { FrameDefinition, FramesContext } from "../../core/types";
 import { resolveBaseUrl } from "../../core/utils";
-import type { ImageAspectRatio } from "../../types";
 import * as ImagesWorker from ".";
 
 describe("imagesWorker", () => {
@@ -72,22 +71,6 @@ describe("imagesWorker", () => {
     expect(new URL(result.image as string).searchParams.has("signature")).toBe(
       true
     );
-  });
-
-  it("should pass the default aspect ratio in the image URL", async () => {
-    const frameDefinition: FrameDefinition<undefined> = {
-      image: <div>Test</div>,
-    };
-
-    const result = (await mw(context, () =>
-      Promise.resolve(frameDefinition)
-    )) as FrameDefinition<undefined>;
-
-    const url = new URL(result.image as string);
-
-    const expectedAspectRatio: ImageAspectRatio = "1.91:1";
-
-    expect(url.searchParams.get("aspectRatio")).toBe(expectedAspectRatio);
   });
 
   it("should pass the aspect ratio specified in the Frame Definition in the image URL", async () => {

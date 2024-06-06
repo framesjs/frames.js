@@ -78,8 +78,16 @@ export function imagesWorkerMiddleware({
 
     const searchParams = new URLSearchParams({
       jsx: imageJsonString,
-      aspectRatio: nextResult.imageOptions?.aspectRatio?.toString() || "1.91:1",
     });
+
+    nextResult.imageOptions &&
+      Object.entries(nextResult.imageOptions).forEach(([key, value]) => {
+        if (typeof value === "object") {
+          searchParams.append(key, JSON.stringify(value));
+        } else if (typeof value === "string") {
+          searchParams.append(key, value);
+        }
+      });
 
     searchParams.append(FRAMES_IMAGES_PARAM_FLAG, "true");
 

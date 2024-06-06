@@ -5,9 +5,17 @@ import { appURL } from "../../../utils";
 
 const handleRequest = frames(async (ctx) => {
   return {
-    // Separate image response because cache control headers need to be set on the image response
-    // Add a random query param to ensure the frame action response image is not cached
-    image: `/images/current-time?t=${Math.random()}`,
+    // Add a random query param to ensure the frame action response image is not cached at dev time
+    image: (
+      <div tw="bg-purple-800 text-white w-full h-full justify-center items-center flex text-[48px]">
+        The current time is {new Date().toLocaleString()}
+      </div>
+    ),
+    imageOptions: {
+      headers: {
+        "Cache-Control": "public, max-age=0",
+      },
+    },
     buttons: [<Button action="post">Refresh</Button>],
   };
 });
