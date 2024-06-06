@@ -21,7 +21,7 @@ export function createFrames<
   initialState,
   middleware,
   baseUrl,
-  imagesRoute = "/",
+  imagesRoute,
   imageRenderingOptions,
   stateSigningSecret,
   debug = false,
@@ -62,7 +62,7 @@ export function createFrames<
       ...coreMiddleware,
       // @ts-expect-error hard to type internally so skipping for now
       imagesWorkerMiddleware({
-        imagesRoute,
+        imagesRoute: imagesRoute || "/",
         imageRenderingOptions,
         secret: stateSigningSecret,
       }),
@@ -100,6 +100,17 @@ export function createFrames<
         debug,
         __debugInfo: {},
       };
+
+      if (
+        imagesRoute === undefined &&
+        // Detect non-standard route
+        !context.baseUrl.pathname.endsWith("/frames")
+      ) {
+        // eslint-disable-next-line no-console -- provide feedback
+        console.warn(
+          `Warning (frames.js): \`imagesRoute\` option is not set in createFrames call, falling back to '${context.baseUrl.toString()}' for image rendering. Set this to the path of your initial frame relative to the \`basePath\` to avoid this warning. See https://framesjs.org/reference/core/createFrames#imagesroute for more information.`
+        );
+      }
 
       const result = await composedMiddleware(context);
 

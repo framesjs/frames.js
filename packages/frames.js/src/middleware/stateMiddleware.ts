@@ -120,7 +120,7 @@ async function serializeState<TState extends JsonValue | undefined>(
 
   // eslint-disable-next-line no-console -- provide feedback to the user
   console.warn(
-    "State is not supported on initial request (the one initialized when Frames are rendered for first time, that uses GET request) and will be ignored"
+    "Warning (frames.js): State is not supported on initial request (the one initialized when Frames are rendered for first time, that uses GET request) and will be ignored"
   );
 
   return undefined;
