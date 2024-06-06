@@ -15,10 +15,11 @@
     "@types/react-dom": "^18.2.0",
     "@frames.js/debugger": "^0.2.12",
     "concurrently": "^8.2.2",
+    "is-port-reachable": "^4.0.0",
     "typescript": "^5.4.5"
   },
   "scripts": {
-    "dev": "concurrently \"next dev\" \"frames --url http://localhost:3000\"",
+    "dev": "node ./scripts/dev-script.js",
     "start": "next start",
     "build": "next build",
     "lint": "next lint"

@@ -26,6 +26,7 @@
     "concurrently": "^8.2.2",
     "dotenv": "^16.4.5",
     "eslint": "^8.56.0",
+    "is-port-reachable": "^4.0.0",
     "typescript": "^5.4.5"
   },
   "engines": {

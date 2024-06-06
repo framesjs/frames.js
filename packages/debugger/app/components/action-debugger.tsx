@@ -166,6 +166,7 @@ export function ActionDebugger({
   refreshUrl,
   mockHubContext,
   setMockHubContext,
+  hasExamples,
 }: {
   actionMetadataItem: ParseActionResult;
   farcasterFrameConfig: Parameters<
@@ -178,6 +179,7 @@ export function ActionDebugger({
   refreshUrl: (arg0?: string) => void;
   mockHubContext?: Partial<MockHubActionContext>;
   setMockHubContext?: Dispatch<SetStateAction<Partial<MockHubActionContext>>>;
+  hasExamples: boolean;
 }) {
   const [copySuccess, setCopySuccess] = useState(false);
   useEffect(() => {
@@ -300,6 +302,7 @@ export function ActionDebugger({
           <div className="border-t mx-4"></div>
           {/* <pre>{JSON.stringify(actionFrameState.frame, null, 2)}</pre> */}
           <FrameDebugger
+            hasExamples={hasExamples}
             frameState={actionFrameState}
             url={actionMetadataItem.action.url ?? ""}
             mockHubContext={mockHubContext}
