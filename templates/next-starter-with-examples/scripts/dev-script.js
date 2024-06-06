@@ -44,7 +44,7 @@ async function getExamplesFromDirectory(port) {
   }));
 }
 
-const nextPort = await getOpenPort(3005);
+const nextPort = await getOpenPort(3000);
 const debuggerPort = await getOpenPort(3010);
 let command = "npm";
 let args = ["run", "dev:monorepo"];
