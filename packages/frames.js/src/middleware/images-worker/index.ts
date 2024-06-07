@@ -74,6 +74,13 @@ export function imagesWorkerMiddleware({
       return nextResult;
     }
 
+    if (nextResult.imageOptions?.fonts !== undefined) {
+      // eslint-disable-next-line no-console -- provide feedback
+      console.warn(
+        "Warning (frames.js): `fonts` option is not supported in `imagesWorkerMiddleware`, specify fonts in the `imageRenderingOptions` option in your `createFrames` call instead."
+      );
+    }
+
     const imageJsonString = JSON.stringify(serializeJsx(nextResult.image));
 
     const searchParams = new URLSearchParams({

@@ -105,4 +105,23 @@ describe("imagesWorker", () => {
 
     expect(typeof result.image).toBe("object");
   });
+
+  it("should warn user when `fonts` option is specified in the frame definition", async () => {
+    const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
+
+    const frameDefinition: FrameDefinition<undefined> = {
+      image: <div>Test</div>,
+      imageOptions: {
+        fonts: [],
+      },
+    };
+
+    await mw(context, () => Promise.resolve(frameDefinition));
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      "Warning (frames.js): `fonts` option is not supported in `imagesWorkerMiddleware`, specify fonts in the `imageRenderingOptions` option in your `createFrames` call instead."
+    );
+
+    consoleWarnSpy.mockRestore();
+  });
 });
