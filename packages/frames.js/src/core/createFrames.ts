@@ -23,7 +23,9 @@ export function createFrames<
   baseUrl,
   imagesRoute,
   imageRenderingOptions,
+  imagesSigningSecret,
   stateSigningSecret,
+  signingSecret,
   debug = false,
 }: FramesOptions<TState, TMiddlewares> = {}): FramesRequestHandlerFunction<
   TState,
@@ -62,9 +64,9 @@ export function createFrames<
       ...coreMiddleware,
       // @ts-expect-error hard to type internally so skipping for now
       imagesWorkerMiddleware({
-        imagesRoute: imagesRoute || "/",
+        imagesRoute: imagesRoute === undefined ? "/" : imagesRoute,
         imageRenderingOptions,
-        secret: stateSigningSecret,
+        secret: imagesSigningSecret || signingSecret,
       }),
       // @ts-expect-error hard to type internally so skipping for now
       ...globalMiddleware,
@@ -96,7 +98,7 @@ export function createFrames<
         request,
         url: new URL(request.url),
         baseUrl: resolveBaseUrl(request, url, basePath),
-        stateSigningSecret,
+        stateSigningSecret: stateSigningSecret || signingSecret,
         debug,
         __debugInfo: {},
       };

@@ -89,4 +89,20 @@ describe("imagesWorker", () => {
 
     expect(url.searchParams.get("aspectRatio")).toBe("1:1");
   });
+
+  it("should not modify frame definition if imagesRoute is null", async () => {
+    const nullImagesRouteMw = ImagesWorker.imagesWorkerMiddleware({
+      imagesRoute: null,
+    });
+
+    const frameDefinition: FrameDefinition<undefined> = {
+      image: <div>Test</div>,
+    };
+
+    const result = (await nullImagesRouteMw(context, () =>
+      Promise.resolve(frameDefinition)
+    )) as FrameDefinition<undefined>;
+
+    expect(typeof result.image).toBe("object");
+  });
 });

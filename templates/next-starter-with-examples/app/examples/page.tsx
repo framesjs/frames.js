@@ -18,8 +18,8 @@ const examples = [
     path: "/examples/custom-hub",
   },
   {
-    title: "Custom Font",
-    path: "/examples/custom-font",
+    title: "Custom Font (nodejs)",
+    path: "/examples/custom-font-nodejs",
   },
   {
     title: "Custom Middleware",

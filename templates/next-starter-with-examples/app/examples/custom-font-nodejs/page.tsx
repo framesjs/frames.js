@@ -8,7 +8,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: "Frames.js Custom font Example",
     other: {
       ...(await fetchMetadata(
-        new URL("/examples/custom-font/frames", appURL())
+        new URL("/examples/custom-font-nodejs/frames", appURL())
       )),
     },
   };

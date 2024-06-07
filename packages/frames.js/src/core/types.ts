@@ -299,6 +299,13 @@ export type FramesOptions<
     | Omit<ImageWorkerOptions, "secret">
     | (() => Promise<Omit<ImageWorkerOptions, "secret">>);
   /**
+   * If provided image urls will be signed with this secret and validated on subsequent image requests.
+   * If the signature is not valid, error is thrown.
+   *
+   * Overrides `signingSecret` for image signing if provided.
+   */
+  imagesSigningSecret?: string;
+  /**
    * Initial state, used if no state is provided in the message or you are on initial frame.
    *
    * Value must be JSON serializable
@@ -311,9 +318,15 @@ export type FramesOptions<
    * If provided the state will be signed with this secret and validated on subsequent requests.
    * If the signature is not valid, error is thrown.
    *
-   * Also used to sign image rendering payloads.
+   * Overrides `signingSecret` for state signing if provided.
    */
   stateSigningSecret?: string;
+  /**
+   * If provided, state and images will be signed with this secret and validated on subsequent requests.
+   *
+   * Overridden by `stateSigningSecret` for state signing and `imagesSigningSecret` for signing images if provided.
+   */
+  signingSecret?: string;
 };
 
 export type CreateFramesFunctionDefinition<
