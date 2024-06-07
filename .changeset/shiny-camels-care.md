@@ -3,4 +3,4 @@
 "@frames.js/debugger": patch
 ---
 
-feat(debugger): add playground for frames
+feat(debugger): add image debugger tab
