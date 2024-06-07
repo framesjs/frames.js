@@ -18,11 +18,11 @@ const firaScriptFont = fetch(
 const handleRequest = frames(async (ctx) => {
   const [interRegularFontData, interBoldFontData, firaScriptFontData] =
     await Promise.all([interRegularFont, interBoldFont, firaScriptFont]);
-
   return {
     image: (
       <span tw="flex flex-col">
-        <div>Edge functions example custom fonts</div>
+        <div>Edge functions</div>
+        <div>Per-route fonts</div>
         <div style={{ marginTop: 40, fontWeight: 400 }}>Regular Inter Font</div>
         <div style={{ marginTop: 40, fontWeight: 700 }}>Bold Inter Font</div>
         <div
@@ -35,11 +35,6 @@ const handleRequest = frames(async (ctx) => {
         </div>
       </span>
     ),
-    buttons: [
-      <Button action="post" target={"/nodejs"}>
-        Node.js
-      </Button>,
-    ],
     imageOptions: {
       fonts: [
         {
@@ -59,7 +54,13 @@ const handleRequest = frames(async (ctx) => {
         },
       ],
     },
+    buttons: [
+      <Button action="post" target={"/nodejs"}>
+        Node.js
+      </Button>,
+    ],
   };
 });
 
 export const POST = handleRequest;
+export const GET = handleRequest;

@@ -1,3 +1,4 @@
+import React from "react";
 import { concurrentMiddleware } from "../middleware/concurrentMiddleware";
 import type { TransactionTargetResponse } from "../types";
 import { createFrames } from "./createFrames";
@@ -318,5 +319,47 @@ describe("createFrames", () => {
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual(txData);
     expect(mock).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns correct image url using imagesRoute", async () => {
+    const handler = createFrames({
+      imagesRoute: "/images",
+    });
+
+    const routeHandler = handler(() => {
+      return {
+        image: <div>test</div>,
+      };
+    });
+
+    const response = await routeHandler(new Request("http://test.com/frames"));
+
+    const body = await response.text();
+
+    expect(body).toContain(
+      '<meta name="fc:frame:image" content="http://test.com/images?jsx='
+    );
+
+    expect(response.status).toBe(200);
+  });
+
+  it("returns data URI when imagesRoute is null", async () => {
+    const handler = createFrames({
+      imagesRoute: null,
+    });
+
+    const routeHandler = handler(() => {
+      return {
+        image: <div>test</div>,
+      };
+    });
+
+    const response = await routeHandler(new Request("http://test.com/frames"));
+
+    const body = await response.text();
+
+    expect(body).toContain('<meta name="fc:frame:image" content="data:image');
+
+    expect(response.status).toBe(200);
   });
 });

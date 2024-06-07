@@ -57,8 +57,14 @@ export function createImagesWorkerRequestHandler({
 
     const json = JSON.parse(serialized) as SerializedNode[];
     const jsx = deserializeJsx(json);
-    const aspectRatio = (url.searchParams.get("aspectRatio") ||
-      "1.91:1") as ImageAspectRatio;
+    const aspectRatio = url.searchParams.get("aspectRatio") || "1.91:1";
+    const emoji = url.searchParams.get(
+      "emoji"
+    ) as ImageWorkerImageOptions["emoji"];
+    const headers = {
+      ...(imageOptions?.headers || {}),
+      ...JSON.parse(url.searchParams.get("headers") || "{}"),
+    } as Headers;
 
     if (aspectRatio !== "1:1" && aspectRatio !== "1.91:1") {
       throw new Error("Invalid aspect ratio");
@@ -75,10 +81,17 @@ export function createImagesWorkerRequestHandler({
     };
     const sizes = { ...defaultSizes, ...imageOptions?.sizes };
 
-    return new ImageResponse(<Scaffold>{jsx}</Scaffold>, {
+    const imageResponse = new ImageResponse(<Scaffold>{jsx}</Scaffold>, {
       ...imageOptions,
+      emoji,
       ...sizes[aspectRatio],
     }) as Response;
+
+    Object.entries(headers).forEach(([key, value]) => {
+      imageResponse.headers.set(key, value as string);
+    });
+
+    return imageResponse;
   };
 }
 

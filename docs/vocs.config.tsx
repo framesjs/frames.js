@@ -40,8 +40,8 @@ const examplesSidebarItems: SidebarItem[] = [
     link: "/examples/cast-actions",
   },
   {
-    text: "Custom Font",
-    link: "/examples/custom-font",
+    text: "Custom Font (nodejs)",
+    link: "/examples/custom-font-nodejs",
   },
   {
     text: "Custom Farcaster Hub",

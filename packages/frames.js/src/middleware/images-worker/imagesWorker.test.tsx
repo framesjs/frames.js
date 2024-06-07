@@ -1,6 +1,5 @@
 import type { FrameDefinition, FramesContext } from "../../core/types";
 import { resolveBaseUrl } from "../../core/utils";
-import type { ImageAspectRatio } from "../../types";
 import * as ImagesWorker from ".";
 
 describe("imagesWorker", () => {
@@ -74,22 +73,6 @@ describe("imagesWorker", () => {
     );
   });
 
-  it("should pass the default aspect ratio in the image URL", async () => {
-    const frameDefinition: FrameDefinition<undefined> = {
-      image: <div>Test</div>,
-    };
-
-    const result = (await mw(context, () =>
-      Promise.resolve(frameDefinition)
-    )) as FrameDefinition<undefined>;
-
-    const url = new URL(result.image as string);
-
-    const expectedAspectRatio: ImageAspectRatio = "1.91:1";
-
-    expect(url.searchParams.get("aspectRatio")).toBe(expectedAspectRatio);
-  });
-
   it("should pass the aspect ratio specified in the Frame Definition in the image URL", async () => {
     const frameDefinition: FrameDefinition<undefined> = {
       image: <div>Test</div>,
@@ -105,5 +88,40 @@ describe("imagesWorker", () => {
     const url = new URL(result.image as string);
 
     expect(url.searchParams.get("aspectRatio")).toBe("1:1");
+  });
+
+  it("should not modify frame definition if imagesRoute is null", async () => {
+    const nullImagesRouteMw = ImagesWorker.imagesWorkerMiddleware({
+      imagesRoute: null,
+    });
+
+    const frameDefinition: FrameDefinition<undefined> = {
+      image: <div>Test</div>,
+    };
+
+    const result = (await nullImagesRouteMw(context, () =>
+      Promise.resolve(frameDefinition)
+    )) as FrameDefinition<undefined>;
+
+    expect(typeof result.image).toBe("object");
+  });
+
+  it("should warn user when `fonts` option is specified in the frame definition", async () => {
+    const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
+
+    const frameDefinition: FrameDefinition<undefined> = {
+      image: <div>Test</div>,
+      imageOptions: {
+        fonts: [],
+      },
+    };
+
+    await mw(context, () => Promise.resolve(frameDefinition));
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      "Warning (frames.js): `fonts` option is not supported in `imagesWorkerMiddleware`, specify fonts in the `imageRenderingOptions` option in your `createFrames` call instead."
+    );
+
+    consoleWarnSpy.mockRestore();
   });
 });

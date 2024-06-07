@@ -1,6 +1,7 @@
 import type { ImageResponse } from "@vercel/og";
 import type { ClientProtocolId } from "../types";
 import type { SerializedNode } from "../middleware/jsx-utils";
+import type { ImageWorkerOptions } from "../middleware/images-worker/handler";
 import type { Button, ButtonProps } from "./components";
 
 export type JsonObject = { [Key in string]: JsonValue } & {
@@ -282,6 +283,29 @@ export type FramesOptions<
    */
   debug?: boolean;
   /**
+   * Image rendering will be handled by this route.
+   *
+   * The route must handle GET requests. It is recommended to use the initial frame route or any route that exports a `frames()` GET route handler.
+   *
+   * Pass `null` to disable async image rendering and use inline data URLs instead.
+   *
+   * @defaultValue `baseUrl`.
+   */
+  imagesRoute?: string | null;
+  /**
+   * Image rendering options. Can be a function that returns a promise for lazy loading.
+   */
+  imageRenderingOptions?:
+    | Omit<ImageWorkerOptions, "secret">
+    | (() => Promise<Omit<ImageWorkerOptions, "secret">>);
+  /**
+   * If provided image urls will be signed with this secret and validated on subsequent image requests.
+   * If the signature is not valid, error is thrown.
+   *
+   * Overrides `signingSecret` for image signing if provided.
+   */
+  imagesSigningSecret?: string;
+  /**
    * Initial state, used if no state is provided in the message or you are on initial frame.
    *
    * Value must be JSON serializable
@@ -293,8 +317,16 @@ export type FramesOptions<
   /**
    * If provided the state will be signed with this secret and validated on subsequent requests.
    * If the signature is not valid, error is thrown.
+   *
+   * Overrides `signingSecret` for state signing if provided.
    */
   stateSigningSecret?: string;
+  /**
+   * If provided, state and images will be signed with this secret and validated on subsequent requests.
+   *
+   * Overridden by `stateSigningSecret` for state signing and `imagesSigningSecret` for signing images if provided.
+   */
+  signingSecret?: string;
 };
 
 export type CreateFramesFunctionDefinition<

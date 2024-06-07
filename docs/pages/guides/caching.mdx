@@ -9,40 +9,21 @@ import StackblitzLink from "../../components/StackblitzLink";
 
 You can set the caching policy of your frames by defining the `Cache-Control` headers of your frame's **image response**
 
-Since images are returned as an inline Data URL by default, this will require you to create a separate endpoint for your dynamic images that you want to avoid caching for.
-
 ```tsx [frames/route.tsx]
 // ...
 const handleRequest = frames(async (ctx) => {
   return {
     image: "/images/my-image",
+    imageOptions: {
+      // Tell the client how long to cache the image for using the Cache-Control header
+      headers: {
+        "Cache-Control": "public, max-age=0",
+      },
+    },
     // ...
   };
 });
 ```
-
-```tsx [frames/images/my-image.tsx]
-import { NextRequest } from "next/server";
-import { ImageResponse } from "@vercel/og";
-
-export async function GET(req: NextRequest) {
-  const imageResponse = new ImageResponse(
-    (
-      <div tw="bg-purple-800 text-white w-full h-full justify-center items-center flex text-[48px]">
-        The current time is {new Date().toLocaleString()}
-      </div>
-    ),
-    { width: 1146, height: 600 }
-  );
-
-  // Set the cache control headers to ensure the image is not cached
-  imageResponse.headers.set("Cache-Control", "public, max-age=0");
-
-  return imageResponse;
-}
-```
-
-Additional context can be passed to the image endpoint via URL query params.
 
 See an example of how to use the `Cache-Control` header in the [Caching example](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples/cache-control).
 
