@@ -1,28 +1,8 @@
-import { Resvg, initWasm } from "@resvg/resvg-wasm";
 import type { ImageAspectRatio } from "frames.js";
 import satori, { init } from "satori";
 import initYoga from "yoga-wasm-web";
 
 let yogaInitialized = false;
-let resvgInitialized = false;
-
-async function initializeResvg() {
-  if (resvgInitialized) {
-    return;
-  }
-
-  await initWasm(
-    await fetch("/resvg.wasm").then((res) => res.arrayBuffer())
-  ).catch((e) => {
-    if (e instanceof Error && e.message.includes("Already initialized")) {
-      return;
-    }
-
-    throw e;
-  });
-
-  resvgInitialized = true;
-}
 
 async function initializeYoga() {
   if (yogaInitialized) {
@@ -60,7 +40,7 @@ async function loadFont({
     searchParams.set("text", text);
   }
 
-  return fetch(`/playground/font?${searchParams.toString()}`).then((res) =>
+  return fetch(`/font?${searchParams.toString()}`).then((res) =>
     res.arrayBuffer()
   );
 }
@@ -69,7 +49,7 @@ export async function renderImage(
   element: React.ReactElement,
   aspectRatio: ImageAspectRatio = "1.91:1"
 ): Promise<string> {
-  await Promise.all([initializeResvg(), initializeYoga()]);
+  await initializeYoga();
 
   const svgContent = await satori(
     {
@@ -156,20 +136,11 @@ export async function renderImage(
           },
         ];
       },
+      debug: true,
     }
   );
 
-  const svg = new Resvg(svgContent, {
-    fitTo: {
-      mode: "width",
-      value: 1146,
-    },
-  });
-
-  const pngData = svg.render();
-  const pngBuffer = pngData.asPng();
-
-  return URL.createObjectURL(new Blob([pngBuffer], { type: "image/png" }));
+  return svgContent;
 }
 
 const U200D = String.fromCharCode(8205); // zero-width joiner

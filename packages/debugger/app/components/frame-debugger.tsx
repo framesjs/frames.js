@@ -34,13 +34,12 @@ import {
   RefreshCwIcon,
   XCircle,
   ExternalLinkIcon,
-  TerminalIcon,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { MockHubConfig } from "./mock-hub-config";
 import { MockHubActionContext } from "../utils/mock-hub-utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   HoverCard,
   HoverCardContent,
@@ -52,9 +51,8 @@ import { hasWarnings } from "../lib/utils";
 import { useRouter } from "next/navigation";
 import { WithTooltip } from "./with-tooltip";
 import { DebuggerConsole } from "./debugger-console";
-import Link from "next/link";
 import { FrameDebuggerLinksSidebarSection } from "./frame-debugger-links-sidebar-section";
-import { frameResultToPlaygroundFrame } from "../playground/frame-result-to-playground-frame";
+import { FrameDebuggerImage } from "./frame-debugger-image";
 import { FrameDebuggerRequestDetails } from "./frame-debugger-request-details";
 import { urlSearchParamsToObject } from "../utils/url-search-params-to-object";
 
@@ -363,7 +361,7 @@ export type FrameDebuggerRef = {
   showConsole(): void;
 };
 
-type TabValues = "diagnostics" | "console" | "request" | "meta";
+type TabValues = "diagnostics" | "image" | "console" | "request" | "meta";
 
 export const FrameDebugger = React.forwardRef<
   FrameDebuggerRef,
@@ -419,8 +417,6 @@ export const FrameDebugger = React.forwardRef<
      * otherwise we should keep the scroll position as is.
      */
     const wantsToScrollConsoleToBottomRef = useRef(false);
-
-    // @todo show link to playground below the frame and serialize jsx if there is any debug info
 
     useImperativeHandle(
       ref,
@@ -487,30 +483,6 @@ export const FrameDebugger = React.forwardRef<
                 <RefreshCwIcon size={20} />
               </Button>
             </WithTooltip>
-            {currentFrameStackItem?.status === "done" && (
-              <WithTooltip tooltip={<p>Open current frame in Playground</p>}>
-                <Link
-                  className={buttonVariants({
-                    variant: "outline",
-                    className:
-                      "flex flex-row gap-3 items-center shadow-sm border",
-                  })}
-                  href={{
-                    pathname: "/playground",
-                    query: {
-                      frame: JSON.stringify(
-                        frameResultToPlaygroundFrame(
-                          currentFrameStackItem.frameResult
-                        )
-                      ),
-                    },
-                  }}
-                  target="_blank"
-                >
-                  <TerminalIcon size={20} />
-                </Link>
-              </WithTooltip>
-            )}
           </div>
           <Card className="max-h-[400px] overflow-y-auto">
             <CardContent className="p-0">
@@ -612,9 +584,10 @@ export const FrameDebugger = React.forwardRef<
                   onValueChange={(value) => setActiveTab(value as TabValues)}
                   className="grid grid-rows-[auto_1fr] w-full h-full"
                 >
-                  <TabsList className="grid w-full grid-cols-4">
+                  <TabsList className="grid w-full grid-cols-5">
                     <TabsTrigger value="diagnostics">Diagnostics</TabsTrigger>
                     <TabsTrigger value="console">Console</TabsTrigger>
+                    <TabsTrigger value="image">Image</TabsTrigger>
                     <TabsTrigger value="request">Request</TabsTrigger>
                     <TabsTrigger value="meta">Meta Tags</TabsTrigger>
                   </TabsList>
@@ -642,6 +615,11 @@ export const FrameDebugger = React.forwardRef<
                         }
                       }}
                     ></DebuggerConsole>
+                  </TabsContent>
+                  <TabsContent className="overflow-y-auto" value="image">
+                    <FrameDebuggerImage
+                      stackItem={currentFrameStackItem}
+                    ></FrameDebuggerImage>
                   </TabsContent>
                   <TabsContent className="overflow-y-auto" value="request">
                     <FrameDebuggerRequestDetails
