@@ -65,7 +65,6 @@
     "frames.js": "^0.16.6",
     "lucide-react": "^0.344.0",
     "postcss": "^8",
-    "prettier": "^3.1.1",
     "qrcode.react": "^3.1.0",
     "react-json-tree": "^0.19.0",
     "rimraf": "^5.0.5",

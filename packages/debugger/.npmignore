@@ -1,4 +1,3 @@
 # bundle .next
 !/.next
 /.next/cache
-!/public/frames.js/index.d.ts
