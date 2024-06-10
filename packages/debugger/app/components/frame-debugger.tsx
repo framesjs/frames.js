@@ -52,7 +52,8 @@ import { useRouter } from "next/navigation";
 import { WithTooltip } from "./with-tooltip";
 import { DebuggerConsole } from "./debugger-console";
 import { FrameDebuggerLinksSidebarSection } from "./frame-debugger-links-sidebar-section";
-import { FrameDebuggerImage } from "./frame-debugger-image";
+import { Switch } from "@/components/ui/switch";
+import Link from "next/link";
 import { FrameDebuggerRequestDetails } from "./frame-debugger-request-details";
 import { urlSearchParamsToObject } from "../utils/url-search-params-to-object";
 
@@ -382,6 +383,7 @@ export const FrameDebugger = React.forwardRef<
     const [activeTab, setActiveTab] = useState<TabValues>("diagnostics");
     const router = useRouter();
     const [copySuccess, setCopySuccess] = useState(false);
+    const [imageDebuggingEnabled, setImageDebuggingEnabled] = useState(false);
 
     useEffect(() => {
       if (copySuccess) {
@@ -430,6 +432,11 @@ export const FrameDebugger = React.forwardRef<
       },
       []
     );
+
+    const isImageDebuggingAvailable =
+      currentFrameStackItem &&
+      "frameResult" in currentFrameStackItem &&
+      !!currentFrameStackItem.frameResult.framesDebugInfo?.image;
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[300px_500px_1fr] p-4 gap-4 bg-slate-50 max-w-full w-full">
@@ -504,6 +511,39 @@ export const FrameDebugger = React.forwardRef<
                 </CardContent>
               </Card>
             )}
+          <Card>
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2">
+                <WithTooltip
+                  disabled={!isImageDebuggingAvailable}
+                  tooltip={
+                    <p>
+                      Enables layout debugging on the image. In order to use
+                      this functionality you must enable{" "}
+                      <Link
+                        className="underline font-semibold"
+                        href="https://framesjs.org/reference/core/createFrames#debug"
+                        target="_blank"
+                      >
+                        debug mode
+                      </Link>{" "}
+                      in your application.
+                    </p>
+                  }
+                >
+                  <label className="flex items-center gap-2">
+                    <Switch
+                      disabled={!isImageDebuggingAvailable}
+                      id="image-debug-mode"
+                      checked={imageDebuggingEnabled}
+                      onCheckedChange={setImageDebuggingEnabled}
+                    ></Switch>
+                    <span>Image debugging</span>
+                  </label>
+                </WithTooltip>
+              </div>
+            </CardContent>
+          </Card>
           <FrameDebuggerLinksSidebarSection hasExamples={hasExamples} />
         </div>
         <div className="flex flex-col gap-4 order-0 lg:order-1">
@@ -528,8 +568,10 @@ export const FrameDebugger = React.forwardRef<
                     }}
                     FrameImage={FrameImageNext}
                     allowPartialFrame={true}
+                    enableImageDebugging={imageDebuggingEnabled}
                   />
                 </div>
+
                 <div className="ml-auto text-sm text-slate-500">{url}</div>
                 <div className="space-y-1">
                   {currentFrameStackItem?.status === "done" &&
@@ -584,10 +626,9 @@ export const FrameDebugger = React.forwardRef<
                   onValueChange={(value) => setActiveTab(value as TabValues)}
                   className="grid grid-rows-[auto_1fr] w-full h-full"
                 >
-                  <TabsList className="grid w-full grid-cols-5">
+                  <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="diagnostics">Diagnostics</TabsTrigger>
                     <TabsTrigger value="console">Console</TabsTrigger>
-                    <TabsTrigger value="image">Image</TabsTrigger>
                     <TabsTrigger value="request">Request</TabsTrigger>
                     <TabsTrigger value="meta">Meta Tags</TabsTrigger>
                   </TabsList>
@@ -615,11 +656,6 @@ export const FrameDebugger = React.forwardRef<
                         }
                       }}
                     ></DebuggerConsole>
-                  </TabsContent>
-                  <TabsContent className="overflow-y-auto" value="image">
-                    <FrameDebuggerImage
-                      stackItem={currentFrameStackItem}
-                    ></FrameDebuggerImage>
                   </TabsContent>
                   <TabsContent className="overflow-y-auto" value="request">
                     <FrameDebuggerRequestDetails

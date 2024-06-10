@@ -1,6 +1,5 @@
 import type { ImageResponse } from "@vercel/og";
 import type { ClientProtocolId } from "../types";
-import type { SerializedNode } from "../middleware/jsx-utils";
 import type { ImageWorkerOptions } from "../middleware/images-worker/handler";
 import type { Button, ButtonProps } from "./components";
 
@@ -65,7 +64,10 @@ export type FramesContext<TState extends JsonValue | undefined = JsonValue> = {
    * Collected debug information
    */
   __debugInfo: {
-    jsx?: SerializedNode[];
+    /**
+     * URL to svg image with debug mode enabled
+     */
+    image?: string;
   };
 };
 

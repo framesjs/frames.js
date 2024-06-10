@@ -1,4 +1,7 @@
-import { FRAMES_IMAGES_PARAM_FLAG } from "../../core/constants";
+import {
+  FRAMES_IMAGES_DEBUG_FLAG,
+  FRAMES_IMAGES_PARAM_FLAG,
+} from "../../core/constants";
 import type { FramesMiddleware } from "../../core/types";
 import { generateTargetURL, isFrameDefinition } from "../../core/utils";
 import { createHMACSignature } from "../../lib/crypto";
@@ -83,28 +86,32 @@ export function imagesWorkerMiddleware({
 
     const imageJsonString = JSON.stringify(serializeJsx(nextResult.image));
 
-    const searchParams = new URLSearchParams({
-      jsx: imageJsonString,
-    });
+    imageUrl.searchParams.set("jsx", imageJsonString);
 
     nextResult.imageOptions &&
       Object.entries(nextResult.imageOptions).forEach(([key, value]) => {
         if (typeof value === "object") {
-          searchParams.append(key, JSON.stringify(value));
+          imageUrl.searchParams.append(key, JSON.stringify(value));
         } else if (typeof value === "string") {
-          searchParams.append(key, value);
+          imageUrl.searchParams.append(key, value);
         }
       });
 
-    searchParams.append(FRAMES_IMAGES_PARAM_FLAG, "true");
+    imageUrl.searchParams.append(FRAMES_IMAGES_PARAM_FLAG, "true");
 
     if (secret) {
       const signature = await createHMACSignature(imageJsonString, secret);
 
-      searchParams.append("signature", signature.toString("hex"));
+      imageUrl.searchParams.append("signature", signature.toString("hex"));
     }
 
-    imageUrl.search = searchParams.toString();
+    if (ctx.debug) {
+      const debugUrl = new URL(imageUrl);
+
+      debugUrl.searchParams.set(FRAMES_IMAGES_DEBUG_FLAG, "true");
+
+      ctx.__debugInfo.image = debugUrl.toString();
+    }
 
     return {
       ...nextResult,

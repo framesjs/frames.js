@@ -42,7 +42,7 @@ type FrameOptionalStringKeys =
   | "fc:frame:post_url"
   | keyof OpenFramesProperties
   | "frames.js:version"
-  | "frames.js:debug-info:image:jsx";
+  | "frames.js:debug-info:image";
 type FrameOptionalActionButtonTypeKeys =
   `fc:frame:button:${1 | 2 | 3 | 4}:action`;
 type FrameOptionalButtonStringKeys =

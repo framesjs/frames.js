@@ -8,12 +8,16 @@ import React, { cloneElement, forwardRef } from "react";
 type WithTooltipProps = {
   children: React.ReactElement;
   tooltip: React.ReactNode;
+  disabled?: boolean;
 };
 
 export const WithTooltip = forwardRef(
-  ({ tooltip, children, ...rest }: WithTooltipProps, ref: React.Ref<any>) => {
+  (
+    { tooltip, children, disabled, ...rest }: WithTooltipProps,
+    ref: React.Ref<any>
+  ) => {
     return (
-      <Tooltip>
+      <Tooltip open={disabled ? false : undefined}>
         <TooltipTrigger asChild>
           {cloneElement(children, { ...rest, ref })}
         </TooltipTrigger>

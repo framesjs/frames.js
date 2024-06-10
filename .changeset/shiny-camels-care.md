@@ -3,4 +3,4 @@
 "@frames.js/debugger": minor
 ---
 
-feat(debugger): add image debugger tab
+feat(debugger): add image debugging mode

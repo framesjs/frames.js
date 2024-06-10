@@ -18,7 +18,7 @@ import {
 } from "../core/utils";
 import { FRAMES_META_TAGS_HEADER } from "../core/constants";
 import { FrameMessageError } from "../core/errors";
-import { FRAMESJS_DEBUG_INFO_JSX_KEY } from "../constants";
+import { FRAMESJS_DEBUG_INFO_IMAGE_KEY } from "../constants";
 
 class InvalidButtonShapeError extends Error {}
 
@@ -225,14 +225,12 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
         accepts: result.accepts,
       };
 
-      let overrides: Partial<FrameFlattened> | undefined;
+      const overrides: Partial<FrameFlattened> = {};
 
-      if (context.debug && context.__debugInfo.jsx) {
-        overrides = {
-          [FRAMESJS_DEBUG_INFO_JSX_KEY]: JSON.stringify(
-            context.__debugInfo.jsx
-          ),
-        };
+      if (context.debug) {
+        if (context.__debugInfo.image) {
+          overrides[FRAMESJS_DEBUG_INFO_IMAGE_KEY] = context.__debugInfo.image;
+        }
       }
 
       if (wantsJSON) {

@@ -14325,22 +14325,6 @@ satori@0.10.9:
     postcss-value-parser "^4.2.0"
     yoga-wasm-web "^0.3.3"
 
-satori@^0.10.13:
-  version "0.10.13"
-  resolved "https://registry.yarnpkg.com/satori/-/satori-0.10.13.tgz#658a9920f55268d2002819387a80a0b6d4bdc262"
-  integrity sha512-klCwkVYMQ/ZN5inJLHzrUmGwoRfsdP7idB5hfpJ1jfiJk1ErDitK8Hkc6Kll1+Ox2WtqEuGecSZLnmup3CGzvQ==
-  dependencies:
-    "@shuding/opentype.js" "1.4.0-beta.0"
-    css-background-parser "^0.1.0"
-    css-box-shadow "1.0.0-3"
-    css-to-react-native "^3.0.0"
-    emoji-regex "^10.2.1"
-    escape-html "^1.0.3"
-    linebreak "^1.1.0"
-    parse-css-color "^0.2.1"
-    postcss-value-parser "^4.2.0"
-    yoga-wasm-web "^0.3.3"
-
 scheduler@^0.23.0:
   version "0.23.0"
   resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.23.0.tgz#ba8041afc3d30eb206a487b6b384002e4e61fdfe"

@@ -1,4 +1,3 @@
-import { debugImageMiddleware } from "../middleware/debugImageMiddleware";
 import { coreMiddleware } from "../middleware/default";
 import { imagesWorkerMiddleware } from "../middleware/images-worker";
 import { stateMiddleware } from "../middleware/stateMiddleware";
@@ -73,11 +72,6 @@ export function createFrames<
       stateMiddleware<TState>(),
       // @ts-expect-error hard to type internally so skipping for now
       ...perRouteMiddleware,
-      // this middleware allows us to output source jsx of an image, useful in debugger's playground
-      // we need this middleware to be called right befor handler so we can intercept the image
-      // before it is modified by any middleware
-      // @ts-expect-error hard to type internally so skipping for now
-      debugImageMiddleware<TState>(),
       // @ts-expect-error hard to type internally so skipping for now
       async function handlerMiddleware(ctx) {
         // @ts-expect-error hard to type internally so skipping for now
