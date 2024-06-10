@@ -33,6 +33,12 @@ A string that specifies the base path for all relative URLs in the frame definit
 
 A string or URL object that specifies the base URL for all relative URLs in the frame definition. Can be used to override the URL detected from the request.
 
+### `debug`
+
+- Type: `boolean`
+
+Enables debug mode. Debug mode is necessary if you want to use image layout debugging in the debugger.
+
 ### `signingSecret`
 
 - Type: `string`
@@ -93,7 +99,6 @@ Type: `FramesMiddleware`
 An array of middleware functions that are called before the frame handler and allows you to inject additional context into the `ctx` parameter passed to each frame handler call.
 
 Each middleware should return a promise that resolves to the next middleware, or a [Web API `Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response), or a `FrameDefinition`.
-
 
 #### Types
 
@@ -213,7 +218,8 @@ const handleRequest = frames(async (ctx) => {
       aspectRatio: "1:1",
     },
     buttons: [<Button action="post">Refresh</Button>],
-    headers: { // [!code focus]
+    headers: {
+      // [!code focus]
       // Max cache age in seconds // [!code focus]
       "Cache-Control": "max-age=0", // [!code focus]
     }, // [!code focus]
