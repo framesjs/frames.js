@@ -111,7 +111,18 @@ export async function POST(req: NextRequest): Promise<Response> {
       // this is message response
       if ("message" in json) {
         return Response.json({ message: json.message }, { status: r.status });
+      } else {
+        return r;
       }
+    }
+
+    if (isPostRedirect && r.status !== 302) {
+      return Response.json(
+        {
+          message: `Invalid response status code for post redirect button, 302 expected, got ${r.status}`,
+        },
+        { status: 400 }
+      );
     }
 
     if (isTransactionRequest) {

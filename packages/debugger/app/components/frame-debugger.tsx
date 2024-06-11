@@ -22,14 +22,7 @@ import {
   defaultTheme,
 } from "@frames.js/render";
 import { FrameImageNext } from "@frames.js/render/next";
-import { JSONTree } from "react-json-tree";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-} from "@/components/table";
+import { Table, TableBody, TableCell, TableRow } from "@/components/table";
 import {
   AlertTriangle,
   BanIcon,
@@ -40,6 +33,7 @@ import {
   LoaderIcon,
   RefreshCwIcon,
   XCircle,
+  ExternalLinkIcon,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { MockHubConfig } from "./mock-hub-config";
@@ -65,21 +59,6 @@ type FrameDiagnosticsProps = {
   stackItem: FramesStackItem;
 };
 
-function paramsToObject(entries: IterableIterator<[string, string]>): object {
-  const result: Record<string, any> = {};
-  for (const [key, value] of entries) {
-    // each 'entry' is a [key, value] tupple
-    if (value.startsWith("{")) {
-      try {
-        result[key] = JSON.parse(value);
-        continue;
-      } catch (err) {}
-    }
-    result[key] = value;
-  }
-  return result;
-}
-
 function isPropertyExperimental([key, value]: [string, string]) {
   // tx is experimental
   return false;
@@ -102,6 +81,10 @@ function FrameDiagnostics({ stackItem }: FrameDiagnosticsProps) {
     }
 
     if (stackItem.status === "message") {
+      return { validProperties, invalidProperties, isValid: true };
+    }
+
+    if (stackItem.status === "doneRedirect") {
       return { validProperties, invalidProperties, isValid: true };
     }
 
@@ -271,6 +254,10 @@ const FramesRequestCardContentIcon: React.FC<{
     } else {
       return <XCircle size={20} color="blue" />;
     }
+  }
+
+  if (stackItem.status === "doneRedirect") {
+    return <ExternalLinkIcon size={20} color="green" />;
   }
 
   if (stackItem.frameResult?.status === "failure") {
@@ -628,111 +615,9 @@ export const FrameDebugger = React.forwardRef<
                     ></DebuggerConsole>
                   </TabsContent>
                   <TabsContent className="overflow-y-auto" value="request">
-                    <h2 className="my-4 text-muted-foreground font-semibold text-sm">
-                      Request
-                    </h2>
-                    <Table>
-                      <TableBody>
-                        <TableRow>
-                          <TableHead>URL</TableHead>
-                          <TableCell className="w-full">
-                            {currentFrameStackItem.url}
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableHead>Method</TableHead>
-                          <TableCell>
-                            {currentFrameStackItem.request.method}
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableHead>Query Params</TableHead>
-                          <TableCell>
-                            <JSONTree
-                              data={paramsToObject(
-                                new URL(
-                                  currentFrameStackItem.url
-                                ).searchParams.entries()
-                              )}
-                              invertTheme
-                              theme="default"
-                            ></JSONTree>
-                          </TableCell>
-                        </TableRow>
-                        {currentFrameStackItem.request.method === "POST" ? (
-                          <TableRow>
-                            <TableHead>Payload</TableHead>
-                            <TableCell>
-                              <JSONTree
-                                data={currentFrameStackItem.requestDetails.body}
-                                invertTheme
-                                theme="default"
-                              ></JSONTree>
-                            </TableCell>
-                          </TableRow>
-                        ) : null}
-                      </TableBody>
-                    </Table>
-                    {currentFrameStackItem.status !== "pending" ? (
-                      <>
-                        <h2 className="my-4 text-muted-foreground font-semibold text-sm">
-                          Response
-                        </h2>
-                        <Table>
-                          <TableBody>
-                            <TableRow>
-                              <TableHead>Response status</TableHead>
-                              <TableCell className="w-full">
-                                {currentFrameStackItem.responseStatus}
-                              </TableCell>
-                            </TableRow>
-                            {"frame" in currentFrameStackItem ? (
-                              <TableRow>
-                                <TableHead>Frame Response</TableHead>
-                                <TableCell>
-                                  <JSONTree
-                                    data={currentFrameStackItem.frame}
-                                    invertTheme
-                                    theme="default"
-                                  ></JSONTree>
-                                </TableCell>
-                              </TableRow>
-                            ) : (
-                              <TableRow>
-                                <TableHead>Response</TableHead>
-                                <TableCell>
-                                  <JSONTree
-                                    data={
-                                      currentFrameStackItem.status === "message"
-                                        ? {
-                                            message:
-                                              currentFrameStackItem.message,
-                                          }
-                                        : currentFrameStackItem.responseBody
-                                    }
-                                    theme="default"
-                                    invertTheme
-                                  ></JSONTree>
-                                </TableCell>
-                              </TableRow>
-                            )}
-                            {currentFrameStackItem.status === "requestError" &&
-                              !!currentFrameStackItem.requestError && (
-                                <TableRow>
-                                  <TableHead>Error</TableHead>
-                                  <TableCell>
-                                    <JSONTree
-                                      data={currentFrameStackItem.requestError}
-                                      theme="default"
-                                      invertTheme
-                                    ></JSONTree>
-                                  </TableCell>
-                                </TableRow>
-                              )}
-                          </TableBody>
-                        </Table>
-                      </>
-                    ) : null}
+                    <FrameDebuggerRequestDetails
+                      frameStackItem={currentFrameStackItem}
+                    ></FrameDebuggerRequestDetails>
                   </TabsContent>
                   <TabsContent className="overflow-y-auto" value="meta">
                     {currentFrameStackItem.status === "done" ? (

@@ -39,6 +39,23 @@ function framesStackReducer(
 
       return state.slice();
     }
+    case "DONE_REDIRECT": {
+      const index = state.findIndex(
+        (item) => item.timestamp === action.pendingItem.timestamp
+      );
+
+      if (index === -1) {
+        return state;
+      }
+
+      state[index] = {
+        ...action.pendingItem,
+        ...action.item,
+        status: "doneRedirect",
+      };
+
+      return state.slice();
+    }
     case "DONE":
     case "REQUEST_ERROR": {
       const index = state.findIndex(
@@ -81,6 +98,10 @@ function framesStackReducer(
             },
             url: action.homeframeUrl ?? "",
             requestDetails: {},
+            response: new Response(JSON.stringify(frameResult), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }),
             responseStatus: 200,
             timestamp: new Date(),
             speed: 0,
@@ -124,6 +145,10 @@ export function useFrameStack({
             };
         return [
           {
+            response: new Response(JSON.stringify(frameResult), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }),
             responseStatus: 200,
             responseBody: frameResult,
             timestamp: new Date(),
