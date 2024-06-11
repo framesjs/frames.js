@@ -160,18 +160,28 @@ export type GetFrameResult = ReturnType<typeof getFrame>;
 
 export type FrameStackDone = FrameStackBase & {
   request: FrameRequest;
+  response: Response;
   frameResult: GetFrameResult;
   status: "done";
 };
 
+export type FrameStackDoneRedirect = FrameStackBase & {
+  request: FramePOSTRequest;
+  response: Response;
+  location: string;
+  status: "doneRedirect";
+};
+
 export type FrameStackRequestError = FrameStackBase & {
   request: FrameRequest;
+  response: Response | null;
   status: "requestError";
   requestError: Error;
 };
 
 export type FrameStackMessage = FrameStackBase & {
   request: FramePOSTRequest;
+  response: Response;
   status: "message";
   message: string;
   type: "info" | "error";
@@ -180,6 +190,7 @@ export type FrameStackMessage = FrameStackBase & {
 export type FramesStackItem =
   | FrameStackPending
   | FrameStackDone
+  | FrameStackDoneRedirect
   | FrameStackRequestError
   | FrameStackMessage;
 
@@ -203,6 +214,11 @@ export type FrameReducerActions =
       action: "REQUEST_ERROR";
       pendingItem: FrameStackPending;
       item: FrameStackRequestError;
+    }
+  | {
+      action: "DONE_REDIRECT";
+      pendingItem: FrameStackPending;
+      item: FrameStackDoneRedirect;
     }
   | {
       action: "DONE";

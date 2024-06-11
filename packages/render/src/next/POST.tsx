@@ -32,6 +32,10 @@ export async function POST(req: Request | NextRequest): Promise<Response> {
       body: JSON.stringify(body),
     });
 
+    if (r.status >= 500) {
+      return r;
+    }
+
     if (r.status === 302) {
       return Response.json(
         {
@@ -43,9 +47,19 @@ export async function POST(req: Request | NextRequest): Promise<Response> {
 
     if (r.status >= 400 && r.status < 500) {
       const json = (await r.json()) as { message?: string };
+
       if ("message" in json) {
         return Response.json({ message: json.message }, { status: r.status });
+      } else {
+        return r;
       }
+    }
+
+    if (isPostRedirect && r.status !== 302) {
+      return Response.json(
+        { message: "Invalid response for redirect button" },
+        { status: 500 }
+      );
     }
 
     if (isTransactionRequest) {

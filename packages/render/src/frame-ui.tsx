@@ -150,7 +150,10 @@ export function FrameUI({
 
   if (currentFrame.status === "done") {
     frame = currentFrame.frameResult.frame;
-  } else if (currentFrame.status === "message") {
+  } else if (
+    currentFrame.status === "message" ||
+    currentFrame.status === "doneRedirect"
+  ) {
     frame = currentFrame.request.sourceFrame;
   } else if (currentFrame.status === "requestError") {
     frame =

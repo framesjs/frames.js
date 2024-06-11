@@ -103,6 +103,7 @@ export function useFetchFrame({
         const stackItem: FrameStackMessage = {
           ...(frameStackPendingItem as FrameStackPostPending),
           responseStatus: response.status,
+          response: response.clone(),
           speed: computeDurationInSeconds(startTime, endTime),
           status: "message",
           type: "error",
@@ -136,6 +137,7 @@ export function useFetchFrame({
       startTime,
       endTime,
       responseBody,
+      response,
     });
   }
 
@@ -146,6 +148,7 @@ export function useFetchFrame({
     startTime,
     endTime,
     responseBody,
+    response,
   }: {
     frameStackPendingItem: FrameStackPending;
     requestError: Error;
@@ -153,6 +156,7 @@ export function useFetchFrame({
     startTime: Date;
     endTime: Date;
     responseBody: unknown;
+    response: Response | null;
   }): void {
     stackDispatch({
       action: "REQUEST_ERROR",
@@ -162,6 +166,7 @@ export function useFetchFrame({
         requestDetails: frameStackPendingItem.requestDetails,
         timestamp: frameStackPendingItem.timestamp,
         url: frameStackPendingItem.url,
+        response: response?.clone() ?? null,
         responseStatus,
         requestError,
         speed: computeDurationInSeconds(startTime, endTime),
@@ -217,7 +222,7 @@ export function useFetchFrame({
         return;
       }
 
-      const loadedFrame = (await response.json()) as GetFrameResult;
+      const loadedFrame = (await response.clone().json()) as GetFrameResult;
 
       stackDispatch({
         action: "DONE",
@@ -227,6 +232,7 @@ export function useFetchFrame({
           status: "done",
           frameResult: loadedFrame,
           speed: computeDurationInSeconds(startTime, endTime),
+          response: response.clone(),
           responseStatus: response.status,
           responseBody: loadedFrame,
         },
@@ -242,6 +248,7 @@ export function useFetchFrame({
       responseBody: "none",
       responseStatus: 500,
       requestError: response,
+      response: null,
     });
   }
 
@@ -296,6 +303,7 @@ export function useFetchFrame({
         responseStatus: 500,
         startTime,
         requestError: signedDataOrError,
+        response: null,
       });
 
       return;
@@ -331,7 +339,87 @@ export function useFetchFrame({
     );
     const endTime = new Date();
 
+    async function handleRedirect(
+      res: Response,
+      pendingItem: FrameStackPostPending
+    ): Promise<void> {
+      // check that location is proper fully formatted url
+      try {
+        let location = res.headers.get("location");
+
+        if (!location) {
+          const responseData = (await res.clone().json()) as
+            | Record<string, unknown>
+            | string
+            | null
+            | number;
+
+          if (
+            responseData &&
+            typeof responseData === "object" &&
+            "location" in responseData &&
+            typeof responseData.location === "string"
+          ) {
+            location = responseData.location;
+          }
+        }
+
+        if (!location) {
+          throw new Error(
+            `Response data does not contain 'location' key and no 'location' header is found.`
+          );
+        }
+
+        // check the URL is valid
+        const locationUrl = new URL(location);
+
+        if (window.confirm(`You are about to be redirected to ${location}`)) {
+          window.open(locationUrl, "_blank")?.focus();
+        }
+
+        stackDispatch({
+          action: "DONE_REDIRECT",
+          pendingItem,
+          item: {
+            ...pendingItem,
+            location,
+            response: res.clone(),
+            responseBody: await res.clone().text(),
+            responseStatus: res.status,
+            status: "doneRedirect",
+            speed: computeDurationInSeconds(startTime, endTime),
+          },
+        });
+      } catch (e) {
+        stackDispatch({
+          action: "REQUEST_ERROR",
+          pendingItem: frameStackPendingItem,
+          item: {
+            ...frameStackPendingItem,
+            status: "requestError",
+            requestError:
+              e instanceof Error
+                ? e
+                : new Error(
+                    "Response body must be a json with 'location' property or response 'Location' header must contain fully qualified URL."
+                  ),
+            response: res.clone(),
+            responseStatus: res.status,
+            responseBody: await res.text(),
+            speed: computeDurationInSeconds(startTime, endTime),
+          },
+        });
+      }
+    }
+
     if (response instanceof Response) {
+      // handle valid redirect
+      if (response.status === 302) {
+        await handleRedirect(response, frameStackPendingItem);
+
+        return;
+      }
+
       if (!response.ok) {
         await handleFailedResponse({
           response,
@@ -343,21 +431,10 @@ export function useFetchFrame({
         return;
       }
 
-      const responseData = (await response.json()) as
+      const responseData = (await response.clone().json()) as
         | GetFrameResult
-        | { location: string }
         | { message: string }
         | { type: "frame"; frameUrl: string };
-
-      if ("location" in responseData) {
-        const location = responseData.location;
-
-        if (window.confirm(`You are about to be redirected to ${location}`)) {
-          window.open(location, "_blank")?.focus();
-        }
-
-        return;
-      }
 
       // cast action message response
       if ("message" in responseData) {
@@ -369,6 +446,7 @@ export function useFetchFrame({
             status: "message",
             message: responseData.message,
             type: "info",
+            response: response.clone(),
             responseStatus: response.status,
             speed: computeDurationInSeconds(startTime, endTime),
             responseBody: responseData,
@@ -425,6 +503,7 @@ export function useFetchFrame({
           responseStatus: 500,
           startTime,
           requestError: error,
+          response,
         });
 
         return;
@@ -440,6 +519,7 @@ export function useFetchFrame({
           frameResult: responseData,
           status: "done",
           speed: computeDurationInSeconds(startTime, endTime),
+          response: response.clone(),
           responseStatus: response.status,
           responseBody: responseData,
         },
@@ -455,6 +535,10 @@ export function useFetchFrame({
       responseStatus: 500,
       startTime,
       requestError: response,
+      response: new Response(response.message, {
+        status: 500,
+        headers: { "Content-Type": "text/plain" },
+      }),
     });
   }
 
@@ -505,6 +589,7 @@ export function useFetchFrame({
         responseStatus: 500,
         startTime,
         requestError: signedTransactionDataActionOrError,
+        response: null,
       });
 
       return;
@@ -550,6 +635,7 @@ export function useFetchFrame({
         responseStatus: 500,
         startTime,
         requestError: transactionDataResponse,
+        response: null,
       });
 
       return;
@@ -592,6 +678,7 @@ export function useFetchFrame({
         responseStatus: 500,
         startTime,
         requestError: transactionIdOrError,
+        response: null,
       });
 
       return;
