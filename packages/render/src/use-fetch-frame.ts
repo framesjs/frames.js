@@ -339,7 +339,10 @@ export function useFetchFrame({
     );
     const endTime = new Date();
 
-    async function handleRedirect(res: Response): Promise<void> {
+    async function handleRedirect(
+      res: Response,
+      pendingItem: FrameStackPostPending
+    ): Promise<void> {
       // check that location is proper fully formatted url
       try {
         let location = res.headers.get("location");
@@ -376,9 +379,9 @@ export function useFetchFrame({
 
         stackDispatch({
           action: "DONE_REDIRECT",
-          pendingItem: frameStackPendingItem,
+          pendingItem,
           item: {
-            ...frameStackPendingItem,
+            ...pendingItem,
             location,
             response: res.clone(),
             responseBody: await res.clone().text(),
@@ -412,7 +415,7 @@ export function useFetchFrame({
     if (response instanceof Response) {
       // handle valid redirect
       if (response.status === 302) {
-        await handleRedirect(response);
+        await handleRedirect(response, frameStackPendingItem);
 
         return;
       }

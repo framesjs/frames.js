@@ -166,7 +166,7 @@ export type FrameStackDone = FrameStackBase & {
 };
 
 export type FrameStackDoneRedirect = FrameStackBase & {
-  request: FrameRequest;
+  request: FramePOSTRequest;
   response: Response;
   location: string;
   status: "doneRedirect";
