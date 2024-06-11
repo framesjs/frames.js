@@ -48,7 +48,6 @@ import {
 import { useLensIdentity } from "./hooks/use-lens-identity";
 import { useLensFrameContext } from "./hooks/use-lens-context";
 import { ProfileSelectorModal } from "./components/lens-profile-select";
-import { FrameDebuggerExamplesSection } from "./components/frame-debugger-examples-section";
 
 const FALLBACK_URL =
   process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";

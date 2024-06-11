@@ -9,13 +9,13 @@ export type ExampleItem = {
 };
 
 type FrameDebuggerExamplesSectionProps = {
-  examples: ExampleItem[] | null;
+  examples: ExampleItem[];
 };
 
 export function FrameDebuggerExamplesSection({
   examples,
 }: FrameDebuggerExamplesSectionProps) {
-  if (!examples || examples.length === 0) {
+  if (examples.length === 0) {
     return null;
   }
 

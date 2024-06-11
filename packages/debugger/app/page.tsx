@@ -16,9 +16,11 @@ export default async function Homepage({
   return (
     <DebuggerPage
       examples={
-        <FrameDebuggerExamplesSection
-          examples={examples}
-        ></FrameDebuggerExamplesSection>
+        examples && examples.length > 0 ? (
+          <FrameDebuggerExamplesSection
+            examples={examples}
+          ></FrameDebuggerExamplesSection>
+        ) : null
       }
       searchParams={searchParams}
     ></DebuggerPage>
