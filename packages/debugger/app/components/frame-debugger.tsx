@@ -58,6 +58,8 @@ import { useRouter } from "next/navigation";
 import { WithTooltip } from "./with-tooltip";
 import { DebuggerConsole } from "./debugger-console";
 import { FrameDebuggerLinksSidebarSection } from "./frame-debugger-links-sidebar-section";
+import { FrameDebuggerRequestDetails } from "./frame-debugger-request-details";
+import { urlSearchParamsToObject } from "../utils/url-search-params-to-object";
 
 type FrameDiagnosticsProps = {
   stackItem: FramesStackItem;
@@ -342,8 +344,8 @@ const FramesRequestCardContent: React.FC<{
                   }}
                 >
                   {JSON.stringify(
-                    paramsToObject(
-                      new URL(frameStackItem.url).searchParams.entries()
+                    urlSearchParamsToObject(
+                      new URL(frameStackItem.url).searchParams
                     ),
                     null,
                     2
