@@ -1,5 +1,13 @@
 # template-next
 
+## 0.0.18
+
+### Patch Changes
+
+- ddb59ec: feat(create-frames): detect open port and run debugger with preconfigured ports
+- Updated dependencies [acd0362]
+  - frames.js@0.16.6
+
 ## 0.0.17
 
 ### Patch Changes

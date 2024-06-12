@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.16.6
+
+### Patch Changes
+
+- acd0362: fix: fall back to fc:button if of:button not present in openframes parser
+
 ## 0.16.5
 
 ### Patch Changes

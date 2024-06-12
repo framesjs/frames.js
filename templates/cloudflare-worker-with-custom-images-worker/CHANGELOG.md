@@ -1,5 +1,13 @@
 # template-cloudflare-worker-with-custom-images-worker
 
+## 0.0.7
+
+### Patch Changes
+
+- ddb59ec: feat(create-frames): detect open port and run debugger with preconfigured ports
+- Updated dependencies [acd0362]
+  - frames.js@0.16.6
+
 ## 0.0.6
 
 ### Patch Changes

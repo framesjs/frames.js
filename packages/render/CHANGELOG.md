@@ -1,5 +1,13 @@
 # @frames.js/render
 
+## 0.2.13
+
+### Patch Changes
+
+- b06b5b3: fix(@frames.js/render): properly handle redirects
+- Updated dependencies [acd0362]
+  - frames.js@0.16.6
+
 ## 0.2.12
 
 ### Patch Changes

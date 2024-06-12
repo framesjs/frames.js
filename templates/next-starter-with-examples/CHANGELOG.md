@@ -1,5 +1,14 @@
 # template-next-starter-with-examples
 
+## 0.0.21
+
+### Patch Changes
+
+- ddb59ec: feat(debugger): allow examples to be predefined
+- ddb59ec: feat(create-frames): detect open port and run debugger with preconfigured ports
+- Updated dependencies [acd0362]
+  - frames.js@0.16.6
+
 ## 0.0.20
 
 ### Patch Changes

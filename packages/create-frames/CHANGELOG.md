@@ -1,5 +1,12 @@
 # create-frames
 
+## 0.1.20
+
+### Patch Changes
+
+- ddb59ec: feat(debugger): allow examples to be predefined
+- ddb59ec: feat(create-frames): detect open port and run debugger with preconfigured ports
+
 ## 0.1.19
 
 ### Patch Changes

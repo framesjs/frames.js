@@ -1,5 +1,15 @@
 # @frames.js/debugger
 
+## 0.2.13
+
+### Patch Changes
+
+- b06b5b3: feat(debugger): show response headers
+- ddb59ec: feat(debugger): allow examples to be predefined
+- b06b5b3: fix(debugger): show examples links only if examples are available
+- b06b5b3: fix(debugger): properly handle redirects
+- ce837a1: chore: bump rainbowkit,wagmi,viem for smart wallet support
+
 ## 0.2.12
 
 ### Patch Changes
