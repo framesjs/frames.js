@@ -1,22 +1,15 @@
-/* eslint-disable no-alert -- provide feedback */
 /* eslint-disable no-console -- provide feedback to console */
-import type {
-  SupportedParsingSpecification,
-  TransactionTargetResponse,
-} from "frames.js";
+import type { TransactionTargetResponse } from "frames.js";
 import type {
   FrameGETRequest,
   FramePOSTRequest,
-  FrameReducerActions,
   FrameRequest,
   FrameStackGetPending,
   FrameStackMessage,
   FrameStackPending,
   FrameStackPostPending,
   GetFrameResult,
-  OnTransactionFunc,
-  SignerStateActionContext,
-  SignerStateInstance,
+  UseFetchFrameOptions,
 } from "./types";
 import type { FarcasterFrameContext } from "./farcaster";
 import { isParseResult } from "./use-frame-stack";
@@ -25,41 +18,14 @@ function computeDurationInSeconds(start: Date, end: Date): number {
   return Number(((end.getTime() - start.getTime()) / 1000).toFixed(2));
 }
 
-type UseFetchFrameOptions = {
-  stackDispatch: React.Dispatch<FrameReducerActions>;
-  specification: SupportedParsingSpecification;
-  /**
-   * URL or path to the frame proxy handling GET requests.
-   */
-  frameGetProxy: string;
-  /**
-   * URL or path to the frame proxy handling POST requests.
-   */
-  frameActionProxy: string;
-  /**
-   * Extra payload to be sent with the POST request.
-   */
-  extraButtonRequestPayload?: Record<string, unknown>;
-  signFrameAction: (
-    isDangerousSkipSigning: boolean,
-    actionContext: SignerStateActionContext<any, any>
-  ) => ReturnType<SignerStateInstance["signFrameAction"]>;
-  onTransaction: OnTransactionFunc;
-  homeframeUrl: string | undefined | null;
-  /**
-   * This function can be used to customize how error is reported to the user.
-   */
-  onError?: (error: Error) => void;
-};
-
 type FetchFrameFn = (
   request: FrameRequest,
   shouldClear?: boolean
 ) => Promise<void>;
 
-const defaultErrorHandler = (error: Error): void => {
+function defaultErrorHandler(error: Error): void {
   console.error(error);
-};
+}
 
 export function useFetchFrame({
   stackDispatch,
@@ -71,6 +37,8 @@ export function useFetchFrame({
   onTransaction,
   homeframeUrl,
   onError = defaultErrorHandler,
+  fetchFn,
+  onRedirect,
 }: UseFetchFrameOptions): FetchFrameFn {
   async function handleFailedResponse({
     response,
@@ -207,7 +175,7 @@ export function useFetchFrame({
     });
     const proxiedUrl = `${frameGetProxy}?${searchParams.toString()}`;
 
-    const response = await tryCall(fetch(proxiedUrl, { method: "GET" }));
+    const response = await tryCall(fetchFn(proxiedUrl, { method: "GET" }));
     const endTime = new Date();
 
     if (response instanceof Response) {
@@ -326,7 +294,7 @@ export function useFetchFrame({
     const proxiedUrl = `${frameActionProxy}?${searchParams.toString()}`;
 
     const response = await tryCall(
-      fetch(proxiedUrl, {
+      fetchFn(proxiedUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -373,9 +341,7 @@ export function useFetchFrame({
         // check the URL is valid
         const locationUrl = new URL(location);
 
-        if (window.confirm(`You are about to be redirected to ${location}`)) {
-          window.open(locationUrl, "_blank")?.focus();
-        }
+        onRedirect(locationUrl);
 
         stackDispatch({
           action: "DONE_REDIRECT",
@@ -614,7 +580,7 @@ export function useFetchFrame({
     const transactionDataProxiedUrl = `${frameActionProxy}?${signedTransactionDataActionOrError.searchParams.toString()}`;
 
     const transactionDataResponse = await tryCall(
-      fetch(transactionDataProxiedUrl, {
+      fetchFn(transactionDataProxiedUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

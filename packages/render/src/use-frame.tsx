@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import type {
   Frame,
   FrameButton,
+  FrameButtonLink,
   FrameButtonPost,
   FrameButtonTx,
   TransactionTargetResponse,
@@ -26,7 +27,15 @@ import { useFrameStack } from "./use-frame-stack";
 import { useFetchFrame } from "./use-fetch-frame";
 
 function onMintFallback({ target }: OnMintArgs): void {
-  window.alert(`Mint requested: ${target}`);
+  console.log("Please provide your own onMint function to useFrame() hook.");
+
+  const message = `Mint requested: ${target}`;
+
+  if (typeof window !== "undefined") {
+    window.alert(message);
+  } else {
+    console.log(message);
+  }
 }
 
 export const unsignedFrameAction: SignerStateInstance<
@@ -74,16 +83,55 @@ export const unsignedFrameAction: SignerStateInstance<
 async function onTransactionFallback({
   transactionData,
 }: OnTransactionArgs): Promise<null> {
-  window.alert(
-    `Requesting a transaction on chain with ID ${
-      transactionData.chainId
-    } with the following params: ${JSON.stringify(
-      transactionData.params,
-      null,
-      2
-    )}`
+  console.log(
+    "Please provide your own onTransaction function to useFrame() hook."
   );
+
+  const message = `Requesting a transaction on chain with ID ${
+    transactionData.chainId
+  } with the following params: ${JSON.stringify(
+    transactionData.params,
+    null,
+    2
+  )}`;
+
+  if (typeof window !== "undefined") {
+    window.alert(message);
+  } else {
+    console.log(message);
+  }
+
   return null;
+}
+
+function handleRedirectFallback(location: URL): void {
+  console.log(
+    "Please provide your own onRedirect function to useFetchFrame() hook."
+  );
+
+  const message = `You are about to be redirected to ${location.toString()}`;
+
+  if (typeof window !== "undefined") {
+    if (window.confirm(message)) {
+      window.open(location, "_blank")?.focus();
+    }
+  } else {
+    console.log(message);
+  }
+}
+
+function handleLinkButtonClickFallback(button: FrameButtonLink): void {
+  console.log(
+    "Please provide your own onLinkButtonClick function to useFrame() hook."
+  );
+
+  if (typeof window !== "undefined") {
+    if (window.confirm(`You are about to be redirected to ${button.target}`)) {
+      parent.window.open(button.target, "_blank");
+    }
+  } else {
+    console.log(`Link button with target ${button.target} clicked.`);
+  }
 }
 
 export const fallbackFrameContext: FarcasterFrameContext = {
@@ -114,6 +162,9 @@ export function useFrame<
   extraButtonRequestPayload,
   specification = "farcaster",
   onError,
+  onLinkButtonClick = handleLinkButtonClickFallback,
+  onRedirect = handleRedirectFallback,
+  fetchFn = fetch,
 }: UseFrameOptions<
   SignerStorageType,
   FrameActionBodyType,
@@ -139,6 +190,8 @@ export function useFrame<
     extraButtonRequestPayload,
     homeframeUrl,
     onError,
+    fetchFn,
+    onRedirect,
   });
 
   const fetchFrameRef = useRef(fetchFrame);
@@ -182,13 +235,7 @@ export function useFrame<
 
     switch (frameButton.action) {
       case "link": {
-        if (
-          window.confirm(
-            `You are about to be redirected to ${frameButton.target}`
-          )
-        ) {
-          parent.window.open(frameButton.target, "_blank");
-        }
+        onLinkButtonClick(frameButton);
         break;
       }
       case "mint": {
@@ -237,7 +284,10 @@ export function useFrame<
           });
           setInputText("");
         } catch (err) {
-          alert("error: check the console");
+          if (err instanceof Error) {
+            onError?.(err);
+          }
+
           console.error(err);
         }
         break;
