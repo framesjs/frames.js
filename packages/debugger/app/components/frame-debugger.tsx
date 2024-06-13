@@ -35,7 +35,7 @@ import {
   XCircle,
   ExternalLinkIcon,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MockHubConfig } from "./mock-hub-config";
 import { MockHubActionContext } from "../utils/mock-hub-utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -502,45 +502,48 @@ export const FrameDebugger = React.forwardRef<
           {specification === "farcaster" &&
             mockHubContext &&
             setMockHubContext && (
-              <Card>
-                <CardContent className="px-5">
-                  <MockHubConfig
-                    hubContext={mockHubContext}
-                    setHubContext={setMockHubContext}
-                  ></MockHubConfig>
-                </CardContent>
-              </Card>
+              <MockHubConfig
+                hubContext={mockHubContext}
+                setHubContext={setMockHubContext}
+              ></MockHubConfig>
             )}
           <Card>
-            <CardContent className="p-5">
+            <CardHeader>
+              <CardTitle className="text-base">Debug</CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="flex items-center gap-2">
-                <WithTooltip
-                  disabled={!isImageDebuggingAvailable}
-                  tooltip={
-                    <p>
-                      Enables layout debugging on the image. In order to use
-                      this functionality you must enable{" "}
-                      <Link
-                        className="underline font-semibold"
-                        href="https://framesjs.org/reference/core/createFrames#debug"
-                        target="_blank"
-                      >
-                        debug mode
-                      </Link>{" "}
-                      in your application.
-                    </p>
-                  }
-                >
-                  <label className="flex items-center gap-2">
-                    <Switch
+                <label className="flex items-center gap-2 w-full">
+                  <span className="inline-flex items-center gap-2">
+                    Image Layout{" "}
+                    <WithTooltip
                       disabled={!isImageDebuggingAvailable}
-                      id="image-debug-mode"
-                      checked={imageDebuggingEnabled}
-                      onCheckedChange={setImageDebuggingEnabled}
-                    ></Switch>
-                    <span>Image debugging</span>
-                  </label>
-                </WithTooltip>
+                      tooltip={
+                        <p>
+                          Enables layout debugging on the image. In order to use
+                          this functionality you must enable{" "}
+                          <Link
+                            className="underline font-semibold"
+                            href="https://framesjs.org/reference/core/createFrames#debug"
+                            target="_blank"
+                          >
+                            debug mode
+                          </Link>{" "}
+                          in your application.
+                        </p>
+                      }
+                    >
+                      <InfoIcon size={14} className="text-slate-500"></InfoIcon>
+                    </WithTooltip>
+                  </span>
+                  <Switch
+                    className="ml-auto"
+                    disabled={!isImageDebuggingAvailable}
+                    id="image-debug-mode"
+                    checked={imageDebuggingEnabled}
+                    onCheckedChange={setImageDebuggingEnabled}
+                  ></Switch>
+                </label>
               </div>
             </CardContent>
           </Card>
