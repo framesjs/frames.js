@@ -14,6 +14,12 @@ The connected wallet address of the user.
 
 If true, the frame will not be signed before being sent to the frameActionProxy. This is useful for frames that don't verify signatures.
 
+### `fetchFn`
+
+- Type: `typeof fetch`
+
+The custom fetch function to use instead of native [fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
+
 ### `frameActionProxy`
 
 - Type: `string`
@@ -50,11 +56,23 @@ The initial frame. if not specified will fetch it from the url prop.
 
 A function that can be used to customize how errors are reported to a user, by default it logs errors using `console.error()`.
 
+### `onLinkButtonClick`
+
+- Type: `(button: FrameButtonLink) => void`
+
+A function to handle link button presses by default it opens the link in new tab using `window.open()` if browser environment, otherwise it just logs the link.
+
 ### `onMint`
 
 - Type: `(t: onMintArgs) => void`
 
 A function to handle mint buttons.
+
+### `onRedirect`
+
+- Type: `(url: string) => void`
+
+A function to handle redirect responses from the frame. This happens when you click a [`post_redirect` button](/reference/core/Button#post-redirect-button). By default it opens the link in new tab using `window.open()` if browser environment, otherwise it just logs the link.
 
 ### `onTransaction`
 

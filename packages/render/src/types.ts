@@ -1,6 +1,7 @@
 import type {
   Frame,
   FrameButton,
+  FrameButtonLink,
   FrameButtonPost,
   FrameButtonTx,
   SupportedParsingSpecification,
@@ -14,6 +15,43 @@ import type { FarcasterFrameContext } from "./farcaster/frames";
 export type OnTransactionFunc = (
   t: OnTransactionArgs
 ) => Promise<`0x${string}` | null>;
+
+export type UseFetchFrameOptions = {
+  stackDispatch: React.Dispatch<FrameReducerActions>;
+  specification: SupportedParsingSpecification;
+  /**
+   * URL or path to the frame proxy handling GET requests.
+   */
+  frameGetProxy: string;
+  /**
+   * URL or path to the frame proxy handling POST requests.
+   */
+  frameActionProxy: string;
+  /**
+   * Extra payload to be sent with the POST request.
+   */
+  extraButtonRequestPayload?: Record<string, unknown>;
+  signFrameAction: (
+    isDangerousSkipSigning: boolean,
+    actionContext: SignerStateActionContext<any, any>
+  ) => ReturnType<SignerStateInstance["signFrameAction"]>;
+  onTransaction: OnTransactionFunc;
+  homeframeUrl: string | undefined | null;
+  /**
+   * This function can be used to customize how error is reported to the user.
+   */
+  onError?: (error: Error) => void;
+  /**
+   * Custom fetch compatible function used to make requests.
+   *
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
+   */
+  fetchFn: typeof fetch;
+  /**
+   * This function is called when the frame returns a redirect in response to post_redirect button click.
+   */
+  onRedirect: (location: URL) => void;
+};
 
 export type UseFrameOptions<
   SignerStorageType = object,
@@ -58,7 +96,11 @@ export type UseFrameOptions<
    * This function can be used to customize how error is reported to the user.
    */
   onError?: (error: Error) => void;
-};
+  /**
+   * This function can be used to customize how the link button click is handled.
+   */
+  onLinkButtonClick?: (button: FrameButtonLink) => void;
+} & Partial<Pick<UseFetchFrameOptions, "fetchFn" | "onRedirect">>;
 
 export type SignerStateActionContext<
   SignerStorageType = object,
