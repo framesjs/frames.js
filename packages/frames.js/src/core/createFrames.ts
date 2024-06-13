@@ -1,4 +1,5 @@
 import { coreMiddleware } from "../middleware/default";
+import { imagesWorkerMiddleware } from "../middleware/images-worker";
 import { stateMiddleware } from "../middleware/stateMiddleware";
 import { composeMiddleware } from "./composeMiddleware";
 import type {
@@ -19,7 +20,12 @@ export function createFrames<
   initialState,
   middleware,
   baseUrl,
+  imagesRoute,
+  imageRenderingOptions,
+  imagesSigningSecret,
   stateSigningSecret,
+  signingSecret,
+  debug = false,
 }: FramesOptions<TState, TMiddlewares> = {}): FramesRequestHandlerFunction<
   TState,
   typeof coreMiddleware,
@@ -56,8 +62,13 @@ export function createFrames<
     >([
       ...coreMiddleware,
       // @ts-expect-error hard to type internally so skipping for now
-      ...globalMiddleware,
+      imagesWorkerMiddleware({
+        imagesRoute: imagesRoute === undefined ? "/" : imagesRoute,
+        imageRenderingOptions,
+        secret: imagesSigningSecret || signingSecret,
+      }),
       // @ts-expect-error hard to type internally so skipping for now
+      ...globalMiddleware,
       stateMiddleware<TState>(),
       // @ts-expect-error hard to type internally so skipping for now
       ...perRouteMiddleware,
@@ -81,8 +92,21 @@ export function createFrames<
         request,
         url: new URL(request.url),
         baseUrl: resolveBaseUrl(request, url, basePath),
-        stateSigningSecret,
+        stateSigningSecret: stateSigningSecret || signingSecret,
+        debug,
+        __debugInfo: {},
       };
+
+      if (
+        imagesRoute === undefined &&
+        // Detect non-standard route
+        !context.baseUrl.pathname.endsWith("/frames")
+      ) {
+        // eslint-disable-next-line no-console -- provide feedback
+        console.warn(
+          `Warning (frames.js): \`imagesRoute\` option is not set in createFrames call, falling back to '${context.baseUrl.toString()}' for image rendering. Set this to the path of your initial frame relative to the \`basePath\` to avoid this warning. See https://framesjs.org/reference/core/createFrames#imagesroute for more information.`
+        );
+      }
 
       const result = await composedMiddleware(context);
 

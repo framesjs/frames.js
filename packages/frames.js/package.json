@@ -157,6 +157,16 @@
         "default": "./dist/core/index.cjs"
       }
     },
+    "./core/components": {
+      "import": {
+        "types": "./dist/core/components.d.ts",
+        "default": "./dist/core/components.js"
+      },
+      "require": {
+        "types": "./dist/core/components.d.cts",
+        "default": "./dist/core/components.cjs"
+      }
+    },
     "./types": {
       "import": {
         "types": "./dist/core/types.d.ts",
@@ -215,6 +225,16 @@
       "require": {
         "types": "./dist/middleware/images-worker/next/index.d.cts",
         "default": "./dist/middleware/images-worker/next/index.cjs"
+      }
+    },
+    "./middleware/jsx-utils": {
+      "import": {
+        "types": "./dist/middleware/jsx-utils.d.ts",
+        "default": "./dist/middleware/jsx-utils.js"
+      },
+      "require": {
+        "types": "./dist/middleware/jsx-utils.d.cts",
+        "default": "./dist/middleware/jsx-utils.cjs"
       }
     },
     "./hono": {

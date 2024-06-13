@@ -12,4 +12,5 @@ export const frames = createFrames<State>({
   basePath: "/examples/state-signing/frames",
   baseUrl: appURL(),
   stateSigningSecret: "my-secret-key",
+  debug: process.env.NODE_ENV === "development",
 });

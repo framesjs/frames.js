@@ -35,7 +35,7 @@ import {
   XCircle,
   ExternalLinkIcon,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MockHubConfig } from "./mock-hub-config";
 import { MockHubActionContext } from "../utils/mock-hub-utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -52,6 +52,8 @@ import { useRouter } from "next/navigation";
 import { WithTooltip } from "./with-tooltip";
 import { DebuggerConsole } from "./debugger-console";
 import { FrameDebuggerLinksSidebarSection } from "./frame-debugger-links-sidebar-section";
+import { Switch } from "@/components/ui/switch";
+import Link from "next/link";
 import { FrameDebuggerRequestDetails } from "./frame-debugger-request-details";
 import { urlSearchParamsToObject } from "../utils/url-search-params-to-object";
 
@@ -360,7 +362,7 @@ export type FrameDebuggerRef = {
   showConsole(): void;
 };
 
-type TabValues = "diagnostics" | "console" | "request" | "meta";
+type TabValues = "diagnostics" | "image" | "console" | "request" | "meta";
 
 export const FrameDebugger = React.forwardRef<
   FrameDebuggerRef,
@@ -381,6 +383,7 @@ export const FrameDebugger = React.forwardRef<
     const [activeTab, setActiveTab] = useState<TabValues>("diagnostics");
     const router = useRouter();
     const [copySuccess, setCopySuccess] = useState(false);
+    const [imageDebuggingEnabled, setImageDebuggingEnabled] = useState(false);
 
     useEffect(() => {
       if (copySuccess) {
@@ -429,6 +432,11 @@ export const FrameDebugger = React.forwardRef<
       },
       []
     );
+
+    const isImageDebuggingAvailable =
+      currentFrameStackItem &&
+      "frameResult" in currentFrameStackItem &&
+      !!currentFrameStackItem.frameResult.framesDebugInfo?.image;
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[300px_500px_1fr] p-4 gap-4 bg-slate-50 max-w-full w-full">
@@ -494,15 +502,51 @@ export const FrameDebugger = React.forwardRef<
           {specification === "farcaster" &&
             mockHubContext &&
             setMockHubContext && (
-              <Card>
-                <CardContent className="px-5">
-                  <MockHubConfig
-                    hubContext={mockHubContext}
-                    setHubContext={setMockHubContext}
-                  ></MockHubConfig>
-                </CardContent>
-              </Card>
+              <MockHubConfig
+                hubContext={mockHubContext}
+                setHubContext={setMockHubContext}
+              ></MockHubConfig>
             )}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Debug</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 w-full">
+                  <span className="inline-flex items-center gap-2">
+                    Image Layout{" "}
+                    <WithTooltip
+                      disabled={!isImageDebuggingAvailable}
+                      tooltip={
+                        <p>
+                          Enables layout debugging on the image. In order to use
+                          this functionality you must enable{" "}
+                          <Link
+                            className="underline font-semibold"
+                            href="https://framesjs.org/reference/core/createFrames#debug"
+                            target="_blank"
+                          >
+                            debug mode
+                          </Link>{" "}
+                          in your application.
+                        </p>
+                      }
+                    >
+                      <InfoIcon size={14} className="text-slate-500"></InfoIcon>
+                    </WithTooltip>
+                  </span>
+                  <Switch
+                    className="ml-auto"
+                    disabled={!isImageDebuggingAvailable}
+                    id="image-debug-mode"
+                    checked={imageDebuggingEnabled}
+                    onCheckedChange={setImageDebuggingEnabled}
+                  ></Switch>
+                </label>
+              </div>
+            </CardContent>
+          </Card>
           <FrameDebuggerLinksSidebarSection hasExamples={hasExamples} />
         </div>
         <div className="flex flex-col gap-4 order-0 lg:order-1">
@@ -519,7 +563,7 @@ export const FrameDebugger = React.forwardRef<
               </Card>
             ) : (
               <>
-                <div className="border rounded-lg overflow-hidden">
+                <div className="border rounded-lg overflow-hidden relative">
                   <FrameUI
                     frameState={frameState}
                     theme={{
@@ -527,8 +571,10 @@ export const FrameDebugger = React.forwardRef<
                     }}
                     FrameImage={FrameImageNext}
                     allowPartialFrame={true}
+                    enableImageDebugging={imageDebuggingEnabled}
                   />
                 </div>
+
                 <div className="ml-auto text-sm text-slate-500">{url}</div>
                 <div className="space-y-1">
                   {currentFrameStackItem?.status === "done" &&

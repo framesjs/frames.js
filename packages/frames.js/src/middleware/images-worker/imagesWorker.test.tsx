@@ -1,7 +1,5 @@
-import type { DetailedHTMLProps, HTMLAttributes, ReactElement } from "react";
 import type { FrameDefinition, FramesContext } from "../../core/types";
 import { resolveBaseUrl } from "../../core/utils";
-import type { ImageAspectRatio } from "../../types";
 import * as ImagesWorker from ".";
 
 describe("imagesWorker", () => {
@@ -12,6 +10,8 @@ describe("imagesWorker", () => {
     request,
     url: new URL("https://example.com"),
     baseUrl: resolveBaseUrl(request, undefined, "/"),
+    __debugInfo: {},
+    debug: false,
   };
   const imagesRoute = "https://example.com/image";
   const mw = ImagesWorker.imagesWorkerMiddleware({ imagesRoute });
@@ -73,22 +73,6 @@ describe("imagesWorker", () => {
     );
   });
 
-  it("should pass the default aspect ratio in the image URL", async () => {
-    const frameDefinition: FrameDefinition<undefined> = {
-      image: <div>Test</div>,
-    };
-
-    const result = (await mw(context, () =>
-      Promise.resolve(frameDefinition)
-    )) as FrameDefinition<undefined>;
-
-    const url = new URL(result.image as string);
-
-    const expectedAspectRatio: ImageAspectRatio = "1.91:1";
-
-    expect(url.searchParams.get("aspectRatio")).toBe(expectedAspectRatio);
-  });
-
   it("should pass the aspect ratio specified in the Frame Definition in the image URL", async () => {
     const frameDefinition: FrameDefinition<undefined> = {
       image: <div>Test</div>,
@@ -106,251 +90,38 @@ describe("imagesWorker", () => {
     expect(url.searchParams.get("aspectRatio")).toBe("1:1");
   });
 
-  it("should serialize a JSX element with props", () => {
-    const image = (
-      // eslint-disable-next-line react/no-unknown-property -- tw is a Tailwind CSS prop
-      <div tw="flex bg-gray-500" style={{ color: "red" }}>
-        Test
-      </div>
+  it("should not modify frame definition if imagesRoute is null", async () => {
+    const nullImagesRouteMw = ImagesWorker.imagesWorkerMiddleware({
+      imagesRoute: null,
+    });
+
+    const frameDefinition: FrameDefinition<undefined> = {
+      image: <div>Test</div>,
+    };
+
+    const result = (await nullImagesRouteMw(context, () =>
+      Promise.resolve(frameDefinition)
+    )) as FrameDefinition<undefined>;
+
+    expect(typeof result.image).toBe("object");
+  });
+
+  it("should warn user when `fonts` option is specified in the frame definition", async () => {
+    const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
+
+    const frameDefinition: FrameDefinition<undefined> = {
+      image: <div>Test</div>,
+      imageOptions: {
+        fonts: [],
+      },
+    };
+
+    await mw(context, () => Promise.resolve(frameDefinition));
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      "Warning (frames.js): `fonts` option is not supported in `imagesWorkerMiddleware`, specify fonts in the `imageRenderingOptions` option in your `createFrames` call instead."
     );
 
-    const serialized = ImagesWorker.serializeJsx(image);
-
-    expect(serialized).toEqual([
-      {
-        type: "div",
-        props: {
-          children: ["Test"],
-          tw: "flex bg-gray-500",
-          style: { color: "red" },
-        },
-      },
-    ]);
-  });
-
-  it("should serialize a JSX element with children", () => {
-    const image = (
-      <div>
-        <span>Test</span>
-      </div>
-    );
-
-    const serialized = ImagesWorker.serializeJsx(image);
-
-    expect(serialized).toEqual([
-      {
-        type: "div",
-        props: {
-          children: [
-            {
-              type: "span",
-              props: {
-                children: ["Test"],
-              },
-            },
-          ],
-        },
-      },
-    ]);
-  });
-
-  it("should serialize a JSX element with multiple nested children", () => {
-    const image = (
-      <div>
-        <span>Test</span>
-        <span>Test 2</span>
-        <div>
-          <div>
-            <span>Test</span>
-            <span>Test 2</span>
-          </div>
-        </div>
-      </div>
-    );
-
-    const serialized = ImagesWorker.serializeJsx(image);
-
-    expect(serialized).toEqual([
-      {
-        type: "div",
-        props: {
-          children: [
-            {
-              type: "span",
-              props: {
-                children: ["Test"],
-              },
-            },
-            {
-              type: "span",
-              props: {
-                children: ["Test 2"],
-              },
-            },
-            {
-              type: "div",
-              props: {
-                children: [
-                  {
-                    type: "div",
-                    props: {
-                      children: [
-                        {
-                          type: "span",
-                          props: {
-                            children: ["Test"],
-                          },
-                        },
-                        {
-                          type: "span",
-                          props: {
-                            children: ["Test 2"],
-                          },
-                        },
-                      ],
-                    },
-                  },
-                ],
-              },
-            },
-          ],
-        },
-      },
-    ]);
-  });
-
-  it("should serialize a JSX element with a functional component", () => {
-    function Test({
-      children,
-      ...props
-    }: DetailedHTMLProps<
-      HTMLAttributes<HTMLDivElement>,
-      HTMLDivElement
-    >): ReactElement {
-      return <div {...props}>{children}</div>;
-    }
-
-    const image = <Test tw="flex">Test</Test>;
-
-    const serialized = ImagesWorker.serializeJsx(image);
-
-    expect(serialized).toEqual([
-      {
-        type: "div",
-        props: {
-          children: ["Test"],
-          tw: "flex",
-        },
-      },
-    ]);
-  });
-
-  it("should serialize a JSX element with nested functional components", () => {
-    function Test({
-      children,
-      ...props
-    }: DetailedHTMLProps<
-      HTMLAttributes<HTMLDivElement>,
-      HTMLDivElement
-    >): ReactElement {
-      return <div {...props}>{children}</div>;
-    }
-
-    function Test2({
-      children,
-      ...props
-    }: DetailedHTMLProps<
-      HTMLAttributes<HTMLDivElement>,
-      HTMLDivElement
-    >): ReactElement {
-      return <Test {...props}>{children}</Test>;
-    }
-
-    const image = <Test2 tw="flex">Test</Test2>;
-
-    const serialized = ImagesWorker.serializeJsx(image);
-
-    expect(serialized).toEqual([
-      {
-        type: "div",
-        props: {
-          children: ["Test"],
-          tw: "flex",
-        },
-      },
-    ]);
-  });
-
-  it("should serialize a JSX element with a functional component that returns null", () => {
-    function Test(): ReactElement | null {
-      return null;
-    }
-
-    const image = <Test />;
-
-    const serialized = ImagesWorker.serializeJsx(image);
-
-    expect(serialized).toEqual([]);
-  });
-
-  it("should serialize a JSX element with a functional component that returns a string", () => {
-    function Test({ children }: { children: string }): string {
-      return children;
-    }
-
-    const image = <Test>Test</Test>;
-
-    const serialized = ImagesWorker.serializeJsx(image);
-
-    expect(serialized).toEqual(["Test"]);
-  });
-
-  it("should serialize a JSX element with a functional component that returns a number", () => {
-    function Test(): number {
-      return 42;
-    }
-
-    const image = <Test />;
-
-    const serialized = ImagesWorker.serializeJsx(image);
-
-    expect(serialized).toEqual([42]);
-  });
-
-  it("should serialize a JSX element with nested array of children that are functional components", () => {
-    function Test(): ReactElement {
-      return <div>Test</div>;
-    }
-
-    const image = (
-      <div>
-        <Test />
-        <Test />
-      </div>
-    );
-
-    const serialized = ImagesWorker.serializeJsx(image);
-
-    expect(serialized).toEqual([
-      {
-        type: "div",
-        props: {
-          children: [
-            {
-              type: "div",
-              props: {
-                children: ["Test"],
-              },
-            },
-            {
-              type: "div",
-              props: {
-                children: ["Test"],
-              },
-            },
-          ],
-        },
-      },
-    ]);
+    consoleWarnSpy.mockRestore();
   });
 });

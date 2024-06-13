@@ -11,4 +11,5 @@ export const frames = createFrames({
       hubHttpUrl: DEFAULT_DEBUGGER_HUB_URL,
     }),
   ],
+  debug: process.env.NODE_ENV === "development",
 });

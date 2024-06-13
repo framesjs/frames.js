@@ -6,6 +6,7 @@ import type {
 } from "./frame-parsers/types";
 import { parseFarcasterFrame } from "./frame-parsers/farcaster";
 import { parseOpenFramesFrame } from "./frame-parsers/open-frames";
+import { FRAMESJS_DEBUG_INFO_IMAGE_KEY } from "./constants";
 
 type ParseFramesWithReportsOptions = {
   html: string;
@@ -19,6 +20,12 @@ export type ParseFramesWithReportsResult = {
   [K in SupportedParsingSpecification]: ParseResult;
 } & {
   framesVersion?: string;
+  framesDebugInfo?: {
+    /**
+     * Image URL of debug image.
+     */
+    image?: string;
+  };
 };
 
 /**
@@ -41,6 +48,10 @@ export function parseFramesWithReports({
     "meta[name='frames.js:version'], meta[property='frames.js:version']"
   ).attr("content");
 
+  const debugImageUrl = document(
+    `meta[name="${FRAMESJS_DEBUG_INFO_IMAGE_KEY}"], meta[property="${FRAMESJS_DEBUG_INFO_IMAGE_KEY}"]`
+  ).attr("content");
+
   return {
     farcaster,
     openframes: parseOpenFramesFrame(document, {
@@ -49,5 +60,12 @@ export function parseFramesWithReports({
       fallbackPostUrl,
     }),
     framesVersion,
+    ...(debugImageUrl
+      ? {
+          framesDebugInfo: {
+            image: debugImageUrl,
+          },
+        }
+      : {}),
   };
 }

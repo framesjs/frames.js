@@ -109,6 +109,12 @@ export type FrameUIProps = {
   theme?: FrameTheme;
   FrameImage?: React.FC<ImgHTMLAttributes<HTMLImageElement> & { src: string }>;
   allowPartialFrame?: boolean;
+  /**
+   * This option works only with frames created by Frames.js and with debug enabled.
+   *
+   * @defaultValue false
+   */
+  enableImageDebugging?: boolean;
 };
 
 /** A UI component only, that should be easy for any app to integrate */
@@ -117,6 +123,7 @@ export function FrameUI({
   theme,
   FrameImage,
   allowPartialFrame,
+  enableImageDebugging,
 }: FrameUIProps): React.JSX.Element | null {
   const [isImageLoading, setIsImageLoading] = useState(true);
   const currentFrame = frameState.currentFrameStackItem;
@@ -147,9 +154,13 @@ export function FrameUI({
   }
 
   let frame: Frame | Partial<Frame> | undefined;
+  let debugImage: string | undefined;
 
   if (currentFrame.status === "done") {
     frame = currentFrame.frameResult.frame;
+    debugImage = enableImageDebugging
+      ? currentFrame.frameResult.framesDebugInfo?.image
+      : undefined;
   } else if (
     currentFrame.status === "message" ||
     currentFrame.status === "doneRedirect"
@@ -180,8 +191,8 @@ export function FrameUI({
         ) : null}
         {!!frame && !!frame.image && (
           <ImageEl
-            src={frame.image}
-            key={frame.image}
+            src={debugImage ?? frame.image}
+            key={debugImage ?? frame.image}
             alt="Frame image"
             width="100%"
             style={{

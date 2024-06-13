@@ -1,3 +1,6 @@
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
@@ -18,7 +21,15 @@ const nextConfig = {
       },
     ],
   },
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
+    // replace @vercel/og by stub module so we can compile frames.js for browser
+    if (!isServer) {
+      config.resolve.alias["@vercel/og$"] = resolve(
+        dirname(fileURLToPath(import.meta.url)),
+        "./stub-modules/@vercel/og/index.js"
+      );
+    }
+
     config.externals.push(
       "pino-pretty",
       "lokijs",

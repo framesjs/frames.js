@@ -33,7 +33,8 @@ const handleRequest = frames(async (ctx) => {
     ],
     image: (
       <span tw="flex flex-col">
-        <div>Node.js example custom fonts</div>
+        <div>Node.js Example</div>
+        <div>Per-route custom fonts</div>
         <div style={{ marginTop: 40, fontWeight: 400 }}>Regular Inter Font</div>
         <div style={{ marginTop: 40, fontWeight: 700 }}>Bold Inter Font</div>
         <div
@@ -69,3 +70,4 @@ const handleRequest = frames(async (ctx) => {
 });
 
 export const POST = handleRequest;
+export const GET = handleRequest;

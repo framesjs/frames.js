@@ -5,10 +5,10 @@ import { DebugLink } from "../../components/DebugLink";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "Frames.js Custom font Example",
+    title: "Inline images Frames.js example",
     other: {
       ...(await fetchMetadata(
-        new URL("/examples/custom-font/frames", appURL())
+        new URL("/examples/inline-images/frames", appURL())
       )),
     },
   };
@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Home() {
   return (
     <div>
-      Frames.js Custom font example <DebugLink />
+      Basic Frames.js example. <DebugLink />
     </div>
   );
 }

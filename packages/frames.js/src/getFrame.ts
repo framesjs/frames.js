@@ -6,6 +6,12 @@ import { parseFramesWithReports } from "./parseFramesWithReports";
 
 type GetFrameResult = ParseResult & {
   framesVersion?: string;
+  framesDebugInfo?: {
+    /**
+     * Image URL of debug image.
+     */
+    image?: string;
+  };
 };
 
 type GetFrameOptions = {
@@ -38,5 +44,8 @@ export function getFrame({
   return {
     ...parsedFrames[specification],
     framesVersion: parsedFrames.framesVersion,
+    ...(parsedFrames.framesDebugInfo
+      ? { framesDebugInfo: parsedFrames.framesDebugInfo }
+      : {}),
   };
 }

@@ -1,26 +1,73 @@
-import type React from "react";
 import {
-  createElement,
-  Children as ReactChildren,
-  type ReactElement,
-} from "react";
+  FRAMES_IMAGES_DEBUG_FLAG,
+  FRAMES_IMAGES_PARAM_FLAG,
+} from "../../core/constants";
 import type { FramesMiddleware } from "../../core/types";
 import { generateTargetURL, isFrameDefinition } from "../../core/utils";
 import { createHMACSignature } from "../../lib/crypto";
+import {
+  deserializeJsx,
+  serializeJsx,
+  type SerializedNode,
+} from "../jsx-utils";
+import {
+  type ImageWorkerOptions,
+  createImagesWorkerRequestHandler,
+} from "./handler";
 
+export { deserializeJsx, serializeJsx, type SerializedNode };
 export function imagesWorkerMiddleware({
   imagesRoute,
+  imageRenderingOptions,
   secret,
 }: {
-  /** The absolute URL or URL relative to the URL of this server of the image rendering worker */
-  imagesRoute: string;
+  /**
+   * The absolute URL or URL relative to the URL of this server of the image rendering worker. Defaults to the base URL specified in `createFrames`.
+   *
+   * `null` disables the middleware such that it will not modify frame definitions or handle image requests.
+   */
+  imagesRoute?: string | null;
   /** Secret key used to sign JSX payloads */
   secret?: string;
-}): FramesMiddleware<any, Record<string, never>> {
+  /** Image rendering options.
+   *
+   * Only used when `frames()` handler is called on the `imagesRoute` route. Can be a function that returns the options.
+   */
+  imageRenderingOptions?:
+    | Omit<ImageWorkerOptions, "secret">
+    | (() => Promise<Omit<ImageWorkerOptions, "secret">>);
+} = {}): FramesMiddleware<any, Record<string, never>> {
   const middleware: FramesMiddleware<any, Record<string, never>> = async (
     ctx,
     next
   ) => {
+    if (imagesRoute === null) {
+      return next();
+    }
+
+    const imageUrl = generateTargetURL({
+      baseUrl: ctx.baseUrl,
+      target: imagesRoute || "/",
+    });
+
+    // Handle images worker request if the flag is set and the request is for the image route
+    if (
+      new URL(ctx.request.url).searchParams.get(FRAMES_IMAGES_PARAM_FLAG) &&
+      new URL(ctx.request.url).pathname === imageUrl.pathname
+    ) {
+      const optionsResolved =
+        typeof imageRenderingOptions === "function"
+          ? await imageRenderingOptions()
+          : imageRenderingOptions;
+
+      const worker = createImagesWorkerRequestHandler({
+        ...optionsResolved,
+        secret,
+      });
+      const res = await worker(ctx.request);
+      return res;
+    }
+
     const nextResult = await next();
 
     if (
@@ -30,26 +77,41 @@ export function imagesWorkerMiddleware({
       return nextResult;
     }
 
+    if (nextResult.imageOptions?.fonts !== undefined) {
+      // eslint-disable-next-line no-console -- provide feedback
+      console.warn(
+        "Warning (frames.js): `fonts` option is not supported in `imagesWorkerMiddleware`, specify fonts in the `imageRenderingOptions` option in your `createFrames` call instead."
+      );
+    }
+
     const imageJsonString = JSON.stringify(serializeJsx(nextResult.image));
 
-    const searchParams = new URLSearchParams({
-      time: Date.now().toString(),
-      jsx: imageJsonString,
-      aspectRatio: nextResult.imageOptions?.aspectRatio?.toString() || "1.91:1",
-    });
+    imageUrl.searchParams.set("jsx", imageJsonString);
+
+    nextResult.imageOptions &&
+      Object.entries(nextResult.imageOptions).forEach(([key, value]) => {
+        if (typeof value === "object") {
+          imageUrl.searchParams.append(key, JSON.stringify(value));
+        } else if (typeof value === "string") {
+          imageUrl.searchParams.append(key, value);
+        }
+      });
+
+    imageUrl.searchParams.append(FRAMES_IMAGES_PARAM_FLAG, "true");
 
     if (secret) {
       const signature = await createHMACSignature(imageJsonString, secret);
 
-      searchParams.append("signature", signature.toString("hex"));
+      imageUrl.searchParams.append("signature", signature.toString("hex"));
     }
 
-    const imageUrl = generateTargetURL({
-      baseUrl: ctx.baseUrl,
-      target: imagesRoute,
-    });
+    if (ctx.debug) {
+      const debugUrl = new URL(imageUrl);
 
-    imageUrl.search = searchParams.toString();
+      debugUrl.searchParams.set(FRAMES_IMAGES_DEBUG_FLAG, "true");
+
+      ctx.__debugInfo.image = debugUrl.toString();
+    }
 
     return {
       ...nextResult,
@@ -58,100 +120,4 @@ export function imagesWorkerMiddleware({
   };
 
   return middleware;
-}
-
-export type SerializedNode =
-  | {
-      type: string;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- we need to handle any type
-      props: Record<string, any> & {
-        children: SerializedNode[];
-      };
-    }
-  | (string | number | boolean | null | undefined);
-
-export function deserializeJsx(
-  serialized: SerializedNode[]
-): React.ReactElement {
-  // Map over each serialized node and convert it to a React element or a text node
-  const elements = serialized.map((node) => {
-    if (typeof node === "object" && node !== null && "type" in node) {
-      // It's an element object with type and props
-      const children = node.props.children
-        ? deserializeJsx(node.props.children)
-        : [];
-      const { children: _, ...restProps } = node.props;
-      return createElement(
-        node.type,
-        {
-          ...restProps,
-          key: "key" in node ? (node.key as string) : Math.random().toString(),
-        },
-        children
-      );
-    } else if (node !== null && node !== undefined) {
-      // It's a primitive value, so just return it as is (React can render strings and numbers directly)
-      return node;
-    }
-    // Null or undefined children are valid in React and can simply be ignored
-    return null;
-  });
-
-  // If there's only one top-level node, return it directly, otherwise return the array
-  return (elements.length === 1 ? elements[0] : elements) as JSX.Element;
-}
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment -- we need to handle any type */
-function serializeChild(
-  child: ReactElement | null | undefined | boolean | string
-): SerializedNode {
-  if (typeof child !== "object" || !child) {
-    return child;
-  }
-
-  if ("props" in child) {
-    let serialized: ReactElement = { ...child };
-
-    if ("children" in child.props && child.props.children) {
-      const childChildren = serializeJsx(child.props.children as ReactElement);
-
-      serialized = {
-        ...serialized,
-        props: {
-          ...serialized.props,
-          children: childChildren,
-        },
-      };
-    }
-
-    // If the child is a functional component, evaluate it and return the evaluation result
-    if (typeof child.type === "function") {
-      const evaluated = (child.type as CallableFunction)(
-        child.props
-      ) as ReactElement | null;
-
-      if (evaluated === null || typeof evaluated !== "object") {
-        return evaluated;
-      }
-
-      const serializedEvaluated = serializeChild({ ...evaluated });
-
-      if (
-        serializedEvaluated === null ||
-        typeof serializedEvaluated !== "object"
-      ) {
-        return serializedEvaluated;
-      }
-
-      serialized = { ...serializedEvaluated, key: Math.random().toString() };
-    }
-
-    return {
-      type: serialized.type.toString(),
-      props: serialized.props,
-    };
-  }
-}
-
-export function serializeJsx(children: ReactElement): SerializedNode[] {
-  return ReactChildren.map(children, serializeChild);
 }

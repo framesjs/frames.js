@@ -33,21 +33,49 @@ A string that specifies the base path for all relative URLs in the frame definit
 
 A string or URL object that specifies the base URL for all relative URLs in the frame definition. Can be used to override the URL detected from the request.
 
+### `debug`
+
+- Type: `boolean`
+
+Enables debug mode. Debug mode is necessary if you want to use image layout debugging in the debugger.
+
+### `signingSecret`
+
+- Type: `string`
+
+If provided, frames state and image URL payloads will be signed with this secret and validated on subsequent requests.
+
+Overridden by `stateSigningSecret` for state signing and `imagesSigningSecret` for signing images if provided.
+
+### `imagesRoute`
+
+- Type: `string | null`
+
+Image rendering will be handled by this route. It defaults to `/` relative to the `basePath`.
+
+The route must handle GET requests. It is recommended to use the initial frame route or any route that exports a `frames()` GET route handler.
+
+Pass `null` to disable async image rendering and use inline data URLs instead.
+
+### `imageRenderingOptions`
+
+- Type `ImageWorkerOptions | () => Promise<ImageWorkerOptions>`
+
+Options for the image renderer. If a function is provided, it will be called on each request to get the options.
+
+### `imagesSigningSecret`
+
+- Type: `string`
+
+A secret key used to sign and verify the image URLs. If provided, image URLs are automatically signed with this key and verified on each request.
+
+Overrides `signingSecret` for image signing if provided.
+
 ### `initialState`
 
 - Type: generic
 
 A JSON serializable value that is used if no state is provided in the message or you are on the initial frame.
-
-### `middleware`
-
-See the [Middleware guide](/guides/middleware) for more information.
-
-Type: `FramesMiddleware`
-
-An array of middleware functions that are called before the frame handler and allows you to inject additional context into the `ctx` parameter passed to each frame handler call.
-
-Each middleware should return a promise that resolves to the next middleware, or a [Web API `Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response), or a `FrameDefinition`.
 
 ### `stateSigningSecret`
 
@@ -59,6 +87,18 @@ A secret key used to sign and verify the state in the frame message. If provided
   - If the secret is not provided, the state will not be verified and used as is.
   - If the secret is provided and signature does not match error is thrown.
   - If the secret is provided and signature matches, the state will be used as is.
+
+Overrides `signingSecret` for state signing if provided.
+
+### `middleware`
+
+See the [Middleware guide](/guides/middleware) for more information.
+
+Type: `FramesMiddleware`
+
+An array of middleware functions that are called before the frame handler and allows you to inject additional context into the `ctx` parameter passed to each frame handler call.
+
+Each middleware should return a promise that resolves to the next middleware, or a [Web API `Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response), or a `FrameDefinition`.
 
 #### Types
 
@@ -178,7 +218,8 @@ const handleRequest = frames(async (ctx) => {
       aspectRatio: "1:1",
     },
     buttons: [<Button action="post">Refresh</Button>],
-    headers: {  // [!code focus]
+    headers: {
+      // [!code focus]
       // Max cache age in seconds // [!code focus]
       "Cache-Control": "max-age=0", // [!code focus]
     }, // [!code focus]

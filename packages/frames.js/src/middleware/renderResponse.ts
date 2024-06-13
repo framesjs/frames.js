@@ -1,7 +1,7 @@
 import { ImageResponse } from "@vercel/og";
 import { getFrameHtmlHead } from "../getFrameHtml";
 import { getFrameFlattened } from "../getFrameFlattened";
-import type { FrameButton, Frame } from "../types";
+import type { FrameButton, Frame, FrameFlattened } from "../types";
 import { Button, type ButtonProps } from "../core/components";
 import type {
   AllowedFrameButtonItems,
@@ -18,6 +18,7 @@ import {
 } from "../core/utils";
 import { FRAMES_META_TAGS_HEADER } from "../core/constants";
 import { FrameMessageError } from "../core/errors";
+import { FRAMESJS_DEBUG_INFO_IMAGE_KEY } from "../constants";
 
 class InvalidButtonShapeError extends Error {}
 
@@ -224,8 +225,16 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
         accepts: result.accepts,
       };
 
+      const overrides: Partial<FrameFlattened> = {};
+
+      if (context.debug) {
+        if (context.__debugInfo.image) {
+          overrides[FRAMESJS_DEBUG_INFO_IMAGE_KEY] = context.__debugInfo.image;
+        }
+      }
+
       if (wantsJSON) {
-        const flattened = getFrameFlattened(frame);
+        const flattened = getFrameFlattened(frame, overrides);
 
         return new Response(JSON.stringify(flattened), {
           status: result.status ?? 200,
@@ -237,7 +246,7 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
         });
       }
 
-      return new Response(getFrameHtmlHead(frame), {
+      return new Response(getFrameHtmlHead(frame, overrides), {
         status: result.status ?? 200,
         statusText: result.statusText ?? "OK",
         headers: {

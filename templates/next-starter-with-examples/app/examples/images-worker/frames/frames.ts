@@ -11,4 +11,5 @@ export const frames = createFrames({
       secret: "SOME_SECRET_VALUE",
     }),
   ],
+  debug: process.env.NODE_ENV === "development",
 });

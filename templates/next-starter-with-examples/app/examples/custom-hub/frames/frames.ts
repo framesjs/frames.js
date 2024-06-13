@@ -10,4 +10,5 @@ export const frames = createFrames({
       hubHttpUrl: "https://hub.freefarcasterhub.com:3281",
     }),
   ],
+  debug: process.env.NODE_ENV === "development",
 });

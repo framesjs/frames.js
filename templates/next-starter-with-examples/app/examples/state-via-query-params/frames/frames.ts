@@ -11,4 +11,5 @@ export const frames = createFrames<State>({
   },
   basePath: "/examples/state-via-query-params/frames",
   baseUrl: appURL(),
+  debug: process.env.NODE_ENV === "development",
 });
