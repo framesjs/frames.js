@@ -1,5 +1,16 @@
 # frames.js
 
+## 0.17.0
+
+### Minor Changes
+
+- 6c11e2e: fix(frames.js): use image jsx urls instead of data urls
+
+### Patch Changes
+
+- 6c11e2e: feat(frames.js): add debug mode
+- 6c11e2e: feat: serialize imageOptions headers in image request
+
 ## 0.16.6
 
 ### Patch Changes

@@ -1,5 +1,15 @@
 # template-next-starter-with-examples
 
+## 0.0.22
+
+### Patch Changes
+
+- 6c11e2e: feat(debugger): add image debugging mode
+- Updated dependencies [6c11e2e]
+- Updated dependencies [6c11e2e]
+- Updated dependencies [6c11e2e]
+  - frames.js@0.17.0
+
 ## 0.0.21
 
 ### Patch Changes

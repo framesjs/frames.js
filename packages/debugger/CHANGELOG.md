@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.3.0
+
+### Minor Changes
+
+- 6c11e2e: feat(debugger): add image debugging mode
+
 ## 0.2.13
 
 ### Patch Changes

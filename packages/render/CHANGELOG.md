@@ -1,5 +1,16 @@
 # @frames.js/render
 
+## 0.2.14
+
+### Patch Changes
+
+- 2427333: feat(@frames.js/render): allow to override fetch, onRedirect and onLinkButtonClick behaviours
+- 6c11e2e: feat(@frames.js/render): allow to debug images
+- Updated dependencies [6c11e2e]
+- Updated dependencies [6c11e2e]
+- Updated dependencies [6c11e2e]
+  - frames.js@0.17.0
+
 ## 0.2.13
 
 ### Patch Changes
