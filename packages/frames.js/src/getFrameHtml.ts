@@ -1,3 +1,4 @@
+import { DEFAULT_FRAME_TITLE } from "./constants";
 import { getFrameFlattened } from "./getFrameFlattened";
 import type { Frame, FrameFlattened } from "./types";
 import { escapeHtmlAttributeValue } from "./utils";
@@ -26,10 +27,10 @@ export function getFrameHtml(
   const html = `<!DOCTYPE html>
   <html>
     <head>
-      <title>${options.title ?? "frame"}</title>
+      <title>${options.title ?? frame.title ?? DEFAULT_FRAME_TITLE}</title>
       ${
-        options.og?.title
-          ? `<meta property="og:title" content="${options.og.title}"/>`
+        frame.title ?? options.og?.title
+          ? `<meta property="og:title" content="${frame.title ?? options.og?.title}"/>`
           : ""
       }
       ${getFrameHtmlHead(frame)}

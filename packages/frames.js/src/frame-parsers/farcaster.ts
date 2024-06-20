@@ -1,8 +1,10 @@
 import type { CheerioAPI } from "cheerio";
 import type { Frame } from "../types";
 import { isValidVersion } from "../utils";
+import { DEFAULT_FRAME_TITLE } from "../constants";
 import {
   getMetaTag,
+  getTagText,
   parseButtons,
   validate,
   validateAspectRatio,
@@ -16,11 +18,15 @@ import type { ParseResult, ParsedFrame, Reporter } from "./types";
 type Options = {
   reporter: Reporter;
   fallbackPostUrl: string;
+  /**
+   * @defaultValue false
+   */
+  warnOnMissingTitle?: boolean;
 };
 
 export function parseFarcasterFrame(
   $: CheerioAPI,
-  { fallbackPostUrl, reporter }: Options
+  { fallbackPostUrl, reporter, warnOnMissingTitle = false }: Options
 ): ParseResult {
   const parsedFrame: ParsedFrame = {
     version: getMetaTag($, "fc:frame"),
@@ -30,6 +36,7 @@ export function parseFarcasterFrame(
     inputText: getMetaTag($, "fc:frame:input:text"),
     postUrl: getMetaTag($, "fc:frame:post_url") ?? fallbackPostUrl,
     state: getMetaTag($, "fc:frame:state"),
+    title: getMetaTag($, "og:title") || getTagText($, "title"),
   };
   const frame: Partial<Frame> = {};
 
@@ -66,6 +73,24 @@ export function parseFarcasterFrame(
         reporter.warn("og:image", error.message);
       }
     }
+  }
+
+  if (!parsedFrame.title) {
+    if (warnOnMissingTitle) {
+      reporter.warn(
+        "title",
+        'Missing title, please provide <title> or <meta property="og:title"> tag.'
+      );
+    }
+  } else if (parsedFrame.title === DEFAULT_FRAME_TITLE) {
+    if (warnOnMissingTitle) {
+      reporter.warn(
+        "title",
+        `It seems the frame uses default title "${DEFAULT_FRAME_TITLE}" provided by Frames.js`
+      );
+    }
+  } else {
+    frame.title = parsedFrame.title;
   }
 
   if (parsedFrame.imageAspectRatio) {

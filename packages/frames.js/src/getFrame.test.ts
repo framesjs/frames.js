@@ -53,6 +53,7 @@ describe("getFrame", () => {
         ],
         postUrl: "https://example.com/",
         inputText: "Enter a message",
+        title: "test",
       },
       reports: {},
     });
@@ -109,6 +110,7 @@ describe("getFrame", () => {
           },
         ],
         postUrl: "https://example.com/",
+        title: "test",
       },
       reports: {},
       framesVersion: undefined,
@@ -151,7 +153,7 @@ describe("getFrame", () => {
       ],
     };
 
-    const html = getFrameHtml(exampleFrame);
+    const html = getFrameHtml(exampleFrame, { title: "Test" });
 
     const parsedFrame = getFrame({
       htmlString: html,
@@ -160,7 +162,7 @@ describe("getFrame", () => {
 
     expect(parsedFrame).toEqual({
       status: "success",
-      frame: { ...exampleFrame, accepts: undefined },
+      frame: { ...exampleFrame, title: "Test", accepts: undefined },
       reports: {},
       framesVersion,
     });
@@ -219,6 +221,7 @@ describe("getFrame", () => {
         ],
         postUrl: "https://example.com/",
         inputText: "Enter a message",
+        title: "test",
       },
       reports: {},
     });
@@ -304,6 +307,7 @@ describe("getFrame", () => {
         ],
         postUrl: "https://example.com/",
         inputText: "Enter a message",
+        title: "test",
       },
       reports: {
         "og:image": [

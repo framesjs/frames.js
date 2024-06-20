@@ -29,6 +29,7 @@ describe("farcaster frame parser", () => {
         ogImage: "http://example.com/image.png",
         version: "vNext",
         postUrl: fallbackPostUrl,
+        title: "Test",
       },
     });
   });
@@ -100,8 +101,88 @@ describe("farcaster frame parser", () => {
           ogImage: "http://example.com/image.png",
           version: "2022-01-01",
           postUrl: fallbackPostUrl,
+          title: "Test",
         },
         reports: {},
+      });
+    });
+  });
+
+  describe("title", () => {
+    it("warns if no <title> or meta[og:title] is present", () => {
+      const $ = load(`
+        <meta name="fc:frame" content="vNext"/>
+        <meta name="fc:frame:image" content="http://example.com/image.png"/>
+        <meta name="og:image" content="http://example.com/og-image.png"/>
+      `);
+
+      expect(
+        parseFarcasterFrame($, {
+          reporter,
+          fallbackPostUrl,
+          warnOnMissingTitle: true,
+        })
+      ).toEqual({
+        status: "success",
+        reports: {
+          title: [
+            {
+              level: "warning",
+              message:
+                'Missing title, please provide <title> or <meta property="og:title"> tag.',
+              source: "farcaster",
+            },
+          ],
+        },
+        frame: {
+          version: "vNext",
+          image: "http://example.com/image.png",
+          ogImage: "http://example.com/og-image.png",
+          postUrl: fallbackPostUrl,
+        },
+      });
+    });
+
+    it("parses og:title meta tag first", () => {
+      const $ = load(`
+        <meta name="fc:frame" content="vNext"/>
+        <meta name="fc:frame:image" content="http://example.com/image.png"/>
+        <meta name="og:image" content="http://example.com/og-image.png"/>
+        <meta name="og:title" content="Title og"/>
+        <title>Test</title>
+      `);
+
+      expect(parseFarcasterFrame($, { reporter, fallbackPostUrl })).toEqual({
+        status: "success",
+        reports: {},
+        frame: {
+          version: "vNext",
+          image: "http://example.com/image.png",
+          ogImage: "http://example.com/og-image.png",
+          postUrl: fallbackPostUrl,
+          title: "Title og",
+        },
+      });
+    });
+
+    it("falls to title tag if og:title is not present", () => {
+      const $ = load(`
+        <meta name="fc:frame" content="vNext"/>
+        <meta name="fc:frame:image" content="http://example.com/image.png"/>
+        <meta name="og:image" content="http://example.com/og-image.png"/>
+        <title>Title</title>
+      `);
+
+      expect(parseFarcasterFrame($, { reporter, fallbackPostUrl })).toEqual({
+        status: "success",
+        reports: {},
+        frame: {
+          version: "vNext",
+          image: "http://example.com/image.png",
+          ogImage: "http://example.com/og-image.png",
+          postUrl: fallbackPostUrl,
+          title: "Title",
+        },
       });
     });
   });
@@ -129,6 +210,7 @@ describe("farcaster frame parser", () => {
           version: "vNext",
           image: "http://example.com/image.png",
           postUrl: fallbackPostUrl,
+          title: "Test",
         },
       });
     });
@@ -149,6 +231,7 @@ describe("farcaster frame parser", () => {
           image: "http://example.com/image.png",
           ogImage: "http://example.com/og-image.png",
           postUrl: fallbackPostUrl,
+          title: "Test",
         },
       });
     });
@@ -170,6 +253,7 @@ describe("farcaster frame parser", () => {
           version: "vNext",
           ogImage: "http://example.com/image.png",
           postUrl: fallbackPostUrl,
+          title: "Test",
         },
         reports: expect.objectContaining({
           "fc:frame:image": [
@@ -200,6 +284,7 @@ describe("farcaster frame parser", () => {
           ogImage: "http://example.com/image.png",
           postUrl: fallbackPostUrl,
           version: "vNext",
+          title: "Test",
         },
         reports: {},
       });
@@ -226,6 +311,7 @@ describe("farcaster frame parser", () => {
           postUrl: fallbackPostUrl,
           imageAspectRatio: "1:1",
           ogImage: "http://example.com/image.png",
+          title: "Test",
         },
         reports: {},
       });
@@ -252,6 +338,7 @@ describe("farcaster frame parser", () => {
           postUrl: fallbackPostUrl,
           inputText: "Enter a message",
           ogImage: "http://example.com/image.png",
+          title: "Test",
         },
         reports: {},
       });
@@ -277,6 +364,7 @@ describe("farcaster frame parser", () => {
           version: "vNext",
           image: "http://example.com/image.png",
           ogImage: "http://example.com/image.png",
+          title: "Test",
         },
         reports: expect.objectContaining({
           "fc:frame:post_url": [
@@ -309,6 +397,7 @@ describe("farcaster frame parser", () => {
           version: "vNext",
           postUrl: "http://example.com/post",
           ogImage: "http://example.com/image.png",
+          title: "Test",
         },
         reports: {},
       });
@@ -335,6 +424,7 @@ describe("farcaster frame parser", () => {
           postUrl: fallbackPostUrl,
           version: "vNext",
           state: "state",
+          title: "Test",
         },
         reports: {},
       });
@@ -369,6 +459,7 @@ describe("farcaster frame parser", () => {
               target: "http://example.com",
             },
           ],
+          title: "Test",
         },
         reports: {},
       });

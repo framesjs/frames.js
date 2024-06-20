@@ -66,6 +66,7 @@ export function getFrameFlattened(
     "og:image": frame.ogImage || frame.image,
     "fc:frame:post_url": frame.postUrl,
     "fc:frame:input:text": frame.inputText,
+    ...(frame.title ? { "og:title": frame.title } : {}),
     ...(frame.state ? { "fc:frame:state": frame.state } : {}),
     ...(frame.imageAspectRatio
       ? { "fc:frame:image:aspect_ratio": frame.imageAspectRatio }

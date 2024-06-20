@@ -46,7 +46,12 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     const htmlString = await urlRes.text();
 
-    const result = getFrame({ htmlString, url, specification });
+    const result = getFrame({
+      htmlString,
+      url,
+      specification,
+      warnOnMissingTitle: true,
+    });
 
     return Response.json({ ...result, type: "frame" });
   } catch (err) {

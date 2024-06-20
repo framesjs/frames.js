@@ -435,6 +435,16 @@ function parseTxButton(
   };
 }
 
+export function getTagText($: CheerioAPI, tagName: string): string | undefined {
+  const title = $(tagName).text();
+
+  if (!title) {
+    return undefined;
+  }
+
+  return title;
+}
+
 export function getMetaTag(
   $: CheerioAPI,
   property: string,

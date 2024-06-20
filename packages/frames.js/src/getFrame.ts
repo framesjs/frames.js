@@ -24,6 +24,12 @@ type GetFrameOptions = {
    * @defaultValue 'farcaster'
    */
   specification?: SupportedParsingSpecification;
+  /**
+   * If true, a warning will be reported if the title is missing.
+   *
+   * @defaultValue false
+   */
+  warnOnMissingTitle?: boolean;
 };
 
 /**
@@ -35,10 +41,12 @@ export function getFrame({
   htmlString,
   specification = "farcaster",
   url,
+  warnOnMissingTitle = false,
 }: GetFrameOptions): GetFrameResult {
   const parsedFrames = parseFramesWithReports({
     fallbackPostUrl: url,
     html: htmlString,
+    warnOnMissingTitle,
   });
 
   return {

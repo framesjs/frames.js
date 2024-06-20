@@ -14,6 +14,12 @@ type ParseFramesWithReportsOptions = {
    * URL used if frame doesn't contain a post_url meta tag.
    */
   fallbackPostUrl: string;
+  /**
+   * If true, a warning will be reported if the title is missing.
+   *
+   * @defaultValue false
+   */
+  warnOnMissingTitle?: boolean;
 };
 
 export type ParseFramesWithReportsResult = {
@@ -34,6 +40,7 @@ export type ParseFramesWithReportsResult = {
 export function parseFramesWithReports({
   html,
   fallbackPostUrl,
+  warnOnMissingTitle = false,
 }: ParseFramesWithReportsOptions): ParseFramesWithReportsResult {
   const farcasterReporter = createReporter("farcaster");
   const openFramesReporter = createReporter("openframes");
@@ -42,6 +49,7 @@ export function parseFramesWithReports({
   const farcaster = parseFarcasterFrame(document, {
     reporter: farcasterReporter,
     fallbackPostUrl,
+    warnOnMissingTitle,
   });
 
   const framesVersion = document(
@@ -58,6 +66,7 @@ export function parseFramesWithReports({
       farcasterFrame: farcaster.frame,
       reporter: openFramesReporter,
       fallbackPostUrl,
+      warnOnMissingTitle,
     }),
     framesVersion,
     ...(debugImageUrl
