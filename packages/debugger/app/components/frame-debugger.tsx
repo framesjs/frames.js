@@ -579,13 +579,16 @@ export const FrameDebugger = React.forwardRef<
                 <div className="ml-auto text-sm text-slate-500">{url}</div>
 
                 {currentFrameStackItem?.request.method === "GET" && (
-                  <div className="border rounded mt-5">
-                    <CollapsedFrameUI
-                      frameState={frameState}
-                      theme={{ bg: "white" }}
-                      FrameImage={FrameImageNext}
-                      allowPartialFrame
-                    />
+                  <div className="mt-5">
+                    <h3 className="font-bold">Preview</h3>
+                    <div className="border rounded mt-2">
+                      <CollapsedFrameUI
+                        frameState={frameState}
+                        theme={{ bg: "white" }}
+                        FrameImage={FrameImageNext}
+                        allowPartialFrame
+                      />
+                    </div>
                   </div>
                 )}
                 <div className="space-y-1">
