@@ -316,6 +316,16 @@
         "types": "./dist/frame-parsers/index.d.cts",
         "default": "./dist/frame-parsers/index.cjs"
       }
+    },
+    "./lib/node-server-helpers": {
+      "import": {
+        "types": "./dist/lib/node-server-helpers.d.ts",
+        "default": "./dist/lib/node-server-helpers.js"
+      },
+      "require": {
+        "types": "./dist/lib/node-server-helpers.d.cts",
+        "default": "./dist/lib/node-server-helpers.cjs"
+      }
     }
   },
   "files": [
