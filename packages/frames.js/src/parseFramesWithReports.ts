@@ -14,6 +14,14 @@ type ParseFramesWithReportsOptions = {
    * URL used if frame doesn't contain a post_url meta tag.
    */
   fallbackPostUrl: string;
+  /**
+   * What was the request method used to fetch the frame.
+   *
+   * This changes how validation works, some properties aren't required for POST requests.
+   *
+   * @defaultValue 'GET'
+   */
+  fromRequestMethod?: "GET" | "POST";
 };
 
 export type ParseFramesWithReportsResult = {
@@ -34,6 +42,7 @@ export type ParseFramesWithReportsResult = {
 export function parseFramesWithReports({
   html,
   fallbackPostUrl,
+  fromRequestMethod = "GET",
 }: ParseFramesWithReportsOptions): ParseFramesWithReportsResult {
   const farcasterReporter = createReporter("farcaster");
   const openFramesReporter = createReporter("openframes");
@@ -42,6 +51,7 @@ export function parseFramesWithReports({
   const farcaster = parseFarcasterFrame(document, {
     reporter: farcasterReporter,
     fallbackPostUrl,
+    fromRequestMethod,
   });
 
   const framesVersion = document(
@@ -58,6 +68,7 @@ export function parseFramesWithReports({
       farcasterFrame: farcaster.frame,
       reporter: openFramesReporter,
       fallbackPostUrl,
+      fromRequestMethod,
     }),
     framesVersion,
     ...(debugImageUrl

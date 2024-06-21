@@ -18,6 +18,7 @@ import {
   type FrameState,
   type FramesStack,
   type FramesStackItem,
+  CollapsedFrameUI,
   FrameUI,
   defaultTheme,
 } from "@frames.js/render";
@@ -576,6 +577,20 @@ export const FrameDebugger = React.forwardRef<
                 </div>
 
                 <div className="ml-auto text-sm text-slate-500">{url}</div>
+
+                {currentFrameStackItem?.request.method === "GET" && (
+                  <div className="my-5">
+                    <h3 className="font-bold">Preview</h3>
+                    <div className="border rounded mt-2">
+                      <CollapsedFrameUI
+                        frameState={frameState}
+                        theme={{ bg: "white" }}
+                        FrameImage={FrameImageNext}
+                        allowPartialFrame
+                      />
+                    </div>
+                  </div>
+                )}
                 <div className="space-y-1">
                   {currentFrameStackItem?.status === "done" &&
                     currentFrameStackItem.frameResult.frame.buttons

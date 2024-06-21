@@ -24,6 +24,14 @@ type GetFrameOptions = {
    * @defaultValue 'farcaster'
    */
   specification?: SupportedParsingSpecification;
+  /**
+   * What was the request method used to fetch the frame.
+   *
+   * This changes how validation works, some properties aren't required for POST requests.
+   *
+   * @defaultValue 'GET'
+   */
+  fromRequestMethod?: "GET" | "POST";
 };
 
 /**
@@ -35,10 +43,12 @@ export function getFrame({
   htmlString,
   specification = "farcaster",
   url,
+  fromRequestMethod = "GET",
 }: GetFrameOptions): GetFrameResult {
   const parsedFrames = parseFramesWithReports({
     fallbackPostUrl: url,
     html: htmlString,
+    fromRequestMethod,
   });
 
   return {

@@ -46,7 +46,12 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     const htmlString = await urlRes.text();
 
-    const result = getFrame({ htmlString, url, specification });
+    const result = getFrame({
+      htmlString,
+      url,
+      specification,
+      fromRequestMethod: "GET",
+    });
 
     return Response.json({ ...result, type: "frame" });
   } catch (err) {
@@ -154,6 +159,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       htmlString,
       url: body.untrustedData.url,
       specification,
+      fromRequestMethod: "POST",
     });
 
     return Response.json(result);

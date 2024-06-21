@@ -30,6 +30,7 @@ export type ParsedFrame = {
   postUrl: string | undefined;
   state: string | undefined;
   buttons?: ParsedButton[];
+  title?: string;
 };
 
 export type ParsingReportSource = SupportedParsingSpecification;

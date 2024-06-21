@@ -31,6 +31,7 @@ export type Frame = {
   state?: string;
   /** Open Frames spec: The minimum client protocol version accepted for the given protocol identifier. For example VNext , or 1.5 . At least one $protocol_identifier must be specified. */
   accepts?: ClientProtocolId[];
+  title?: string;
 };
 
 export type ActionButtonType = "post" | "post_redirect" | "link";

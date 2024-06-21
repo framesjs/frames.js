@@ -2,9 +2,11 @@
 import type { CheerioAPI } from "cheerio";
 import type { Frame } from "../types";
 import { isValidVersion } from "../utils";
+import { DEFAULT_FRAME_TITLE } from "../constants";
 import type { ParseResult, ParsedFrame, Reporter } from "./types";
 import {
   getMetaTag,
+  getTagText,
   parseButtons,
   validate,
   validateAspectRatio,
@@ -18,6 +20,10 @@ type Options = {
   farcasterFrame: Partial<Frame>;
   reporter: Reporter;
   fallbackPostUrl: string;
+  /**
+   * @defaultValue 'GET'
+   */
+  fromRequestMethod?: "GET" | "POST";
 };
 
 type ParsedOpenFramesFrame = ParsedFrame & {
@@ -26,7 +32,12 @@ type ParsedOpenFramesFrame = ParsedFrame & {
 
 export function parseOpenFramesFrame(
   $: CheerioAPI,
-  { fallbackPostUrl, farcasterFrame, reporter }: Options
+  {
+    fallbackPostUrl,
+    farcasterFrame,
+    reporter,
+    fromRequestMethod = "GET",
+  }: Options
 ): ParseResult {
   let fallbackFrameData: Partial<Frame> = {};
 
@@ -69,6 +80,7 @@ export function parseOpenFramesFrame(
     inputText: getMetaTag($, "of:input:text", fallbackFrameData.inputText),
     postUrl: getMetaTag($, "of:post_url") ?? fallbackPostUrl,
     state: getMetaTag($, "of:state", fallbackFrameData.state),
+    title: getMetaTag($, "og:title") || getTagText($, "title"),
   };
   const frame: Partial<Frame> = {
     accepts,
@@ -94,7 +106,9 @@ export function parseOpenFramesFrame(
   }
 
   if (!parsedFrame.ogImage) {
-    reporter.warn("og:image", 'Missing meta tag "og:image"');
+    if (fromRequestMethod === "GET") {
+      reporter.warn("og:image", 'Missing meta tag "og:image"');
+    }
   } else {
     try {
       frame.ogImage = validateFrameImage(parsedFrame.ogImage);
@@ -103,6 +117,24 @@ export function parseOpenFramesFrame(
         reporter.warn("og:image", error.message);
       }
     }
+  }
+
+  if (!parsedFrame.title) {
+    if (fromRequestMethod === "GET") {
+      reporter.warn(
+        "title",
+        'Missing title, please provide <title> or <meta property="og:title"> tag.'
+      );
+    }
+  } else if (parsedFrame.title === DEFAULT_FRAME_TITLE) {
+    if (fromRequestMethod === "GET") {
+      reporter.warn(
+        "title",
+        `It seems the frame uses default title "${DEFAULT_FRAME_TITLE}" provided by Frames.js`
+      );
+    }
+  } else {
+    frame.title = parsedFrame.title;
   }
 
   if (parsedFrame.imageAspectRatio) {
