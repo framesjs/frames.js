@@ -120,7 +120,6 @@ describe("farcaster frame parser", () => {
         parseFarcasterFrame($, {
           reporter,
           fallbackPostUrl,
-          warnOnMissingTitle: true,
         })
       ).toEqual({
         status: "success",
@@ -206,6 +205,31 @@ describe("farcaster frame parser", () => {
             },
           ],
         },
+        frame: {
+          version: "vNext",
+          image: "http://example.com/image.png",
+          postUrl: fallbackPostUrl,
+          title: "Test",
+        },
+      });
+    });
+
+    it("does not warn if og image is missing and request method is POST", () => {
+      const $ = load(`
+    <meta name="fc:frame" content="vNext"/>
+    <meta name="fc:frame:image" content="http://example.com/image.png"/>
+    <title>Test</title>
+    `);
+
+      expect(
+        parseFarcasterFrame($, {
+          reporter,
+          fallbackPostUrl,
+          fromRequestMethod: "POST",
+        })
+      ).toEqual({
+        status: "success",
+        reports: {},
         frame: {
           version: "vNext",
           image: "http://example.com/image.png",

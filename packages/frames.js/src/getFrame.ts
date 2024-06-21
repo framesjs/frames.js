@@ -25,11 +25,13 @@ type GetFrameOptions = {
    */
   specification?: SupportedParsingSpecification;
   /**
-   * If true, a warning will be reported if the title is missing.
+   * What was the request method used to fetch the frame.
    *
-   * @defaultValue false
+   * This changes how validation works, some properties aren't required for POST requests.
+   *
+   * @defaultValue 'GET'
    */
-  warnOnMissingTitle?: boolean;
+  fromRequestMethod?: "GET" | "POST";
 };
 
 /**
@@ -41,12 +43,12 @@ export function getFrame({
   htmlString,
   specification = "farcaster",
   url,
-  warnOnMissingTitle = false,
+  fromRequestMethod = "GET",
 }: GetFrameOptions): GetFrameResult {
   const parsedFrames = parseFramesWithReports({
     fallbackPostUrl: url,
     html: htmlString,
-    warnOnMissingTitle,
+    fromRequestMethod,
   });
 
   return {

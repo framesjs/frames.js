@@ -19,14 +19,14 @@ type Options = {
   reporter: Reporter;
   fallbackPostUrl: string;
   /**
-   * @defaultValue false
+   * @defaultValue 'GET'
    */
-  warnOnMissingTitle?: boolean;
+  fromRequestMethod?: "GET" | "POST";
 };
 
 export function parseFarcasterFrame(
   $: CheerioAPI,
-  { fallbackPostUrl, reporter, warnOnMissingTitle = false }: Options
+  { fallbackPostUrl, reporter, fromRequestMethod = "GET" }: Options
 ): ParseResult {
   const parsedFrame: ParsedFrame = {
     version: getMetaTag($, "fc:frame"),
@@ -64,7 +64,9 @@ export function parseFarcasterFrame(
   }
 
   if (!parsedFrame.ogImage) {
-    reporter.warn("og:image", 'Missing meta tag "og:image"');
+    if (fromRequestMethod === "GET") {
+      reporter.warn("og:image", 'Missing meta tag "og:image"');
+    }
   } else {
     try {
       frame.ogImage = validateFrameImage(parsedFrame.ogImage);
@@ -76,14 +78,14 @@ export function parseFarcasterFrame(
   }
 
   if (!parsedFrame.title) {
-    if (warnOnMissingTitle) {
+    if (fromRequestMethod === "GET") {
       reporter.warn(
         "title",
         'Missing title, please provide <title> or <meta property="og:title"> tag.'
       );
     }
   } else if (parsedFrame.title === DEFAULT_FRAME_TITLE) {
-    if (warnOnMissingTitle) {
+    if (fromRequestMethod === "GET") {
       reporter.warn(
         "title",
         `It seems the frame uses default title "${DEFAULT_FRAME_TITLE}" provided by Frames.js`

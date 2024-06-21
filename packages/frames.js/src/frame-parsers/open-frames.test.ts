@@ -257,7 +257,6 @@ describe("open frames frame parser", () => {
           farcasterFrame: {},
           reporter,
           fallbackPostUrl,
-          warnOnMissingTitle: true,
         })
       ).toEqual({
         status: "success",
@@ -367,6 +366,34 @@ describe("open frames frame parser", () => {
             },
           ],
         },
+        frame: {
+          accepts: [{ id: "some_protocol", version: "vNext" }],
+          version: "vNext",
+          image: "http://example.com/image.png",
+          postUrl: fallbackPostUrl,
+          title: "Test",
+        },
+      });
+    });
+
+    it("does not warn if og image is missing and request method is POST", () => {
+      const $ = load(`
+    <meta name="of:version" content="vNext"/>
+    <meta name="of:accepts:some_protocol" content="vNext"/> 
+    <meta name="of:image" content="http://example.com/image.png"/>
+    <title>Test</title>
+    `);
+
+      expect(
+        parseOpenFramesFrame($, {
+          farcasterFrame: {},
+          fallbackPostUrl,
+          reporter,
+          fromRequestMethod: "POST",
+        })
+      ).toEqual({
+        status: "success",
+        reports: {},
         frame: {
           accepts: [{ id: "some_protocol", version: "vNext" }],
           version: "vNext",

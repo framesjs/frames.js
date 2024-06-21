@@ -15,11 +15,13 @@ type ParseFramesWithReportsOptions = {
    */
   fallbackPostUrl: string;
   /**
-   * If true, a warning will be reported if the title is missing.
+   * What was the request method used to fetch the frame.
    *
-   * @defaultValue false
+   * This changes how validation works, some properties aren't required for POST requests.
+   *
+   * @defaultValue 'GET'
    */
-  warnOnMissingTitle?: boolean;
+  fromRequestMethod?: "GET" | "POST";
 };
 
 export type ParseFramesWithReportsResult = {
@@ -40,7 +42,7 @@ export type ParseFramesWithReportsResult = {
 export function parseFramesWithReports({
   html,
   fallbackPostUrl,
-  warnOnMissingTitle = false,
+  fromRequestMethod = "GET",
 }: ParseFramesWithReportsOptions): ParseFramesWithReportsResult {
   const farcasterReporter = createReporter("farcaster");
   const openFramesReporter = createReporter("openframes");
@@ -49,7 +51,7 @@ export function parseFramesWithReports({
   const farcaster = parseFarcasterFrame(document, {
     reporter: farcasterReporter,
     fallbackPostUrl,
-    warnOnMissingTitle,
+    fromRequestMethod,
   });
 
   const framesVersion = document(
@@ -66,7 +68,7 @@ export function parseFramesWithReports({
       farcasterFrame: farcaster.frame,
       reporter: openFramesReporter,
       fallbackPostUrl,
-      warnOnMissingTitle,
+      fromRequestMethod,
     }),
     framesVersion,
     ...(debugImageUrl

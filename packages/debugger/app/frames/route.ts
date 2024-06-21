@@ -50,7 +50,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       htmlString,
       url,
       specification,
-      warnOnMissingTitle: true,
+      fromRequestMethod: "GET",
     });
 
     return Response.json({ ...result, type: "frame" });
@@ -159,6 +159,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       htmlString,
       url: body.untrustedData.url,
       specification,
+      fromRequestMethod: "POST",
     });
 
     return Response.json(result);
