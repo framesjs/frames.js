@@ -27,8 +27,8 @@ export const frames = createFrames({
         version: "2024-02-09",
       },
       handler: {
-        isValidPayload: (body: JSON) => isXmtpFrameActionPayload(body),
-        getFrameMessage: async (body: JSON) => {
+        isValidPayload: (body) => isXmtpFrameActionPayload(body),
+        getFrameMessage: async (body) => {
           if (!isXmtpFrameActionPayload(body)) {
             return undefined;
           }
@@ -44,8 +44,8 @@ export const frames = createFrames({
         version: "1.0.0",
       },
       handler: {
-        isValidPayload: (body: JSON) => isLensFrameActionPayload(body),
-        getFrameMessage: async (body: JSON) => {
+        isValidPayload: (body) => isLensFrameActionPayload(body),
+        getFrameMessage: async (body) => {
           if (!isLensFrameActionPayload(body)) {
             return undefined;
           }

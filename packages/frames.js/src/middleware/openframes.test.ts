@@ -12,6 +12,7 @@ import type {
   FrameDefinition,
   FramesContext,
   FramesMiddleware,
+  JsonValue,
 } from "../core/types";
 import { isFrameDefinition } from "../core/utils";
 import { createFrames } from "../core";
@@ -68,8 +69,8 @@ describe("openframes middleware", () => {
         version: "2024-02-09",
       },
       handler: {
-        isValidPayload: (body: JSON) => isXmtpFrameActionPayload(body),
-        getFrameMessage: async (body: JSON) => {
+        isValidPayload: (body: JsonValue) => isXmtpFrameActionPayload(body),
+        getFrameMessage: async (body: JsonValue) => {
           if (!isXmtpFrameActionPayload(body)) {
             return undefined;
           }

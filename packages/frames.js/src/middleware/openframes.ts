@@ -4,6 +4,7 @@ import type {
   FramesHandlerFunctionReturnType,
   FramesMiddleware,
   FramesMiddlewareReturnType,
+  JsonValue,
 } from "../core/types";
 import { isFrameDefinition } from "../core/utils";
 
@@ -15,11 +16,11 @@ export type OpenFramesMessageContext<T = OpenFrameMessage> = {
 };
 
 export type ClientProtocolHandler<T = OpenFrameMessage> = {
-  getFrameMessage: (body: JSON) => Promise<T | undefined> | undefined;
-  isValidPayload: (body: JSON) => boolean;
+  getFrameMessage: (body: JsonValue) => Promise<T | undefined> | undefined;
+  isValidPayload: (body: JsonValue) => boolean;
 };
 
-async function cloneJsonBody(request: Request): Promise<JSON | undefined> {
+async function cloneJsonBody(request: Request): Promise<JsonValue | undefined> {
   try {
     // use clone just in case someone wants to read body somewhere along the way
     const body = (await request
@@ -27,7 +28,7 @@ async function cloneJsonBody(request: Request): Promise<JSON | undefined> {
       .json()
       .catch(() => {
         throw new RequestBodyNotJSONError();
-      })) as JSON;
+      })) as JsonValue;
 
     return body;
   } catch (e) {
