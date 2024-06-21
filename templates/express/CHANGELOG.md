@@ -1,5 +1,14 @@
 # template-express
 
+## 0.0.20
+
+### Patch Changes
+
+- Updated dependencies [0376179]
+- Updated dependencies [ef7accc]
+- Updated dependencies [1ff7e6e]
+  - frames.js@0.17.1
+
 ## 0.0.19
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @frames.js/debugger
 
+## 0.3.1
+
+### Patch Changes
+
+- 0376179: feat(@frames.js/debugger): show collapsed frame preview and title reports
+  feat(@frames.js/render): add CollapsedFrameUI component
+  feat(frames.js): parse title and allow to report warnings it is missing
+
 ## 0.3.0
 
 ### Minor Changes
