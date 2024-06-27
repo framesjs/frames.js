@@ -127,6 +127,16 @@
         "default": "./dist/next/types.cjs"
       }
     },
+    "./ethereum": {
+      "import": {
+        "types": "./dist/ethereum/index.d.ts",
+        "default": "./dist/ethereum/index.js"
+      },
+      "require": {
+        "types": "./dist/ethereum/index.d.cts",
+        "default": "./dist/ethereum/index.cjs"
+      }
+    },
     "./xmtp": {
       "import": {
         "types": "./dist/xmtp/index.d.ts",

@@ -48,6 +48,8 @@ import {
 import { useLensIdentity } from "./hooks/use-lens-identity";
 import { useLensFrameContext } from "./hooks/use-lens-context";
 import { ProfileSelectorModal } from "./components/lens-profile-select";
+import { useEthIdentity } from "./hooks/use-eth-identity";
+import { useEthFrameContext } from "./hooks/use-eth-context";
 
 const FALLBACK_URL =
   process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
@@ -241,6 +243,7 @@ export default function DebuggerPage({
   });
   const xmtpSignerState = useXmtpIdentity();
   const lensSignerState = useLensIdentity();
+  const ethSignerState = useEthIdentity();
 
   const farcasterFrameContext = useFarcasterFrameContext({
     fallbackContext: fallbackFrameContext,
@@ -260,6 +263,8 @@ export default function DebuggerPage({
       pubId: "0x01-0x01",
     },
   });
+
+  const ethFrameContext = useEthFrameContext({ fallbackContext: {} });
 
   const onTransaction: OnTransactionFunc = useCallback(
     async ({ transactionData }) => {
@@ -440,10 +445,18 @@ export default function DebuggerPage({
     frameContext: lensFrameContext.frameContext,
   });
 
+  const ethFrameState = useFrame({
+    ...useFrameConfig,
+    signerState: ethSignerState,
+    specification: "openframes",
+    frameContext: ethFrameContext.frameContext,
+  });
+
   const selectedFrameState = {
     farcaster: farcasterFrameState,
     xmtp: xmtpFrameState,
     lens: lensFrameState,
+    eth: ethFrameState,
   }[protocolConfiguration?.protocol ?? "farcaster"];
 
   return (
@@ -585,6 +598,8 @@ export default function DebuggerPage({
             ref={selectProtocolButtonRef}
             lensFrameContext={lensFrameContext}
             lensSignerState={lensSignerState}
+            ethFrameContext={ethFrameContext}
+            ethSignerState={ethSignerState}
           ></ProtocolConfigurationButton>
 
           <div className="ml-auto">

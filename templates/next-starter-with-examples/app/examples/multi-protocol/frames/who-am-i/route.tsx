@@ -7,7 +7,7 @@ export const POST = frames(async (ctx) => {
   let walletAddress: string | undefined =
     // farcaster
     ctx.message?.requesterCustodyAddress ||
-    // xmtp
+    // xmtp/eth
     ctx.message?.verifiedWalletAddress;
 
   if (ctx.clientProtocol?.id === "lens") {

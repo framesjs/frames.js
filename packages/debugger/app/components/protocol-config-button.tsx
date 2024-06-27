@@ -17,6 +17,8 @@ import { cn } from "../lib/utils";
 import FarcasterSignerWindow from "./farcaster-signer-config";
 import { forwardRef, useMemo, useState } from "react";
 import { WithTooltip } from "./with-tooltip";
+import { useEthIdentity } from "../hooks/use-eth-identity";
+import { useEthFrameContext } from "../hooks/use-eth-context";
 
 export type ProtocolConfiguration =
   | {
@@ -29,6 +31,10 @@ export type ProtocolConfiguration =
     }
   | {
       protocol: "xmtp";
+      specification: "openframes";
+    }
+  | {
+      protocol: "eth";
       specification: "openframes";
     };
 
@@ -45,6 +51,10 @@ export const protocolConfigurationMap: Record<string, ProtocolConfiguration> = {
     protocol: "lens",
     specification: "openframes",
   },
+  eth: {
+    protocol: "eth",
+    specification: "openframes",
+  },
 };
 
 type ProtocolConfigurationButtonProps = {
@@ -53,9 +63,11 @@ type ProtocolConfigurationButtonProps = {
   farcasterSignerState: ReturnType<typeof useFarcasterIdentity>;
   xmtpSignerState: ReturnType<typeof useXmtpIdentity>;
   lensSignerState: ReturnType<typeof useLensIdentity>;
+  ethSignerState: ReturnType<typeof useEthIdentity>;
   farcasterFrameContext: ReturnType<typeof useFarcasterFrameContext>;
   xmtpFrameContext: ReturnType<typeof useXmtpFrameContext>;
   lensFrameContext: ReturnType<typeof useLensFrameContext>;
+  ethFrameContext: ReturnType<typeof useEthFrameContext>;
 };
 
 export const ProtocolConfigurationButton = forwardRef<
@@ -68,10 +80,12 @@ export const ProtocolConfigurationButton = forwardRef<
       value,
       farcasterSignerState,
       xmtpSignerState,
+      lensSignerState,
+      ethSignerState,
       farcasterFrameContext,
       xmtpFrameContext,
       lensFrameContext,
-      lensSignerState,
+      ethFrameContext,
     },
     ref
   ) => {
@@ -92,12 +106,17 @@ export const ProtocolConfigurationButton = forwardRef<
         valid = !!lensSignerState.signer;
       }
 
+      if (value?.protocol === "eth") {
+        valid = !!ethSignerState.signer;
+      }
+
       return valid;
     }, [
       farcasterSignerState.signer,
       value?.protocol,
       xmtpSignerState.signer,
       lensSignerState.signer,
+      ethSignerState.signer,
     ]);
 
     return (
@@ -111,11 +130,11 @@ export const ProtocolConfigurationButton = forwardRef<
                   {value.specification === "openframes"
                     ? `(${value.specification})`
                     : // Farcaster
-                      farcasterSignerState.signer?.status !== "pending_approval"
-                      ? `(${
-                          farcasterSignerState.signer?.fid ?? "select identity"
-                        })`
-                      : "select identity"}
+                    farcasterSignerState.signer?.status !== "pending_approval"
+                    ? `(${
+                        farcasterSignerState.signer?.fid ?? "select identity"
+                      })`
+                    : "select identity"}
                 </>
               ) : (
                 <>Select a protocol</>
@@ -128,7 +147,7 @@ export const ProtocolConfigurationButton = forwardRef<
             <TabsList
               className={cn(
                 "w-full grid",
-                !value ? "grid-cols-4" : "grid-cols-3"
+                !value ? "grid-cols-5" : "grid-cols-4"
               )}
             >
               {!value && <TabsTrigger value="none">None</TabsTrigger>}
@@ -158,6 +177,14 @@ export const ProtocolConfigurationButton = forwardRef<
                 }
               >
                 Lens
+              </TabsTrigger>
+              <TabsTrigger
+                value="ethereum"
+                onClick={() =>
+                  onChange({ protocol: "eth", specification: "openframes" })
+                }
+              >
+                Ethereum
               </TabsTrigger>
             </TabsList>
             <TabsContent value={"none"}></TabsContent>
@@ -347,6 +374,45 @@ export const ProtocolConfigurationButton = forwardRef<
                   >
                     Reset
                   </Button>
+                </div>
+              </div>
+            </TabsContent>
+            <TabsContent value="eth">
+              <div>
+                <div>
+                  {ethSignerState.signer ? (
+                    <div>
+                      <div className="mb-2">
+                        Connected as{" "}
+                        {ethSignerState.signer.signedPublicKeyBundle.wallet_address.slice(
+                          0,
+                          6
+                        )}
+                        ...
+                        {ethSignerState.signer.signedPublicKeyBundle.wallet_address.slice(
+                          -4
+                        )}
+                      </div>
+                      <Button
+                        variant={"secondary"}
+                        className="w-full"
+                        onClick={() => {
+                          ethSignerState.logout?.();
+                        }}
+                      >
+                        Logout
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      className="w-full"
+                      onClick={() => {
+                        ethSignerState.onSignerlessFramePress();
+                      }}
+                    >
+                      Connect Ethereum
+                    </Button>
+                  )}
                 </div>
               </div>
             </TabsContent>

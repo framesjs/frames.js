@@ -6,6 +6,10 @@ import { getXmtpFrameMessage, isXmtpFrameActionPayload } from "frames.js/xmtp";
 import { DEFAULT_DEBUGGER_HUB_URL } from "../../../debug";
 import { appURL } from "../../../utils";
 import { getLensFrameMessage, isLensFrameActionPayload } from "frames.js/lens";
+import {
+  getEthereumFrameMessage,
+  isEthereumFrameActionPayload,
+} from "frames.js/ethereum";
 
 export const frames = createFrames({
   basePath: "/examples/multi-protocol/frames",
@@ -52,6 +56,33 @@ export const frames = createFrames({
           const result = await getLensFrameMessage(body);
 
           return { ...result };
+        },
+      },
+    }),
+    openframes({
+      clientProtocol: {
+        id: "eth",
+        version: "v1",
+      },
+      handler: {
+        isValidPayload: (body) => isEthereumFrameActionPayload(body),
+        getFrameMessage: async (body) => {
+          if (!isEthereumFrameActionPayload(body)) {
+            return undefined;
+          }
+          const result = await getEthereumFrameMessage(body);
+
+          let state: (typeof result)["state"] | undefined;
+
+          if (result.state) {
+            try {
+              state = JSON.parse(result.state) as typeof state;
+            } catch (error) {
+              console.error("openframes: Could not parse state");
+            }
+          }
+
+          return { ...result, state };
         },
       },
     }),
