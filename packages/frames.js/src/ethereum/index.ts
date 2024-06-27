@@ -11,15 +11,28 @@ import {
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { mainnet } from "viem/chains";
 
+export type AppMetadataTypes = {
+  "1": {
+    name: string;
+    description: string;
+    url: string;
+    iconUrl: string;
+  };
+};
+
 export type PublicKeyBundle = {
   timestamp: number; // unix timestamp of when the signer was created
   proxy_key_bytes: `0x${string}`; // public key (1)
+  app_data_type: keyof AppMetadataTypes; // Using "1" for v1, but can be any string (perhaps json schema url or more descriptive name)
+  app_data: string; // Stringified json
 };
 
 export type SignedPublicKeyBundle = {
   public_key_bundle: PublicKeyBundle;
   wallet_address: `0x${string}`; // wallet address (1)
-  signature: `0x${string}`;
+  wallet_signature: `0x${string}`;
+  app_address: `0x${string}`; // app address (1)
+  app_signature: `0x${string}`;
 };
 
 export type FrameActionBody = {
@@ -61,10 +74,12 @@ export const EIP712TypesV1: Record<
   PublicKeyBundle: [
     { name: "timestamp", type: "uint64" },
     { name: "proxy_key_bytes", type: "address" },
+    { name: "app_data_type", type: "string" },
+    { name: "app_data", type: "string" },
   ] as const satisfies readonly TypedDataParameter[],
 };
 
-export const domain: Record<string, string | number> = {
+export const domain = {
   name: "Ethereum Frame Action",
   version: "1",
 } as const;
@@ -80,9 +95,11 @@ export async function verifyPublicKeyBundle(
       timestamp: signedPublicKeyBundle.public_key_bundle.timestamp,
       wallet_address: signedPublicKeyBundle.wallet_address,
       proxy_key_bytes: signedPublicKeyBundle.public_key_bundle.proxy_key_bytes,
+      app_data_type: signedPublicKeyBundle.public_key_bundle.app_data_type,
+      app_data: signedPublicKeyBundle.public_key_bundle.app_data,
     },
     address: signedPublicKeyBundle.wallet_address,
-    signature: signedPublicKeyBundle.signature,
+    signature: signedPublicKeyBundle.wallet_signature,
   };
 
   const publicClient = createPublicClient({
@@ -90,7 +107,12 @@ export async function verifyPublicKeyBundle(
     chain: mainnet,
   });
 
-  return publicClient.verifyTypedData(typedData);
+  const validMessage = await publicClient.verifyTypedData(typedData);
+  const signerMatchesBundle =
+    signedPublicKeyBundle.wallet_address ===
+    signedPublicKeyBundle.public_key_bundle.proxy_key_bytes;
+
+  return validMessage && signerMatchesBundle;
 }
 
 export function isEthereumFrameActionPayload(
@@ -127,7 +149,10 @@ export async function getEthereumFrameMessage(
   body: EthereumFrameRequest,
   publicClient?: PublicClient
 ): Promise<
-  FrameActionBody & { isValid: boolean; requesterWalletAddress: `0x${string}` }
+  EthereumFrameRequest["untrustedData"] & {
+    isValid: boolean;
+    requesterWalletAddress: `0x${string}`;
+  }
 > {
   const { untrustedData } = body;
   const { url, buttonIndex, unixTimestamp, inputText, state } = untrustedData;
@@ -181,34 +206,63 @@ export async function getEthereumFrameMessage(
 
 export async function signPublicKeyBundle(
   publicKeyBundle: PublicKeyBundle,
-  walletClient: WalletClient
+  walletClient: WalletClient,
+  appWalletClient: WalletClient
 ): Promise<SignedPublicKeyBundle> {
   if (!walletClient.account) {
     throw new Error("Wallet client does not have an account");
   }
 
-  // @ts-expect-error -- This is valid
-  const signature = await walletClient.signTypedData({
+  if (!appWalletClient.account) {
+    throw new Error("App wallet client does not have an account");
+  }
+
+  const message = {
+    timestamp: publicKeyBundle.timestamp,
+    proxy_key_bytes: publicKeyBundle.proxy_key_bytes,
+    app_data_type: publicKeyBundle.app_data_type,
+    app_data: publicKeyBundle.app_data,
+  };
+
+  // @ts-expect-error -- account is defined on WalletClient
+  const walletSignature = await walletClient.signTypedData({
     primaryType: "PublicKeyBundle",
     domain,
     types: EIP712TypesV1,
-    message: {
-      timestamp: publicKeyBundle.timestamp,
-      proxy_key_bytes: publicKeyBundle.proxy_key_bytes,
-    },
+    message,
+  });
+
+  // @ts-expect-error -- account is defined on WalletClient
+  const appSignature = await appWalletClient.signTypedData({
+    primaryType: "PublicKeyBundle",
+    domain,
+    types: EIP712TypesV1,
+    message,
   });
 
   const signedPublicKeyBundle: SignedPublicKeyBundle = {
     public_key_bundle: publicKeyBundle,
     wallet_address: walletClient.account.address,
-    signature,
+    wallet_signature: walletSignature,
+    app_address: appWalletClient.account.address,
+    app_signature: appSignature,
   };
 
   return signedPublicKeyBundle;
 }
 
 export async function createSignedPublicKeyBundle(
-  walletClient: WalletClient
+  walletClient: WalletClient,
+  appWalletClient: WalletClient,
+  metadata: {
+    type: "1";
+    appData: {
+      name: string;
+      description: string;
+      url: string;
+      iconUrl: string;
+    };
+  }
 ): Promise<{
   /** Signed public key bundle as per Ethereum Frames spec */
   signedPublicKeyBundle: SignedPublicKeyBundle;
@@ -225,11 +279,14 @@ export async function createSignedPublicKeyBundle(
   const publicKeyBundle: PublicKeyBundle = {
     timestamp: Date.now(),
     proxy_key_bytes: signerAccount.address,
+    app_data_type: "1",
+    app_data: JSON.stringify(metadata.appData),
   };
 
   const signedPublicKeyBundle = await signPublicKeyBundle(
     publicKeyBundle,
-    walletClient
+    walletClient,
+    appWalletClient
   );
 
   return { signedPublicKeyBundle, privateKey };

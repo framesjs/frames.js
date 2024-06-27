@@ -15,6 +15,7 @@ import {
 describe("ethereum open frames middleware", () => {
   let walletClient: WalletClient;
   let proxyWalletClient: WalletClient;
+  let appWalletClient: WalletClient;
   let signedPublicKeyBundle: SignedPublicKeyBundle;
 
   const mw = openframes({
@@ -54,8 +55,25 @@ describe("ethereum open frames middleware", () => {
       transport: http(),
     });
 
+    const appAccount = privateKeyToAccount(generatePrivateKey());
+    appWalletClient = createWalletClient({
+      account: appAccount,
+      chain: mainnet,
+      transport: http(),
+    });
+
     const publicKeyBundleResult = await createSignedPublicKeyBundle(
-      walletClient
+      walletClient,
+      appWalletClient,
+      {
+        type: "1",
+        appData: {
+          name: "Example App",
+          description: "This is an example app",
+          iconUrl: "https://example.com/icon.png",
+          url: "https://example.com",
+        },
+      }
     );
     proxyWalletClient = createWalletClient({
       account: privateKeyToAccount(publicKeyBundleResult.privateKey),
@@ -122,6 +140,49 @@ describe("ethereum open frames middleware", () => {
       expect(ctx.message?.requesterWalletAddress).toEqual(
         walletClient.account?.address
       );
+
+      return {
+        image: `https://example.com/image.png`,
+      };
+    });
+
+    await handler(request);
+  });
+
+  it("detects invalid message", async () => {
+    const frames = createFrames({
+      basePath: "/",
+      middleware: [mw],
+    });
+
+    const otherAccount = privateKeyToAccount(generatePrivateKey());
+    const otherWalletClient = createWalletClient({
+      account: otherAccount,
+      chain: mainnet,
+      transport: http(),
+    });
+
+    const payload = await createEthereumFrameRequest(
+      {
+        buttonIndex: 1,
+        unixTimestamp: Date.now(),
+        url: "https://example.com",
+      },
+      otherWalletClient,
+      signedPublicKeyBundle
+    );
+
+    const request = new Request("https://example.com", {
+      body: JSON.stringify(payload),
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: FRAMES_META_TAGS_HEADER,
+      },
+    });
+
+    const handler = frames(async (ctx) => {
+      expect(ctx.message?.isValid).toBe(false);
 
       return {
         image: `https://example.com/image.png`,
