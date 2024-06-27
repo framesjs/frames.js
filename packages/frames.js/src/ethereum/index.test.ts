@@ -137,7 +137,7 @@ describe("ethereum open frames middleware", () => {
     });
 
     const handler = frames(async (ctx) => {
-      expect(ctx.message?.requesterWalletAddress).toEqual(
+      expect(ctx.message?.verifiedWalletAddress).toEqual(
         walletClient.account?.address
       );
 

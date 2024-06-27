@@ -21,7 +21,7 @@ export type AppMetadataTypes = {
 };
 
 export type PublicKeyBundle = {
-  timestamp: bigint; // unix timestamp of when the signer was created
+  timestamp: number; // unix timestamp of when the signer was created
   proxy_key_bytes: `0x${string}`; // public key (1)
   app_data_type: keyof AppMetadataTypes; // Using "1" for v1, but can be any string (perhaps json schema url or more descriptive name)
   app_data: string; // Stringified json
@@ -138,7 +138,7 @@ export async function getEthereumFrameMessage(
 ): Promise<
   EthereumFrameRequest["untrustedData"] & {
     isValid: boolean;
-    requesterWalletAddress: `0x${string}`;
+    verifiedWalletAddress: `0x${string}`;
   }
 > {
   const { untrustedData } = body;
@@ -187,55 +187,34 @@ export async function getEthereumFrameMessage(
     address:
       untrustedData.address === zeroAddress ? undefined : untrustedData.address,
     isValid,
-    requesterWalletAddress: untrustedData.signedPublicKeyBundle.wallet_address,
+    verifiedWalletAddress: untrustedData.signedPublicKeyBundle.wallet_address,
   };
 }
 
 export async function signPublicKeyBundle(
   publicKeyBundle: PublicKeyBundle,
-  walletClient: WalletClient,
-  appWalletClient: WalletClient
-): Promise<SignedPublicKeyBundle> {
+  walletClient: WalletClient
+): Promise<`0x${string}`> {
   if (!walletClient.account) {
     throw new Error("Wallet client does not have an account");
   }
 
-  if (!appWalletClient.account) {
-    throw new Error("App wallet client does not have an account");
-  }
-
   const message = {
-    timestamp: publicKeyBundle.timestamp,
+    timestamp: BigInt(publicKeyBundle.timestamp),
     proxy_key_bytes: publicKeyBundle.proxy_key_bytes,
     app_data_type: publicKeyBundle.app_data_type,
     app_data: publicKeyBundle.app_data,
   };
 
   // @ts-expect-error -- account is defined on WalletClient
-  const walletSignature = await walletClient.signTypedData({
+  const signature = await walletClient.signTypedData({
     primaryType: "PublicKeyBundle",
     domain,
     types: EIP712TypesV1,
     message,
   });
 
-  // @ts-expect-error -- account is defined on WalletClient
-  const appSignature = await appWalletClient.signTypedData({
-    primaryType: "PublicKeyBundle",
-    domain,
-    types: EIP712TypesV1,
-    message,
-  });
-
-  const signedPublicKeyBundle: SignedPublicKeyBundle = {
-    public_key_bundle: publicKeyBundle,
-    wallet_address: walletClient.account.address,
-    wallet_signature: walletSignature,
-    app_address: appWalletClient.account.address,
-    app_signature: appSignature,
-  };
-
-  return signedPublicKeyBundle;
+  return signature;
 }
 
 export async function createSignedPublicKeyBundle(
@@ -260,21 +239,36 @@ export async function createSignedPublicKeyBundle(
     throw new Error("Wallet client does not have an account");
   }
 
+  if (!appWalletClient.account) {
+    throw new Error("App wallet client does not have an account");
+  }
+
   const privateKey = generatePrivateKey();
   const proxySignerAccount = privateKeyToAccount(privateKey);
 
   const publicKeyBundle: PublicKeyBundle = {
-    timestamp: BigInt(Date.now()),
+    timestamp: Date.now(),
     proxy_key_bytes: proxySignerAccount.address,
     app_data_type: "1",
     app_data: JSON.stringify(metadata.appData),
   };
 
-  const signedPublicKeyBundle = await signPublicKeyBundle(
+  const walletSignature = await signPublicKeyBundle(
     publicKeyBundle,
-    walletClient,
+    walletClient
+  );
+  const appSignature = await signPublicKeyBundle(
+    publicKeyBundle,
     appWalletClient
   );
+
+  const signedPublicKeyBundle: SignedPublicKeyBundle = {
+    public_key_bundle: publicKeyBundle,
+    wallet_address: walletClient.account.address,
+    wallet_signature: walletSignature,
+    app_address: appWalletClient.account.address,
+    app_signature: appSignature,
+  };
 
   return { signedPublicKeyBundle, privateKey };
 }
