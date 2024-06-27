@@ -21,7 +21,7 @@ export type AppMetadataTypes = {
 };
 
 export type PublicKeyBundle = {
-  timestamp: number; // unix timestamp of when the signer was created
+  timestamp: bigint; // unix timestamp of when the signer was created
   proxy_key_bytes: `0x${string}`; // public key (1)
   app_data_type: keyof AppMetadataTypes; // Using "1" for v1, but can be any string (perhaps json schema url or more descriptive name)
   app_data: string; // Stringified json
@@ -58,10 +58,7 @@ export type EthereumFrameRequest = {
   };
 };
 
-export const EIP712TypesV1: Record<
-  "FrameActionBody" | "PublicKeyBundle",
-  readonly TypedDataParameter[]
-> = {
+export const EIP712TypesV1 = {
   FrameActionBody: [
     { name: "frame_url", type: "string" },
     { name: "button_index", type: "uint32" },
@@ -77,7 +74,7 @@ export const EIP712TypesV1: Record<
     { name: "app_data_type", type: "string" },
     { name: "app_data", type: "string" },
   ] as const satisfies readonly TypedDataParameter[],
-};
+} as const;
 
 export const domain = {
   name: "Ethereum Frame Action",
@@ -107,12 +104,12 @@ export async function verifyPublicKeyBundle(
     chain: mainnet,
   });
 
-  const validMessage = await publicClient.verifyTypedData(typedData);
+  const isValidMessage = await publicClient.verifyTypedData(typedData);
   const signerMatchesBundle =
     signedPublicKeyBundle.wallet_address ===
     signedPublicKeyBundle.public_key_bundle.proxy_key_bytes;
 
-  return validMessage && signerMatchesBundle;
+  return isValidMessage && signerMatchesBundle;
 }
 
 export function isEthereumFrameActionPayload(
@@ -122,27 +119,17 @@ export function isEthereumFrameActionPayload(
     return false;
   }
 
-  if (
-    !("clientProtocol" in body) ||
-    !("untrustedData" in body) ||
-    !("trustedData" in body)
-  ) {
+  if (!("clientProtocol" in body) || !("untrustedData" in body)) {
     return false;
   }
 
-  const { clientProtocol, untrustedData, trustedData } = body;
+  const { clientProtocol, untrustedData } = body;
 
   if (clientProtocol !== "eth@v1") {
     return false;
   }
 
-  return (
-    typeof clientProtocol === "string" &&
-    typeof untrustedData === "object" &&
-    untrustedData !== null &&
-    typeof trustedData === "object" &&
-    trustedData !== null
-  );
+  return typeof untrustedData === "object" && untrustedData !== null;
 }
 
 export async function getEthereumFrameMessage(
@@ -274,11 +261,11 @@ export async function createSignedPublicKeyBundle(
   }
 
   const privateKey = generatePrivateKey();
-  const signerAccount = privateKeyToAccount(privateKey);
+  const proxySignerAccount = privateKeyToAccount(privateKey);
 
   const publicKeyBundle: PublicKeyBundle = {
-    timestamp: Date.now(),
-    proxy_key_bytes: signerAccount.address,
+    timestamp: BigInt(Date.now()),
+    proxy_key_bytes: proxySignerAccount.address,
     app_data_type: "1",
     app_data: JSON.stringify(metadata.appData),
   };
