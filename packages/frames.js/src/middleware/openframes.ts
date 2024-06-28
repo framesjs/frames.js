@@ -14,7 +14,7 @@ import {
 
 type OpenFrameMessage = any;
 
-const deafultClientProtocolHandler: ClientProtocolHandler = {
+const defaultClientProtocolHandler: ClientProtocolHandler = {
   isValidPayload: isAnonymousFrameActionPayload,
   getFrameMessage: getAnonymousFrameMessage,
 };
@@ -79,7 +79,7 @@ export function openframes<T = OpenFrameMessage>(
     handler,
   }: {
     /**
-     * Validator and and handler for frame messages from a supported client protocol.
+     * Validator and handler for frame messages from a supported client protocol.
      * `clientProtocol` is the ID of the client protocol in the form of a ClientProtocolId object or a string of the shape `"id@version"`
      * Handler is an object containing a frame message validator and handler
      * The output of the handler is added to the context as `message`
@@ -88,7 +88,7 @@ export function openframes<T = OpenFrameMessage>(
     handler: ClientProtocolHandler<T>;
   } = {
     clientProtocol: defaultClientProtocol,
-    handler: deafultClientProtocolHandler,
+    handler: defaultClientProtocolHandler,
   }
 ): FramesMiddleware<any, OpenFramesMessageContext<T>> {
   return async (context, next) => {

@@ -19,7 +19,7 @@ export function useAnonymousIdentity(): AnonymousSignerInstance {
         postType: actionContext.transactionId
           ? "post"
           : actionContext.frameButton.action,
-        postUrl: actionContext.frameButton.target ?? "",
+        postUrl: actionContext.target ?? "",
         specification: "openframes",
       });
 
