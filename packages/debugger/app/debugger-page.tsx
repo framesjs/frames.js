@@ -7,10 +7,11 @@ import {
   type UseFrameOptions,
   fallbackFrameContext,
   type OnTransactionFunc,
+  type OnSignatureFunc,
 } from "@frames.js/render";
 import { useFrame } from "@frames.js/render/use-frame";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
-import { sendTransaction, switchChain } from "@wagmi/core";
+import { sendTransaction, signTypedData, switchChain } from "@wagmi/core";
 import type { FrameActionPayload } from "frames.js";
 import { useRouter } from "next/navigation";
 import React, {
@@ -51,6 +52,21 @@ import { ProfileSelectorModal } from "./components/lens-profile-select";
 
 const FALLBACK_URL =
   process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
+
+class InvalidChainIdError extends Error {}
+class CouldNotChangeChainError extends Error {}
+
+function isValidChainId(id: string): boolean {
+  return id.startsWith("eip155:");
+}
+
+function parseChainId(id: string): number {
+  if (!isValidChainId(id)) {
+    throw new InvalidChainIdError(`Invalid chainId ${id}`);
+  }
+
+  return parseInt(id.split("eip155:")[1]!);
+}
 
 export default function DebuggerPage({
   searchParams,
@@ -263,41 +279,27 @@ export default function DebuggerPage({
 
   const onTransaction: OnTransactionFunc = useCallback(
     async ({ transactionData }) => {
-      const { params, chainId, method } = transactionData;
-      if (!chainId.startsWith("eip155:")) {
-        toast({
-          title: "Invalid chainId",
-          description: `Unrecognized chainId ${chainId}`,
-          variant: "destructive",
-          action: debuggerRef.current ? (
-            <ToastAction
-              altText="Show console"
-              onClick={() => {
-                debuggerRef.current?.showConsole();
-              }}
-            >
-              Show console
-            </ToastAction>
-          ) : undefined,
-        });
-
-        return null;
-      }
-
       if (!account.address) {
         openConnectModal?.();
+        console.info(
+          "Opened connect modal because the account address is not set"
+        );
+
         return null;
-      }
-
-      const requestedChainId = parseInt(chainId.split("eip155:")[1]!);
-
-      if (currentChainId !== requestedChainId) {
-        await switchChain(config, {
-          chainId: requestedChainId,
-        });
       }
 
       try {
+        const { params, chainId } = transactionData;
+        const requestedChainId = parseChainId(chainId);
+
+        if (currentChainId !== requestedChainId) {
+          await switchChain(config, {
+            chainId: requestedChainId,
+          }).catch((e) => {
+            throw new CouldNotChangeChainError(e.message);
+          });
+        }
+
         // Send the transaction
         const transactionId = await sendTransaction(config, {
           to: params.to,
@@ -306,8 +308,18 @@ export default function DebuggerPage({
         });
         return transactionId;
       } catch (error) {
+        let title: string;
+
+        if (error instanceof InvalidChainIdError) {
+          title = "Invalid chain id";
+        } else if (error instanceof CouldNotChangeChainError) {
+          title = "Could not change chain";
+        } else {
+          title = "Error sending transaction";
+        }
+
         toast({
-          title: "Error sending transaction",
+          title,
           description: "Please check the console for more information",
           variant: "destructive",
           action: debuggerRef.current ? (
@@ -321,7 +333,69 @@ export default function DebuggerPage({
             </ToastAction>
           ) : undefined,
         });
+
         console.error(error);
+
+        return null;
+      }
+    },
+    [account.address, currentChainId, config, openConnectModal, toast]
+  );
+
+  const onSignature: OnSignatureFunc = useCallback(
+    async ({ signatureData }) => {
+      if (!account.address) {
+        openConnectModal?.();
+        console.info(
+          "Opened connect modal because the account address is not set"
+        );
+
+        return null;
+      }
+
+      try {
+        const { params, chainId } = signatureData;
+        const requestedChainId = parseChainId(chainId);
+
+        if (currentChainId !== requestedChainId) {
+          await switchChain(config, {
+            chainId: requestedChainId,
+          }).catch((e) => {
+            throw new CouldNotChangeChainError(e.message);
+          });
+        }
+
+        // Sign the data
+        return await signTypedData(config, params);
+      } catch (error) {
+        let title: string;
+
+        if (error instanceof InvalidChainIdError) {
+          title = "Invalid chain id";
+        } else if (error instanceof CouldNotChangeChainError) {
+          title = "Could not change chain";
+        } else {
+          title = "Error signing data";
+        }
+
+        toast({
+          title,
+          description: "Please check the console for more information",
+          variant: "destructive",
+          action: debuggerRef.current ? (
+            <ToastAction
+              altText="Show console"
+              onClick={() => {
+                debuggerRef.current?.showConsole();
+              }}
+            >
+              Show console
+            </ToastAction>
+          ) : undefined,
+        });
+
+        console.error(error);
+
         return null;
       }
     },
@@ -343,6 +417,7 @@ export default function DebuggerPage({
     connectedAddress: account.address,
     extraButtonRequestPayload: { mockData: mockHubContext },
     onTransaction,
+    onSignature,
     onError(error) {
       console.error(error);
 

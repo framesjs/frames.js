@@ -1,4 +1,4 @@
-import type { Abi } from "viem";
+import type { Abi, Hex, Address, TypedData } from "viem";
 
 export type {
   ParsingReport,
@@ -165,14 +165,14 @@ export type EthSendTransactionParams = {
   /** JSON ABI. This must include the encoded function type and should include any potential error types. */
   abi: JSON | Abi | [];
   /** transaction to address */
-  to: `0x${string}`;
+  to: Address;
   /** value of ether to send with the transaction in wei */
   value?: string;
   /** optional transaction call data */
-  data?: `0x${string}`;
+  data?: Hex;
 };
 
-export type TransactionTargetResponse = {
+export type TransactionTargetResponseSendTransaction = {
   /** A [CAIP-2](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-2.md) chain ID to identify the tx network e.g. 'eip155:1' for Ethereum mainnet */
   chainId: string;
   method: "eth_sendTransaction";
@@ -181,6 +181,33 @@ export type TransactionTargetResponse = {
   /** Return false to omit the [calldata attribution](https://www.notion.so/warpcast/Frame-Transactions-Public-9d9f9f4f527249519a41bd8d16165f73#c1c3182208ce4ae4a7ffa72129b9795a) suffix. If this value is undefined or true, clients will append the attribution suffix. */
   attribution?: boolean;
 };
+
+export type EthSignTypedDataV4Params = {
+  domain: {
+    chainId?: number;
+    name?: string;
+    salt?: Hex;
+    verifyingContract?: Address;
+    version?: string;
+  };
+  types: TypedData;
+  primaryType: string;
+  message: Record<string, unknown>;
+};
+
+export type TransactionTargetResponseSignTypedDataV4 = {
+  /** A [CAIP-2](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-2.md) chain ID to identify the tx network e.g. 'eip155:1' for Ethereum mainnet */
+  chainId: string;
+  method: "eth_signTypedData_v4";
+  /** Specific parameters for chainId and method */
+  params: EthSignTypedDataV4Params;
+  /** Return false to omit the [calldata attribution](https://www.notion.so/warpcast/Frame-Transactions-Public-9d9f9f4f527249519a41bd8d16165f73#c1c3182208ce4ae4a7ffa72129b9795a) suffix. If this value is undefined or true, clients will append the attribution suffix. */
+  attribution?: boolean;
+};
+
+export type TransactionTargetResponse =
+  | TransactionTargetResponseSendTransaction
+  | TransactionTargetResponseSignTypedDataV4;
 
 export type UserDataReturnType = {
   displayName?: string;

@@ -35,6 +35,7 @@ export function useFetchFrame({
   extraButtonRequestPayload,
   signFrameAction,
   onTransaction,
+  onSignature,
   homeframeUrl,
   onError = defaultErrorHandler,
   fetchFn,
@@ -621,20 +622,38 @@ export function useFetchFrame({
     const transactionData =
       (await transactionDataResponse.json()) as TransactionTargetResponse;
 
-    // get transaction id from transaction data
-    const transactionIdOrError = await tryCall(
-      onTransaction({
-        frame: request.sourceFrame,
-        frameButton: request.frameButton,
-        transactionData,
-      }).then((transactionId) => {
-        if (!transactionId) {
-          return new Error("onTransaction did not return transaction id");
-        }
+    let transactionIdOrError: `0x${string}` | Error;
 
-        return transactionId;
-      })
-    );
+    // get transaction id or signature id from transaction data
+    if (transactionData.method === "eth_sendTransaction") {
+      transactionIdOrError = await tryCall(
+        onTransaction({
+          frame: request.sourceFrame,
+          frameButton: request.frameButton,
+          transactionData,
+        }).then((transactionId) => {
+          if (!transactionId) {
+            return new Error("onTransaction did not return transaction id");
+          }
+
+          return transactionId;
+        })
+      );
+    } else {
+      transactionIdOrError = await tryCall(
+        onSignature({
+          frame: request.sourceFrame,
+          frameButton: request.frameButton,
+          signatureData: transactionData,
+        }).then((signatureHash) => {
+          if (!signatureHash) {
+            return new Error("onSignature did not return signature");
+          }
+
+          return signatureHash;
+        })
+      );
+    }
 
     if (transactionIdOrError instanceof Error) {
       pushRequestErrorToStack({

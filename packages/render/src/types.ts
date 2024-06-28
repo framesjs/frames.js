@@ -5,15 +5,32 @@ import type {
   FrameButtonPost,
   FrameButtonTx,
   SupportedParsingSpecification,
-  TransactionTargetResponse,
+  TransactionTargetResponseSendTransaction,
+  TransactionTargetResponseSignTypedDataV4,
   getFrame,
 } from "frames.js";
 import type { Dispatch } from "react";
 import type { ParseResult } from "frames.js/frame-parsers";
 import type { FarcasterFrameContext } from "./farcaster/frames";
 
+export type OnTransactionArgs = {
+  transactionData: TransactionTargetResponseSendTransaction;
+  frameButton: FrameButton;
+  frame: Frame;
+};
+
 export type OnTransactionFunc = (
-  t: OnTransactionArgs
+  arg: OnTransactionArgs
+) => Promise<`0x${string}` | null>;
+
+export type OnSignatureArgs = {
+  signatureData: TransactionTargetResponseSignTypedDataV4;
+  frameButton: FrameButton;
+  frame: Frame;
+};
+
+export type OnSignatureFunc = (
+  args: OnSignatureArgs
 ) => Promise<`0x${string}` | null>;
 
 export type UseFetchFrameOptions = {
@@ -36,6 +53,7 @@ export type UseFetchFrameOptions = {
     actionContext: SignerStateActionContext<any, any>
   ) => ReturnType<SignerStateInstance["signFrameAction"]>;
   onTransaction: OnTransactionFunc;
+  onSignature: OnSignatureFunc;
   homeframeUrl: string | undefined | null;
   /**
    * This function can be used to customize how error is reported to the user.
@@ -78,8 +96,10 @@ export type UseFrameOptions<
   connectedAddress: `0x${string}` | undefined;
   /** a function to handle mint buttons */
   onMint?: (t: OnMintArgs) => void;
-  /** a function to handle transaction buttons, returns the transaction hash or null */
+  /** a function to handle transaction buttons that returned transaction data from the target, returns the transaction hash or null */
   onTransaction?: OnTransactionFunc;
+  /** A function to handle transaction buttons that returned signature data from the target, returns signature hash or null */
+  onSignature?: OnSignatureFunc;
   /** the context of this frame, used for generating Frame Action payloads */
   frameContext: FrameContextType;
   /**
@@ -303,12 +323,6 @@ export type FrameState = {
 
 export type OnMintArgs = {
   target: string;
-  frameButton: FrameButton;
-  frame: Frame;
-};
-
-export type OnTransactionArgs = {
-  transactionData: TransactionTargetResponse;
   frameButton: FrameButton;
   frame: Frame;
 };

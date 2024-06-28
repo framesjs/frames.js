@@ -20,7 +20,7 @@ buttons: [
 ];
 ```
 
-In your `/txdata` route you should handle the request and return transaction data that conforms to the [`TransactionTargetResponse` type](/reference/js/types#reference). The `transaction` helper function can be used to create the transaction data.
+In your `/txdata` route you should handle the request and return transaction data that conforms to the [`TransactionTargetResponseSendTransaction` type](/reference/js/types#reference). The `transaction` helper function can be used to create the transaction data.
 
 ```tsx [./app/frames/txdata/route.tsx]
 import { frames } from "../frames";
