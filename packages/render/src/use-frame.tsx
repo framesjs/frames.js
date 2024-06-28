@@ -21,6 +21,7 @@ import type {
   FrameActionBodyPayload,
   UseFrameOptions,
   OnTransactionArgs,
+  OnSignatureArgs,
 } from "./types";
 import type { FarcasterFrameContext } from "./farcaster";
 import { useFrameStack } from "./use-frame-stack";
@@ -104,6 +105,30 @@ async function onTransactionFallback({
   return null;
 }
 
+async function onSignatureFallback({
+  signatureData,
+}: OnSignatureArgs): Promise<null> {
+  console.log(
+    "Please provide your own onSignature function to useFrame() hook."
+  );
+
+  const message = `Requesting a signature on chain with ID ${
+    signatureData.chainId
+  } with the following params: ${JSON.stringify(
+    signatureData.params,
+    null,
+    2
+  )}`;
+
+  if (typeof window !== "undefined") {
+    window.alert(message);
+  } else {
+    console.log(message);
+  }
+
+  return null;
+}
+
 function handleRedirectFallback(location: URL): void {
   console.log(
     "Please provide your own onRedirect function to useFetchFrame() hook."
@@ -152,6 +177,7 @@ export function useFrame<
   dangerousSkipSigning,
   onMint = onMintFallback,
   onTransaction = onTransactionFallback,
+  onSignature = onSignatureFallback,
   connectedAddress,
   signerState,
   frame,
@@ -180,6 +206,7 @@ export function useFrame<
     frameActionProxy,
     frameGetProxy,
     onTransaction,
+    onSignature,
     signFrameAction(isDangerousSkipSigning, actionContext) {
       return isDangerousSkipSigning
         ? unsignedFrameAction(actionContext)

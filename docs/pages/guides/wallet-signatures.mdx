@@ -1,0 +1,102 @@
+---
+title: "Wallet Signatures"
+description: ""
+---
+
+import StackblitzLink from "../../components/StackblitzLink";
+
+# Wallet Signatures Frames
+
+Frames can initiate requests to sign typed data using a wallet that apps that integrate Frames can complete, calling back your Frame.
+
+An example snippet can be found below.
+
+```tsx
+// ...
+buttons: [
+  <Button action="tx" target="/signature-data" post_url="/frames">
+    Sign data
+  </Button>,
+];
+```
+
+In your `/signature-data` route you should handle the request and return signature data that conforms to the [`TransactionTargetResponseSignTypedDataV4` type](/reference/js/types#reference). The `transaction` helper function can be used to create the data to be signed.
+
+```tsx [./app/frames/signature-data/route.ts]
+import { frames } from "../frames";
+import { transaction } from "frames.js/core";
+
+export const POST = frames(async (ctx) => {
+  if (!ctx?.message) {
+    throw new Error("Invalid frame message");
+  }
+
+  return transaction({
+    chainId: "eip155:10", // OP Mainnet 10
+    method: "eth_signTypedData_v4",
+    params: {
+      domain: {
+        chainId: 10,
+      },
+      types: {
+        Person: [
+          { name: "name", type: "string" },
+          { name: "wallet", type: "address" },
+        ],
+        Mail: [
+          { name: "from", type: "Person" },
+          { name: "to", type: "Person" },
+          { name: "contents", type: "string" },
+        ],
+      },
+      primaryType: "Mail",
+      message: {
+        from: {
+          name: "Cow",
+          wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+        },
+        to: {
+          name: "Bob",
+          wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+        },
+        contents: "Hello, Bob!",
+      },
+    },
+  });
+});
+```
+
+Use the [Wallet Signatures starter](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples/wallet-signatures) as a template to build your transaction Frames.
+
+<StackblitzLink
+  entrypointFile="app/examples/wallet-signatures/page.tsx"
+  browserPath="/examples/wallet-signatures"
+/>
+
+## Using the connected wallet address
+
+The client will include the user's connected wallet address that will be executing the transaction in the frame action payload when a frame button with `action="tx"` set is pressed.
+
+The address is available in the context under the key `connectedAddress`.
+
+Note:
+
+- The address is only available when the user has connected a wallet to the client the frame button pressed is has a `tx` action.
+- `connectedAddress` differs from the `requesterVerifiedAddresses` returned by the [`farcasterHubContext`](/middleware/farcaster-hub-context) middleware.
+
+```tsx [./app/frames/signature-data/route.tsx]
+import { frames } from "../frames";
+import { transaction } from "frames.js/core";
+
+export const POST = frames(async (ctx) => {
+  if (!ctx.message) {
+    throw new Error("No message");
+  }
+
+  const userAddress = ctx.message.connectedAddress;
+
+  // Do something with the user's connected address that will be executing the tx
+
+  return transaction(txData);
+});
+```

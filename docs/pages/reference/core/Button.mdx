@@ -161,7 +161,7 @@ button({
 
 ## Tx Button
 
-Tx button requests transaction data from `target` when clicked, and send the transaction ID to the frame's `post_url` or the button's `post_url` if it is set.
+Tx button requests transaction or signature data from `target` when clicked, and sends the transaction ID or signature hash to the frame's `post_url` or the button's `post_url` if it is set.
 
 ```tsx
 import { Button, button } from "frames.js/core";
@@ -191,26 +191,58 @@ button({
 The endpoint specified in `target` should return a JSON object with the following structure:
 
 ```ts
-type TransactionTargetResponse {
+type TransactionTargetResponse =
+  | TransactionTargetResponseSendTransaction
+  | TransactionTargetResponseSignTypedDataV4;
+
+type EthSendTransactionParams = {
+  /** JSON ABI. This must include the encoded function type and should include any potential error types. */
+  abi: JSON | Abi | [];
+  /** transaction to address */
+  to: Address;
+  /** value of ether to send with the transaction in wei */
+  value?: string;
+  /** optional transaction call data */
+  data?: Hex;
+};
+
+type TransactionTargetResponseSendTransaction = {
+  /** A [CAIP-2](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-2.md) chain ID to identify the tx network e.g. 'eip155:1' for Ethereum mainnet */
   chainId: string;
   method: "eth_sendTransaction";
-  attribution?: boolean;
+  /** Specific parameters for chainId and method */
   params: EthSendTransactionParams;
-}
-```
+  /** Return false to omit the [calldata attribution](https://www.notion.so/warpcast/Frame-Transactions-Public-9d9f9f4f527249519a41bd8d16165f73#c1c3182208ce4ae4a7ffa72129b9795a) suffix. If this value is undefined or true, clients will append the attribution suffix. */
+  attribution?: boolean;
+};
 
-```ts
-type EthSendTransactionParams {
-  abi: Abi | [];
-  to: Hex;
-  value?: string;
-  data?: Hex;
-}
+type EthSignTypedDataV4Params = {
+  domain: {
+    chainId?: number;
+    name?: string;
+    salt?: Hex;
+    verifyingContract?: Address;
+    version?: string;
+  };
+  types: TypedData;
+  primaryType: string;
+  message: Record<string, unknown>;
+};
+
+type TransactionTargetResponseSignTypedDataV4 = {
+  /** A [CAIP-2](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-2.md) chain ID to identify the tx network e.g. 'eip155:1' for Ethereum mainnet */
+  chainId: string;
+  method: "eth_signTypedData_v4";
+  /** Specific parameters for chainId and method */
+  params: EthSignTypedDataV4Params;
+  /** Return false to omit the [calldata attribution](https://www.notion.so/warpcast/Frame-Transactions-Public-9d9f9f4f527249519a41bd8d16165f73#c1c3182208ce4ae4a7ffa72129b9795a) suffix. If this value is undefined or true, clients will append the attribution suffix. */
+  attribution?: boolean;
+};
 ```
 
 ### Transaction Success
 
-If the transaction is successful, the frame will send a POST request to the URL specified in `post_url` or the frame `post_url`. This can be handled by the frame to show a success message or redirect the user to a different page.
+If the transaction or signing is successful, the frame will send a POST request to the URL specified in `post_url` or the frame `post_url`. This can be handled by the frame to show a success message or redirect the user to a different page.
 
 ```tsx [route.tsx]
 import { Button } from "frames.js/next";

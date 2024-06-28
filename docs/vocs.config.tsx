@@ -103,6 +103,10 @@ const examplesSidebarItems: SidebarItem[] = [
     text: "User Data",
     link: "/examples/user-data",
   },
+  {
+    text: "Wallet Signatures",
+    link: "/examples/wallet-signatures",
+  },
 ];
 
 const sidebar: SidebarItem[] = [
@@ -169,6 +173,10 @@ const sidebar: SidebarItem[] = [
       {
         text: "Cast Actions",
         link: "/guides/cast-actions",
+      },
+      {
+        text: "Wallet Signatures",
+        link: "/guides/wallet-signatures",
       },
     ],
   },

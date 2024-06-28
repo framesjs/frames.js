@@ -1,6 +1,6 @@
 # transaction
 
-`transaction()` can be used to return a response containing the transaction data conforming to the frames spec.
+`transaction()` can be used to return a response containing the transaction data or data to be signed by a wallet conforming to the frames spec.
 
 ## Parameters
 
@@ -8,11 +8,13 @@
 
 Type: `TransactionTargetResponse`
 
-The transaction data to return.
+The transaction data or signature data to return.
 
 ## Usage
 
-```tsx
+### Returning transaction data
+
+```ts
 export const POST = frames(async (ctx) => {
   // Do something with the request data to generate transaction data
 
@@ -32,6 +34,46 @@ export const POST = frames(async (ctx) => {
       to: myContractAddress,
       data: calldata,
       value: myValue.toString(),
+    },
+  });
+});
+```
+
+### Returning data to sign by a wallet
+
+```ts
+export const POST = frames(async (ctx) => {
+  // Return signature data that conforms to the correct type
+  return transaction({
+    chainId: "eip155:10", // OP Mainnet 10
+    method: "eth_signTypedData_v4",
+    params: {
+      domain: {
+        chainId: 10,
+      },
+      types: {
+        Person: [
+          { name: "name", type: "string" },
+          { name: "wallet", type: "address" },
+        ],
+        Mail: [
+          { name: "from", type: "Person" },
+          { name: "to", type: "Person" },
+          { name: "contents", type: "string" },
+        ],
+      },
+      primaryType: "Mail",
+      message: {
+        from: {
+          name: "Cow",
+          wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+        },
+        to: {
+          name: "Bob",
+          wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+        },
+        contents: "Hello, Bob!",
+      },
     },
   });
 });
