@@ -72,6 +72,14 @@ export async function POST(req: NextRequest): Promise<Response> {
   const specification =
     req.nextUrl.searchParams.get("specification") ?? "farcaster";
 
+  console.log({
+    body,
+    isPostRedirect,
+    isTransactionRequest,
+    postUrl,
+    specification,
+  });
+
   if (!isSpecificationValid(specification)) {
     return Response.json({ message: "Invalid specification" }, { status: 400 });
   }

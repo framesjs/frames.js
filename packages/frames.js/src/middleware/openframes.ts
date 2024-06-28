@@ -7,8 +7,22 @@ import type {
   JsonValue,
 } from "../core/types";
 import { isFrameDefinition } from "../core/utils";
+import {
+  getAnonymousFrameMessage,
+  isAnonymousFrameActionPayload,
+} from "../anonymous";
 
 type OpenFrameMessage = any;
+
+const deafultClientProtocolHandler: ClientProtocolHandler = {
+  isValidPayload: isAnonymousFrameActionPayload,
+  getFrameMessage: getAnonymousFrameMessage,
+};
+
+const defaultClientProtocol: ClientProtocolId = {
+  id: "anonymous",
+  version: "1.0",
+};
 
 export type OpenFramesMessageContext<T = OpenFrameMessage> = {
   message?: Partial<T>;
@@ -59,19 +73,24 @@ async function nextInjectAcceptedClient({
   return result;
 }
 
-export function openframes<T = OpenFrameMessage>({
-  clientProtocol: clientProtocolRaw,
-  handler,
-}: {
-  /**
-   * Validator and and handler for frame messages from a supported client protocol.
-   * `clientProtocol` is the ID of the client protocol in the form of a ClientProtocolId object or a string of the shape `"id@version"`
-   * Handler is an object containing a frame message validator and handler
-   * The output of the handler is added to the context as `message`
-   */
-  clientProtocol: ClientProtocolId | `${string}@${string}`;
-  handler: ClientProtocolHandler<T>;
-}): FramesMiddleware<any, OpenFramesMessageContext<T>> {
+export function openframes<T = OpenFrameMessage>(
+  {
+    clientProtocol: clientProtocolRaw,
+    handler,
+  }: {
+    /**
+     * Validator and and handler for frame messages from a supported client protocol.
+     * `clientProtocol` is the ID of the client protocol in the form of a ClientProtocolId object or a string of the shape `"id@version"`
+     * Handler is an object containing a frame message validator and handler
+     * The output of the handler is added to the context as `message`
+     */
+    clientProtocol: ClientProtocolId | `${string}@${string}`;
+    handler: ClientProtocolHandler<T>;
+  } = {
+    clientProtocol: defaultClientProtocol,
+    handler: deafultClientProtocolHandler,
+  }
+): FramesMiddleware<any, OpenFramesMessageContext<T>> {
   return async (context, next) => {
     let clientProtocol: ClientProtocolId;
 
