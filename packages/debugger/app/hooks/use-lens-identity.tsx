@@ -263,8 +263,7 @@ export function useLensIdentity(): LensSignerInstance {
           postType: actionContext.transactionId
             ? "post"
             : actionContext.frameButton.action,
-          postUrl:
-            actionContext.frameButton.target ?? actionContext.target ?? "",
+          postUrl: actionContext.target ?? "",
         });
 
         return {
