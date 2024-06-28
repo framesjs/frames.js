@@ -23,7 +23,7 @@ export const POST = frames(async (ctx) => {
   return {
     image: (
       <div tw="flex p-5">
-        You are {walletAddress} from {ctx.clientProtocol?.id}
+        You are {walletAddress || "anonymous"} from {ctx.clientProtocol?.id}
       </div>
     ),
     buttons: [

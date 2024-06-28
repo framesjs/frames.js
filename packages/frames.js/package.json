@@ -147,6 +147,16 @@
         "default": "./dist/lens/index.cjs"
       }
     },
+    "./anonymous": {
+      "import": {
+        "types": "./dist/anonymous/index.d.ts",
+        "default": "./dist/anonymous/index.js"
+      },
+      "require": {
+        "types": "./dist/anonymous/index.d.cts",
+        "default": "./dist/anonymous/index.cjs"
+      }
+    },
     "./core": {
       "import": {
         "types": "./dist/core/index.d.ts",

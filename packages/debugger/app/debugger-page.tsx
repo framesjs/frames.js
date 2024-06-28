@@ -29,6 +29,7 @@ import { useFarcasterFrameContext } from "./hooks/use-farcaster-context";
 import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
 import { useXmtpFrameContext } from "./hooks/use-xmtp-context";
 import { useXmtpIdentity } from "./hooks/use-xmtp-identity";
+import { useAnonymousIdentity } from "./hooks/use-anonymous-identity";
 import { MockHubActionContext } from "./utils/mock-hub-utils";
 import {
   ProtocolConfiguration,
@@ -241,6 +242,7 @@ export default function DebuggerPage({
   });
   const xmtpSignerState = useXmtpIdentity();
   const lensSignerState = useLensIdentity();
+  const anonymousSignerState = useAnonymousIdentity();
 
   const farcasterFrameContext = useFarcasterFrameContext({
     fallbackContext: fallbackFrameContext,
@@ -260,6 +262,8 @@ export default function DebuggerPage({
       pubId: "0x01-0x01",
     },
   });
+
+  const anonymousFrameContext = {};
 
   const onTransaction: OnTransactionFunc = useCallback(
     async ({ transactionData }) => {
@@ -440,10 +444,18 @@ export default function DebuggerPage({
     frameContext: lensFrameContext.frameContext,
   });
 
+  const anonymousFrameState = useFrame({
+    ...useFrameConfig,
+    signerState: anonymousSignerState,
+    specification: "openframes",
+    frameContext: anonymousFrameContext,
+  });
+
   const selectedFrameState = {
     farcaster: farcasterFrameState,
     xmtp: xmtpFrameState,
     lens: lensFrameState,
+    anonymous: anonymousFrameState,
   }[protocolConfiguration?.protocol ?? "farcaster"];
 
   return (
@@ -580,6 +592,7 @@ export default function DebuggerPage({
             value={protocolConfiguration}
             farcasterSignerState={farcasterSignerState}
             xmtpSignerState={xmtpSignerState}
+            anonymousSignerState={anonymousSignerState}
             farcasterFrameContext={farcasterFrameContext}
             xmtpFrameContext={xmtpFrameContext}
             ref={selectProtocolButtonRef}
