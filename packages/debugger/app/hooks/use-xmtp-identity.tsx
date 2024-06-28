@@ -166,7 +166,7 @@ export function useXmtpIdentity(): XmtpSignerInstance {
         postType: actionContext.transactionId
           ? "post"
           : actionContext.frameButton.action,
-        postUrl: actionContext.frameButton.target ?? "",
+        postUrl: actionContext.target ?? "",
         specification: "openframes",
       });
 
