@@ -7,7 +7,7 @@ import StackblitzLink from "../../components/StackblitzLink";
 
 # Wallet Signatures Frames
 
-Frames can initiate requests to sign typed data using a wallet that apps that integrate Frames can complete, calling back your Frame.
+Frames can initiate requests to sign typed data using a connected wallet after which the client will call back your Frame with the requested signature.
 
 An example snippet can be found below.
 
@@ -75,28 +75,4 @@ Use the [Wallet Signatures starter](https://github.com/framesjs/frames.js/tree/m
 
 ## Using the connected wallet address
 
-The client will include the user's connected wallet address that will be executing the transaction in the frame action payload when a frame button with `action="tx"` set is pressed.
-
-The address is available in the context under the key `connectedAddress`.
-
-Note:
-
-- The address is only available when the user has connected a wallet to the client the frame button pressed is has a `tx` action.
-- `connectedAddress` differs from the `requesterVerifiedAddresses` returned by the [`farcasterHubContext`](/middleware/farcaster-hub-context) middleware.
-
-```tsx [./app/frames/signature-data/route.tsx]
-import { frames } from "../frames";
-import { transaction } from "frames.js/core";
-
-export const POST = frames(async (ctx) => {
-  if (!ctx.message) {
-    throw new Error("No message");
-  }
-
-  const userAddress = ctx.message.connectedAddress;
-
-  // Do something with the user's connected address that will be executing the tx
-
-  return transaction(txData);
-});
-```
+The client will include the user's connected wallet address that will be executing the transaction in the frame action payload when a frame button with `action="tx"` set is pressed. See [transactions guide](/guides/transactions) for more information.
