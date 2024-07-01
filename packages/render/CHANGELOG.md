@@ -1,5 +1,11 @@
 # @frames.js/render
 
+## 0.2.16
+
+### Patch Changes
+
+- aac472d: fix(render): don't trigger onSignerlessFramePress for client side buttons (mint, tx)
+
 ## 0.2.15
 
 ### Patch Changes

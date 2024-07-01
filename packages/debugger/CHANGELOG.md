@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.3.2
+
+### Patch Changes
+
+- daedd8b: fix(debugger): respect target url passed to signers
+
 ## 0.3.1
 
 ### Patch Changes
