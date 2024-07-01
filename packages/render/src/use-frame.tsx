@@ -227,7 +227,11 @@ export function useFrame<
     index: number,
     fetchFrameOverride: typeof fetchFrame = fetchFrame
   ): Promise<void> {
-    if (!signerState.hasSigner && !dangerousSkipSigning) {
+    // Button actions that are handled without server interaction don't require signer
+    const clientSideActions = ["mint", "link"];
+    const buttonRequiresAuth = !clientSideActions.includes(frameButton.action);
+
+    if (!signerState.hasSigner && !dangerousSkipSigning && buttonRequiresAuth) {
       signerState.onSignerlessFramePress();
       // don't continue, let the app handle
       return;
