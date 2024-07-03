@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.17.2
+
+### Patch Changes
+
+- c7aad53: fix: xmtp transactions
+
 ## 0.17.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.3.3
+
+### Patch Changes
+
+- c7aad53: fix: xmtp transactions
+
 ## 0.3.2
 
 ### Patch Changes
