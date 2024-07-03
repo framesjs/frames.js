@@ -159,7 +159,7 @@ export function useXmtpIdentity(): XmtpSignerInstance {
           ? { groupSecret: actionContext.frameContext.groupSecret }
           : {}),
         address: actionContext.address,
-        // transactionId: actionContext.transactionId, // TODO: enable when included upstream
+        transactionId: actionContext.transactionId,
       });
 
       const searchParams = new URLSearchParams({

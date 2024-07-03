@@ -1,10 +1,13 @@
-import type { XmtpOpenFramesRequest } from "@xmtp/frames-validator";
+import type {
+  XmtpOpenFramesRequest,
+  XmtpValidationResponse,
+} from "@xmtp/frames-validator";
 import { validateFramesPost } from "@xmtp/frames-validator";
-import type { frames } from "@xmtp/proto";
 
-export type XmtpFrameMessageReturnType = frames.FrameActionBody & {
-  verifiedWalletAddress: string;
-};
+export type XmtpFrameMessageReturnType =
+  XmtpValidationResponse["actionBody"] & {
+    verifiedWalletAddress: string;
+  };
 
 export function isXmtpFrameActionPayload(
   frameActionPayload: unknown
