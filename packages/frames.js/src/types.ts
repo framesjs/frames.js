@@ -201,8 +201,6 @@ export type TransactionTargetResponseSignTypedDataV4 = {
   method: "eth_signTypedData_v4";
   /** Specific parameters for chainId and method */
   params: EthSignTypedDataV4Params;
-  /** Return false to omit the [calldata attribution](https://www.notion.so/warpcast/Frame-Transactions-Public-9d9f9f4f527249519a41bd8d16165f73#c1c3182208ce4ae4a7ffa72129b9795a) suffix. If this value is undefined or true, clients will append the attribution suffix. */
-  attribution?: boolean;
 };
 
 export type TransactionTargetResponse =
