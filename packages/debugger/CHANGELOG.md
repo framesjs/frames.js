@@ -1,5 +1,12 @@
 # @frames.js/debugger
 
+## 0.3.4
+
+### Patch Changes
+
+- 2aaec07: feat: add support for type data signatures
+- 2fb6679: feat: anoynmous open frames signer
+
 ## 0.3.3
 
 ### Patch Changes

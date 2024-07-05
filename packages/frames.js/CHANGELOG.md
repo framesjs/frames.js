@@ -1,5 +1,12 @@
 # frames.js
 
+## 0.17.3
+
+### Patch Changes
+
+- 2aaec07: feat: add support for type data signatures
+- 2fb6679: feat: anoynmous open frames signer
+
 ## 0.17.2
 
 ### Patch Changes

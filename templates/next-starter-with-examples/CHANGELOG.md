@@ -1,5 +1,14 @@
 # template-next-starter-with-examples
 
+## 0.0.25
+
+### Patch Changes
+
+- 2fb6679: feat: anoynmous open frames signer
+- Updated dependencies [2aaec07]
+- Updated dependencies [2fb6679]
+  - frames.js@0.17.3
+
 ## 0.0.24
 
 ### Patch Changes

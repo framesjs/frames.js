@@ -1,5 +1,14 @@
 # @frames.js/render
 
+## 0.2.18
+
+### Patch Changes
+
+- 2aaec07: feat: add support for type data signatures
+- Updated dependencies [2aaec07]
+- Updated dependencies [2fb6679]
+  - frames.js@0.17.3
+
 ## 0.2.17
 
 ### Patch Changes
