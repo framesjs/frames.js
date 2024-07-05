@@ -17,6 +17,7 @@ import { cn } from "../lib/utils";
 import FarcasterSignerWindow from "./farcaster-signer-config";
 import { forwardRef, useMemo, useState } from "react";
 import { WithTooltip } from "./with-tooltip";
+import { useAnonymousIdentity } from "../hooks/use-anonymous-identity";
 
 export type ProtocolConfiguration =
   | {
@@ -29,6 +30,10 @@ export type ProtocolConfiguration =
     }
   | {
       protocol: "xmtp";
+      specification: "openframes";
+    }
+  | {
+      protocol: "anonymous";
       specification: "openframes";
     };
 
@@ -45,6 +50,10 @@ export const protocolConfigurationMap: Record<string, ProtocolConfiguration> = {
     protocol: "lens",
     specification: "openframes",
   },
+  anonymous: {
+    protocol: "anonymous",
+    specification: "openframes",
+  },
 };
 
 type ProtocolConfigurationButtonProps = {
@@ -53,6 +62,7 @@ type ProtocolConfigurationButtonProps = {
   farcasterSignerState: ReturnType<typeof useFarcasterIdentity>;
   xmtpSignerState: ReturnType<typeof useXmtpIdentity>;
   lensSignerState: ReturnType<typeof useLensIdentity>;
+  anonymousSignerState: ReturnType<typeof useAnonymousIdentity>;
   farcasterFrameContext: ReturnType<typeof useFarcasterFrameContext>;
   xmtpFrameContext: ReturnType<typeof useXmtpFrameContext>;
   lensFrameContext: ReturnType<typeof useLensFrameContext>;
@@ -72,6 +82,7 @@ export const ProtocolConfigurationButton = forwardRef<
       xmtpFrameContext,
       lensFrameContext,
       lensSignerState,
+      anonymousSignerState,
     },
     ref
   ) => {
@@ -92,12 +103,17 @@ export const ProtocolConfigurationButton = forwardRef<
         valid = !!lensSignerState.signer;
       }
 
+      if (value?.protocol === "anonymous") {
+        valid = !!anonymousSignerState.signer;
+      }
+
       return valid;
     }, [
       farcasterSignerState.signer,
       value?.protocol,
       xmtpSignerState.signer,
       lensSignerState.signer,
+      anonymousSignerState,
     ]);
 
     return (
@@ -125,13 +141,18 @@ export const ProtocolConfigurationButton = forwardRef<
         </PopoverTrigger>
         <PopoverContent>
           <Tabs value={value?.protocol} defaultValue="none">
-            <TabsList
-              className={cn(
-                "w-full grid",
-                !value ? "grid-cols-4" : "grid-cols-3"
-              )}
-            >
-              {!value && <TabsTrigger value="none">None</TabsTrigger>}
+            <TabsList className={"w-full grid grid-cols-4"}>
+              <TabsTrigger
+                value="anonymous"
+                onClick={() =>
+                  onChange({
+                    protocol: "anonymous",
+                    specification: "openframes",
+                  })
+                }
+              >
+                None
+              </TabsTrigger>
               <TabsTrigger
                 value="farcaster"
                 onClick={() =>
