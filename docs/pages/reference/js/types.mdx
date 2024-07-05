@@ -20,7 +20,7 @@ export type Frame = {
   /** A valid frame version string. The string must be a release date (e.g. 2020-01-01 ) or vNext. Apps must ignore versions they do not understand. Currently, the only valid version is vNext.  */
   version: FrameVersion;
   /** A 256-byte string which contains a valid URL to send the Signature Packet to. If this prop is not present, apps must POST to the frame URL. */
-  postUrl: string;
+  postUrl?: string;
   /** A page may contain 0 to 4 buttons. If more than 1 button is present, the idx values must be in sequence starting from 1 (e.g. 1, 2 3). If a broken sequence is present (e.g 1, 2, 4), apps must not render the frame and instead render an OG embed. */
   buttons?: FrameButtonsType;
   /** An image which should have an aspect ratio of 1.91:1 or 1:1 */
@@ -35,6 +35,7 @@ export type Frame = {
   state?: string;
   /** Open Frames spec: The minimum client protocol version accepted for the given protocol identifier. For example VNext , or 1.5 . At least one $protocol_identifier must be specified. */
   accepts?: ClientProtocolId[];
+  title?: string;
 };
 
 export type ActionButtonType = "post" | "post_redirect" | "link";
@@ -43,7 +44,10 @@ type FrameOptionalStringKeys =
   | "fc:frame:image:aspect_ratio"
   | "fc:frame:input:text"
   | "fc:frame:state"
-  | `of:accepts:${string}`;
+  | "fc:frame:post_url"
+  | keyof OpenFramesProperties
+  | "frames.js:version"
+  | "frames.js:debug-info:image";
 type FrameOptionalActionButtonTypeKeys =
   `fc:frame:button:${1 | 2 | 3 | 4}:action`;
 type FrameOptionalButtonStringKeys =
@@ -65,7 +69,26 @@ type MapFrameOptionalKeyToValueType<K extends FrameKeys> =
 type FrameRequiredProperties = {
   "fc:frame": FrameVersion;
   "fc:frame:image": string;
-  "fc:frame:post_url": string;
+  "og:image": string;
+};
+
+export type OpenFramesProperties = {
+  "of:version": FrameVersion;
+  "of:image": string;
+  "of:post_url": string;
+  "of:image:aspect_ratio": string;
+  "of:input:text": string;
+  "of:state": string;
+} & {
+  [s in `of:accepts:${string}`]: string;
+} & {
+  [s in `of:button:${1 | 2 | 3 | 4}`]: string;
+} & {
+  [s in `of:button:${1 | 2 | 3 | 4}:action`]: string;
+} & {
+  [s in `of:button:${1 | 2 | 3 | 4}:target`]: string;
+} & {
+  [s in `of:button:${1 | 2 | 3 | 4}:post_url`]: string;
 };
 
 /** A Frame represented as an object with keys and values corresponding to the Frames spec: https://docs.farcaster.xyz/reference/frames/spec */
@@ -80,8 +103,6 @@ export interface FrameButtonLink {
   action: "link";
   /** required for action type 'link' */
   target: string;
-  post_url?: undefined;
-
   /** A 256-byte string which is label of the button */
   label: string;
 }
@@ -89,7 +110,7 @@ export interface FrameButtonLink {
 export interface FrameButtonTx {
   action: "tx";
   target: string;
-  post_url?: undefined;
+  post_url?: string;
   /** A 256-byte string which is label of the button */
   label: string;
 }
@@ -98,8 +119,6 @@ export interface FrameButtonMint {
   action: "mint";
   /** The target  property MUST be a valid [CAIP-10](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md) address, plus an optional token_id . */
   target: string;
-  post_url?: undefined;
-
   /** A 256-byte string which is label of the button */
   label: string;
 }
@@ -114,7 +133,6 @@ export interface FrameButtonPost {
    * POST the packet to fc:frame:post_url if target was not present.
    */
   target?: string;
-  post_url?: undefined;
   /** A 256-byte string which is label of the button */
   label: string;
 }
@@ -123,7 +141,6 @@ export type FrameButtonPostRedirect = FrameButtonPost;
 export type FrameButton =
   | FrameButtonPost
   | FrameButtonLink
-  | FrameButtonPostRedirect
   | FrameButtonMint
   | FrameButtonTx;
 
@@ -150,22 +167,51 @@ export type AddressWithType = {
 
 export type EthSendTransactionParams = {
   /** JSON ABI. This must include the encoded function type and should include any potential error types. */
-  abi: JSON | [];
+  abi: JSON | Abi | [];
   /** transaction to address */
-  to: `0x${string}`;
+  to: Address;
   /** value of ether to send with the transaction in wei */
-  value: string;
+  value?: string;
   /** optional transaction call data */
-  data?: `0x${string}`;
+  data?: Hex;
 };
 
-export type TransactionTargetResponse = {
-  /** A chain ID starting with 'eip155:' e.g. 'eip155:1' for Ethereum mainnet */
+export type TransactionTargetResponseSendTransaction = {
+  /** A [CAIP-2](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-2.md) chain ID to identify the tx network e.g. 'eip155:1' for Ethereum mainnet */
   chainId: string;
   method: "eth_sendTransaction";
+  /** Specific parameters for chainId and method */
   params: EthSendTransactionParams;
+  /** Return false to omit the [calldata attribution](https://www.notion.so/warpcast/Frame-Transactions-Public-9d9f9f4f527249519a41bd8d16165f73#c1c3182208ce4ae4a7ffa72129b9795a) suffix. If this value is undefined or true, clients will append the attribution suffix. */
   attribution?: boolean;
 };
+
+export type EthSignTypedDataV4Params = {
+  domain: {
+    chainId?: number;
+    name?: string;
+    salt?: Hex;
+    verifyingContract?: Address;
+    version?: string;
+  };
+  types: TypedData;
+  primaryType: string;
+  message: Record<string, unknown>;
+};
+
+export type TransactionTargetResponseSignTypedDataV4 = {
+  /** A [CAIP-2](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-2.md) chain ID to identify the tx network e.g. 'eip155:1' for Ethereum mainnet */
+  chainId: string;
+  method: "eth_signTypedData_v4";
+  /** Specific parameters for chainId and method */
+  params: EthSignTypedDataV4Params;
+  /** Return false to omit the [calldata attribution](https://www.notion.so/warpcast/Frame-Transactions-Public-9d9f9f4f527249519a41bd8d16165f73#c1c3182208ce4ae4a7ffa72129b9795a) suffix. If this value is undefined or true, clients will append the attribution suffix. */
+  attribution?: boolean;
+};
+
+export type TransactionTargetResponse =
+  | TransactionTargetResponseSendTransaction
+  | TransactionTargetResponseSignTypedDataV4;
 
 export type UserDataReturnType = {
   displayName?: string;
@@ -211,10 +257,12 @@ export type FrameActionPayload = {
     inputText?: string;
     /** Frame servers may set this value and apps must sign and include it in the Frame Signature Packet. May be up to 4kb */
     state?: string;
+    /** address of the user's connected wallet, only present in transaction data requests */
+    address?: string;
     /** an optional transaction id property. For Ethereum, this must be the transaction hash. For other chains, this is not yet specified.  */
     transactionId?: string;
   };
-  /** Open Frames spec: the identifier and version of the client protocol that sent the request e.g. farcaster@vNext */
+  /** Open Frames spec: the identifier and version of the client protocol that sent the request e.g. farcaster\@vNext */
   clientProtocol?: string;
 };
 
@@ -240,6 +288,7 @@ export type FrameActionDataParsed = {
   state?: string;
   /** address of the user's connected wallet, only present in transaction data requests */
   connectedAddress?: string;
+  transactionId?: `0x${string}`;
 };
 
 /** Additional context for a frame message which requires communication with a Hub */
@@ -260,4 +309,21 @@ export type FrameActionHubContext = {
   /** User data of the requester */
   requesterUserData: UserDataReturnType;
 };
+
+/** Metadata of an action typically triggered on a social post */
+export type ActionMetadata = {
+  /** The action name. Must be less than 30 characters. */
+  name: string;
+  /** An [Octicons](https://primer.style/foundations/icons) icon name. */
+  icon: string;
+  /** A short description up to 80 characters. */
+  description: string;
+  /** External link to an "about" page for extended description. */
+  aboutUrl: string;
+  /** The action type. (Same type options as frame buttons). Only post is accepted in V1. */
+  action: {
+    type: "post";
+  };
+};
+
 ```
