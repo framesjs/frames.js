@@ -50,4 +50,21 @@ const handleRequest = frames(async (ctx) => {
 });
 ```
 
+## Unauthenticated Frames
+
+Open Frames can be used to create unauthenticated Frames that can be supported by all clients by using the anonymous frames convention, which is built into the openframes middleware.
+
+In order to support unauthenticated frames in your application, simply include `openframes()` without supplying any arguments in your `createFrames` middleware.
+
+```tsx
+const frames = createFrames({
+  // ...
+  middleware: [
+    openframes(),
+  ],
+});
+```
+
+This will add `of:accepts:anonymous` to your page metadata. Clients will then be able to send frame POST requests to your handler without needing to sign the payload. Your `frames` handler will receive the `buttonIndex` and optionally `inputText` and `state` in the `ctx` object.
+
 Use the [Multi Protocol starter](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples/multi-protocol) as a template to build your Open Frames frames.
