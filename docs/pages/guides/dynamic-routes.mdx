@@ -1,0 +1,38 @@
+---
+title: "Dynamic Routes"
+description: ""
+---
+
+# Dynamic Routes
+
+If your frame has a dynamic route segment you can access it in your frame by wrapping it in request.
+
+```tsx
+/* eslint-disable react/jsx-key */
+
+import { NextRequest } from "next/server";
+import { frames } from "../frames";
+import { Button } from "frames.js/next";
+
+const handler = async (
+  req: NextRequest,
+  { params: { id } }: { params: { id: string } }
+) => {
+  return await frames(async (ctx) => {
+    return {
+      image: <div tw="flex">You are on frame &quot;{id}&quot;.</div>,
+      buttons: [
+        <Button action="post" target={"/"}>
+          ← Back
+        </Button>,
+      ],
+      title: `Frame ${id}`,
+    };
+  })(req);
+};
+
+export const GET = handler;
+export const POST = handler;
+```
+
+In the example above, the frame is able to access the dynamic route segment `id` by wrapping it in `request`. This allows the frame to display the current route segment in the frame.
