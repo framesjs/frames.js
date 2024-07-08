@@ -61,5 +61,9 @@ export function getFrameHtmlHead(
     })
     .filter(Boolean) as string[];
 
+  if (frame.title) {
+    tags.push(`<title>${escapeHtmlAttributeValue(frame.title)}</title>`);
+  }
+
   return tags.join("");
 }

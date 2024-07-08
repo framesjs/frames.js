@@ -39,6 +39,7 @@ export function getFrameFlattened(
           // same as fc:frame tags
           "of:image": frame.image,
           "og:image": frame.ogImage || frame.image,
+          "og:title": frame.title,
           "of:post_url": frame.postUrl,
           "of:input:text": frame.inputText,
           ...(frame.state ? { "of:state": frame.state } : {}),
@@ -64,6 +65,7 @@ export function getFrameFlattened(
     "fc:frame": frame.version,
     "fc:frame:image": frame.image,
     "og:image": frame.ogImage || frame.image,
+    "og:title": frame.title,
     "fc:frame:post_url": frame.postUrl,
     "fc:frame:input:text": frame.inputText,
     ...(frame.title ? { "og:title": frame.title } : {}),

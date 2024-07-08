@@ -120,6 +120,10 @@ export type FrameDefinition<TState extends JsonValue | undefined> = {
    * Open Frames spec: The minimum client protocol version accepted for the given protocol identifier. For example VNext, or 1.5 . At least one $protocol_identifier must be specified.
    */
   accepts?: ClientProtocolId[];
+  /**
+   * Open Graph title
+   */
+  title?: string;
 } & ResponseInit;
 
 /**
