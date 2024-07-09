@@ -59,12 +59,63 @@ In order to support unauthenticated frames in your application, simply include `
 ```tsx
 const frames = createFrames({
   // ...
-  middleware: [
-    openframes(),
-  ],
+  middleware: [openframes()],
 });
 ```
 
 This will add `of:accepts:anonymous` to your page metadata. Clients will then be able to send frame POST requests to your handler without needing to sign the payload. Your `frames` handler will receive the `buttonIndex` and optionally `inputText` and `state` in the `ctx` object.
 
-Use the [Multi Protocol starter](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples/multi-protocol) as a template to build your Open Frames frames.
+## Multi Protocol Example
+
+Here is an example of a multi-protocol createFrames configuration that supports anonymous, XMTP, and Lens protocols.
+
+```tsx [frames.ts]
+import { createFrames } from "frames.js/next";
+import { openframes } from "frames.js/middleware";
+import { getXmtpFrameMessage, isXmtpFrameActionPayload } from "frames.js/xmtp";
+import { getLensFrameMessage, isLensFrameActionPayload } from "frames.js/lens";
+
+export const frames = createFrames({
+  // ...
+  middleware: [
+    // XMTP
+    openframes({
+      clientProtocol: {
+        id: "xmtp",
+        version: "2024-02-09",
+      },
+      handler: {
+        isValidPayload: (body) => isXmtpFrameActionPayload(body),
+        getFrameMessage: async (body) => {
+          if (!isXmtpFrameActionPayload(body)) {
+            return undefined;
+          }
+          const result = await getXmtpFrameMessage(body);
+          return result;
+        },
+      },
+    }),
+    // Lens
+    openframes({
+      clientProtocol: {
+        id: "lens",
+        version: "1.0.0",
+      },
+      handler: {
+        isValidPayload: (body) => isLensFrameActionPayload(body),
+        getFrameMessage: async (body) => {
+          if (!isLensFrameActionPayload(body)) {
+            return undefined;
+          }
+          const result = await getLensFrameMessage(body);
+          return result;
+        },
+      },
+    }),
+    // Anonymous
+    openframes(),
+  ],
+});
+```
+
+See the full example in the [Multi Protocol starter](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples/multi-protocol) template.
