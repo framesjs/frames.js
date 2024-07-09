@@ -1,5 +1,13 @@
 # template-next-starter-with-examples
 
+## 0.0.26
+
+### Patch Changes
+
+- d760a2f: feat: dynamic routes example
+- Updated dependencies [99ac86b]
+  - frames.js@0.17.4
+
 ## 0.0.25
 
 ### Patch Changes

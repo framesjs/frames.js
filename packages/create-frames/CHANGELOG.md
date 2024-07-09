@@ -1,5 +1,11 @@
 # create-frames
 
+## 0.1.25
+
+### Patch Changes
+
+- d760a2f: chore: bump package versions
+
 ## 0.1.24
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.17.4
+
+### Patch Changes
+
+- 99ac86b: fix: frame og title
+
 ## 0.17.3
 
 ### Patch Changes
