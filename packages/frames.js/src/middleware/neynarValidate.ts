@@ -54,7 +54,13 @@ type FramesMessageContext = {
   clientProtocol?: ClientProtocolId;
 };
 
-export function neynarValidate(): FramesMiddleware<any, FramesMessageContext> {
+type NeynarValidateOptions = {
+  API_KEY: string;
+};
+
+export function neynarValidate(
+  options?: NeynarValidateOptions
+): FramesMiddleware<any, FramesMessageContext> {
   return async (context, next) => {
     // frame message is available only if the request is a POST request
     if (context.request.method !== "POST") {
@@ -75,7 +81,7 @@ export function neynarValidate(): FramesMiddleware<any, FramesMessageContext> {
           method: "POST",
           headers: {
             accept: "application json",
-            api_key: "NEYNAR_API_DOCS",
+            api_key: options?.API_KEY || "NEYNAR_API_DOCS",
             "content-type": "application/json",
           },
           body: JSON.stringify({

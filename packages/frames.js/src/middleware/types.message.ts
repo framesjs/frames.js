@@ -131,4 +131,12 @@ export interface ValidateFrameActionResponse {
     };
     address?: string;
   };
+  signature_temporary_object: {
+    hash: string;
+    hash_scheme: string;
+    note: string;
+    signature: string;
+    signature_scheme: string;
+    signer: string;
+  };
 }

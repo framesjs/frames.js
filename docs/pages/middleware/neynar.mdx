@@ -1,0 +1,59 @@
+# neynar Validate
+
+Fetches additional context about the message from a Farcaster hub using neynar
+
+## Setup
+
+Add the `neynarValidate` middleware to your `createFrames` call:
+
+```tsx [frames.ts]
+// ...
+import { neynarValidate } from "frames.js/middleware";
+
+const frames = createFrames({
+  // ...
+  middleware: [
+    neynarValidate({
+      API_KEY: "NEYNAR_API_DOCS",
+    }),
+  ],
+});
+```
+
+## Usage
+
+Use the added context in your message handler:
+
+```tsx [route.tsx]
+import { frames } from "./frames";
+
+export const POST = frames(async (ctx) => {
+  if (!ctx.message?.isValid) {
+    throw new Error("Invalid message");
+  }
+
+  return {
+    image: <div tw="flex">Message from {ctx.message?.requesterFid}</div>,
+  };
+});
+```
+
+For all the added context see the [`getFrameMessage`](/reference/js/getFrameMessage) function reference.
+
+## Options
+
+:::note
+If `farcasterHub` option has been passed to `createFrames()` to change the hub url, passing `API_KEY` will override it.
+:::
+
+### `API_KEY`
+
+The URL of the Farcaster hub to fetch additional context from.
+
+### `hubRequestOptions`
+
+Additional options to pass to the fetch request to the hub. This can be used to set API keys or other headers.
+
+## Frames.js Debugger
+
+When using the [Frames.js debugger](/guides/debugger), you can set the `API_KEY` parameter to be the URL of the debugger hub (default: `http://localhost:3010/hub`) to support creating valid messages locally without a real farcaster signer. In production this should always be a real hub - if unspecified it will automatically fall back to a real hub.
