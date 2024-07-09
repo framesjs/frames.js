@@ -223,6 +223,7 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
         inputText: result.textInput,
         imageAspectRatio: result.imageOptions?.aspectRatio ?? "1.91:1",
         accepts: result.accepts,
+        title: result.title,
       };
 
       const overrides: Partial<FrameFlattened> = {};
