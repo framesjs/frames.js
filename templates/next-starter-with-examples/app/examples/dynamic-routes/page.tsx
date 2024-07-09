@@ -5,11 +5,11 @@ import { DebugLink } from "../../components/DebugLink";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "Frames.js Error Message handling example",
+    title: "Frames.js dynamic routes example",
     description: "This is a new api example",
     other: {
       ...(await fetchMetadata(
-        new URL("/examples/error-handling/frames", appURL())
+        new URL("/examples/dynamic-routes/frames", appURL())
       )),
     },
   };
@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Home() {
   return (
     <div>
-      Frames.js Error Message handling example. <DebugLink />
+      Frames.js dynamic routes example. <DebugLink />
     </div>
   );
 }

@@ -107,6 +107,10 @@ const examplesSidebarItems: SidebarItem[] = [
     text: "Wallet Signatures",
     link: "/examples/wallet-signatures",
   },
+  {
+    text: "Dynamic Routes",
+    link: "/examples/dynamic-routes",
+  },
 ];
 
 const sidebar: SidebarItem[] = [
