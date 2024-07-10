@@ -19,7 +19,6 @@ import {
   type FramesStack,
   type FramesStackItem,
   CollapsedFrameUI,
-  FrameUI,
   defaultTheme,
 } from "@frames.js/render";
 import { FrameImageNext } from "@frames.js/render/next";
@@ -39,7 +38,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MockHubConfig } from "./mock-hub-config";
 import { MockHubActionContext } from "../utils/mock-hub-utils";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
   HoverCard,
@@ -57,6 +55,7 @@ import { Switch } from "@/components/ui/switch";
 import Link from "next/link";
 import { FrameDebuggerRequestDetails } from "./frame-debugger-request-details";
 import { urlSearchParamsToObject } from "../utils/url-search-params-to-object";
+import { FrameUI } from "./frame-ui";
 
 type FrameDiagnosticsProps = {
   stackItem: FramesStackItem;
@@ -552,32 +551,15 @@ export const FrameDebugger = React.forwardRef<
         </div>
         <div className="flex flex-col gap-4 order-0 lg:order-1">
           <div className="w-full flex flex-col gap-1" id="frame-preview">
-            {isLoading ? (
-              <Card>
-                <CardContent className="p-0 pb-2">
-                  <div className="flex flex-col space-y-2">
-                    <Skeleton className="h-[260px] w-full rounded-xl rounded-b-none" />
-                    <Skeleton className="h-[38px] mx-2" />
-                    <Skeleton className="h-[38px] mx-2" />
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
+            <FrameUI
+              frameState={frameState}
+              allowPartialFrame={true}
+              enableImageDebugging={imageDebuggingEnabled}
+            />
+            <div className="ml-auto text-sm text-slate-500">{url}</div>
+
+            {!isLoading && (
               <>
-                <div className="border rounded-lg overflow-hidden relative">
-                  <FrameUI
-                    frameState={frameState}
-                    theme={{
-                      bg: "white",
-                    }}
-                    FrameImage={FrameImageNext}
-                    allowPartialFrame={true}
-                    enableImageDebugging={imageDebuggingEnabled}
-                  />
-                </div>
-
-                <div className="ml-auto text-sm text-slate-500">{url}</div>
-
                 {currentFrameStackItem?.request.method === "GET" && (
                   <div className="my-5">
                     <h3 className="font-bold">Preview</h3>
