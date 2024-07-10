@@ -1,5 +1,16 @@
 # docs
 
+## 0.3.0
+
+### Minor Changes
+
+- feat: add neynar validate middleware
+
+### Patch Changes
+
+- Updated dependencies
+  - frames.js@0.18.0
+
 ## 0.2.19
 
 ### Patch Changes

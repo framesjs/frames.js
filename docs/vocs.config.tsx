@@ -250,6 +250,10 @@ const sidebar: SidebarItem[] = [
         text: "Open Frames",
         link: "/middleware/openframes",
       },
+      {
+        text: "Neynar Validate",
+        link: "/middleware/neynar-validate",
+      },
     ],
   },
   {
