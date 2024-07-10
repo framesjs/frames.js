@@ -40,5 +40,12 @@ module.exports = {
     eqeqeq: "off",
     "no-await-in-loop": "off",
     "no-implicit-coercion": "off",
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        devDependencies: false,
+        peerDependencies: true,
+      },
+    ],
   },
 };

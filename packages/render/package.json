@@ -66,6 +66,20 @@
         "default": "./dist/farcaster/index.cjs"
       }
     },
+    "./ui": {
+      "react-native": {
+        "types": "./dist/ui/frame.native.d.cts",
+        "default": "./dist/ui/frame.native.cjs"
+      },
+      "import": {
+        "types": "./dist/ui/frame.d.ts",
+        "default": "./dist/ui/frame.js"
+      },
+      "require": {
+        "types": "./dist/ui/frame.d.cts",
+        "default": "./dist/ui/frame.cjs"
+      }
+    },
     "./use-fetch-frame": {
       "import": {
         "types": "./dist/use-fetch-frame.d.ts",
@@ -102,15 +116,19 @@
     "src"
   ],
   "devDependencies": {
+    "@types/react-native": "^0.73.0",
+    "@types/react": "^18.2.0",
     "@remix-run/node": "^2.8.1",
     "tsup": "^8.0.1",
     "typescript": "^5.4.5"
   },
   "license": "MIT",
   "peerDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-native": "^0.73.0",
     "next": "^14.1.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react-native": "^0.74.3",
     "viem": "^2.7.8"
   },
   "dependencies": {
