@@ -102,7 +102,11 @@ const defaultComponents: FrameUIComponents<StylingProps> = {
   },
   Root(props, stylingProps) {
     return (
-      <div {...stylingProps} ref={props.ref}>
+      <div
+        {...stylingProps}
+        ref={props.ref}
+        style={{ ...props.dimensions, ...stylingProps.style }}
+      >
         {props.loadingScreen}
         {props.imageContainer}
         {props.textInputContainer}
