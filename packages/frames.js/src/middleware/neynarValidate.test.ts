@@ -1,7 +1,7 @@
 import { redirect } from "../core/redirect";
 import type { FramesContext } from "../core/types";
-import { neynarValidate } from "./neynarValidate";
-import type { ValidateFrameActionResponse } from "./types.message";
+import { neynarValidate } from "./neynar";
+import type { ValidateFrameActionResponse } from "./neynar/types.message";
 
 describe("neynarValidate middleware", () => {
   let sampleFrameActionRequest: Request;

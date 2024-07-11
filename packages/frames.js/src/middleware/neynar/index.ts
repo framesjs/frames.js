@@ -1,9 +1,6 @@
-import {
-  InvalidFrameActionPayloadError,
-  RequestBodyNotJSONError,
-} from "../core/errors";
-import type { FramesMiddleware } from "../core/types";
-import type { ClientProtocolId, FrameActionPayload } from "../types";
+import { InvalidFrameActionPayloadError, RequestBodyNotJSONError } from "../../core/errors";
+import type { FramesMiddleware } from "../../core/types";
+import type { ClientProtocolId, FrameActionPayload } from "../../types";
 import type { ValidateFrameActionResponse } from "./types.message";
 
 function isValidFrameActionPayload(
