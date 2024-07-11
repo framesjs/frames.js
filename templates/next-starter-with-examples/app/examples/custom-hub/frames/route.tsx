@@ -15,7 +15,7 @@ const handleRequest = frames(async (ctx) => {
       </Button>,
       <Button action="post">
         {clickedButtonIndex === 2 ? "Active" : "Inactive"}
-      </Button>,
+      </Button>, 
       <Button
         action="mint"
         target={getTokenUrl({
