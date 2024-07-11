@@ -27,6 +27,12 @@ module.exports = {
     {
       files: ["*.js?(x)", "*.ts?(x)"],
     },
+    {
+      files: ["**/*.test.ts?(x)", "**/*.spec.ts?(x)"],
+      rules: {
+        "import/no-extraneous-dependencies": "off",
+      },
+    },
   ],
   rules: {
     "@typescript-eslint/consistent-type-definitions": "off",
