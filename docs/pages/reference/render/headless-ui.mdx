@@ -1,0 +1,178 @@
+# Headless FrameUI
+
+If you are working on frames app either in the browser or React Native you can use our headless component FrameUI component.
+The component doesn't have any styles so you must provide your own styles. Only structure is enforced.
+
+## Structure
+
+![FrameUI Structure](/frame-ui-structure.svg)
+
+### Error
+
+Error screen happens if the frame is not renderable.
+
+### Root
+
+Root is the main container for the rendered frame.
+
+#### Loading Screen
+
+Rendered when frame or image is loading. This element also accepts dimensions of previous frame (if any) so you can provide visual feedback to the user.
+
+Loading screen is rendered inside `Root`.
+
+#### Image Container
+
+Rendered when frame is loaded or when new frame is being loaded.
+
+- `Image` is rendered inside the container.
+- `MessageTooltip` is rendered inside the container if there is an error or message returned in response to button press.
+
+#### Image
+
+Rendered inside `ImageContainer`.
+
+- When the frame is loading it should return an element that respects passed `aspectRatio`.
+- When the frame is loaded it should return an image element that respects passed `aspectRatio` and calls `onImageLoadEnd` when image is loaded or there was an error loading the image.
+
+### Message Tooltip
+
+Rendered inside `ImageContainer`.
+
+#### Text Input Container
+
+Rendered if frame contains a text input.
+
+#### Text Input
+
+Rendered inside `TextInputContainer`.
+
+#### Button Container
+
+Rendered if frame contains at least one button.
+
+#### Button
+
+Rendered inside `ButtonContainer`.
+
+## Usage
+
+Usage is the same for React and React Native.
+
+```tsx [frames.js/render/types.tsx]
+import { FrameUI } from "@frames.js/render/ui';
+import { useFrame } from "@frames.js/render/use-frame";
+
+
+export const Page(){
+  const frameState = useFrame({
+    // ...
+  });
+
+  return (
+    <FrameUI
+        frameState={frameState}
+    />
+  );
+}
+```
+
+## Styling in React
+
+By default you can use `className` or `style` to style the components.
+
+```tsx
+<FrameUI
+  frameState={frameState}
+  theme={{
+    Button: {},
+    ButtonContainer: {},
+    Error: {},
+    LoadingScreen: {},
+    Image: {},
+    ImageContainer: {},
+    MessageTooltip: {},
+    Root: {
+      // you can use className or style
+      className: 'flex ...',
+      style: {
+        display: 'flex',
+      }
+    },
+    TextInput: {}
+    TextInputContainer: {},
+  }}
+/>
+```
+
+## Styling in React Native
+
+By default you can use `style` prop to style the components. Also `className` is supported in case you want to use NativeWind.
+
+```tsx
+<FrameUI
+  frameState={frameState}
+  theme={{
+    Button: {},
+    ButtonContainer: {},
+    Error: {},
+    LoadingScreen: {},
+    Image: {},
+    ImageContainer: {},
+    MessageTooltip: {},
+    Root: {
+      // className: 'flex', native wind
+      style: {
+        flex: 1,
+      }
+    },
+    TextInput: {}
+    TextInputContainer: {},
+  }}
+/>
+```
+
+## Overriding components
+
+In case you want to change how components behave you can override them. Each component override is a function that accepts props and styling props.
+
+- styling props: contains properties of a given component from `theme`.
+- props: these are specific for each component
+
+```tsx
+<FrameUI
+  frameState={frameState}
+  components={{
+    Button(props, stylingProps) {
+      return <button className={stylingProps.className} style={stylingProps.style} onClick={props.onPress}>
+    },
+    ButtonContainer(props, stylingProps) {
+      // ...
+    },
+    Error(props, stylingProps) {
+      // ...return ...;
+    },
+    LoadingScreen(props, stylingProps) {
+      // ...
+    },
+    Image(props, stylingProps) {
+      // ...
+    },
+    ImageContainer(props, stylingProps) {
+      // ...
+    },
+    MessageTooltip(props, stylingProps) {
+      // ...
+    },
+    Root(props, stylingProps) {
+      // ...
+    },
+    TextInput(props, stylingProps) {
+      // ...
+    },
+    TextInputContainer(props, stylingProps) {
+      // ...
+    },
+  }}
+/>
+```
