@@ -105,10 +105,11 @@ const theme: Props["theme"] = {
     className: "absolute top-0 left-0 right-0 bottom-0 bg-gray-300 z-10",
   },
   Image: {
-    className: "w-full object-cover",
+    className: "w-full object-cover max-h-full",
   },
   ImageContainer: {
-    className: "relative w-full h-full border-b border-gray-300",
+    className:
+      "relative w-full h-full border-b border-gray-300 overflow-hidden",
   },
   TextInput: {
     className: "p-[6px] border rounded border-gray-300 box-border w-full",
