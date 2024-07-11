@@ -1,10 +1,11 @@
-import React from "react";
-import {
-  BaseFrameUI,
-  type BaseFrameUIProps,
-  type ComputeRootDimensionsFunction,
-} from "./frame.base";
-import type { FrameUIComponents, FrameUIComponentStylingProps } from "./types";
+import React, { forwardRef, useImperativeHandle, useRef } from "react";
+import { BaseFrameUI, type BaseFrameUIProps } from "./frame.base";
+import type {
+  FrameRootContainerProps,
+  FrameUIComponents,
+  FrameUIComponentStylingProps,
+  RootContainerElement,
+} from "./types";
 
 declare module "react" {
   interface CSSProperties {
@@ -16,6 +17,55 @@ type StylingProps = {
   className?: string;
   style?: React.CSSProperties;
 };
+
+const RootContainer = forwardRef<
+  RootContainerElement,
+  FrameRootContainerProps & StylingProps
+>(
+  (
+    {
+      buttonsContainer,
+      imageContainer,
+      loadingScreen,
+      textInputContainer,
+      dimensions,
+      className,
+      style,
+    },
+    ref
+  ) => {
+    const elementRef = useRef<HTMLDivElement>(null);
+
+    useImperativeHandle(ref, () => {
+      return {
+        computeDimensions() {
+          if (!elementRef.current) {
+            return undefined;
+          }
+
+          const { width, height } = elementRef.current.getBoundingClientRect();
+
+          return { width, height };
+        },
+      };
+    });
+
+    return (
+      <div
+        className={className}
+        ref={elementRef}
+        style={{ ...dimensions, ...style }}
+      >
+        {loadingScreen}
+        {imageContainer}
+        {textInputContainer}
+        {buttonsContainer}
+      </div>
+    );
+  }
+);
+
+RootContainer.displayName = "RootContainer";
 
 const defaultComponents: FrameUIComponents<StylingProps> = {
   Button(props, stylingProps) {
@@ -101,18 +151,7 @@ const defaultComponents: FrameUIComponents<StylingProps> = {
     );
   },
   Root(props, stylingProps) {
-    return (
-      <div
-        {...stylingProps}
-        ref={props.ref}
-        style={{ ...props.dimensions, ...stylingProps.style }}
-      >
-        {props.loadingScreen}
-        {props.imageContainer}
-        {props.textInputContainer}
-        {props.buttonsContainer}
-      </div>
-    );
+    return <RootContainer {...props} {...stylingProps} />;
   },
   TextInput(props, stylingProps) {
     return (
@@ -155,21 +194,6 @@ type FrameUIProps = Omit<
   theme?: Partial<StyledBaseUIProps["theme"]>;
 };
 
-const computeRootDimensions: ComputeRootDimensionsFunction<HTMLDivElement> = (
-  ref
-) => {
-  if (!ref.current) {
-    return undefined;
-  }
-
-  const { height, width } = ref.current.getBoundingClientRect();
-
-  return {
-    width,
-    height,
-  };
-};
-
 export function FrameUI(props: FrameUIProps): JSX.Element {
   const components = {
     ...defaultComponents,
@@ -181,12 +205,5 @@ export function FrameUI(props: FrameUIProps): JSX.Element {
     ...props.theme,
   };
 
-  return (
-    <BaseFrameUI
-      {...props}
-      computeRootDimensions={computeRootDimensions}
-      components={components}
-      theme={theme}
-    />
-  );
+  return <BaseFrameUI {...props} components={components} theme={theme} />;
 }

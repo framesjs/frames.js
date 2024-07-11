@@ -5,15 +5,13 @@ import type {
   FrameUIComponents,
   FrameUIComponentStylingProps,
   FrameUIState,
+  RootContainerDimensions,
+  RootContainerElement,
 } from "./types";
 import {
   getErrorMessageFromFramesStackItem,
   isPartialFrameStackItem,
 } from "./utils";
-
-export type ComputeRootDimensionsFunction<TElement> = (
-  ref: React.RefObject<TElement>
-) => { width: number; height: number } | undefined;
 
 export type BaseFrameUIProps<TStylingProps extends Record<string, unknown>> = {
   frameState: FrameState;
@@ -29,10 +27,6 @@ export type BaseFrameUIProps<TStylingProps extends Record<string, unknown>> = {
   enableImageDebugging?: boolean;
   components: FrameUIComponents<TStylingProps>;
   theme: FrameUIComponentStylingProps<TStylingProps>;
-  /**
-   * If provided the root's props will receive dimensions of the root element upon button press
-   */
-  computeRootDimensions?: ComputeRootDimensionsFunction<any>;
 };
 
 export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
@@ -41,14 +35,11 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
   theme,
   allowPartialFrame = false,
   enableImageDebugging = false,
-  computeRootDimensions,
 }: BaseFrameUIProps<TStylingProps>): JSX.Element | null {
   const [isImageLoading, setIsImageLoading] = useState(true);
   const { currentFrameStackItem } = frameState;
-  const rootRef = useRef();
-  const rootDimensionsRef = useRef<
-    { width: number; height: number } | undefined
-  >();
+  const rootRef = useRef<RootContainerElement>(null);
+  const rootDimensionsRef = useRef<RootContainerDimensions | undefined>();
   const previousFrameAspectRatioRef = useRef<"1:1" | "1.91:1" | undefined>();
 
   const onImageLoadEnd = useCallback(() => {
@@ -171,7 +162,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
                       onPress() {
                         // track dimensions of the root if possible
                         rootDimensionsRef.current =
-                          computeRootDimensions?.(rootRef);
+                          rootRef.current?.computeDimensions();
 
                         // track aspect ratio of image
                         previousFrameAspectRatioRef.current =

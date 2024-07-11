@@ -46,9 +46,41 @@ type FrameUIStateProps = {
   frameState: FrameUIState;
 };
 
-type RootDimensions = {
+export type RootContainerDimensions = {
   width: number;
   height: number;
+};
+
+export type FrameImageContainerProps = {
+  /**
+   * Rendered in case when
+   * - a message is returned in response to frame button press
+   * - an error occurs in response to frame button press
+   *
+   * Uses components.MessageTooltip
+   */
+  messageTooltip: ReactElement | null;
+  /**
+   * Rendered if there is a frame image, uses components.Image
+   */
+  image: ReactElement | null;
+  /**
+   * Aspect ratio of current image or previous frame image if frame is loading
+   */
+  aspectRatio: "1:1" | "1.91:1";
+} & FrameUIStateProps;
+
+export type FrameLoadingScreenProps = FrameUIStateProps & {
+  dimensions: RootContainerDimensions | null;
+};
+
+export type FrameButtonContainerProps = {
+  buttons: ReactElement[];
+} & FrameUIStateProps;
+
+export type FrameTextInputContainerProps = {
+  textInput: ReactElement;
+  frame: FrameUIState;
 };
 
 export type FrameUIComponents<TStylingProps extends Record<string, unknown>> = {
@@ -61,43 +93,7 @@ export type FrameUIComponents<TStylingProps extends Record<string, unknown>> = {
    * in case of an error it is not used and components.Error is rendered instead.
    */
   Root: (
-    props: {
-      /**
-       * Dimensions of the root when button has been pressed.
-       * Available only if frame or frame's image is in loading state.
-       */
-      dimensions: RootDimensions | null;
-      /**
-       * Ref to the root element, used to compute the dimensions of the frame
-       */
-      ref: React.RefObject<any>;
-      /**
-       * Uses components.ImageContainer
-       *
-       * Rendered also if the frame is loading
-       */
-      imageContainer: ReactElement;
-      /**
-       * Uses components.LoadingScreen
-       *
-       * Rendered when the frame or frame's image is loading
-       *
-       * Should cover the whole Root since root has dimensions of previous frame
-       */
-      loadingScreen: ReactElement | null;
-      /**
-       * Uses components.ButtonsContainer
-       *
-       * Rendered only if frame has at least one button
-       */
-      buttonsContainer: ReactElement | null;
-      /**
-       * Uses components.TextInputContainer
-       *
-       * Rendered only if frame has a text input
-       */
-      textInputContainer: ReactElement | null;
-    } & FrameUIStateProps,
+    props: FrameRootContainerProps,
     stylingProps: TStylingProps
   ) => ReactElement;
   /**
@@ -106,28 +102,11 @@ export type FrameUIComponents<TStylingProps extends Record<string, unknown>> = {
    * Usually this covers the whole Root since root has dimensions of previous frame
    */
   LoadingScreen: (
-    props: FrameUIStateProps & { dimensions: RootDimensions | null },
+    props: FrameLoadingScreenProps,
     stylingProps: TStylingProps
   ) => ReactElement;
   ImageContainer: (
-    props: {
-      /**
-       * Rendered in case when
-       * - a message is returned in response to frame button press
-       * - an error occurs in response to frame button press
-       *
-       * Uses components.MessageTooltip
-       */
-      messageTooltip: ReactElement | null;
-      /**
-       * Rendered if there is a frame image, uses components.Image
-       */
-      image: ReactElement | null;
-      /**
-       * Aspect ratio of current image or previous frame image if frame is loading
-       */
-      aspectRatio: "1:1" | "1.91:1";
-    } & FrameUIStateProps,
+    props: FrameImageContainerProps,
     stylingProps: TStylingProps
   ) => ReactElement;
   /**
@@ -135,48 +114,84 @@ export type FrameUIComponents<TStylingProps extends Record<string, unknown>> = {
    *
    * You have to handle the loading state of the image
    */
-  Image: (
-    props: FrameImageProps & FrameUIStateProps,
-    stylingProps: TStylingProps
-  ) => ReactElement;
+  Image: (props: FrameImageProps, stylingProps: TStylingProps) => ReactElement;
   /**
    * Rendered only if frame has at least one button
    */
   ButtonsContainer: (
-    props: {
-      buttons: ReactElement[];
-    } & FrameUIStateProps,
+    props: FrameButtonContainerProps,
     stylingProps: TStylingProps
   ) => ReactElement;
   Button: (
-    props: FrameButtonProps & FrameUIStateProps & { index: number },
+    props: FrameButtonProps,
     stylingProps: TStylingProps
   ) => ReactElement;
   /**
    * Rendered only if frame has a text input
    */
   TextInputContainer: (
-    props: {
-      textInput: ReactElement;
-      frame: FrameUIState;
-    },
+    props: FrameTextInputContainerProps,
     stylingProps: TStylingProps
   ) => ReactElement;
   /**
    * Rendered only if frame has a text input
    */
   TextInput: (
-    props: FrameTextInputProps & FrameUIStateProps,
+    props: FrameTextInputProps,
     stylingProps: TStylingProps
   ) => ReactElement;
   /**
    * Rendered in component.ImageContainer in case the frame button press returns a message
    */
   MessageTooltip: (
-    props: FrameMessageTooltipProps & FrameUIStateProps,
+    props: FrameMessageTooltipProps,
     stylingProps: TStylingProps
   ) => ReactElement;
 };
+
+export type RootContainerElement = {
+  computeDimensions: () => RootContainerDimensions | undefined;
+};
+
+export type FrameRootContainerProps = {
+  /**
+   * Dimensions of the root when button has been pressed.
+   * Available only if frame or frame's image is in loading state.
+   */
+  dimensions: RootContainerDimensions | null;
+  /**
+   * Ref to the root container element
+   *
+   * Used to compute dimensions of the root container used on next framein response to button press
+   */
+  ref: React.RefObject<RootContainerElement>;
+  /**
+   * Uses components.ImageContainer
+   *
+   * Rendered also if the frame is loading
+   */
+  imageContainer: ReactElement;
+  /**
+   * Uses components.LoadingScreen
+   *
+   * Rendered when the frame or frame's image is loading
+   *
+   * Should cover the whole Root since root has dimensions of previous frame
+   */
+  loadingScreen: ReactElement | null;
+  /**
+   * Uses components.ButtonsContainer
+   *
+   * Rendered only if frame has at least one button
+   */
+  buttonsContainer: ReactElement | null;
+  /**
+   * Uses components.TextInputContainer
+   *
+   * Rendered only if frame has a text input
+   */
+  textInputContainer: ReactElement | null;
+} & FrameUIStateProps;
 
 export type FrameErrorProps = {
   message: string;
@@ -204,16 +219,17 @@ export type FrameButtonProps = {
   isDisabled: boolean;
   frameButton: FrameButton;
   onPress: () => void;
-};
+  index: number;
+} & FrameUIStateProps;
 
 export type FrameTextInputProps = {
   isDisabled: boolean;
   placeholder: string;
   onChange: (text: string) => void;
   value?: string;
-};
+} & FrameUIStateProps;
 
 export type FrameMessageTooltipProps = {
   message: string;
   status: "error" | "message";
-};
+} & FrameUIStateProps;
