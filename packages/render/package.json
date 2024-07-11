@@ -68,16 +68,16 @@
     },
     "./ui": {
       "react-native": {
-        "types": "./dist/ui/frame.native.d.cts",
-        "default": "./dist/ui/frame.native.cjs"
+        "types": "./dist/ui/index.native.d.cts",
+        "default": "./dist/ui/index.native.cjs"
       },
       "import": {
-        "types": "./dist/ui/frame.d.ts",
-        "default": "./dist/ui/frame.js"
+        "types": "./dist/ui/index.d.ts",
+        "default": "./dist/ui/index.js"
       },
       "require": {
-        "types": "./dist/ui/frame.d.cts",
-        "default": "./dist/ui/frame.cjs"
+        "types": "./dist/ui/index.d.cts",
+        "default": "./dist/ui/index.cjs"
       }
     },
     "./use-fetch-frame": {
