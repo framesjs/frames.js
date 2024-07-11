@@ -9,7 +9,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
  */
 export function getTemplates() {
   // make sure you build the frames.js first so templates are copied to templates directory
-  return readdirSync(resolve(__dirname, "../templates"));
+  return readdirSync(resolve(__dirname, "../templates"), {
+    withFileTypes: true,
+  })
+    .filter((dirent) => dirent.isDirectory())
+    .map((dirent) => dirent.name);
 }
 
 /**
