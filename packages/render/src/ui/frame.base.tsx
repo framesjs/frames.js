@@ -27,6 +27,12 @@ export type BaseFrameUIProps<TStylingProps extends Record<string, unknown>> = {
   enableImageDebugging?: boolean;
   components: FrameUIComponents<TStylingProps>;
   theme: FrameUIComponentStylingProps<TStylingProps>;
+  /**
+   * Called when an error occurs in response to frame button press
+   *
+   * @defaultValue console.error()
+   */
+  onError?: (error: Error) => void;
 };
 
 export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
@@ -35,6 +41,8 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
   theme,
   allowPartialFrame = false,
   enableImageDebugging = false,
+  // eslint-disable-next-line no-console -- provide at least some feedback to the user
+  onError = console.error,
 }: BaseFrameUIProps<TStylingProps>): JSX.Element | null {
   const [isImageLoading, setIsImageLoading] = useState(true);
   const { currentFrameStackItem } = frameState;
@@ -52,6 +60,12 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
       setIsImageLoading(true);
     }
   }, [currentFrameStackItem?.status]);
+
+  useEffect(() => {
+    if (currentFrameStackItem?.status === "requestError") {
+      onError(currentFrameStackItem.requestError);
+    }
+  }, [currentFrameStackItem, onError]);
 
   if (!frameState.homeframeUrl) {
     return components.Error({ message: "Missing frame url" }, theme.Error);
@@ -212,13 +226,11 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
             theme.Image
           ),
           messageTooltip:
-            currentFrameStackItem.status === "message" ||
-            currentFrameStackItem.status === "requestError"
+            currentFrameStackItem.status === "message"
               ? components.MessageTooltip(
                   {
                     frameState: frameUiState,
                     status:
-                      currentFrameStackItem.status === "requestError" ||
                       currentFrameStackItem.type === "error"
                         ? "error"
                         : "message",

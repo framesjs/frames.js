@@ -7,6 +7,7 @@ import {
 import {
   Dispatch,
   SetStateAction,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -56,6 +57,8 @@ import Link from "next/link";
 import { FrameDebuggerRequestDetails } from "./frame-debugger-request-details";
 import { urlSearchParamsToObject } from "../utils/url-search-params-to-object";
 import { FrameUI } from "./frame-ui";
+import { useToast } from "@/components/ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 
 type FrameDiagnosticsProps = {
   stackItem: FramesStackItem;
@@ -379,6 +382,7 @@ export const FrameDebugger = React.forwardRef<
     },
     ref
   ) => {
+    const { toast } = useToast();
     const debuggerConsoleTabRef = useRef<HTMLDivElement>(null);
     const [activeTab, setActiveTab] = useState<TabValues>("diagnostics");
     const router = useRouter();
@@ -420,17 +424,39 @@ export const FrameDebugger = React.forwardRef<
      */
     const wantsToScrollConsoleToBottomRef = useRef(false);
 
+    const showConsole = useCallback(() => {
+      wantsToScrollConsoleToBottomRef.current = true;
+      setActiveTab("console");
+    }, []);
+
     useImperativeHandle(
       ref,
       () => {
-        return {
-          showConsole() {
-            wantsToScrollConsoleToBottomRef.current = true;
-            setActiveTab("console");
-          },
-        };
+        return { showConsole };
       },
-      []
+      [showConsole]
+    );
+
+    const handleFrameError = useCallback(
+      (e: Error) => {
+        toast({
+          title: "Unexpected error",
+          description: "Please check the console for more information",
+          variant: "destructive",
+          action: (
+            <ToastAction
+              altText="Show console"
+              onClick={() => {
+                showConsole();
+              }}
+            >
+              Show console
+            </ToastAction>
+          ),
+        });
+        console.error(e);
+      },
+      [toast, showConsole]
     );
 
     const isImageDebuggingAvailable =
@@ -555,6 +581,7 @@ export const FrameDebugger = React.forwardRef<
               frameState={frameState}
               allowPartialFrame={true}
               enableImageDebugging={imageDebuggingEnabled}
+              onError={handleFrameError}
             />
             <div className="ml-auto text-sm text-slate-500">{url}</div>
 
