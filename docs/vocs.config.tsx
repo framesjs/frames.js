@@ -379,6 +379,10 @@ const sidebar: SidebarItem[] = [
             link: "/reference/render/types",
           },
           {
+            text: "Headless FrameUI",
+            link: "/reference/render/headless-ui",
+          },
+          {
             text: "FrameUI",
             link: "/reference/render/frame-ui",
           },

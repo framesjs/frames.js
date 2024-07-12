@@ -27,6 +27,12 @@ module.exports = {
     {
       files: ["*.js?(x)", "*.ts?(x)"],
     },
+    {
+      files: ["**/*.test.ts?(x)", "**/*.spec.ts?(x)"],
+      rules: {
+        "import/no-extraneous-dependencies": "off",
+      },
+    },
   ],
   rules: {
     "@typescript-eslint/consistent-type-definitions": "off",
@@ -40,5 +46,12 @@ module.exports = {
     eqeqeq: "off",
     "no-await-in-loop": "off",
     "no-implicit-coercion": "off",
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        devDependencies: false,
+        peerDependencies: true,
+      },
+    ],
   },
 };
