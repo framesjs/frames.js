@@ -1,5 +1,5 @@
 import type { Frame, FrameButton } from "frames.js";
-import type { ReactElement } from "react";
+import type { createElement, ReactElement } from "react";
 
 /**
  * Allows to override styling props on all component of the Frame UI
@@ -154,6 +154,13 @@ export type RootContainerElement = {
 };
 
 export type FrameRootContainerProps = {
+  /**
+   * Used to create elements.
+   *
+   * This allows to change the implementation of createElement.
+   * For example NativeWind needs to use their own implementation.
+   */
+  createElement: typeof createElement;
   /**
    * Dimensions of the root when button has been pressed.
    * Available only if frame or frame's image is in loading state.

@@ -1,5 +1,11 @@
 import type { Frame } from "frames.js";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  createElement as reactCreateElement,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import type { FrameState } from "../types";
 import type {
   FrameUIComponents,
@@ -26,13 +32,21 @@ export type BaseFrameUIProps<TStylingProps extends Record<string, unknown>> = {
    */
   enableImageDebugging?: boolean;
   components: FrameUIComponents<TStylingProps>;
-  theme: FrameUIComponentStylingProps<TStylingProps>;
+  theme?: Partial<FrameUIComponentStylingProps<TStylingProps>> | undefined;
   /**
    * Called when an error occurs in response to frame button press
    *
    * @defaultValue console.error()
    */
   onError?: (error: Error) => void;
+  /**
+   * Custom createElement function to use when rendering components.
+   *
+   * This is useful for libraries like Nativewind that require a custom createElement function.
+   *
+   * @defaultValue React.createElement
+   */
+  createElement?: typeof reactCreateElement;
 };
 
 export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
@@ -43,6 +57,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
   enableImageDebugging = false,
   // eslint-disable-next-line no-console -- provide at least some feedback to the user
   onError = console.error,
+  createElement = reactCreateElement,
 }: BaseFrameUIProps<TStylingProps>): JSX.Element | null {
   const [isImageLoading, setIsImageLoading] = useState(true);
   const { currentFrameStackItem } = frameState;
@@ -68,7 +83,10 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
   }, [currentFrameStackItem, onError]);
 
   if (!frameState.homeframeUrl) {
-    return components.Error({ message: "Missing frame url" }, theme.Error);
+    return components.Error(
+      { message: "Missing frame url" },
+      theme?.Error || ({} as TStylingProps)
+    );
   }
 
   if (!currentFrameStackItem) {
@@ -91,7 +109,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
             message: "Failed to load frame",
             error: currentFrameStackItem.requestError,
           },
-          theme.Error
+          theme?.Error || ({} as TStylingProps)
         );
       }
 
@@ -129,7 +147,10 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
           isImageLoading,
         };
       } else {
-        return components.Error({ message: "Invalid frame" }, theme.Error);
+        return components.Error(
+          { message: "Invalid frame" },
+          theme?.Error || ({} as TStylingProps)
+        );
       }
 
       break;
@@ -145,6 +166,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
 
   return components.Root(
     {
+      createElement,
       frameState: frameUiState,
       dimensions: isLoading ? rootDimensionsRef.current ?? null : null,
       ref: rootRef,
@@ -154,7 +176,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
               frameState: frameUiState,
               dimensions: rootDimensionsRef.current ?? null,
             },
-            theme.LoadingScreen
+            theme?.LoadingScreen || ({} as TStylingProps)
           )
         : null,
       buttonsContainer:
@@ -195,11 +217,11 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
                         });
                       },
                     },
-                    theme.Button
+                    theme?.Button || ({} as TStylingProps)
                   )
                 ),
               },
-              theme.ButtonsContainer
+              theme?.ButtonsContainer || ({} as TStylingProps)
             ),
       imageContainer: components.ImageContainer(
         {
@@ -223,7 +245,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
                   aspectRatio: frameUiState.frame.imageAspectRatio ?? "1.91:1",
                   onImageLoadEnd,
                 },
-            theme.Image
+            theme?.Image || ({} as TStylingProps)
           ),
           messageTooltip:
             currentFrameStackItem.status === "message"
@@ -238,11 +260,11 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
                       currentFrameStackItem
                     ),
                   },
-                  theme.MessageTooltip
+                  theme?.MessageTooltip || ({} as TStylingProps)
                 )
               : null,
         },
-        theme.ImageContainer
+        theme?.ImageContainer || ({} as TStylingProps)
       ),
       textInputContainer:
         frameUiState.status === "loading" ||
@@ -262,12 +284,12 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
                     },
                     value: frameState.inputText,
                   },
-                  theme.TextInput
+                  theme?.TextInput || ({} as TStylingProps)
                 ),
               },
-              theme.TextInputContainer
+              theme?.TextInputContainer || ({} as TStylingProps)
             ),
     },
-    theme.Root
+    theme?.Root || ({} as TStylingProps)
   );
 }

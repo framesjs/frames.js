@@ -1,8 +1,15 @@
-import React, { forwardRef, useImperativeHandle, useRef } from "react";
+import React, {
+  createElement as reactCreateElement,
+  forwardRef,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from "react";
 import {
   Button,
   Image,
   type ImageStyle,
+  type LayoutChangeEvent,
   Text,
   TextInput,
   type TextStyle,
@@ -13,7 +20,6 @@ import { BaseFrameUI, type BaseFrameUIProps } from "./frame.base";
 import type {
   FrameRootContainerProps,
   FrameUIComponents,
-  FrameUIComponentStylingProps,
   RootContainerDimensions,
   RootContainerElement,
 } from "./types";
@@ -32,6 +38,7 @@ const RootContainer = forwardRef<
 >(
   (
     {
+      createElement,
       buttonsContainer,
       imageContainer,
       loadingScreen,
@@ -52,144 +59,154 @@ const RootContainer = forwardRef<
       };
     });
 
-    return (
-      <View
+    return createElement(
+      View,
+      {
         // @ts-expect-error -- this is supported if nativewind is used
-        className={className}
-        onLayout={(e) => {
+        className,
+        onLayout: (e: LayoutChangeEvent) => {
           viewDimensionsRef.current = {
             height: e.nativeEvent.layout.height,
             width: e.nativeEvent.layout.width,
           };
-        }}
-        style={{
+        },
+        style: {
           ...dimensions,
           ...style,
-        }}
-      >
-        {loadingScreen}
-        {imageContainer}
-        {textInputContainer}
-        {buttonsContainer}
-      </View>
+        },
+      },
+      loadingScreen,
+      imageContainer,
+      textInputContainer,
+      buttonsContainer
     );
   }
 );
 
 RootContainer.displayName = "RootContainer";
 
-const defaultComponents: FrameUIComponents<StylingProps> = {
-  Button(props, stylingProps) {
-    return (
-      <Button
-        {...stylingProps}
-        disabled={props.isDisabled}
-        onPress={props.onPress}
-        title={props.frameButton.label}
-      />
-    );
-  },
-  ButtonsContainer(props, stylingProps) {
-    return <View {...stylingProps}>{props.buttons}</View>;
-  },
-  Error(props, stylingProps) {
-    return (
-      <View {...stylingProps}>
-        <Text>{props.message}</Text>
-      </View>
-    );
-  },
-  Image(props, stylingProps) {
-    const aspectRatio = props.aspectRatio.replace(":", "/");
+function isStyleProp<TStyle extends ViewStyle | ImageStyle | TextStyle>(
+  value: unknown
+): value is TStyle {
+  return typeof value === "object" && value !== null;
+}
 
-    if (props.status === "frame-loading") {
-      return <View />;
-    }
+function createDefaultComponents<TStylingProps extends Record<string, unknown>>(
+  createElement = reactCreateElement
+): FrameUIComponents<TStylingProps> {
+  return {
+    Button(props, stylingProps) {
+      return createElement(Button, {
+        ...stylingProps,
+        disabled: props.isDisabled,
+        onPress: props.onPress,
+        title: props.frameButton.label,
+      });
+    },
+    ButtonsContainer(props, stylingProps) {
+      return createElement(View, stylingProps, props.buttons);
+    },
+    Error(props, stylingProps) {
+      return createElement(
+        View,
+        stylingProps,
+        createElement(Text, null, props.message)
+      );
+    },
+    Image(props, stylingProps) {
+      const aspectRatio = props.aspectRatio.replace(":", "/");
 
-    return (
-      <Image
-        {...stylingProps}
-        style={{
+      if (props.status === "frame-loading") {
+        return createElement(View);
+      }
+
+      return createElement(Image, {
+        ...stylingProps,
+        style: {
           aspectRatio,
-          ...(stylingProps.style as ImageStyle | undefined),
-        }}
-        src={props.src}
-        alt="Frame"
-      />
-    );
-  },
-  ImageContainer(props, stylingProps) {
-    const aspectRatio = props.aspectRatio.replace(":", "/");
+          ...(isStyleProp<ImageStyle>(stylingProps.style) &&
+            stylingProps.style),
+        },
+        src: props.src,
+        alt: "Frame",
+      });
+    },
+    ImageContainer(props, stylingProps) {
+      const aspectRatio = props.aspectRatio.replace(":", "/");
 
-    return (
-      <View {...stylingProps} style={{ aspectRatio, ...stylingProps.style }}>
-        {props.image}
-        {props.messageTooltip}
-      </View>
-    );
-  },
-  LoadingScreen(props, stylingProps) {
-    return (
-      <View {...stylingProps}>
-        <Text>Loading...</Text>
-      </View>
-    );
-  },
-  MessageTooltip(props, stylingProps) {
-    return (
-      <View {...stylingProps}>
-        <Text>{props.message}</Text>
-      </View>
-    );
-  },
-  Root(props, stylingProps) {
-    return <RootContainer {...props} {...stylingProps} />;
-  },
-  TextInput(props, stylingProps) {
-    return (
-      <TextInput
-        {...stylingProps}
-        editable={!props.isDisabled}
-        onChangeText={props.onChange}
-        placeholder={props.placeholder}
-        value={props.value}
-      />
-    );
-  },
-  TextInputContainer(props, stylingProps) {
-    return <View {...stylingProps}>{props.textInput}</View>;
-  },
-};
-
-const defaultStyles: FrameUIComponentStylingProps<StylingProps> = {
-  Button: {},
-  ButtonsContainer: {},
-  Error: {},
-  Image: {},
-  ImageContainer: {},
-  LoadingScreen: {},
-  MessageTooltip: {},
-  Root: {},
-  TextInput: {},
-  TextInputContainer: {},
-};
-
-type StyledBaseUIProps = BaseFrameUIProps<StylingProps>;
-type FrameUIProps = Omit<StyledBaseUIProps, "components" | "theme"> & {
-  components?: Partial<StyledBaseUIProps["components"]>;
-  theme?: Partial<StyledBaseUIProps["theme"]>;
-};
-
-export function FrameUI(props: FrameUIProps): JSX.Element {
-  const components = {
-    ...defaultComponents,
-    ...props.components,
+      return createElement(
+        View,
+        {
+          ...stylingProps,
+          style: {
+            aspectRatio,
+            ...(isStyleProp<ViewStyle>(stylingProps.style) &&
+              stylingProps.style),
+          },
+        },
+        props.image,
+        props.messageTooltip
+      );
+    },
+    LoadingScreen(props, stylingProps) {
+      return createElement(
+        View,
+        stylingProps,
+        createElement(Text, null, "Loading...")
+      );
+    },
+    MessageTooltip(props, stylingProps) {
+      return createElement(
+        View,
+        stylingProps,
+        createElement(Text, null, props.message)
+      );
+    },
+    Root(props, stylingProps) {
+      return createElement(RootContainer, {
+        ...props,
+        ...stylingProps,
+        createElement,
+      });
+    },
+    TextInput(props, stylingProps) {
+      return createElement(TextInput, {
+        ...stylingProps,
+        editable: !props.isDisabled,
+        onChangeText: props.onChange,
+        placeholder: props.placeholder,
+        value: props.value,
+      });
+    },
+    TextInputContainer(props, stylingProps) {
+      return createElement(View, stylingProps, props.textInput);
+    },
   };
+}
 
-  const theme = {
-    ...defaultStyles,
-    ...props.theme,
-  };
+type FrameUIProps<TStylingProps extends Record<string, unknown>> = Omit<
+  BaseFrameUIProps<TStylingProps>,
+  "components"
+> & {
+  /**
+   * Components should be memoized to avoid re-rendering the entire UI
+   */
+  components?: Partial<FrameUIComponents<TStylingProps>>;
+};
 
-  return <BaseFrameUI {...props} components={components} theme={theme} />;
+export function FrameUI<
+  TStylingProps extends Record<string, unknown> = StylingProps,
+>(props: FrameUIProps<TStylingProps>): JSX.Element {
+  const defaultComponents = useMemo(
+    () => createDefaultComponents<TStylingProps>(props.createElement),
+    [props.createElement]
+  );
+  const components = useMemo(() => {
+    return {
+      ...defaultComponents,
+      ...props.components,
+    };
+  }, [defaultComponents, props.components]);
+
+  return <BaseFrameUI<TStylingProps> {...props} components={components} />;
 }
