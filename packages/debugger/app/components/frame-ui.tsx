@@ -3,8 +3,11 @@ import { cn } from "@/lib/utils";
 import { FrameUI as BaseFrameUI } from "@frames.js/render/ui";
 import { MessageSquareIcon, AlertOctagonIcon, ZapIcon } from "lucide-react";
 import Image from "next/image";
+import React from "react";
 
-type Props = React.ComponentProps<typeof BaseFrameUI>;
+type Props = React.ComponentProps<
+  typeof BaseFrameUI<{ className?: string; style?: React.CSSProperties }>
+>;
 
 const components: Props["components"] = {
   Button(
