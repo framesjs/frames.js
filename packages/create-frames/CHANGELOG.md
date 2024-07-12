@@ -1,5 +1,11 @@
 # create-frames
 
+## 0.1.26
+
+### Patch Changes
+
+- 2bb6475: fix(create-frames): list only valid templates
+
 ## 0.1.25
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.3.5
+
+### Patch Changes
+
+- 080f631: feat(@frames.js/debugger): use headless frame ui from render package
+
 ## 0.3.4
 
 ### Patch Changes

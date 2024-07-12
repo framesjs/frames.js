@@ -1,5 +1,11 @@
 # @frames.js/render
 
+## 0.2.20
+
+### Patch Changes
+
+- 080f631: feat(@frames.js/render): new platform agnostic headless frame ui components
+
 ## 0.2.19
 
 ### Patch Changes
