@@ -1,5 +1,11 @@
 import type { Frame } from "frames.js";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  createElement as reactCreateElement,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import type { FrameState } from "../types";
 import type {
   FrameUIComponents,
@@ -33,6 +39,14 @@ export type BaseFrameUIProps<TStylingProps extends Record<string, unknown>> = {
    * @defaultValue console.error()
    */
   onError?: (error: Error) => void;
+  /**
+   * Custom createElement function to use when rendering components.
+   *
+   * This is useful for libraries like Nativewind that require a custom createElement function.
+   *
+   * @defaultValue React.createElement
+   */
+  createElement?: typeof reactCreateElement;
 };
 
 export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
@@ -43,6 +57,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
   enableImageDebugging = false,
   // eslint-disable-next-line no-console -- provide at least some feedback to the user
   onError = console.error,
+  createElement = reactCreateElement,
 }: BaseFrameUIProps<TStylingProps>): JSX.Element | null {
   const [isImageLoading, setIsImageLoading] = useState(true);
   const { currentFrameStackItem } = frameState;
@@ -151,6 +166,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
 
   return components.Root(
     {
+      createElement,
       frameState: frameUiState,
       dimensions: isLoading ? rootDimensionsRef.current ?? null : null,
       ref: rootRef,

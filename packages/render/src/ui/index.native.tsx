@@ -1,8 +1,15 @@
-import React, { forwardRef, useImperativeHandle, useMemo, useRef } from "react";
+import React, {
+  createElement as reactCreateElement,
+  forwardRef,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from "react";
 import {
   Button,
   Image,
   type ImageStyle,
+  type LayoutChangeEvent,
   Text,
   TextInput,
   type TextStyle,
@@ -31,6 +38,7 @@ const RootContainer = forwardRef<
 >(
   (
     {
+      createElement,
       buttonsContainer,
       imageContainer,
       loadingScreen,
@@ -51,26 +59,26 @@ const RootContainer = forwardRef<
       };
     });
 
-    return (
-      <View
+    return createElement(
+      View,
+      {
         // @ts-expect-error -- this is supported if nativewind is used
-        className={className}
-        onLayout={(e) => {
+        className,
+        onLayout: (e: LayoutChangeEvent) => {
           viewDimensionsRef.current = {
             height: e.nativeEvent.layout.height,
             width: e.nativeEvent.layout.width,
           };
-        }}
-        style={{
+        },
+        style: {
           ...dimensions,
           ...style,
-        }}
-      >
-        {loadingScreen}
-        {imageContainer}
-        {textInputContainer}
-        {buttonsContainer}
-      </View>
+        },
+      },
+      loadingScreen,
+      imageContainer,
+      textInputContainer,
+      buttonsContainer
     );
   }
 );
@@ -83,103 +91,102 @@ function isStyleProp<TStyle extends ViewStyle | ImageStyle | TextStyle>(
   return typeof value === "object" && value !== null;
 }
 
-function createDefaultComponents<
-  TStylingProps extends Record<string, unknown>,
->(): FrameUIComponents<TStylingProps> {
+function createDefaultComponents<TStylingProps extends Record<string, unknown>>(
+  createElement = reactCreateElement
+): FrameUIComponents<TStylingProps> {
   return {
     Button(props, stylingProps) {
-      return (
-        <Button
-          {...stylingProps}
-          disabled={props.isDisabled}
-          onPress={props.onPress}
-          title={props.frameButton.label}
-        />
-      );
+      return createElement(Button, {
+        ...stylingProps,
+        disabled: props.isDisabled,
+        onPress: props.onPress,
+        title: props.frameButton.label,
+      });
     },
     ButtonsContainer(props, stylingProps) {
-      return <View {...stylingProps}>{props.buttons}</View>;
+      return createElement(View, stylingProps, props.buttons);
     },
     Error(props, stylingProps) {
-      return (
-        <View {...stylingProps}>
-          <Text>{props.message}</Text>
-        </View>
+      return createElement(
+        View,
+        stylingProps,
+        createElement(Text, null, props.message)
       );
     },
     Image(props, stylingProps) {
       const aspectRatio = props.aspectRatio.replace(":", "/");
 
       if (props.status === "frame-loading") {
-        return <View />;
+        return createElement(View);
       }
 
-      return (
-        <Image
-          {...stylingProps}
-          style={{
-            aspectRatio,
-            ...(stylingProps.style as ImageStyle | undefined),
-          }}
-          src={props.src}
-          alt="Frame"
-        />
-      );
+      return createElement(Image, {
+        ...stylingProps,
+        style: {
+          aspectRatio,
+          ...(isStyleProp<ImageStyle>(stylingProps.style) &&
+            stylingProps.style),
+        },
+        src: props.src,
+        alt: "Frame",
+      });
     },
     ImageContainer(props, stylingProps) {
       const aspectRatio = props.aspectRatio.replace(":", "/");
 
-      return (
-        <View
-          {...stylingProps}
-          style={{
+      return createElement(
+        View,
+        {
+          ...stylingProps,
+          style: {
             aspectRatio,
             ...(isStyleProp<ViewStyle>(stylingProps.style) &&
               stylingProps.style),
-          }}
-        >
-          {props.image}
-          {props.messageTooltip}
-        </View>
+          },
+        },
+        props.image,
+        props.messageTooltip
       );
     },
     LoadingScreen(props, stylingProps) {
-      return (
-        <View {...stylingProps}>
-          <Text>Loading...</Text>
-        </View>
+      return createElement(
+        View,
+        stylingProps,
+        createElement(Text, null, "Loading...")
       );
     },
     MessageTooltip(props, stylingProps) {
-      return (
-        <View {...stylingProps}>
-          <Text>{props.message}</Text>
-        </View>
+      return createElement(
+        View,
+        stylingProps,
+        createElement(Text, null, props.message)
       );
     },
     Root(props, stylingProps) {
-      return <RootContainer {...props} {...stylingProps} />;
+      return createElement(RootContainer, {
+        ...props,
+        ...stylingProps,
+        createElement,
+      });
     },
     TextInput(props, stylingProps) {
-      return (
-        <TextInput
-          {...stylingProps}
-          editable={!props.isDisabled}
-          onChangeText={props.onChange}
-          placeholder={props.placeholder}
-          value={props.value}
-        />
-      );
+      return createElement(TextInput, {
+        ...stylingProps,
+        editable: !props.isDisabled,
+        onChangeText: props.onChange,
+        placeholder: props.placeholder,
+        value: props.value,
+      });
     },
     TextInputContainer(props, stylingProps) {
-      return <View {...stylingProps}>{props.textInput}</View>;
+      return createElement(View, stylingProps, props.textInput);
     },
   };
 }
 
 type FrameUIProps<TStylingProps extends Record<string, unknown>> = Omit<
   BaseFrameUIProps<TStylingProps>,
-  "components" | "theme"
+  "components"
 > & {
   /**
    * Components should be memoized to avoid re-rendering the entire UI
@@ -191,8 +198,8 @@ export function FrameUI<
   TStylingProps extends Record<string, unknown> = StylingProps,
 >(props: FrameUIProps<TStylingProps>): JSX.Element {
   const defaultComponents = useMemo(
-    () => createDefaultComponents<TStylingProps>(),
-    []
+    () => createDefaultComponents<TStylingProps>(props.createElement),
+    [props.createElement]
   );
   const components = useMemo(() => {
     return {
