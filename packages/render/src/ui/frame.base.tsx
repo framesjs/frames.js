@@ -26,7 +26,7 @@ export type BaseFrameUIProps<TStylingProps extends Record<string, unknown>> = {
    */
   enableImageDebugging?: boolean;
   components: FrameUIComponents<TStylingProps>;
-  theme: FrameUIComponentStylingProps<TStylingProps>;
+  theme?: Partial<FrameUIComponentStylingProps<TStylingProps>> | undefined;
   /**
    * Called when an error occurs in response to frame button press
    *
@@ -68,7 +68,10 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
   }, [currentFrameStackItem, onError]);
 
   if (!frameState.homeframeUrl) {
-    return components.Error({ message: "Missing frame url" }, theme.Error);
+    return components.Error(
+      { message: "Missing frame url" },
+      theme?.Error || ({} as TStylingProps)
+    );
   }
 
   if (!currentFrameStackItem) {
@@ -91,7 +94,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
             message: "Failed to load frame",
             error: currentFrameStackItem.requestError,
           },
-          theme.Error
+          theme?.Error || ({} as TStylingProps)
         );
       }
 
@@ -129,7 +132,10 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
           isImageLoading,
         };
       } else {
-        return components.Error({ message: "Invalid frame" }, theme.Error);
+        return components.Error(
+          { message: "Invalid frame" },
+          theme?.Error || ({} as TStylingProps)
+        );
       }
 
       break;
@@ -154,7 +160,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
               frameState: frameUiState,
               dimensions: rootDimensionsRef.current ?? null,
             },
-            theme.LoadingScreen
+            theme?.LoadingScreen || ({} as TStylingProps)
           )
         : null,
       buttonsContainer:
@@ -195,11 +201,11 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
                         });
                       },
                     },
-                    theme.Button
+                    theme?.Button || ({} as TStylingProps)
                   )
                 ),
               },
-              theme.ButtonsContainer
+              theme?.ButtonsContainer || ({} as TStylingProps)
             ),
       imageContainer: components.ImageContainer(
         {
@@ -223,7 +229,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
                   aspectRatio: frameUiState.frame.imageAspectRatio ?? "1.91:1",
                   onImageLoadEnd,
                 },
-            theme.Image
+            theme?.Image || ({} as TStylingProps)
           ),
           messageTooltip:
             currentFrameStackItem.status === "message"
@@ -238,11 +244,11 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
                       currentFrameStackItem
                     ),
                   },
-                  theme.MessageTooltip
+                  theme?.MessageTooltip || ({} as TStylingProps)
                 )
               : null,
         },
-        theme.ImageContainer
+        theme?.ImageContainer || ({} as TStylingProps)
       ),
       textInputContainer:
         frameUiState.status === "loading" ||
@@ -262,12 +268,12 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
                     },
                     value: frameState.inputText,
                   },
-                  theme.TextInput
+                  theme?.TextInput || ({} as TStylingProps)
                 ),
               },
-              theme.TextInputContainer
+              theme?.TextInputContainer || ({} as TStylingProps)
             ),
     },
-    theme.Root
+    theme?.Root || ({} as TStylingProps)
   );
 }
