@@ -1,6 +1,6 @@
 {
   "name": "template-remix",
-  "version": "0.0.24",
+  "version": "0.0.23",
   "private": true,
   "type": "module",
   "engines": {
@@ -10,7 +10,7 @@
     "@remix-run/node": "^2.8.1",
     "@remix-run/react": "^2.8.1",
     "@remix-run/serve": "^2.8.1",
-    "frames.js": "^0.18.0",
+    "frames.js": "^0.17.4",
     "isbot": "^4.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

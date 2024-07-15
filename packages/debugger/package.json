@@ -62,7 +62,7 @@
     "console-feed": "^3.6.0",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.1.0",
-    "frames.js": "^0.18.0",
+    "frames.js": "^0.17.4",
     "lucide-react": "^0.344.0",
     "postcss": "^8",
     "qrcode.react": "^3.1.0",
