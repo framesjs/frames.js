@@ -1,11 +1,5 @@
 # frames.js
 
-## 0.18.0
-
-### Minor Changes
-
-- feat: add neynar validate middleware
-
 ## 0.17.4
 
 ### Patch Changes
