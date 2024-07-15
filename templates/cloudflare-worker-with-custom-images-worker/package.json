@@ -1,7 +1,7 @@
 {
   "name": "template-cloudflare-worker-with-custom-images-worker",
   "description": "Simple Cloudflare Worker template with Frames.js, React and TypeScript that uses custom image worker",
-  "version": "0.0.13",
+  "version": "0.0.12",
   "type": "module",
   "private": true,
   "dependencies": {

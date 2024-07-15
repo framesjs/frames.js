@@ -133,6 +133,6 @@
   },
   "dependencies": {
     "@farcaster/core": "^0.14.7",
-    "frames.js": "^0.18.0"
+    "frames.js": "^0.17.4"
   }
 }

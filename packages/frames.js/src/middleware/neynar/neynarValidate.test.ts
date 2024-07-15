@@ -96,5 +96,4 @@ describe("neynarValidate middleware", () => {
     );
   });
 
-  // TODO: Tests for custom hub options
 });
