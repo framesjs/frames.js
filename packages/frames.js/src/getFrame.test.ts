@@ -6,6 +6,7 @@ import type { Frame } from "./types";
 describe("getFrame", () => {
   it("should parse html meta tags (farcaster)", () => {
     const htmlString = `
+    <!doctype html>
     <meta name="fc:frame" content="vNext" />
     <meta name="fc:frame:image" content="http://example.com/image.png" />
     <meta name="og:image" content="http://example.com/image.png"/>
@@ -61,6 +62,7 @@ describe("getFrame", () => {
 
   it("should parse button actions (farcaster)", () => {
     const html = `
+    <!doctype html>
     <meta name="fc:frame" content="vNext"/>
     <meta name="fc:frame:post_url" content="https://example.com"/>
     <meta name="fc:frame:image" content="http://example.com/image.png"/>
@@ -170,6 +172,7 @@ describe("getFrame", () => {
 
   it("should parse open frames tags", () => {
     const html = `
+    <!doctype html>
     <meta name="of:version" content="vNext" />
     <meta name="of:accepts:some" content="vNext" />
     <meta name="of:image" content="http://example.com/image.png" />
@@ -229,6 +232,7 @@ describe("getFrame", () => {
 
   it("should parse values with escaped html values", () => {
     const html = `
+    <!doctype html>
     <meta name="fc:frame" content="vNext" />
     <meta name="fc:frame:image" content="http://example.com/image.png" />
     <meta name="og:image" content="http://example.com/image.png" />
@@ -246,6 +250,7 @@ describe("getFrame", () => {
 
   it("should parse frames.js version from meta tags", () => {
     const html = `
+    <!doctype html>
     <meta name="frames.js:version" content="1.0.0" />
     <meta name="fc:frame" content="vNext" />
     <meta name="fc:frame:image" content="http://example.com/image.png" />
@@ -261,6 +266,7 @@ describe("getFrame", () => {
 
   it("should parse a frame that does not have an og:image tag", () => {
     const htmlString = `
+    <!doctype html>
     <meta name="fc:frame" content="vNext" />
     <meta name="fc:frame:image" content="http://example.com/image.png" />
     <meta name="fc:frame:button:1" content="Green" />

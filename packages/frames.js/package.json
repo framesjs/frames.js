@@ -372,6 +372,7 @@
     "@vercel/og": "^0.6.2",
     "cheerio": "^1.0.0-rc.12",
     "protobufjs": "^7.2.6",
+    "html-validate": "^8.20.1",
     "viem": "^2.7.8"
   }
 }

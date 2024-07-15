@@ -1,4 +1,5 @@
 import { load as loadDocument } from "cheerio";
+import { HtmlValidate } from "html-validate/node";
 import { createReporter } from "./frame-parsers/reporter";
 import type {
   ParseResult,
@@ -36,6 +37,15 @@ export type ParseFramesWithReportsResult = {
   };
 };
 
+function isContextWithTagName(ctx: unknown): ctx is { tagName: string } {
+  return (
+    typeof ctx === "object" &&
+    ctx !== null &&
+    "tagName" in ctx &&
+    typeof (ctx as { tagName: unknown }).tagName === "string"
+  );
+}
+
 /**
  * Gets all supported frames and validation their respective validation reports.
  */
@@ -46,6 +56,31 @@ export function parseFramesWithReports({
 }: ParseFramesWithReportsOptions): ParseFramesWithReportsResult {
   const farcasterReporter = createReporter("farcaster");
   const openFramesReporter = createReporter("openframes");
+  const validator = new HtmlValidate({
+    extends: ["html-validate:document"],
+    rules: {
+      // this is a security feature, it doesn't affect whether the document is valid
+      "require-sri": "off",
+    },
+  });
+
+  const htmlValidationResult = validator.validateStringSync(html);
+
+  if (!htmlValidationResult.valid) {
+    for (const result of htmlValidationResult.results) {
+      for (const message of result.messages) {
+        farcasterReporter.error(
+          isContextWithTagName(message.context) ? message.context.tagName : "*",
+          message.message
+        );
+        openFramesReporter.error(
+          isContextWithTagName(message.context) ? message.context.tagName : "*",
+          message.message
+        );
+      }
+    }
+  }
+
   const document = loadDocument(html);
 
   const farcaster = parseFarcasterFrame(document, {
