@@ -85,7 +85,10 @@ describe("openframes middleware", () => {
             console.error("openframes: Could not parse state");
           }
 
-          return { ...result, state };
+          return {
+            ...result,
+            state: state ?? "",
+          };
         },
       },
     });
@@ -123,7 +126,11 @@ describe("openframes middleware", () => {
       handler: {
         isValidPayload: () => false,
         getFrameMessage: () => {
-          return Promise.resolve({});
+          return Promise.resolve({
+            walletAddress() {
+              return Promise.resolve(undefined);
+            },
+          } as const);
         },
       },
     });
@@ -132,7 +139,11 @@ describe("openframes middleware", () => {
       handler: {
         isValidPayload: () => false,
         getFrameMessage: () => {
-          return Promise.resolve({});
+          return Promise.resolve({
+            walletAddress() {
+              return Promise.resolve(undefined);
+            },
+          } as const);
         },
       },
     });
@@ -213,7 +224,12 @@ describe("openframes middleware", () => {
       handler: {
         isValidPayload: () => false,
         getFrameMessage: () => {
-          return Promise.resolve({ test1: true });
+          return Promise.resolve({
+            test1: true,
+            walletAddress() {
+              return Promise.resolve(undefined);
+            },
+          } as const);
         },
       },
     });
@@ -222,7 +238,12 @@ describe("openframes middleware", () => {
       handler: {
         isValidPayload: () => true,
         getFrameMessage: () => {
-          return Promise.resolve({ test2: true });
+          return Promise.resolve({
+            test2: true,
+            walletAddress() {
+              return Promise.resolve(undefined);
+            },
+          } as const);
         },
       },
     });
@@ -296,6 +317,8 @@ describe("openframes middleware", () => {
           buttonIndex: 1,
           inputText: "hello",
           state: { test: true },
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- safe
+          walletAddress: expect.any(Function),
         }) as unknown,
         clientProtocol: {
           id: "xmtp",

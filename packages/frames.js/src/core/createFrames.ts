@@ -1,6 +1,7 @@
 import { coreMiddleware } from "../middleware/default";
 import { imagesWorkerMiddleware } from "../middleware/images-worker";
 import { stateMiddleware } from "../middleware/stateMiddleware";
+import { walletAddressMiddleware } from "../middleware/walletAddressMiddleware";
 import { composeMiddleware } from "./composeMiddleware";
 import type {
   FramesContext,
@@ -71,6 +72,8 @@ export function createFrames<
       ...globalMiddleware,
       stateMiddleware<TState>(),
       // @ts-expect-error hard to type internally so skipping for now
+      walletAddressMiddleware(),
+      // @ts-expect-error hard to type internally so skipping for now
       ...perRouteMiddleware,
       // @ts-expect-error hard to type internally so skipping for now
       async function handlerMiddleware(ctx) {
@@ -93,6 +96,13 @@ export function createFrames<
         url: new URL(request.url),
         baseUrl: resolveBaseUrl(request, url, basePath),
         stateSigningSecret: stateSigningSecret || signingSecret,
+        walletAddress() {
+          // eslint-disable-next-line no-console -- provide feedback
+          console.warn(
+            "Warning (frames.js): `getWalletAddress()` should be implemented"
+          );
+          return Promise.resolve(undefined);
+        },
         debug,
         __debugInfo: {},
       };
