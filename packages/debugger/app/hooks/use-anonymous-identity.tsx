@@ -23,18 +23,19 @@ export function useAnonymousIdentity(): AnonymousSignerInstance {
         specification: "openframes",
       });
 
-      const result = {
+      return {
         body: {
           untrustedData: {
             ...actionContext,
             unixTimestamp: Date.now(),
+            walletAddress() {
+              return Promise.resolve(undefined);
+            },
           },
           clientProtocol: "anonymous@1.0",
         },
         searchParams,
       };
-
-      return result;
     },
   };
 }
