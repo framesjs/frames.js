@@ -99,7 +99,7 @@ export function createFrames<
         walletAddress() {
           // eslint-disable-next-line no-console -- provide feedback
           console.warn(
-            "Warning (frames.js): `getWalletAddress()` should be implemented"
+            "Warning (frames.js): `walletAddress()` should be implemented"
           );
           return Promise.resolve(undefined);
         },

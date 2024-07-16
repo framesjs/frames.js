@@ -29,7 +29,7 @@ type WalletAddressFromMessageMiddlewareContext = Pick<
 /**
  * This middleware handles wallet address extraction from frame message by providing "walletAddress()" method on context.
  *
- * Every frame message parsing middleware must run before this middleware and return getWalletAddress as part of parsed message.
+ * Every frame message parsing middleware must run before this middleware and return walletAddress() as part of parsed message.
  *
  * This middleware is internal only and must run after globalMiddleware and before perRouteMiddleware. So the message is available.
  */
