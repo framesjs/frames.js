@@ -14,6 +14,9 @@ describe("createImagesWorkerRequestHandler", () => {
     baseUrl: resolveBaseUrl(frameRequest, undefined, "/"),
     __debugInfo: {},
     debug: false,
+    walletAddress() {
+      return Promise.resolve(undefined);
+    },
   };
   const imagesRouteUrl = "https://example.com/image";
 
