@@ -3,11 +3,13 @@ import type {
   XmtpValidationResponse,
 } from "@xmtp/frames-validator";
 import { validateFramesPost } from "@xmtp/frames-validator";
+import type { MessageWithWalletAddressImplementation } from "../middleware/walletAddressMiddleware";
 
 export type XmtpFrameMessageReturnType =
-  XmtpValidationResponse["actionBody"] & {
-    verifiedWalletAddress: string;
-  };
+  MessageWithWalletAddressImplementation &
+    XmtpValidationResponse["actionBody"] & {
+      verifiedWalletAddress: string;
+    };
 
 export function isXmtpFrameActionPayload(
   frameActionPayload: unknown
@@ -30,5 +32,6 @@ export async function getXmtpFrameMessage(
   return {
     ...actionBody,
     verifiedWalletAddress,
+    walletAddress: () => Promise.resolve(verifiedWalletAddress),
   };
 }

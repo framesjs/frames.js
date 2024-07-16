@@ -116,6 +116,8 @@ describe("farcasterHubContext middleware", () => {
           requesterFid: 123,
           state: JSON.stringify({ test: true }),
           requesterUserData: expect.anything() as UserDataReturnType,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- safe
+          walletAddress: expect.any(Function),
         }) as unknown,
       })
     );

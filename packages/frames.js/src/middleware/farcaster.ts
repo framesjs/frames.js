@@ -8,6 +8,7 @@ import {
   RequestBodyNotJSONError,
 } from "../core/errors";
 import type { FramesMiddleware, JsonValue } from "../core/types";
+import type { MessageWithWalletAddressImplementation } from "./walletAddressMiddleware";
 
 function isValidFrameActionPayload(
   value: unknown
@@ -55,7 +56,7 @@ async function decodeFrameActionPayloadFromRequest(
 type FrameMessage = Omit<
   FrameMessageReturnType<{ fetchHubContext: false }>,
   "message"
-> & { state?: JsonValue };
+> & { state?: JsonValue } & MessageWithWalletAddressImplementation;
 
 type FramesMessageContext = {
   message?: FrameMessage;
@@ -82,7 +83,17 @@ export function farcaster(): FramesMiddleware<any, FramesMessageContext> {
       });
 
       return next({
-        message,
+        message: {
+          ...message,
+          walletAddress() {
+            // eslint-disable-next-line no-console -- provide feedback to the developer
+            console.info(
+              "farcaster middleware: walletAddress() called, please ue farcasterHubContext() middleware if you want to access the wallet address"
+            );
+
+            return Promise.resolve(undefined);
+          },
+        },
         clientProtocol: {
           id: "farcaster",
           version: "vNext",

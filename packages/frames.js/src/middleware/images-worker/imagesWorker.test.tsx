@@ -12,6 +12,9 @@ describe("imagesWorker", () => {
     baseUrl: resolveBaseUrl(request, undefined, "/"),
     __debugInfo: {},
     debug: false,
+    walletAddress() {
+      return Promise.resolve(undefined);
+    },
   };
   const imagesRoute = "https://example.com/image";
   const mw = ImagesWorker.imagesWorkerMiddleware({ imagesRoute });

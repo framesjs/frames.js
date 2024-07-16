@@ -4,6 +4,7 @@ import {
   development,
   production,
 } from "@lens-protocol/client";
+import type { MessageWithWalletAddressImplementation } from "../middleware/walletAddressMiddleware";
 
 type LensFrameRequest = {
   clientProtocol: string;
@@ -37,9 +38,10 @@ type LensFrameVerifiedFields = {
   specVersion: string;
 };
 
-export type LensFrameResponse = LensFrameVerifiedFields & {
-  isValid: boolean;
-};
+export type LensFrameResponse = MessageWithWalletAddressImplementation &
+  LensFrameVerifiedFields & {
+    isValid: boolean;
+  };
 
 export type LensFrameOptions = {
   environment?: "production" | "development";
@@ -102,5 +104,12 @@ export async function getLensFrameMessage(
   return {
     ...typedData.value,
     isValid: response === FrameVerifySignatureResult.Verified,
+    async walletAddress() {
+      const profile = await lensClient.profile.fetch({
+        forProfileId: typedData.value.profileId,
+      });
+
+      return profile?.ownedBy.address;
+    },
   };
 }

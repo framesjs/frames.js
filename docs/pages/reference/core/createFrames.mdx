@@ -290,6 +290,12 @@ The request object that was passed to the request handler.
 
 The URL object that was parsed from the request.
 
+## `walletAddress`
+
+- Type: `() => Promise<string | undefined>`
+
+A function that returns the wallet address of the user. If the user is not authenticated or initial frame is being rendered, it returns `undefined`.
+
 ### `searchParams`
 
 - Type: `Record<string, string>`

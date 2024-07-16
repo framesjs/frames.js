@@ -7,29 +7,34 @@ import type {
   JsonValue,
 } from "../core/types";
 import { isFrameDefinition } from "../core/utils";
+import type { AnonymousFrameMessageReturnType } from "../anonymous";
 import {
   getAnonymousFrameMessage,
   isAnonymousFrameActionPayload,
 } from "../anonymous";
+import type { MessageWithWalletAddressImplementation } from "./walletAddressMiddleware";
 
-type OpenFrameMessage = any;
-
-const defaultClientProtocolHandler: ClientProtocolHandler = {
-  isValidPayload: isAnonymousFrameActionPayload,
-  getFrameMessage: getAnonymousFrameMessage,
-};
+const defaultClientProtocolHandler: ClientProtocolHandler<AnonymousFrameMessageReturnType> =
+  {
+    isValidPayload: isAnonymousFrameActionPayload,
+    getFrameMessage: getAnonymousFrameMessage,
+  };
 
 const defaultClientProtocol: ClientProtocolId = {
   id: "anonymous",
   version: "1.0",
 };
 
-export type OpenFramesMessageContext<T = OpenFrameMessage> = {
-  message?: Partial<T>;
+export type OpenFramesMessageContext<
+  T extends MessageWithWalletAddressImplementation,
+> = {
+  message?: T;
   clientProtocol?: ClientProtocolId;
 };
 
-export type ClientProtocolHandler<T = OpenFrameMessage> = {
+export type ClientProtocolHandler<
+  T extends MessageWithWalletAddressImplementation,
+> = {
   getFrameMessage: (body: JsonValue) => Promise<T | undefined> | undefined;
   isValidPayload: (body: JsonValue) => boolean;
 };
@@ -73,7 +78,10 @@ async function nextInjectAcceptedClient({
   return result;
 }
 
-export function openframes<T = OpenFrameMessage>(
+export function openframes<
+  T extends
+    MessageWithWalletAddressImplementation = AnonymousFrameMessageReturnType,
+>(
   {
     clientProtocol: clientProtocolRaw,
     handler,
@@ -88,6 +96,7 @@ export function openframes<T = OpenFrameMessage>(
     handler: ClientProtocolHandler<T>;
   } = {
     clientProtocol: defaultClientProtocol,
+    // @ts-expect-error hard to type internally so skipping for now
     handler: defaultClientProtocolHandler,
   }
 ): FramesMiddleware<any, OpenFramesMessageContext<T>> {

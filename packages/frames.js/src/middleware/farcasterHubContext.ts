@@ -12,6 +12,7 @@ import {
   RequestBodyNotJSONError,
 } from "../core/errors";
 import type { FramesMiddleware, JsonValue } from "../core/types";
+import type { MessageWithWalletAddressImplementation } from "./walletAddressMiddleware";
 
 function isValidFrameActionPayload(
   value: unknown
@@ -59,7 +60,7 @@ async function decodeFrameActionPayloadFromRequest(
 type FrameMessage = Omit<
   FrameMessageReturnType<{ fetchHubContext: true }>,
   "message"
-> & { state?: JsonValue };
+> & { state?: JsonValue } & MessageWithWalletAddressImplementation;
 
 type FramesMessageContext = {
   message?: FrameMessage;
@@ -87,8 +88,16 @@ export function farcasterHubContext(
         ...options,
         fetchHubContext: true,
       });
+
+      const [address] = message.requesterVerifiedAddresses;
+
       return next({
-        message,
+        message: {
+          ...message,
+          walletAddress() {
+            return Promise.resolve(address ?? message.requesterCustodyAddress);
+          },
+        },
         clientProtocol: {
           id: "farcaster",
           version: "vNext", // TODO: Pass version in getFrameMessage

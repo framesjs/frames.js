@@ -1,9 +1,12 @@
-export type AnonymousFrameMessageReturnType = {
-  buttonIndex: number;
-  state?: string;
-  inputText?: string;
-  unixTimestamp: number;
-};
+import type { MessageWithWalletAddressImplementation } from "../middleware/walletAddressMiddleware";
+
+export type AnonymousFrameMessageReturnType =
+  MessageWithWalletAddressImplementation & {
+    buttonIndex: number;
+    state?: string;
+    inputText?: string;
+    unixTimestamp: number;
+  };
 
 export type AnonymousOpenFramesRequest = {
   clientProtocol: string;
@@ -40,5 +43,8 @@ export async function getAnonymousFrameMessage(
     state: body.untrustedData.state,
     inputText: body.untrustedData.inputText,
     unixTimestamp: body.untrustedData.unixTimestamp,
+    walletAddress() {
+      return Promise.resolve(undefined);
+    },
   } as const;
 }

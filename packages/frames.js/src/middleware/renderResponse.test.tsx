@@ -57,6 +57,9 @@ describe("renderResponse middleware", () => {
     baseUrl: resolveBaseUrl(request, undefined, "/"),
     __debugInfo: {},
     debug: false,
+    walletAddress() {
+      return Promise.resolve(undefined);
+    },
   };
 
   beforeEach(() => {

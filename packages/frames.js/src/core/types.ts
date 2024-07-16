@@ -57,6 +57,12 @@ export type FramesContext<TState extends JsonValue | undefined = JsonValue> = {
   url: URL;
   stateSigningSecret?: string;
   /**
+   * Returns wallet address associated with the request's message
+   *
+   * This method is implemented by internal middleware.
+   */
+  walletAddress: () => Promise<string | undefined>;
+  /**
    * Is debug mode enabled?
    */
   debug: boolean;
