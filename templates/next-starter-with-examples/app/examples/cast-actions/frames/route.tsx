@@ -22,6 +22,10 @@ export const GET = frames(async (ctx) => {
     url: `${appURL()}/examples/cast-actions/frames/actions/check-fid-frame`,
   });
 
+  const installFormActionUrl = constructCastActionUrl({
+    url: `${appURL()}/examples/cast-actions/frames/actions/create-game`,
+  });
+
   return {
     image: <div>FID Action</div>,
     buttons: [
@@ -30,6 +34,9 @@ export const GET = frames(async (ctx) => {
       </Button>,
       <Button action="link" target={installFrameActionUrl}>
         Install frame response
+      </Button>,
+      <Button action="link" target={installFormActionUrl}>
+        Install form response
       </Button>,
     ],
   };

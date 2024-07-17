@@ -159,13 +159,9 @@ function handleLinkButtonClickFallback(button: FrameButtonLink): void {
   }
 }
 
-export const fallbackFrameContext: FarcasterFrameContext = {
-  castId: {
-    fid: 1,
-    hash: "0x0000000000000000000000000000000000000000" as const,
-  },
-  address: "0x0000000000000000000000000000000000000001",
-};
+function defaultComposerFormActionHandler(): Promise<{ frameUrl: string }> {
+  throw new Error('Please implement your own "onComposerFormAction" handler');
+}
 
 export function useFrame<
   SignerStorageType = object,
@@ -191,6 +187,7 @@ export function useFrame<
   onLinkButtonClick = handleLinkButtonClickFallback,
   onRedirect = handleRedirectFallback,
   fetchFn = fetch,
+  onComposerFormAction = defaultComposerFormActionHandler,
 }: UseFrameOptions<
   SignerStorageType,
   FrameActionBodyType,
@@ -219,6 +216,7 @@ export function useFrame<
     onError,
     fetchFn,
     onRedirect,
+    onComposerFormAction,
   });
 
   const fetchFrameRef = useRef(fetchFrame);

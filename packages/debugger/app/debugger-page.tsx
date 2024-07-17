@@ -8,11 +8,12 @@ import {
   fallbackFrameContext,
   type OnTransactionFunc,
   type OnSignatureFunc,
+  type FarcasterSigner,
+  type FrameActionBodyPayload,
 } from "@frames.js/render";
 import { useFrame } from "@frames.js/render/use-frame";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import { sendTransaction, signTypedData, switchChain } from "@wagmi/core";
-import type { FrameActionPayload } from "frames.js";
 import { useRouter } from "next/navigation";
 import React, {
   useCallback,
@@ -50,6 +51,12 @@ import {
 import { useLensIdentity } from "./hooks/use-lens-identity";
 import { useLensFrameContext } from "./hooks/use-lens-context";
 import { ProfileSelectorModal } from "./components/lens-profile-select";
+import { AwaitableController } from "./lib/awaitable-controller";
+import { ComposerFormActionDialog } from "./components/composer-form-action-dialog";
+import {
+  CastActionFrameResponse,
+  ComposerActionFormResponse,
+} from "frames.js/types";
 
 const FALLBACK_URL =
   process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
@@ -406,8 +413,14 @@ export default function DebuggerPage({
     [account.address, currentChainId, config, openConnectModal, toast]
   );
 
+  const [composeFormActionDialogSignal, setComposerFormActionDialogSignal] =
+    useState<AwaitableController<
+      undefined | { frameUrl: string },
+      ComposerActionFormResponse
+    > | null>(null);
+
   const useFrameConfig: Omit<
-    UseFrameOptions<object, FrameActionPayload>,
+    UseFrameOptions<object, FrameActionBodyPayload>,
     "signerState" | "specification"
   > = {
     homeframeUrl: url,
@@ -491,9 +504,28 @@ export default function DebuggerPage({
           console.error(e);
         });
     },
+    async onComposerFormAction({ form }) {
+      try {
+        const dialogSignal = new AwaitableController<
+          undefined | { frameUrl: string },
+          ComposerActionFormResponse
+        >(form);
+
+        setComposerFormActionDialogSignal(dialogSignal);
+
+        const result = await dialogSignal;
+
+        return result;
+      } finally {
+        setComposerFormActionDialogSignal(null);
+      }
+    },
   };
 
-  const farcasterFrameConfig = {
+  const farcasterFrameConfig: UseFrameOptions<
+    FarcasterSigner | null,
+    FrameActionBodyPayload
+  > = {
     ...useFrameConfig,
     signerState: farcasterSignerState,
     specification: "farcaster",
@@ -501,7 +533,7 @@ export default function DebuggerPage({
       ...farcasterFrameContext.frameContext,
       address: account.address || farcasterFrameContext.frameContext.address,
     },
-  } as const;
+  };
 
   const farcasterFrameState = useFrame(farcasterFrameConfig);
 
@@ -718,6 +750,17 @@ export default function DebuggerPage({
           onSelect={lensSignerState.handleSelectProfile}
           show={lensSignerState.showProfileSelector}
           onClose={lensSignerState.closeProfileSelector}
+        />
+      )}
+      {composeFormActionDialogSignal && (
+        <ComposerFormActionDialog
+          composerActionForm={composeFormActionDialogSignal.data}
+          onClose={() => {
+            composeFormActionDialogSignal.resolve(undefined);
+          }}
+          onFrameUrl={(frameUrl) => {
+            composeFormActionDialogSignal.resolve({ frameUrl });
+          }}
         />
       )}
     </DebuggerConsoleContextProvider>

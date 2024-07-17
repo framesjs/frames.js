@@ -7,9 +7,9 @@ import {
 } from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
 import {
-  FarcasterFrameContext,
-  FarcasterSigner,
-  FrameActionBodyPayload,
+  type FarcasterFrameContext,
+  type FarcasterSigner,
+  type FrameActionBodyPayload,
   defaultTheme,
 } from "@frames.js/render";
 import { ParsingReport } from "frames.js";
@@ -28,6 +28,7 @@ import IconByName from "./octicons";
 import { MockHubActionContext } from "../utils/mock-hub-utils";
 import { useFrame } from "@frames.js/render/use-frame";
 import { WithTooltip } from "./with-tooltip";
+import type { ComposerActionState } from "frames.js/types";
 
 type FrameDebuggerFramePropertiesTableRowsProps = {
   actionMetadataItem: ParseActionResult;
@@ -171,7 +172,7 @@ export function ActionDebugger({
   actionMetadataItem: ParseActionResult;
   farcasterFrameConfig: Parameters<
     typeof useFrame<
-      FarcasterSigner,
+      FarcasterSigner | null,
       FrameActionBodyPayload,
       FarcasterFrameContext
     >
@@ -260,7 +261,18 @@ export function ActionDebugger({
                     setShowFrameDebugger(true);
                     Promise.resolve(
                       actionFrameState.onButtonPress(
-                        { image: "", buttons: [], version: "vNext" },
+                        {
+                          image: "",
+                          buttons: [],
+                          version: "vNext",
+                          // this is necessary for composer form action server, cast actions don't actually use any state so they will probably just ignore it
+                          state: encodeURIComponent(
+                            JSON.stringify({
+                              embeds: [],
+                              text: "Test cast text",
+                            } satisfies ComposerActionState)
+                          ),
+                        },
                         {
                           action: "post",
                           label: "action",

@@ -175,7 +175,6 @@ export function useXmtpIdentity(): XmtpSignerInstance {
         searchParams,
       };
     },
-    isLoading: null,
     isLoadingSigner: isLoading,
     onSignerlessFramePress,
     logout,

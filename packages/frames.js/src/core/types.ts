@@ -1,5 +1,5 @@
 import type { ImageResponse } from "@vercel/og";
-import type { ClientProtocolId } from "../types";
+import type { ActionMetadata, ClientProtocolId } from "../types";
 import type { ImageWorkerOptions } from "../middleware/images-worker/handler";
 import type { Button, ButtonProps } from "./components";
 
@@ -358,3 +358,41 @@ export type CreateFramesFunctionDefinition<
   TFrameMiddleware,
   TRequestHandlerFunction
 >;
+
+export type ComposerActionFormResponse = {
+  type: "form"; // Must be "form"
+  /**
+   * e.g. "Create Poll," "Create Event," "New Bounty"
+   */
+  title: string;
+  /**
+   * Form URL to embed in client
+   */
+  url: string;
+};
+
+export type ComposerActionState = {
+  /**
+   * Parent cast hash
+   */
+  parent?: string;
+  /**
+   * Cast text
+   */
+  text: string;
+  /**
+   * All embeds of cast, you should append your url here
+   */
+  embeds: string[];
+};
+
+export type CastActionMessageResponse = {
+  message: string;
+};
+
+export type CastActionFrameResponse = {
+  type: "frame";
+  frameUrl: string;
+};
+
+export type CastActionResponse = ActionMetadata;

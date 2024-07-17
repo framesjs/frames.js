@@ -11,6 +11,10 @@ import type {
 } from "frames.js";
 import type { Dispatch } from "react";
 import type { ParseResult } from "frames.js/frame-parsers";
+import type {
+  ComposerActionFormResponse,
+  ComposerActionState,
+} from "frames.js/types";
 import type { FarcasterFrameContext } from "./farcaster/frames";
 
 export type OnTransactionArgs = {
@@ -33,6 +37,26 @@ export type OnSignatureFunc = (
   args: OnSignatureArgs
 ) => Promise<`0x${string}` | null>;
 
+type OnComposerFormActionFuncArgs = {
+  form: ComposerActionFormResponse;
+  cast: ComposerActionState;
+};
+
+/**
+ * If the function resolves to undefined it means that the dialog was probably closed resulting in no operation at all.
+ */
+export type OnComposerFormActionFunc = (
+  arg: OnComposerFormActionFuncArgs
+) => Promise<
+  | {
+      /**
+       * Frame URL generated on composer form submission.
+       */
+      frameUrl: string;
+    }
+  | undefined
+>;
+
 export type UseFetchFrameOptions = {
   stackDispatch: React.Dispatch<FrameReducerActions>;
   specification: SupportedParsingSpecification;
@@ -54,6 +78,7 @@ export type UseFetchFrameOptions = {
   ) => ReturnType<SignerStateInstance["signFrameAction"]>;
   onTransaction: OnTransactionFunc;
   onSignature: OnSignatureFunc;
+  onComposerFormAction: OnComposerFormActionFunc;
   homeframeUrl: string | undefined | null;
   /**
    * This function can be used to customize how error is reported to the user.
@@ -120,7 +145,9 @@ export type UseFrameOptions<
    * This function can be used to customize how the link button click is handled.
    */
   onLinkButtonClick?: (button: FrameButtonLink) => void;
-} & Partial<Pick<UseFetchFrameOptions, "fetchFn" | "onRedirect">>;
+} & Partial<
+  Pick<UseFetchFrameOptions, "fetchFn" | "onRedirect" | "onComposerFormAction">
+>;
 
 export type SignerStateActionContext<
   SignerStorageType = object,
@@ -144,7 +171,10 @@ export interface SignerStateInstance<
   FrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
   FrameContextType extends FrameContext = FarcasterFrameContext,
 > {
-  signer?: SignerStorageType | null;
+  signer: SignerStorageType | null;
+  /**
+   * True only if signer is approved or impersonating
+   */
   hasSigner: boolean;
   signFrameAction: (
     actionContext: SignerStateActionContext<SignerStorageType, FrameContextType>
@@ -152,13 +182,11 @@ export interface SignerStateInstance<
     body: FrameActionBodyType;
     searchParams: URLSearchParams;
   }>;
-  /** isLoading frame */
-  isLoading?: null | FrameStackPending;
   /** is loading the signer */
-  isLoadingSigner?: boolean;
+  isLoadingSigner: boolean;
   /** A function called when a frame button is clicked without a signer */
   onSignerlessFramePress: () => void;
-  logout?: () => void;
+  logout: () => void;
 }
 
 export type FrameGETRequest = {

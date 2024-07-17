@@ -282,7 +282,6 @@ export function useLensIdentity(): LensSignerInstance {
         };
       }
     },
-    isLoading: null,
     isLoadingSigner: isLoading,
     onSignerlessFramePress,
     logout,

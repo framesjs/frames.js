@@ -122,11 +122,13 @@ const identityReducer: Reducer<State, Action> = (state, action) => {
         signature: action.signature,
       };
 
-      const identities = state.identities
-        // Remove all current pending approvals
-        .filter((identity) => identity.status !== "pending_approval")
+      const identities = [
+        ...state.identities
+          // Remove all current pending approvals
+          .filter((identity) => identity.status !== "pending_approval"),
         // Add new pending approval
-        .concat(identity);
+        identity,
+      ];
 
       return {
         activeIdentity: identity,
@@ -210,21 +212,17 @@ type UseFarcasterIdentityOptions = {
   onMissingIdentity: () => void;
 };
 
-export function useFarcasterIdentity({
-  onMissingIdentity,
-}: UseFarcasterIdentityOptions): Omit<
-  FarcasterSignerState,
-  "logout" | "isLoading" | "onSignerlessFramePress" | "signer"
-> & {
-  signer: StoredIdentity | null;
-  onSignerlessFramePress: () => Promise<void>;
+export type FarcasterIdentity = FarcasterSignerState & {
   onCreateSignerPress: () => Promise<void>;
   impersonateUser: (fid: number) => Promise<void>;
-  logout: () => void;
   removeIdentity: () => void;
   identities: StoredIdentity[];
   selectIdentity: (id: number) => void;
-} {
+};
+
+export function useFarcasterIdentity({
+  onMissingIdentity,
+}: UseFarcasterIdentityOptions): FarcasterIdentity {
   const [isLoading, setLoading] = useState(false);
   const [state, dispatch] = useReducer(identityReducer, {}, () =>
     getSignerFromLocalStorage()
@@ -434,9 +432,7 @@ export function useFarcasterIdentity({
     signer: farcasterUser,
     hasSigner:
       farcasterUser?.status === "approved" ||
-      farcasterUser?.status === "impersonating"
-        ? true
-        : false,
+      farcasterUser?.status === "impersonating",
     signFrameAction,
     isLoadingSigner: isLoading,
     impersonateUser,

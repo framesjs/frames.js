@@ -1,5 +1,6 @@
 /* eslint-disable no-console -- provide feedback to console */
 import type { TransactionTargetResponse } from "frames.js";
+import type { types } from "frames.js/core";
 import type {
   FrameGETRequest,
   FramePOSTRequest,
@@ -40,6 +41,7 @@ export function useFetchFrame({
   onError = defaultErrorHandler,
   fetchFn,
   onRedirect,
+  onComposerFormAction,
 }: UseFetchFrameOptions): FetchFrameFn {
   async function handleFailedResponse({
     response,
@@ -400,8 +402,9 @@ export function useFetchFrame({
 
       const responseData = (await response.clone().json()) as
         | GetFrameResult
-        | { message: string }
-        | { type: "frame"; frameUrl: string };
+        | types.CastActionMessageResponse
+        | types.CastActionFrameResponse
+        | types.ComposerActionFormResponse;
 
       // cast action message response
       if ("message" in responseData) {
@@ -423,40 +426,76 @@ export function useFetchFrame({
         return;
       }
 
-      // cast action frame response, fetch the frame
-      if ("frameUrl" in responseData) {
-        await fetchPOSTRequest(
-          {
-            // actions don't have source frame, fake it
-            sourceFrame: {
-              image: "",
-              version: "vNext",
-            },
-            frameButton: {
-              action: "post",
-              label: "action",
-              target: responseData.frameUrl,
-            },
-            isDangerousSkipSigning: request.isDangerousSkipSigning,
-            method: "POST",
-            signerStateActionContext: {
-              ...request.signerStateActionContext,
-              buttonIndex: 1,
-              frameButton: {
-                action: "post",
-                label: "action",
-                target: responseData.frameUrl,
-              },
-              target: responseData.frameUrl,
-            },
-          },
-          {
-            pendingFrameStackItem: frameStackPendingItem,
-            startTime,
-          }
-        );
+      // @todo provide new method on useFrame only for castActions so this whole thing is not hacky as fuck
+      if ("type" in responseData) {
+        switch (responseData.type) {
+          case "form": {
+            try {
+              const result = await onComposerFormAction({
+                form: responseData,
+                cast: {
+                  embeds: [],
+                  text: "Cast text",
+                },
+              });
 
-        return;
+              if (!result) {
+                return;
+              }
+
+              await fetchGETRequest(
+                {
+                  method: "GET",
+                  url: result.frameUrl,
+                },
+                false
+              );
+            } catch (e) {
+              onError(
+                e instanceof Error
+                  ? e
+                  : new Error(`Unexpected error: ${String(e)}`)
+              );
+            }
+
+            return;
+          }
+          case "frame": {
+            // cast action frame response, fetch the frame
+            await fetchPOSTRequest(
+              {
+                // actions don't have source frame, fake it
+                sourceFrame: {
+                  image: "",
+                  version: "vNext",
+                },
+                frameButton: {
+                  action: "post",
+                  label: "action",
+                  target: responseData.frameUrl,
+                },
+                isDangerousSkipSigning: request.isDangerousSkipSigning,
+                method: "POST",
+                signerStateActionContext: {
+                  ...request.signerStateActionContext,
+                  buttonIndex: 1,
+                  frameButton: {
+                    action: "post",
+                    label: "action",
+                    target: responseData.frameUrl,
+                  },
+                  target: responseData.frameUrl,
+                },
+              },
+              {
+                pendingFrameStackItem: frameStackPendingItem,
+                startTime,
+              }
+            );
+
+            return;
+          }
+        }
       }
 
       if (!isParseResult(responseData)) {
