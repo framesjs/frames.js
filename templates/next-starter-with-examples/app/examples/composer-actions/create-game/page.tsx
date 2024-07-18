@@ -1,11 +1,12 @@
 "use client";
 
-import { ComposerActionState } from "frames.js/types";
+import type { ComposerActionState } from "frames.js/types";
 
 // pass state from frame message
 export default function CreateGameForm({
   searchParams,
 }: {
+  // provided by URL returned from composer action server
   searchParams: {
     uid: string;
     state: string;
@@ -22,7 +23,7 @@ export default function CreateGameForm({
         // this is only for demonstration purposes
 
         const newFrameUrl = new URL(
-          "/examples/cast-actions/frames/game",
+          "/examples/composer-actions/frames/game",
           window.location.href
         );
 

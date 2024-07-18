@@ -14,22 +14,15 @@ function constructCastActionUrl(params: { url: string }): string {
 }
 
 export const GET = frames(async (ctx) => {
-  const installActionUrl = constructCastActionUrl({
-    url: `${appURL()}/examples/cast-actions/frames/actions/check-fid`,
-  });
-
-  const installFrameActionUrl = constructCastActionUrl({
-    url: `${appURL()}/examples/cast-actions/frames/actions/check-fid-frame`,
+  const installFormActionUrl = constructCastActionUrl({
+    url: `${appURL()}/examples/composer-actions/frames/actions/create-game`,
   });
 
   return {
-    image: <div>FID Action</div>,
+    image: <div>Composer Form Action</div>,
     buttons: [
-      <Button action="link" target={installActionUrl}>
-        Install message response
-      </Button>,
-      <Button action="link" target={installFrameActionUrl}>
-        Install frame response
+      <Button action="link" target={installFormActionUrl}>
+        Install form response
       </Button>,
     ],
   };
