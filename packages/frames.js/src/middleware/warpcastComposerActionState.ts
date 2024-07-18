@@ -10,7 +10,6 @@ function isComposerActionState(value: unknown): value is ComposerActionState {
     !!value &&
     "text" in value &&
     typeof value.text === "string" &&
-    !!value.text &&
     "embeds" in value &&
     Array.isArray(value.embeds) &&
     value.embeds.every((embed) => typeof embed === "string" && !!embed)
