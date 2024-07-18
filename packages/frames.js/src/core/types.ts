@@ -386,6 +386,10 @@ export type ComposerActionState = {
   embeds: string[];
 };
 
+export type ErrorMessageResponse = {
+  message: string;
+};
+
 export type CastActionMessageResponse = {
   message: string;
 };

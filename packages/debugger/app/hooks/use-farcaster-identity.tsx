@@ -212,7 +212,7 @@ type UseFarcasterIdentityOptions = {
   onMissingIdentity: () => void;
 };
 
-export type FarcasterIdentity = FarcasterSignerState & {
+export type FarcasterIdentity = FarcasterSignerState<StoredIdentity | null> & {
   onCreateSignerPress: () => Promise<void>;
   impersonateUser: (fid: number) => Promise<void>;
   removeIdentity: () => void;

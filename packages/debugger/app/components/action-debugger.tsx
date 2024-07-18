@@ -20,18 +20,25 @@ import {
   RefreshCwIcon,
   XCircle,
 } from "lucide-react";
-import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
+import {
+  type Dispatch,
+  type SetStateAction,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Button } from "../../@/components/ui/button";
-import { ParseActionResult } from "../actions/types";
 import { FrameDebugger } from "./frame-debugger";
 import IconByName from "./octicons";
 import { MockHubActionContext } from "../utils/mock-hub-utils";
 import { useFrame } from "@frames.js/render/use-frame";
 import { WithTooltip } from "./with-tooltip";
-import type { ComposerActionState } from "frames.js/types";
+import { useToast } from "@/components/ui/use-toast";
+import type { CastActionDefinitionResponse } from "../frames/route";
+import { StoredIdentity } from "../hooks/use-farcaster-identity";
 
 type FrameDebuggerFramePropertiesTableRowsProps = {
-  actionMetadataItem: ParseActionResult;
+  actionMetadataItem: CastActionDefinitionResponse;
 };
 
 function isPropertyExperimental([key, value]: [string, string]) {
@@ -169,10 +176,10 @@ export function ActionDebugger({
   setMockHubContext,
   hasExamples,
 }: {
-  actionMetadataItem: ParseActionResult;
+  actionMetadataItem: CastActionDefinitionResponse;
   farcasterFrameConfig: Parameters<
     typeof useFrame<
-      FarcasterSigner | null,
+      StoredIdentity | null,
       FrameActionBodyPayload,
       FarcasterFrameContext
     >
@@ -182,6 +189,7 @@ export function ActionDebugger({
   setMockHubContext?: Dispatch<SetStateAction<Partial<MockHubActionContext>>>;
   hasExamples: boolean;
 }) {
+  const { toast } = useToast();
   const [copySuccess, setCopySuccess] = useState(false);
   useEffect(() => {
     if (copySuccess) {
@@ -192,7 +200,10 @@ export function ActionDebugger({
   }, [copySuccess, setCopySuccess]);
 
   const actionFrameState = useFrame(farcasterFrameConfig);
-  const [showFrameDebugger, setShowFrameDebugger] = useState(false);
+  const [castActionDefinition, setCastActionDefinition] = useState<Exclude<
+    CastActionDefinitionResponse,
+    { status: "failure" }
+  > | null>(null);
 
   return (
     <>
@@ -258,32 +269,33 @@ export function ActionDebugger({
                     color: defaultTheme.buttonColor,
                   }}
                   onClick={() => {
-                    setShowFrameDebugger(true);
+                    if (actionMetadataItem.status !== "success") {
+                      console.error(actionMetadataItem);
+
+                      toast({
+                        title: "Invalid action metadata",
+                        description:
+                          "Please check the console for more information",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+
+                    setCastActionDefinition(actionMetadataItem);
+
                     Promise.resolve(
-                      actionFrameState.onButtonPress(
-                        {
-                          image: "",
-                          buttons: [],
-                          version: "vNext",
-                          // this is necessary for composer form action server, cast actions don't actually use any state so they will probably just ignore it
-                          state: encodeURIComponent(
-                            JSON.stringify({
-                              embeds: [],
-                              text: "Test cast text",
-                            } satisfies ComposerActionState)
-                          ),
+                      actionFrameState.onCastActionButtonPress({
+                        castAction: {
+                          ...actionMetadataItem.action,
+                          url: actionMetadataItem.url,
                         },
-                        {
-                          action: "post",
-                          label: "action",
-                          target: actionMetadataItem.action.url,
+                        composerActionState: {
+                          embeds: [],
+                          text: "Test cast text",
                         },
-                        1,
-                        (request) => {
-                          // clear the request stack
-                          return actionFrameState.fetchFrame(request, true);
-                        }
-                      )
+                        // clear stack, this removes first item that will appear in the debugger
+                        clearStack: true,
+                      })
                     ).catch((e: unknown) => {
                       // eslint-disable-next-line no-console -- provide feedback to the user
                       console.error(e);
@@ -309,14 +321,13 @@ export function ActionDebugger({
         </div>
       </div>
 
-      {showFrameDebugger && (
+      {!!castActionDefinition && (
         <div>
           <div className="border-t mx-4"></div>
-          {/* <pre>{JSON.stringify(actionFrameState.frame, null, 2)}</pre> */}
           <FrameDebugger
             hasExamples={hasExamples}
             frameState={actionFrameState}
-            url={actionMetadataItem.action.url ?? ""}
+            url={castActionDefinition.url}
             mockHubContext={mockHubContext}
             setMockHubContext={setMockHubContext}
             specification={"farcaster"}

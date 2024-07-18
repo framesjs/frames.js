@@ -11,7 +11,7 @@ import { getAccount, signMessage } from "wagmi/actions";
 import { LOCAL_STORAGE_KEYS } from "../constants";
 import type { XmtpFrameContext } from "./use-xmtp-context";
 
-type XmtpSigner = {
+export type XmtpSigner = {
   walletAddress: string;
   keys: Uint8Array;
 };

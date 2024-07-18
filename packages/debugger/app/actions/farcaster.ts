@@ -1,9 +1,9 @@
-import { ActionMetadata } from "frames.js";
 import { Reporter, validate } from "frames.js/frame-parsers";
-import { ParseActionResult } from "./types";
+import type { ParseActionResult } from "./types";
+import type { CastActionResponse } from "frames.js/types";
 
 export function parseFarcasterAction(
-  raw: Partial<ActionMetadata>,
+  raw: Partial<CastActionResponse>,
   reporter: Reporter
 ): ParseActionResult {
   const actionMetadata = { ...raw };
@@ -93,7 +93,7 @@ export function parseFarcasterAction(
 
   return {
     status: "success",
-    action: actionMetadata as ActionMetadata,
+    action: actionMetadata as CastActionResponse,
     reports: reporter.toObject(),
   };
 }

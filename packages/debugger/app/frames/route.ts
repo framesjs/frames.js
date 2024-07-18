@@ -4,6 +4,8 @@ import { getAction } from "../actions/getAction";
 import { persistMockResponsesForDebugHubRequests } from "../utils/mock-hub-utils";
 import type { SupportedParsingSpecification } from "frames.js";
 import { z } from "zod";
+import type { ParseActionResult } from "../actions/types";
+import type { ParseResult } from "frames.js/frame-parsers";
 
 const castActionMessageParser = z.object({
   type: z.literal("message"),
@@ -43,6 +45,15 @@ const errorResponseParser = z.object({
   message: z.string().min(1),
 });
 
+export type CastActionDefinitionResponse = ParseActionResult & {
+  type: "action";
+  url: string;
+};
+
+export type FrameDefinitionResponse = ParseResult & {
+  type: "frame";
+};
+
 export function isSpecificationValid(
   specification: unknown
 ): specification is SupportedParsingSpecification {
@@ -80,7 +91,11 @@ export async function GET(request: NextRequest): Promise<Response> {
 
       const result = getAction({ json, specification });
 
-      return Response.json({ ...result, type: "action", url });
+      return Response.json({
+        ...result,
+        type: "action",
+        url,
+      } satisfies CastActionDefinitionResponse);
     }
 
     const htmlString = await urlRes.text();
@@ -92,7 +107,10 @@ export async function GET(request: NextRequest): Promise<Response> {
       fromRequestMethod: "GET",
     });
 
-    return Response.json({ ...result, type: "frame" });
+    return Response.json({
+      ...result,
+      type: "frame",
+    } satisfies FrameDefinitionResponse);
   } catch (err) {
     // eslint-disable-next-line no-console -- provide feedback to the developer
     console.error(err);
@@ -154,8 +172,11 @@ export async function POST(req: NextRequest): Promise<Response> {
         .promise(errorResponseParser)
         .safeParseAsync(r.clone().json());
 
-      if (parseResult.success) {
-        return Response.json(parseResult.data, { status: r.status });
+      if (!parseResult.success) {
+        return Response.json(
+          { message: await r.clone().text() },
+          { status: r.status }
+        );
       }
 
       return r.clone();
@@ -182,7 +203,6 @@ export async function POST(req: NextRequest): Promise<Response> {
         .safeParseAsync(r.clone().json());
 
       if (!parseResult.success) {
-        console.error(parseResult.error);
         throw new Error("Invalid frame response");
       }
 

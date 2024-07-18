@@ -1,8 +1,10 @@
 import type { SignerStateInstance } from "@frames.js/render";
 import type { AnonymousOpenFramesRequest } from "frames.js/anonymous";
 
+export type AnonymousSigner = {};
+
 type AnonymousSignerInstance = SignerStateInstance<
-  {},
+  AnonymousSigner,
   AnonymousOpenFramesRequest,
   {}
 >;
@@ -14,6 +16,10 @@ export function useAnonymousIdentity(): AnonymousSignerInstance {
       return;
     },
     signer: {},
+    isLoadingSigner: false,
+    logout() {
+      return;
+    },
     async signFrameAction(actionContext) {
       const searchParams = new URLSearchParams({
         postType: actionContext.transactionId

@@ -10,7 +10,7 @@ import { LensFrameContext } from "./use-lens-context";
 import { Profile } from "../components/lens-profile-select";
 import { LensClient, production } from "@lens-protocol/client";
 
-type LensSigner = {
+export type LensSigner = {
   profileId: string;
   accessToken: string;
   identityToken: string;

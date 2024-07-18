@@ -5,6 +5,7 @@ import type { FrameButton, Frame, FrameFlattened } from "../types";
 import { Button, type ButtonProps } from "../core/components";
 import type {
   AllowedFrameButtonItems,
+  ErrorMessageResponse,
   FrameButtonElement,
   FrameDefinition,
   FramePlainObjectButtonElement,
@@ -55,7 +56,7 @@ export function renderResponse(): FramesMiddleware<any, Record<string, any>> {
         return Response.json(
           {
             message: e.message,
-          },
+          } satisfies ErrorMessageResponse,
           {
             status: e.status,
           }

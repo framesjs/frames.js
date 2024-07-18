@@ -28,7 +28,10 @@ import pkg from "../package.json";
 import { FrameDebugger, FrameDebuggerRef } from "./components/frame-debugger";
 import { LOCAL_STORAGE_KEYS } from "./constants";
 import { useFarcasterFrameContext } from "./hooks/use-farcaster-context";
-import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
+import {
+  StoredIdentity,
+  useFarcasterIdentity,
+} from "./hooks/use-farcaster-identity";
 import { useXmtpFrameContext } from "./hooks/use-xmtp-context";
 import { useXmtpIdentity } from "./hooks/use-xmtp-identity";
 import { useAnonymousIdentity } from "./hooks/use-anonymous-identity";
@@ -53,10 +56,11 @@ import { useLensFrameContext } from "./hooks/use-lens-context";
 import { ProfileSelectorModal } from "./components/lens-profile-select";
 import { AwaitableController } from "./lib/awaitable-controller";
 import { ComposerFormActionDialog } from "./components/composer-form-action-dialog";
-import {
-  CastActionFrameResponse,
-  ComposerActionFormResponse,
-} from "frames.js/types";
+import { ComposerActionFormResponse } from "frames.js/types";
+import type {
+  CastActionDefinitionResponse,
+  FrameDefinitionResponse,
+} from "./frames/route";
 
 const FALLBACK_URL =
   process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
@@ -110,7 +114,8 @@ export default function DebuggerPage({
     }
   }, [searchParams.url]);
   const [initialFrame, setInitialFrame] = useState<ParseResult>();
-  const [initialAction, setInitialAction] = useState<ParseActionResult>();
+  const [initialAction, setInitialAction] =
+    useState<CastActionDefinitionResponse>();
   const [mockHubContext, setMockHubContext] = useState<
     Partial<MockHubActionContext>
   >({
@@ -174,9 +179,9 @@ export default function DebuggerPage({
             const json = await res.json();
             throw new Error(json.message);
           }
+
           return res.json() as Promise<
-            | ({ type: "action" } & ParseActionResult)
-            | ({ type: "frame" } & ParseResult)
+            CastActionDefinitionResponse | FrameDefinitionResponse
           >;
         })
         .then((json) => {
@@ -523,7 +528,7 @@ export default function DebuggerPage({
   };
 
   const farcasterFrameConfig: UseFrameOptions<
-    FarcasterSigner | null,
+    StoredIdentity | null,
     FrameActionBodyPayload
   > = {
     ...useFrameConfig,
