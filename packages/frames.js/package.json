@@ -217,6 +217,16 @@
         "default": "./dist/middleware/images-worker/index.cjs"
       }
     },
+    "./middleware/neynar": {
+      "import": {
+        "types": "./dist/middleware/neynar/index.d.ts",
+        "default": "./dist/middleware/neynar/index.js"
+      },
+      "require": {
+        "types": "./dist/middleware/neynar/index.d.cts",
+        "default": "./dist/middleware/neynar/index.cjs"
+      }
+    },
     "./middleware/images-worker/handler": {
       "import": {
         "types": "./dist/middleware/images-worker/handler.d.ts",

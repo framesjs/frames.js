@@ -1,0 +1,49 @@
+# Neynar Validate
+
+Fetches additional context about the message from a Farcaster hub using neynar.
+
+## Setup
+
+Add the `neynarValidate` middleware to your `createFrames` call:
+
+```tsx [frames.ts]
+// ...
+import { neynarValidate } from "frames.js/middleware";
+
+const frames = createFrames({
+  // ...
+  middleware: [
+    neynarValidate({
+      API_KEY: "NEYNAR_API_DOCS",
+    }),
+  ],
+});
+```
+
+## Usage
+
+Use the added context in your message handler:
+
+```tsx [route.tsx]
+import { frames } from "./frames";
+
+export const POST = frames(async (ctx) => {
+  if (!ctx.message?.valid) {
+    throw new Error("Invalid message");
+  }
+
+  return {
+    image: (
+      <div tw="flex">Message from {ctx.message?.action.interactor.fid}</div>
+    ),
+  };
+});
+```
+
+For all the added context see the [`validate frame action`](https://docs.neynar.com/reference/validate-frame) API reference.
+
+## Options
+
+### `API_KEY`
+
+Add your Neynar API_KEY, which you can find in the [Neynar dashboard](https://dev.neynar.com/).
