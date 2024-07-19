@@ -3,6 +3,7 @@ import type {
   ComposerActionFormResponse,
   CastActionFrameResponse,
   CastActionMessageResponse,
+  ComposerActionResponse,
 } from "./types";
 
 /**
@@ -10,6 +11,18 @@ import type {
  */
 export function castAction(definition: CastActionResponse): Response {
   return Response.json(definition);
+}
+
+/**
+ * Returns a response defining composer action.
+ */
+export function composerAction(
+  definition: Omit<ComposerActionResponse, "type">
+): Response {
+  return Response.json({
+    ...definition,
+    type: "composer",
+  } satisfies ComposerActionResponse);
 }
 
 export function castActionFrame(frameUrl: string): Response {

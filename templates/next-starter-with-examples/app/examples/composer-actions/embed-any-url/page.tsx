@@ -3,7 +3,7 @@
 import type { ComposerActionState } from "frames.js/types";
 
 // pass state from frame message
-export default function CreateGameForm({
+export default function EmbedAnyURLForm({
   searchParams,
 }: {
   // provided by URL returned from composer action server
@@ -23,19 +23,6 @@ export default function CreateGameForm({
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
 
-        // normally you would send the request to server, do something there, etc
-        // this is only for demonstration purposes
-
-        const newFrameUrl = new URL(
-          "/examples/composer-actions/frames/game",
-          window.location.href
-        );
-
-        newFrameUrl.searchParams.set(
-          "number",
-          formData.get("number")!.toString()
-        );
-
         window.parent.postMessage(
           {
             type: "createCast",
@@ -44,7 +31,10 @@ export default function CreateGameForm({
                 ...composerActionState,
                 text: formData.get("cast-text")!.toString(),
                 // always append to the end of the embeds array
-                embeds: [...composerActionState.embeds, newFrameUrl.toString()],
+                embeds: [
+                  ...composerActionState.embeds,
+                  new URL(formData.get("embed-url")!.toString()).toString(),
+                ],
               },
             },
           },
@@ -66,21 +56,19 @@ export default function CreateGameForm({
         placeholder="Type a cast here and submit the form..."
         rows={3}
       />
-      <label className="font-semibold" htmlFor="game-number">
-        Enter a random number
+      <label className="font-semibold" htmlFor="embed-url">
+        Enter URL
       </label>
       <input
         className="rounded border border-slate-800 p-2"
-        id="game-number"
-        name="number"
-        placeholder="0-9"
-        min={0}
-        max={9}
+        id="embed-url"
+        name="embed-url"
+        placeholder="https://framesjs.org"
         required
-        type="number"
+        type="url"
       />
       <button className="rounded bg-slate-800 text-white p-2" type="submit">
-        Create Game
+        Embed URL
       </button>
     </form>
   );

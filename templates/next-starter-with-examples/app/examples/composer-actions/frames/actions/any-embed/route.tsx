@@ -8,23 +8,20 @@ export const GET = async (req: NextRequest) => {
     action: {
       type: "post",
     },
-    icon: "trophy",
-    name: "Create a game",
+    icon: "globe",
+    name: "Embed any URL",
     aboutUrl: `${appURL()}/examples/composer-actions`,
-    description: "Creates a guess a number game.",
+    description: "Embeds any URL to a cast.",
   });
 };
 
 export const POST = frames(async (ctx) => {
   const walletAddress = await ctx.walletAddress();
 
-  const createGameUrl = new URL(
-    "/examples/composer-actions/create-game",
-    appURL()
-  );
+  const formUrl = new URL("/examples/composer-actions/embed-any-url", appURL());
 
   if (walletAddress) {
-    createGameUrl.searchParams.set("uid", walletAddress);
+    formUrl.searchParams.set("uid", walletAddress);
   } else {
     return error("Must be authenticated");
   }
@@ -34,13 +31,10 @@ export const POST = frames(async (ctx) => {
     return error("Must be called from composer");
   }
 
-  createGameUrl.searchParams.set(
-    "state",
-    JSON.stringify(ctx.composerActionState)
-  );
+  formUrl.searchParams.set("state", JSON.stringify(ctx.composerActionState));
 
   return composerActionForm({
-    title: "Create a game",
-    url: createGameUrl.toString(),
+    title: "Embed any URL",
+    url: formUrl.toString(),
   });
 });

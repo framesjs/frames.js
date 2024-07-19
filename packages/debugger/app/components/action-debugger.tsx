@@ -8,8 +8,8 @@ import {
 import { cn } from "@/lib/utils";
 import {
   type FarcasterFrameContext,
-  type FarcasterSigner,
   type FrameActionBodyPayload,
+  OnComposeFormActionFuncReturnType,
   defaultTheme,
 } from "@frames.js/render";
 import { ParsingReport } from "frames.js";
@@ -20,11 +20,13 @@ import {
   RefreshCwIcon,
   XCircle,
 } from "lucide-react";
-import {
+import React, {
   type Dispatch,
   type SetStateAction,
   useEffect,
+  useImperativeHandle,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { Button } from "../../@/components/ui/button";
@@ -36,6 +38,12 @@ import { WithTooltip } from "./with-tooltip";
 import { useToast } from "@/components/ui/use-toast";
 import type { CastActionDefinitionResponse } from "../frames/route";
 import { StoredIdentity } from "../hooks/use-farcaster-identity";
+import { ComposerFormActionDialog } from "./composer-form-action-dialog";
+import { AwaitableController } from "../lib/awaitable-controller";
+import type { ComposerActionFormResponse } from "frames.js/types";
+import { CastComposer, CastComposerRef } from "./cast-composer";
+import { Toggle } from "@/components/ui/toggle";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type FrameDebuggerFramePropertiesTableRowsProps = {
   actionMetadataItem: CastActionDefinitionResponse;
@@ -168,14 +176,7 @@ function ShortenedText({
   );
 }
 
-export function ActionDebugger({
-  actionMetadataItem,
-  farcasterFrameConfig,
-  refreshUrl,
-  mockHubContext,
-  setMockHubContext,
-  hasExamples,
-}: {
+type ActionDebuggerProps = {
   actionMetadataItem: CastActionDefinitionResponse;
   farcasterFrameConfig: Parameters<
     typeof useFrame<
@@ -188,45 +189,123 @@ export function ActionDebugger({
   mockHubContext?: Partial<MockHubActionContext>;
   setMockHubContext?: Dispatch<SetStateAction<Partial<MockHubActionContext>>>;
   hasExamples: boolean;
-}) {
-  const { toast } = useToast();
-  const [copySuccess, setCopySuccess] = useState(false);
-  useEffect(() => {
-    if (copySuccess) {
-      setTimeout(() => {
-        setCopySuccess(false);
-      }, 1000);
-    }
-  }, [copySuccess, setCopySuccess]);
+};
 
-  const actionFrameState = useFrame(farcasterFrameConfig);
-  const [castActionDefinition, setCastActionDefinition] = useState<Exclude<
-    CastActionDefinitionResponse,
-    { status: "failure" }
-  > | null>(null);
+type TabValues = "composer-action" | "cast-action";
 
-  return (
-    <>
-      <div className="flex flex-row items-start p-4 gap-4 bg-slate-50 max-w-full w-full">
-        <div className="flex flex-col gap-4 w-[300px] min-w-[300px]">
-          <div className="flex flex-row gap-2">
-            <WithTooltip tooltip={<p>Reload URL</p>}>
-              <Button
-                className="flex flex-row gap-3 items-center shadow-sm border"
-                variant={"outline"}
-                onClick={() => {
-                  // TODO: loading indicators
-                  refreshUrl();
-                }}
-              >
-                <RefreshCwIcon size={20} />
-              </Button>
-            </WithTooltip>
-          </div>
-        </div>
-        <div className="flex flex-col gap-4 w-[500px] min-w-[500px]">
-          <Card>
-            <CardContent className="p-2">
+export type ActionDebuggerRef = {
+  switchTo(tab: TabValues): void;
+};
+
+export const ActionDebugger = React.forwardRef<
+  ActionDebuggerRef,
+  ActionDebuggerProps
+>(
+  (
+    {
+      actionMetadataItem,
+      farcasterFrameConfig,
+      refreshUrl,
+      mockHubContext,
+      setMockHubContext,
+      hasExamples,
+    },
+    ref
+  ) => {
+    const { toast } = useToast();
+    const [activeTab, setActiveTab] = useState<TabValues>(
+      "type" in actionMetadataItem.action &&
+        actionMetadataItem.action.type === "composer"
+        ? "composer-action"
+        : "cast-action"
+    );
+    const [copySuccess, setCopySuccess] = useState(false);
+    useEffect(() => {
+      if (copySuccess) {
+        setTimeout(() => {
+          setCopySuccess(false);
+        }, 1000);
+      }
+    }, [copySuccess, setCopySuccess]);
+
+    const [composeFormActionDialogSignal, setComposerFormActionDialogSignal] =
+      useState<AwaitableController<
+        OnComposeFormActionFuncReturnType,
+        ComposerActionFormResponse
+      > | null>(null);
+    const actionFrameState = useFrame({
+      ...farcasterFrameConfig,
+      async onComposerFormAction({ form }) {
+        try {
+          const dialogSignal = new AwaitableController<
+            OnComposeFormActionFuncReturnType,
+            ComposerActionFormResponse
+          >(form);
+
+          setComposerFormActionDialogSignal(dialogSignal);
+
+          const result = await dialogSignal;
+
+          // if result is undefined then user closed the dialog window without submitting
+          // otherwise we have updated data
+          if (result?.composerActionState) {
+            castComposerRef.current?.updateState(result.composerActionState);
+          }
+
+          return result;
+        } catch (e) {
+          console.error(e);
+          toast({
+            title: "Error occurred",
+            description:
+              e instanceof Error
+                ? e.message
+                : "Unexpected error, check the console for more info",
+            variant: "destructive",
+          });
+        } finally {
+          setComposerFormActionDialogSignal(null);
+        }
+      },
+    });
+    const castComposerRef = useRef<CastComposerRef>(null);
+    const [castActionDefinition, setCastActionDefinition] = useState<Exclude<
+      CastActionDefinitionResponse,
+      { status: "failure" }
+    > | null>(null);
+
+    useImperativeHandle(
+      ref,
+      () => {
+        return {
+          switchTo(tab) {
+            setActiveTab(tab);
+          },
+        };
+      },
+      []
+    );
+
+    return (
+      <>
+        <Tabs
+          className="flex flex-col mt-2"
+          onValueChange={(tab) => setActiveTab(tab as TabValues)}
+          value={activeTab}
+        >
+          <TabsList className="mx-auto">
+            <TabsTrigger className="text-base" value="cast-action">
+              Cast action
+            </TabsTrigger>
+            <TabsTrigger className="text-base" value="composer-action">
+              Composer action
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="cast-action">
+            <ActionInfo
+              actionMetadataItem={actionMetadataItem}
+              onRefreshUrl={() => refreshUrl()}
+            >
               <div>
                 <div className="flex items-center">
                   <div className="flex items-center grow space-x-2">
@@ -289,51 +368,141 @@ export function ActionDebugger({
                           ...actionMetadataItem.action,
                           url: actionMetadataItem.url,
                         },
-                        composerActionState: {
-                          embeds: [],
-                          text: "Test cast text",
-                        },
                         // clear stack, this removes first item that will appear in the debugger
                         clearStack: true,
                       })
                     ).catch((e: unknown) => {
                       // eslint-disable-next-line no-console -- provide feedback to the user
-                      console.error(e);
+                      console.error("trolo", e);
                     });
                   }}
                 >
                   Run
                 </button>
               </div>
+            </ActionInfo>
+
+            {!!castActionDefinition &&
+              !("type" in castActionDefinition.action) && (
+                <div>
+                  <div className="border-t mx-4"></div>
+                  <FrameDebugger
+                    hasExamples={hasExamples}
+                    frameState={actionFrameState}
+                    url={castActionDefinition.url}
+                    mockHubContext={mockHubContext}
+                    setMockHubContext={setMockHubContext}
+                    specification={"farcaster"}
+                  ></FrameDebugger>
+                </div>
+              )}
+          </TabsContent>
+          <TabsContent value="composer-action">
+            <ActionInfo
+              actionMetadataItem={actionMetadataItem}
+              onRefreshUrl={() => refreshUrl()}
+            >
+              <CastComposer
+                farcasterFrameConfig={farcasterFrameConfig}
+                ref={castComposerRef}
+                composerAction={actionMetadataItem.action}
+                onComposerActionClick={(composerActionState) => {
+                  if (actionMetadataItem.status !== "success") {
+                    console.error(actionMetadataItem);
+
+                    toast({
+                      title: "Invalid action metadata",
+                      description:
+                        "Please check the console for more information",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
+                  Promise.resolve(
+                    actionFrameState.onComposerActionButtonPress({
+                      castAction: {
+                        ...actionMetadataItem.action,
+                        url: actionMetadataItem.url,
+                      },
+                      composerActionState,
+                      // clear stack, this removes first item that will appear in the debugger
+                      clearStack: true,
+                    })
+                  ).catch((e: unknown) => {
+                    // eslint-disable-next-line no-console -- provide feedback to the user
+                    console.error(e);
+                  });
+                }}
+              />
+            </ActionInfo>
+
+            {!!composeFormActionDialogSignal && (
+              <ComposerFormActionDialog
+                composerActionForm={composeFormActionDialogSignal.data}
+                onClose={() => {
+                  composeFormActionDialogSignal.resolve(undefined);
+                }}
+                onSave={({ composerState }) => {
+                  composeFormActionDialogSignal.resolve({
+                    composerActionState: composerState,
+                  });
+                }}
+              />
+            )}
+          </TabsContent>
+        </Tabs>
+      </>
+    );
+  }
+);
+
+ActionDebugger.displayName = "ActionDebugger";
+
+type ActionInfoProps = {
+  actionMetadataItem: CastActionDefinitionResponse;
+  children: React.ReactNode;
+  onRefreshUrl: () => void;
+};
+
+function ActionInfo({
+  actionMetadataItem,
+  children,
+  onRefreshUrl,
+}: ActionInfoProps) {
+  return (
+    <div className="flex flex-row items-start p-4 gap-4 bg-slate-50 max-w-full w-full">
+      <div className="flex flex-col gap-4 w-[300px] min-w-[300px]">
+        <div className="flex flex-row gap-2">
+          <WithTooltip tooltip={<p>Reload URL</p>}>
+            <Button
+              className="flex flex-row gap-3 items-center shadow-sm border"
+              variant={"outline"}
+              onClick={() => {
+                onRefreshUrl();
+              }}
+            >
+              <RefreshCwIcon size={20} />
+            </Button>
+          </WithTooltip>
+        </div>
+      </div>
+      <div className="flex flex-col gap-4 w-[500px] min-w-[500px]">
+        <Card>
+          <CardContent className="p-2">{children}</CardContent>
+        </Card>
+      </div>
+      <div className="flex flex-row gap-4 w-full">
+        <div className="h-full min-w-0 w-full">
+          <Card>
+            <CardContent className="p-0 px-2">
+              <ActionDebuggerPropertiesTableRow
+                actionMetadataItem={actionMetadataItem}
+              ></ActionDebuggerPropertiesTableRow>
             </CardContent>
           </Card>
         </div>
-        <div className="flex flex-row gap-4 w-full">
-          <div className="h-full min-w-0 w-full">
-            <Card>
-              <CardContent className="p-0 px-2">
-                <ActionDebuggerPropertiesTableRow
-                  actionMetadataItem={actionMetadataItem}
-                ></ActionDebuggerPropertiesTableRow>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
       </div>
-
-      {!!castActionDefinition && (
-        <div>
-          <div className="border-t mx-4"></div>
-          <FrameDebugger
-            hasExamples={hasExamples}
-            frameState={actionFrameState}
-            url={castActionDefinition.url}
-            mockHubContext={mockHubContext}
-            setMockHubContext={setMockHubContext}
-            specification={"farcaster"}
-          ></FrameDebugger>
-        </div>
-      )}
-    </>
+    </div>
   );
 }

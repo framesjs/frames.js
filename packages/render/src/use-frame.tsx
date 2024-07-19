@@ -24,6 +24,7 @@ import type {
   CastActionButtonPressFunction,
   SignerStateActionContext,
   SignedFrameAction,
+  ComposerActionButtonPressFunction,
 } from "./types";
 import type { FarcasterFrameContext } from "./farcaster";
 import { useFrameStack } from "./use-frame-stack";
@@ -164,7 +165,7 @@ function handleLinkButtonClickFallback(button: FrameButtonLink): void {
   }
 }
 
-function defaultComposerFormActionHandler(): Promise<{ frameUrl: string }> {
+function defaultComposerFormActionHandler(): Promise<never> {
   throw new Error('Please implement your own "onComposerFormAction" handler');
 }
 
@@ -482,13 +483,9 @@ export function useFrame<
 
       return fetchFrame(
         {
-          method: "CAST_OR_COMPOSER_ACTION",
+          method: "CAST_ACTION",
           action: arg.castAction,
           isDangerousSkipSigning: dangerousSkipSigning ?? false,
-          composerActionState: arg.composerActionState ?? {
-            text: "Default cast text",
-            embeds: [],
-          },
           signerStateActionContext: {
             signer: signerState.signer ?? null,
             frameContext,
@@ -503,6 +500,35 @@ export function useFrame<
     [dangerousSkipSigning, fetchFrame, frameContext, signerState]
   );
 
+  const onComposerActionButtonPress: ComposerActionButtonPressFunction =
+    useCallback(
+      async function onActionButtonPress(arg) {
+        if (!signerState.hasSigner && !dangerousSkipSigning) {
+          signerState.onSignerlessFramePress();
+          // don't continue, let the app handle
+          return;
+        }
+
+        return fetchFrame(
+          {
+            method: "COMPOSER_ACTION",
+            action: arg.castAction,
+            isDangerousSkipSigning: dangerousSkipSigning ?? false,
+            composerActionState: arg.composerActionState,
+            signerStateActionContext: {
+              signer: signerState.signer ?? null,
+              frameContext,
+              url: arg.castAction.url,
+              target: arg.castAction.url,
+              buttonIndex: 1,
+            },
+          },
+          arg.clearStack
+        );
+      },
+      [dangerousSkipSigning, fetchFrame, frameContext, signerState]
+    );
+
   return useMemo(() => {
     return {
       inputText,
@@ -515,6 +541,7 @@ export function useFrame<
       framesStack,
       currentFrameStackItem: framesStack[0],
       onCastActionButtonPress,
+      onComposerActionButtonPress,
     };
   }, [
     inputText,
@@ -525,5 +552,6 @@ export function useFrame<
     homeframeUrl,
     framesStack,
     onCastActionButtonPress,
+    onComposerActionButtonPress,
   ]);
 }

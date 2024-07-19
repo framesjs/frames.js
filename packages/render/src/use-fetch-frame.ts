@@ -5,9 +5,15 @@ import type {
   TransactionTargetResponse,
 } from "frames.js";
 import type { types } from "frames.js/core";
-import type { ErrorMessageResponse, FramesContext } from "frames.js/types";
 import type {
-  CastOrComposerActionRequest,
+  CastActionFrameResponse,
+  ComposerActionFormResponse,
+  ErrorMessageResponse,
+  FramesContext,
+} from "frames.js/types";
+import type {
+  CastActionRequest,
+  ComposerActionRequest,
   FetchFrameFunction,
   FrameActionBodyPayload,
   FrameContext,
@@ -24,15 +30,54 @@ import type {
 import type { FarcasterFrameContext } from "./farcaster";
 import { isParseResult } from "./use-frame-stack";
 
-class UnexpectedCastOrComposerActionResponse extends Error {
+class UnexpectedCastActionResponseError extends Error {
   constructor() {
-    super("Unexpected cast or composer action response from the server");
+    super("Unexpected cast action response from the server");
+  }
+}
+
+class UnexpectedComposerActionResponseError extends Error {
+  constructor() {
+    super("Unexpected composer action response from the server");
   }
 }
 
 function isErrorMessageResponse(
   response: unknown
 ): response is ErrorMessageResponse {
+  return (
+    typeof response === "object" &&
+    response !== null &&
+    "message" in response &&
+    typeof response.message === "string"
+  );
+}
+
+function isComposerFormActionResponse(
+  response: unknown
+): response is ComposerActionFormResponse {
+  return (
+    typeof response === "object" &&
+    response !== null &&
+    "type" in response &&
+    response.type === "form"
+  );
+}
+
+function isCastActionFrameResponse(
+  response: unknown
+): response is CastActionFrameResponse {
+  return (
+    typeof response === "object" &&
+    response !== null &&
+    "type" in response &&
+    response.type === "frame"
+  );
+}
+
+function isCastMessageResponse(
+  response: unknown
+): response is types.CastActionMessageResponse {
   return (
     typeof response === "object" &&
     response !== null &&
@@ -276,18 +321,21 @@ export function useFetchFrame<
           responseBody: await res.clone().text(),
         });
       } catch (e) {
+        const error =
+          e instanceof Error
+            ? e
+            : new Error(
+                "Response body must be a json with 'location' property or response 'Location' header must contain fully qualified URL."
+              );
+
         stackAPI.markAsFailedWithRequestError({
           pendingItem: currentPendingItem,
-          error:
-            e instanceof Error
-              ? e
-              : new Error(
-                  "Response body must be a json with 'location' property or response 'Location' header must contain fully qualified URL."
-                ),
+          error,
           response: res,
           endTime,
           responseBody: await res.clone().text(),
         });
+        onError(error);
       }
     }
 
@@ -525,7 +573,7 @@ export function useFetchFrame<
   async function fetchCastActionRequest<
     TSignerStateActionContext extends SignerStateActionContext<any, any>,
   >(
-    request: CastOrComposerActionRequest<TSignerStateActionContext>,
+    request: CastActionRequest<TSignerStateActionContext>,
     shouldClear = false
   ): Promise<void> {
     const frameButton: FrameButtonPost = {
@@ -536,14 +584,6 @@ export function useFetchFrame<
     const signerStateActionContext = {
       ...request.signerStateActionContext,
       frameButton,
-      // this is necessary for composer form action server, cast actions don't actually use any state so they will probably just ignore it
-      ...(request.composerActionState
-        ? {
-            state: encodeURIComponent(
-              JSON.stringify(request.composerActionState)
-            ),
-          }
-        : {}),
     };
     const signedDataOrError = await signAndGetFrameActionBodyPayload({
       signerStateActionContext,
@@ -555,6 +595,7 @@ export function useFetchFrame<
     }
 
     if (signedDataOrError instanceof Error) {
+      onError(signedDataOrError);
       throw signedDataOrError;
     }
 
@@ -584,6 +625,7 @@ export function useFetchFrame<
     });
 
     if (actionResponseOrError instanceof Error) {
+      onError(actionResponseOrError);
       throw actionResponseOrError;
     }
 
@@ -601,12 +643,11 @@ export function useFetchFrame<
         return;
       }
 
-      const actionResponse = (await actionResponseOrError.clone().json()) as
-        | types.CastActionMessageResponse
-        | types.CastActionFrameResponse
-        | types.ComposerActionFormResponse;
+      const actionResponse = (await actionResponseOrError
+        .clone()
+        .json()) as unknown;
 
-      if ("message" in actionResponse) {
+      if (isCastMessageResponse(actionResponse)) {
         stackAPI.markCastMessageAsDone({
           pendingItem,
           endTime,
@@ -616,73 +657,155 @@ export function useFetchFrame<
         return;
       }
 
-      if ("type" in actionResponse) {
-        switch (actionResponse.type) {
-          case "form": {
-            // this is noop
-            stackAPI.markComposerFormActionAsDone({ pendingItem, endTime });
+      if (isCastActionFrameResponse(actionResponse)) {
+        // this is noop
+        stackAPI.markCastFrameAsDone({ pendingItem, endTime });
 
-            const result = await onComposerFormAction({
-              form: actionResponse,
-              cast: {
-                embeds: [],
-                text: "Cast text",
-              },
-            });
-
-            if (!result) {
-              return;
-            }
-
-            // load the frame
-            await fetchGETRequest({
-              method: "GET",
-              url: result.frameUrl,
-            });
-
-            return;
-          }
-          case "frame": {
-            // this is noop
-            stackAPI.markCastFrameAsDone({ pendingItem, endTime });
-
-            await fetchPOSTRequest({
-              // actions don't have source frame, fake it
-              sourceFrame: {
-                image: "",
-                version: "vNext",
-              },
-              frameButton: {
-                action: "post",
-                label: "action",
-                target: actionResponse.frameUrl,
-              },
-              isDangerousSkipSigning: request.isDangerousSkipSigning,
-              method: "POST",
-              signerStateActionContext: {
-                ...request.signerStateActionContext,
-                buttonIndex: 1,
-                frameButton: {
-                  action: "post",
-                  label: "action",
-                  target: actionResponse.frameUrl,
-                },
-                target: actionResponse.frameUrl,
-              },
-            });
-            return;
-          }
-        }
+        await fetchPOSTRequest({
+          // actions don't have source frame, fake it
+          sourceFrame: {
+            image: "",
+            version: "vNext",
+          },
+          frameButton: {
+            action: "post",
+            label: "action",
+            target: actionResponse.frameUrl,
+          },
+          isDangerousSkipSigning: request.isDangerousSkipSigning,
+          method: "POST",
+          signerStateActionContext: {
+            ...request.signerStateActionContext,
+            buttonIndex: 1,
+            frameButton: {
+              action: "post",
+              label: "action",
+              target: actionResponse.frameUrl,
+            },
+            target: actionResponse.frameUrl,
+          },
+        });
+        return;
       }
 
-      throw new UnexpectedCastOrComposerActionResponse();
+      throw new UnexpectedCastActionResponseError();
     } catch (e) {
-      if (e instanceof UnexpectedCastOrComposerActionResponse) {
-        throw e;
+      let error: Error;
+
+      if (!(e instanceof UnexpectedCastActionResponseError)) {
+        console.error(`Unexpected response from the server`, e);
+        error = e instanceof Error ? e : new Error("Unexpected error");
+      } else {
+        error = e;
       }
 
-      console.error(`Unexpected response from the server`, e);
-      throw new Error("Unexpected response from the server");
+      onError(error);
+      throw error;
+    }
+  }
+
+  async function fetchComposerActionRequest<
+    TSignerStateActionContext extends SignerStateActionContext<any, any>,
+  >(
+    request: ComposerActionRequest<TSignerStateActionContext>,
+    shouldClear = false
+  ): Promise<void> {
+    const frameButton: FrameButtonPost = {
+      action: "post",
+      label: request.action.name,
+      target: request.action.url,
+    };
+    const signerStateActionContext = {
+      ...request.signerStateActionContext,
+      frameButton,
+      state: encodeURIComponent(JSON.stringify(request.composerActionState)),
+    };
+    const signedDataOrError = await signAndGetFrameActionBodyPayload({
+      signerStateActionContext,
+      signFrameAction,
+    });
+
+    if (shouldClear) {
+      stackAPI.clear();
+    }
+
+    if (signedDataOrError instanceof Error) {
+      onError(signedDataOrError);
+      throw signedDataOrError;
+    }
+
+    // create pending item but do not dispatch it
+    const pendingItem = stackAPI.createCastOrComposerActionPendingItem({
+      action: signedDataOrError,
+      request: {
+        ...request,
+        frameButton,
+        signerStateActionContext,
+        method: "POST",
+        sourceFrame: {
+          image: "",
+          version: "vNext",
+        },
+      },
+    });
+
+    const actionResponseOrError = await fetchProxied({
+      fetchFn,
+      proxyUrl: frameActionProxy,
+      specification,
+      frameAction: signedDataOrError,
+      extraRequestPayload: extraButtonRequestPayload,
+    });
+
+    if (actionResponseOrError instanceof Error) {
+      onError(actionResponseOrError);
+      throw actionResponseOrError;
+    }
+
+    // check what is the response, we expect either cast action responses or composer action responses
+    try {
+      const endTime = new Date();
+
+      if (!actionResponseOrError.ok) {
+        await handleFailedResponse({
+          response: actionResponseOrError,
+          endTime,
+          frameStackPendingItem: pendingItem,
+        });
+
+        return;
+      }
+
+      const actionResponse = (await actionResponseOrError
+        .clone()
+        .json()) as unknown;
+
+      if (!isComposerFormActionResponse(actionResponse)) {
+        throw new UnexpectedComposerActionResponseError();
+      }
+
+      // this is noop
+      stackAPI.markComposerFormActionAsDone({ pendingItem, endTime });
+
+      await onComposerFormAction({
+        form: actionResponse,
+        cast: {
+          embeds: [],
+          text: "Cast text",
+        },
+      });
+    } catch (e) {
+      let error: Error;
+
+      if (!(e instanceof UnexpectedComposerActionResponseError)) {
+        console.error(`Unexpected response from the server`, e);
+        error = e instanceof Error ? e : new Error("Unexpected error");
+      } else {
+        error = e;
+      }
+
+      onError(error);
+      throw error;
     }
   }
 
@@ -691,8 +814,12 @@ export function useFetchFrame<
       return fetchGETRequest(request, shouldClear);
     }
 
-    if (request.method === "CAST_OR_COMPOSER_ACTION") {
+    if (request.method === "CAST_ACTION") {
       return fetchCastActionRequest(request, shouldClear);
+    }
+
+    if (request.method === "COMPOSER_ACTION") {
+      return fetchComposerActionRequest(request, shouldClear);
     }
 
     if (request.frameButton.action === "tx") {

@@ -1,10 +1,13 @@
 import type { ParsingReport } from "frames.js";
-import type { CastActionResponse } from "frames.js/types";
+import type {
+  CastActionResponse,
+  ComposerActionResponse,
+} from "frames.js/types";
 
 export type ParseActionResult =
   | {
       status: "success";
-      action: CastActionResponse;
+      action: CastActionResponse | ComposerActionResponse;
       /**
        * Reports contain only warnings that should not have any impact on the frame's functionality.
        */
@@ -12,7 +15,7 @@ export type ParseActionResult =
     }
   | {
       status: "failure";
-      action: Partial<CastActionResponse>;
+      action: Partial<CastActionResponse> | Partial<ComposerActionResponse>;
       /**
        * Reports contain warnings and errors that should be addressed before the frame can be used.
        */

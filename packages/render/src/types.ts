@@ -44,20 +44,21 @@ type OnComposerFormActionFuncArgs = {
   cast: ComposerActionState;
 };
 
+export type OnComposeFormActionFuncReturnType =
+  | {
+      /**
+       * Updated composer action state
+       */
+      composerActionState: ComposerActionState;
+    }
+  | undefined;
+
 /**
  * If the function resolves to undefined it means that the dialog was probably closed resulting in no operation at all.
  */
 export type OnComposerFormActionFunc = (
   arg: OnComposerFormActionFuncArgs
-) => Promise<
-  | {
-      /**
-       * Frame URL generated on composer form submission.
-       */
-      frameUrl: string;
-    }
-  | undefined
->;
+) => Promise<OnComposeFormActionFuncReturnType>;
 
 export type UseFetchFrameSignFrameActionFunction<
   TSignerStateActionContext extends SignerStateActionContext<any, any>,
@@ -371,7 +372,6 @@ type CastActionButtonPressFunctionArg = {
     /** URL to cast action handler */
     url: string;
   };
-  composerActionState?: ComposerActionState;
   /**
    * @defaultValue false
    */
@@ -382,7 +382,23 @@ export type CastActionButtonPressFunction = (
   arg: CastActionButtonPressFunctionArg
 ) => Promise<void>;
 
-export type CastOrComposerActionRequest<
+type ComposerActionButtonPressFunctionArg = {
+  castAction: CastActionResponse & {
+    /** URL to cast action handler */
+    url: string;
+  };
+  composerActionState: ComposerActionState;
+  /**
+   * @defaultValue false
+   */
+  clearStack?: boolean;
+};
+
+export type ComposerActionButtonPressFunction = (
+  arg: ComposerActionButtonPressFunctionArg
+) => Promise<void>;
+
+export type CastActionRequest<
   TSignerStateActionContext extends SignerStateActionContext<
     any,
     any
@@ -391,14 +407,30 @@ export type CastOrComposerActionRequest<
   FramePOSTRequest,
   "method" | "frameButton" | "sourceFrame" | "signerStateActionContext"
 > & {
-  method: "CAST_OR_COMPOSER_ACTION";
+  method: "CAST_ACTION";
   action: CastActionResponse & {
     url: string;
   };
-  /**
-   * Necessary only for composer action buttons
-   */
-  composerActionState?: ComposerActionState;
+  signerStateActionContext: Omit<
+    FramePOSTRequest<TSignerStateActionContext>["signerStateActionContext"],
+    "frameButton" | "inputText" | "state"
+  >;
+};
+
+export type ComposerActionRequest<
+  TSignerStateActionContext extends SignerStateActionContext<
+    any,
+    any
+  > = SignerStateActionContext,
+> = Omit<
+  FramePOSTRequest,
+  "method" | "frameButton" | "sourceFrame" | "signerStateActionContext"
+> & {
+  method: "COMPOSER_ACTION";
+  action: CastActionResponse & {
+    url: string;
+  };
+  composerActionState: ComposerActionState;
   signerStateActionContext: Omit<
     FramePOSTRequest<TSignerStateActionContext>["signerStateActionContext"],
     "frameButton" | "inputText" | "state"
@@ -413,7 +445,8 @@ export type FetchFrameFunction<
 > = (
   request:
     | FrameRequest<TSignerStateActionContext>
-    | CastOrComposerActionRequest<TSignerStateActionContext>,
+    | CastActionRequest<TSignerStateActionContext>
+    | ComposerActionRequest<TSignerStateActionContext>,
   /**
    * If true, the frame stack will be cleared before the new frame is loaded
    *
@@ -442,6 +475,7 @@ export type FrameState<
   >;
   homeframeUrl: string | null | undefined;
   onCastActionButtonPress: CastActionButtonPressFunction;
+  onComposerActionButtonPress: ComposerActionButtonPressFunction;
 };
 
 export type OnMintArgs = {

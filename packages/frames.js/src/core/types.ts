@@ -400,3 +400,4 @@ export type CastActionFrameResponse = {
 };
 
 export type CastActionResponse = ActionMetadata;
+export type ComposerActionResponse = { type: "composer" } & ActionMetadata;

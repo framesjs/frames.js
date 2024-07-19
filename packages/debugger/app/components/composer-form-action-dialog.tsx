@@ -5,7 +5,10 @@ import {
   DialogFooter,
   DialogContent,
 } from "@/components/ui/dialog";
-import type { ComposerActionFormResponse } from "frames.js/types";
+import type {
+  ComposerActionFormResponse,
+  ComposerActionState,
+} from "frames.js/types";
 import { useEffect, useRef } from "react";
 import { z } from "zod";
 
@@ -23,16 +26,16 @@ const composerFormCreateCastMessageSchema = z.object({
 type ComposerFormActionDialogProps = {
   composerActionForm: ComposerActionFormResponse;
   onClose: () => void;
-  onFrameUrl: (url: string) => void;
+  onSave: (arg: { composerState: ComposerActionState }) => void;
 };
 
 export function ComposerFormActionDialog({
   composerActionForm,
   onClose,
-  onFrameUrl,
+  onSave,
 }: ComposerFormActionDialogProps) {
-  const onFrameUrlRef = useRef(onFrameUrl);
-  onFrameUrlRef.current = onFrameUrl;
+  const onSaveRef = useRef(onSave);
+  onSaveRef.current = onSave;
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -45,7 +48,13 @@ export function ComposerFormActionDialog({
         return;
       }
 
-      onFrameUrlRef.current(result.data.data.cast.embeds.slice().pop()!);
+      if (result.data.data.cast.embeds.length > 2) {
+        console.warn("Only first 2 embeds are shown in the cast");
+      }
+
+      onSaveRef.current({
+        composerState: result.data.data.cast,
+      });
     };
 
     window.addEventListener("message", handleMessage);

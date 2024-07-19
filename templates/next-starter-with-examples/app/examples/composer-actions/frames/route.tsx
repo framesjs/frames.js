@@ -14,15 +14,22 @@ function constructCastActionUrl(params: { url: string }): string {
 }
 
 export const GET = frames(async (ctx) => {
-  const installFormActionUrl = constructCastActionUrl({
+  const installCreateGameActionUrl = constructCastActionUrl({
     url: `${appURL()}/examples/composer-actions/frames/actions/create-game`,
+  });
+
+  const anyEmbedActionUrl = constructCastActionUrl({
+    url: `${appURL()}/examples/composer-actions/frames/actions/any-embed`,
   });
 
   return {
     image: <div>Composer Form Action</div>,
     buttons: [
-      <Button action="link" target={installFormActionUrl}>
-        Install form response
+      <Button action="link" target={installCreateGameActionUrl}>
+        Create game composer action
+      </Button>,
+      <Button action="link" target={anyEmbedActionUrl}>
+        Any embed composer action
       </Button>,
     ],
   };
