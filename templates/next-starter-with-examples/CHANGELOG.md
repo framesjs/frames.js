@@ -1,5 +1,26 @@
 # template-next-starter-with-examples
 
+## 0.1.0
+
+### Minor Changes
+
+- 044f047: feat: add neynar validate middleware
+
+### Patch Changes
+
+- Updated dependencies [044f047]
+  - frames.js@0.18.0
+
+## 0.0.27
+
+### Patch Changes
+
+- 8e2b564: feat: add composer actions support
+- bb18c52: feat(frames.js): add walletAddress() method to context so user can get wallet address associated with frame message
+- Updated dependencies [8e2b564]
+- Updated dependencies [bb18c52]
+  - frames.js@0.17.5
+
 ## 0.0.26
 
 ### Patch Changes

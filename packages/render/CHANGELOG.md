@@ -1,5 +1,21 @@
 # @frames.js/render
 
+## 0.2.22
+
+### Patch Changes
+
+- Updated dependencies [044f047]
+  - frames.js@0.18.0
+
+## 0.2.21
+
+### Patch Changes
+
+- 8e2b564: feat: add composer actions support
+- Updated dependencies [8e2b564]
+- Updated dependencies [bb18c52]
+  - frames.js@0.17.5
+
 ## 0.2.20
 
 ### Patch Changes

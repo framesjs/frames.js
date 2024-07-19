@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.3.6
+
+### Patch Changes
+
+- 8e2b564: feat: add composer actions support
+
 ## 0.3.5
 
 ### Patch Changes

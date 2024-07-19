@@ -1,5 +1,24 @@
 # docs
 
+## 0.3.0
+
+### Minor Changes
+
+- 044f047: feat: add neynar validate middleware
+
+### Patch Changes
+
+- Updated dependencies [044f047]
+  - frames.js@0.18.0
+
+## 0.2.20
+
+### Patch Changes
+
+- Updated dependencies [8e2b564]
+- Updated dependencies [bb18c52]
+  - frames.js@0.17.5
+
 ## 0.2.19
 
 ### Patch Changes
