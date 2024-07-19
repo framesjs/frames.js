@@ -8,6 +8,7 @@ import {
   CircleXIcon,
   LoaderCircleIcon,
   GlobeIcon,
+  ExternalLinkIcon,
 } from "lucide-react";
 import IconByName from "./octicons";
 import { useFrame } from "@frames.js/render/use-frame";
@@ -21,6 +22,8 @@ import type {
 import { FrameUI } from "./frame-ui";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@radix-ui/react-toast";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type CastComposerProps = {
   composerAction: Partial<ComposerActionResponse>;
@@ -68,7 +71,7 @@ export const CastComposer = React.forwardRef<
 
           setState((val) => ({ ...val, text }));
         }}
-        placeholder="Type a cast here and then click on action button..."
+        placeholder="Type a cast here and then click the action button..."
         value={state.text}
         rows={2}
       />
@@ -150,6 +153,7 @@ function CastEmbedPreview({
   onRemove,
   url,
 }: CastEmbedPreviewProps) {
+  const router = useRouter();
   const { toast } = useToast();
   const frame = useFrame({
     ...farcasterFrameConfig,
@@ -190,35 +194,42 @@ function CastEmbedPreview({
     );
   }
 
+  const buttons = (
+    <>
+      <WithTooltip tooltip="Open in new tab">
+        <Link href={url}>
+          <button className="hover:text-slate-400" type="button">
+            <ExternalLinkIcon />
+          </button>
+        </Link>
+      </WithTooltip>
+      <WithTooltip tooltip="Open in debugger">
+        <Link href={createDebugUrl(url, window.location.href)}>
+          <button className="hover:text-slate-400" type="button">
+            <BugPlayIcon />
+          </button>
+        </Link>
+      </WithTooltip>
+      <WithTooltip tooltip="Remove">
+        <button
+          className="hover:text-slate-400 mb-1"
+          onClick={() => onRemove()}
+          type="button"
+        >
+          <CircleXIcon />
+        </button>
+      </WithTooltip>
+    </>
+  );
+
   if (
     frame.currentFrameStackItem?.status === "done" &&
     isAtLeastPartialFrame(frame.currentFrameStackItem)
   ) {
     return (
       <div className="flex flex-col gap-1 w-full">
-        <div className="flex gap-2 ml-auto mr-2 text-slate-300">
-          <WithTooltip tooltip="Open in debugger">
-            <button
-              className="hover:text-slate-400"
-              onClick={() => {
-                window
-                  .open(createDebugUrl(url, window.location.href), "_blank")
-                  ?.focus();
-              }}
-              type="button"
-            >
-              <BugPlayIcon />
-            </button>
-          </WithTooltip>
-          <WithTooltip tooltip="Remove">
-            <button
-              className="hover:text-slate-400"
-              onClick={() => onRemove()}
-              type="button"
-            >
-              <CircleXIcon />
-            </button>
-          </WithTooltip>
+        <div className="flex gap-2 ml-auto mr-2 text-slate-300 items-center">
+          {buttons}
         </div>
         <FrameUI
           frameState={frame}
@@ -237,30 +248,7 @@ function CastEmbedPreview({
           <GlobeIcon className="flex-shrink-0" />
         </div>
         <span className="truncate text-sm text-slate-800 flex-grow">{url}</span>
-        <div className="flex gap-2">
-          <WithTooltip tooltip="Open in debugger">
-            <button
-              className="flex-shrink-0"
-              onClick={() => {
-                window
-                  .open(createDebugUrl(url, window.location.href), "_blank")
-                  ?.focus();
-              }}
-              type="button"
-            >
-              <BugPlayIcon />
-            </button>
-          </WithTooltip>
-          <WithTooltip tooltip="Remove">
-            <button
-              className="flex-shrink-0"
-              onClick={() => onRemove()}
-              type="button"
-            >
-              <CircleXIcon />
-            </button>
-          </WithTooltip>
-        </div>
+        <div className="flex gap-2 text-slate-300">{buttons}</div>
       </div>
     </span>
   );
