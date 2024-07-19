@@ -183,6 +183,10 @@ const sidebar: SidebarItem[] = [
         link: "/guides/cast-actions",
       },
       {
+        text: "Composer Actions",
+        link: "/guides/composer-actions",
+      },
+      {
         text: "Wallet Signatures",
         link: "/guides/wallet-signatures",
       },
