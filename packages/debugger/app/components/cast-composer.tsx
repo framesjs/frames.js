@@ -196,9 +196,10 @@ function CastEmbedPreview({
   ) {
     return (
       <div className="flex flex-col gap-1 w-full">
-        <div className="flex gap-2 ml-auto mr-2">
+        <div className="flex gap-2 ml-auto mr-2 text-slate-300">
           <WithTooltip tooltip="Open in debugger">
             <button
+              className="hover:text-slate-400"
               onClick={() => {
                 window
                   .open(createDebugUrl(url, window.location.href), "_blank")
@@ -210,7 +211,11 @@ function CastEmbedPreview({
             </button>
           </WithTooltip>
           <WithTooltip tooltip="Remove">
-            <button onClick={() => onRemove()} type="button">
+            <button
+              className="hover:text-slate-400"
+              onClick={() => onRemove()}
+              type="button"
+            >
               <CircleXIcon />
             </button>
           </WithTooltip>
