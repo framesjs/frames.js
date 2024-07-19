@@ -1,6 +1,7 @@
 import type { SignerStateInstance } from "..";
 
-export type FarcasterSignerState = SignerStateInstance<FarcasterSigner | null>;
+export type FarcasterSignerState<TSignerType = FarcasterSigner | null> =
+  SignerStateInstance<TSignerType>;
 
 export type FarcasterSignerPendingApproval = {
   status: "pending_approval";

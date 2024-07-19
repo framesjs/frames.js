@@ -1,8 +1,58 @@
-import { FrameActionPayload, getFrame } from "frames.js";
+import { type FrameActionPayload, getFrame } from "frames.js";
 import { type NextRequest } from "next/server";
 import { getAction } from "../actions/getAction";
 import { persistMockResponsesForDebugHubRequests } from "../utils/mock-hub-utils";
 import type { SupportedParsingSpecification } from "frames.js";
+import { z } from "zod";
+import type { ParseActionResult } from "../actions/types";
+import type { ParseResult } from "frames.js/frame-parsers";
+
+const castActionMessageParser = z.object({
+  type: z.literal("message"),
+  message: z.string().min(1),
+});
+
+const castActionFrameParser = z.object({
+  type: z.literal("frame"),
+  frameUrl: z.string().min(1).url(),
+});
+
+const composerActionFormParser = z.object({
+  type: z.literal("form"),
+  url: z.string().min(1).url(),
+  title: z.string().min(1),
+});
+
+const jsonResponseParser = z.preprocess(
+  (data) => {
+    if (typeof data === "object" && data !== null && !("type" in data)) {
+      return {
+        type: "message",
+        ...data,
+      };
+    }
+
+    return data;
+  },
+  z.discriminatedUnion("type", [
+    castActionFrameParser,
+    castActionMessageParser,
+    composerActionFormParser,
+  ])
+);
+
+const errorResponseParser = z.object({
+  message: z.string().min(1),
+});
+
+export type CastActionDefinitionResponse = ParseActionResult & {
+  type: "action";
+  url: string;
+};
+
+export type FrameDefinitionResponse = ParseResult & {
+  type: "frame";
+};
 
 export function isSpecificationValid(
   specification: unknown
@@ -41,7 +91,11 @@ export async function GET(request: NextRequest): Promise<Response> {
 
       const result = getAction({ json, specification });
 
-      return Response.json({ ...result, type: "action", url });
+      return Response.json({
+        ...result,
+        type: "action",
+        url,
+      } satisfies CastActionDefinitionResponse);
     }
 
     const htmlString = await urlRes.text();
@@ -53,7 +107,10 @@ export async function GET(request: NextRequest): Promise<Response> {
       fromRequestMethod: "GET",
     });
 
-    return Response.json({ ...result, type: "frame" });
+    return Response.json({
+      ...result,
+      type: "frame",
+    } satisfies FrameDefinitionResponse);
   } catch (err) {
     // eslint-disable-next-line no-console -- provide feedback to the developer
     console.error(err);
@@ -111,14 +168,18 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
 
     if (r.status >= 400 && r.status < 500) {
-      const json = (await r.json()) as { message?: string };
+      const parseResult = await z
+        .promise(errorResponseParser)
+        .safeParseAsync(r.clone().json());
 
-      // this is message response
-      if ("message" in json) {
-        return Response.json({ message: json.message }, { status: r.status });
-      } else {
-        return r;
+      if (!parseResult.success) {
+        return Response.json(
+          { message: await r.clone().text() },
+          { status: r.status }
+        );
       }
+
+      return r.clone();
     }
 
     if (isPostRedirect && r.status !== 302) {
@@ -137,20 +198,15 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     // Content type is JSON, could be an action
     if (r.headers.get("content-type")?.includes("application/json")) {
-      const json = (await r.json()) as
-        | { message: string }
-        | { type: string; frameUrl: string };
+      const parseResult = await z
+        .promise(jsonResponseParser)
+        .safeParseAsync(r.clone().json());
 
-      if ("message" in json) {
-        return Response.json({ message: json.message }, { status: r.status });
-      } else if (
-        "type" in json &&
-        json.type === "frame" &&
-        "frameUrl" in json
-      ) {
-        return Response.json(json);
+      if (!parseResult.success) {
+        throw new Error("Invalid frame response");
       }
-      throw new Error("Invalid frame response");
+
+      return r.clone();
     }
 
     const htmlString = await r.text();

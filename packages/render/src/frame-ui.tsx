@@ -105,7 +105,7 @@ function getErrorMessageFromFramesStackItem(
 }
 
 export type FrameUIProps = {
-  frameState: FrameState;
+  frameState: FrameState<any, any>;
   theme?: FrameTheme;
   FrameImage?: React.FC<ImgHTMLAttributes<HTMLImageElement> & { src: string }>;
   allowPartialFrame?: boolean;

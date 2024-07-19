@@ -7,12 +7,12 @@ import {
 import { DEFAULT_DEBUGGER_HUB_URL } from "../../../debug";
 
 export const frames = createFrames({
-  baseUrl: `${appURL()}/examples/cast-actions/frames`,
+  baseUrl: `${appURL()}/examples/composer-actions/frames`,
   debug: process.env.NODE_ENV === "development",
   middleware: [
     farcasterHubContext({
       hubHttpUrl: DEFAULT_DEBUGGER_HUB_URL,
     }),
-    warpcastComposerActionState(),
+    warpcastComposerActionState(), // necessary to detect and parse state necessary for composer actions
   ],
 });

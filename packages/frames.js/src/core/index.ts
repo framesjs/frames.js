@@ -1,5 +1,6 @@
 export { createFrames } from "./createFrames";
 export { concurrentMiddleware } from "../middleware/concurrentMiddleware";
+export * from "./cast-actions";
 export { composeMiddleware } from "./composeMiddleware";
 export { Button } from "./components";
 export { button } from "./button";

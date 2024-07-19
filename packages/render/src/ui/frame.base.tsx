@@ -20,7 +20,7 @@ import {
 } from "./utils";
 
 export type BaseFrameUIProps<TStylingProps extends Record<string, unknown>> = {
-  frameState: FrameState;
+  frameState: FrameState<any, any>;
   /**
    * Renders also frames that contain only image and at least one button
    *

@@ -40,6 +40,10 @@ const examplesSidebarItems: SidebarItem[] = [
     link: "/examples/cast-actions",
   },
   {
+    text: "Composer Actions",
+    link: "/examples/composer-actions",
+  },
+  {
     text: "Custom Font (nodejs)",
     link: "/examples/custom-font-nodejs",
   },

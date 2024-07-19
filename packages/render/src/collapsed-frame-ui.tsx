@@ -20,7 +20,7 @@ const getThemeWithDefaults = (theme: FrameTheme): FrameTheme => {
 };
 
 export type CollapsedFrameUIProps = {
-  frameState: FrameState;
+  frameState: FrameState<any, any>;
   theme?: FrameTheme;
   FrameImage?: React.FC<ImgHTMLAttributes<HTMLImageElement> & { src: string }>;
   allowPartialFrame?: boolean;

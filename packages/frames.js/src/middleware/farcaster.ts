@@ -88,7 +88,7 @@ export function farcaster(): FramesMiddleware<any, FramesMessageContext> {
           walletAddress() {
             // eslint-disable-next-line no-console -- provide feedback to the developer
             console.info(
-              "farcaster middleware: walletAddress() called, please ue farcasterHubContext() middleware if you want to access the wallet address"
+              "farcaster middleware: walletAddress() called, please use farcasterHubContext() middleware if you want to access the wallet address"
             );
 
             return Promise.resolve(undefined);

@@ -11,7 +11,13 @@ import type {
 } from "frames.js";
 import type { Dispatch } from "react";
 import type { ParseResult } from "frames.js/frame-parsers";
+import type {
+  CastActionResponse,
+  ComposerActionFormResponse,
+  ComposerActionState,
+} from "frames.js/types";
 import type { FarcasterFrameContext } from "./farcaster/frames";
+import type { FrameStackAPI } from "./use-frame-stack";
 
 export type OnTransactionArgs = {
   transactionData: TransactionTargetResponseSendTransaction;
@@ -33,7 +39,44 @@ export type OnSignatureFunc = (
   args: OnSignatureArgs
 ) => Promise<`0x${string}` | null>;
 
-export type UseFetchFrameOptions = {
+type OnComposerFormActionFuncArgs = {
+  form: ComposerActionFormResponse;
+  cast: ComposerActionState;
+};
+
+export type OnComposeFormActionFuncReturnType =
+  | {
+      /**
+       * Updated composer action state
+       */
+      composerActionState: ComposerActionState;
+    }
+  | undefined;
+
+/**
+ * If the function resolves to undefined it means that the dialog was probably closed resulting in no operation at all.
+ */
+export type OnComposerFormActionFunc = (
+  arg: OnComposerFormActionFuncArgs
+) => Promise<OnComposeFormActionFuncReturnType>;
+
+export type UseFetchFrameSignFrameActionFunction<
+  TSignerStateActionContext extends SignerStateActionContext<any, any>,
+  TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
+> = (arg: {
+  actionContext: TSignerStateActionContext;
+  /**
+   * @defaultValue false
+   */
+  forceRealSigner?: boolean;
+}) => Promise<SignedFrameAction<TFrameActionBodyType>>;
+
+export type UseFetchFrameOptions<
+  TSignerStorageType = object,
+  TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
+  TFrameContextType extends FrameContext = FarcasterFrameContext,
+> = {
+  stackAPI: FrameStackAPI;
   stackDispatch: React.Dispatch<FrameReducerActions>;
   specification: SupportedParsingSpecification;
   /**
@@ -48,15 +91,17 @@ export type UseFetchFrameOptions = {
    * Extra payload to be sent with the POST request.
    */
   extraButtonRequestPayload?: Record<string, unknown>;
-  signFrameAction: (
-    isDangerousSkipSigning: boolean,
-    actionContext: SignerStateActionContext<any, any>
-  ) => ReturnType<SignerStateInstance["signFrameAction"]>;
+  signFrameAction: UseFetchFrameSignFrameActionFunction<
+    SignerStateActionContext<TSignerStorageType, TFrameContextType>,
+    TFrameActionBodyType
+  >;
   onTransaction: OnTransactionFunc;
   onSignature: OnSignatureFunc;
-  homeframeUrl: string | undefined | null;
+  onComposerFormAction: OnComposerFormActionFunc;
   /**
    * This function can be used to customize how error is reported to the user.
+   *
+   * Should be memoized
    */
   onError?: (error: Error) => void;
   /**
@@ -72,9 +117,9 @@ export type UseFetchFrameOptions = {
 };
 
 export type UseFrameOptions<
-  SignerStorageType = object,
-  FrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
-  FrameContextType extends FrameContext = FarcasterFrameContext,
+  TSignerStorageType = object,
+  TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
+  TFrameContextType extends FrameContext = FarcasterFrameContext,
 > = {
   /** skip frame signing, for frames that don't verify signatures */
   dangerousSkipSigning?: boolean;
@@ -84,9 +129,9 @@ export type UseFrameOptions<
   frameGetProxy: string;
   /** an signer state object used to determine what actions are possible */
   signerState: SignerStateInstance<
-    SignerStorageType,
-    FrameActionBodyType,
-    FrameContextType
+    TSignerStorageType,
+    TFrameActionBodyType,
+    TFrameContextType
   >;
   /** the url of the homeframe, if null / undefined won't load a frame */
   homeframeUrl: string | null | undefined;
@@ -101,7 +146,7 @@ export type UseFrameOptions<
   /** A function to handle transaction buttons that returned signature data from the target, returns signature hash or null */
   onSignature?: OnSignatureFunc;
   /** the context of this frame, used for generating Frame Action payloads */
-  frameContext: FrameContextType;
+  frameContext: TFrameContextType;
   /**
    * Extra data appended to the frame action payload
    */
@@ -120,7 +165,9 @@ export type UseFrameOptions<
    * This function can be used to customize how the link button click is handled.
    */
   onLinkButtonClick?: (button: FrameButtonLink) => void;
-} & Partial<Pick<UseFetchFrameOptions, "fetchFn" | "onRedirect">>;
+} & Partial<
+  Pick<UseFetchFrameOptions, "fetchFn" | "onRedirect" | "onComposerFormAction">
+>;
 
 export type SignerStateActionContext<
   SignerStorageType = object,
@@ -139,26 +186,42 @@ export type SignerStateActionContext<
   frameContext: FrameContextType | Omit<FrameContextType, "address">;
 };
 
+export type SignedFrameAction<
+  TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
+> = {
+  body: TFrameActionBodyType;
+  searchParams: URLSearchParams;
+};
+
+export type SignFrameActionFunction<
+  TSignerStateActionContext extends SignerStateActionContext<
+    any,
+    any
+  > = SignerStateActionContext,
+  TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
+> = (
+  actionContext: TSignerStateActionContext
+) => Promise<SignedFrameAction<TFrameActionBodyType>>;
+
 export interface SignerStateInstance<
-  SignerStorageType = object,
-  FrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
-  FrameContextType extends FrameContext = FarcasterFrameContext,
+  TSignerStorageType = object,
+  TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
+  TFrameContextType extends FrameContext = FarcasterFrameContext,
 > {
-  signer?: SignerStorageType | null;
+  signer: TSignerStorageType | null;
+  /**
+   * True only if signer is approved or impersonating
+   */
   hasSigner: boolean;
-  signFrameAction: (
-    actionContext: SignerStateActionContext<SignerStorageType, FrameContextType>
-  ) => Promise<{
-    body: FrameActionBodyType;
-    searchParams: URLSearchParams;
-  }>;
-  /** isLoading frame */
-  isLoading?: null | FrameStackPending;
+  signFrameAction: SignFrameActionFunction<
+    SignerStateActionContext<TSignerStorageType, TFrameContextType>,
+    TFrameActionBodyType
+  >;
   /** is loading the signer */
-  isLoadingSigner?: boolean;
+  isLoadingSigner: boolean;
   /** A function called when a frame button is clicked without a signer */
   onSignerlessFramePress: () => void;
-  logout?: () => void;
+  logout: () => void;
 }
 
 export type FrameGETRequest = {
@@ -166,18 +229,28 @@ export type FrameGETRequest = {
   url: string;
 };
 
-export type FramePOSTRequest = {
+export type FramePOSTRequest<
+  TSignerStateActionContext extends SignerStateActionContext<
+    any,
+    any
+  > = SignerStateActionContext,
+> = {
   method: "POST";
   frameButton: FrameButtonPost | FrameButtonTx;
-  signerStateActionContext: SignerStateActionContext<any, any>;
+  signerStateActionContext: TSignerStateActionContext;
   isDangerousSkipSigning: boolean;
   /**
-   * The frame that was the source of the button press
+   * The frame that was the source of the button press.
    */
   sourceFrame: Frame;
 };
 
-export type FrameRequest = FrameGETRequest | FramePOSTRequest;
+export type FrameRequest<
+  TSignerStateActionContext extends SignerStateActionContext<
+    any,
+    any
+  > = SignerStateActionContext,
+> = FrameGETRequest | FramePOSTRequest<TSignerStateActionContext>;
 
 export type FrameStackBase = {
   timestamp: Date;
@@ -264,15 +337,6 @@ export type FrameReducerActions =
       item: FrameStackPending;
     }
   | {
-      action: "ADD_REQUEST_DETAILS";
-      pendingItem: FrameStackPending;
-      requestDetails: {
-        body?: object;
-        searchParams?: URLSearchParams;
-      };
-      url: string;
-    }
-  | {
       action: "REQUEST_ERROR";
       pendingItem: FrameStackPending;
       item: FrameStackRequestError;
@@ -294,16 +358,110 @@ export type FrameReducerActions =
       homeframeUrl: string | null | undefined;
     };
 
-export type FrameState = {
-  fetchFrame: (
-    request: FrameRequest,
-    /**
-     * If true, the frame stack will be cleared before the new frame is loaded
-     *
-     * @defaultValue false
-     */
-    shouldClear?: boolean
-  ) => Promise<void>;
+type ButtonPressFunction<
+  TSignerStateActionContext extends SignerStateActionContext<any, any>,
+> = (
+  frame: Frame,
+  frameButton: FrameButton,
+  index: number,
+  fetchFrameOverride?: FetchFrameFunction<TSignerStateActionContext>
+) => void | Promise<void>;
+
+type CastActionButtonPressFunctionArg = {
+  castAction: CastActionResponse & {
+    /** URL to cast action handler */
+    url: string;
+  };
+  /**
+   * @defaultValue false
+   */
+  clearStack?: boolean;
+};
+
+export type CastActionButtonPressFunction = (
+  arg: CastActionButtonPressFunctionArg
+) => Promise<void>;
+
+type ComposerActionButtonPressFunctionArg = {
+  castAction: CastActionResponse & {
+    /** URL to cast action handler */
+    url: string;
+  };
+  composerActionState: ComposerActionState;
+  /**
+   * @defaultValue false
+   */
+  clearStack?: boolean;
+};
+
+export type ComposerActionButtonPressFunction = (
+  arg: ComposerActionButtonPressFunctionArg
+) => Promise<void>;
+
+export type CastActionRequest<
+  TSignerStateActionContext extends SignerStateActionContext<
+    any,
+    any
+  > = SignerStateActionContext,
+> = Omit<
+  FramePOSTRequest,
+  "method" | "frameButton" | "sourceFrame" | "signerStateActionContext"
+> & {
+  method: "CAST_ACTION";
+  action: CastActionResponse & {
+    url: string;
+  };
+  signerStateActionContext: Omit<
+    FramePOSTRequest<TSignerStateActionContext>["signerStateActionContext"],
+    "frameButton" | "inputText" | "state"
+  >;
+};
+
+export type ComposerActionRequest<
+  TSignerStateActionContext extends SignerStateActionContext<
+    any,
+    any
+  > = SignerStateActionContext,
+> = Omit<
+  FramePOSTRequest,
+  "method" | "frameButton" | "sourceFrame" | "signerStateActionContext"
+> & {
+  method: "COMPOSER_ACTION";
+  action: CastActionResponse & {
+    url: string;
+  };
+  composerActionState: ComposerActionState;
+  signerStateActionContext: Omit<
+    FramePOSTRequest<TSignerStateActionContext>["signerStateActionContext"],
+    "frameButton" | "inputText" | "state"
+  >;
+};
+
+export type FetchFrameFunction<
+  TSignerStateActionContext extends SignerStateActionContext<
+    any,
+    any
+  > = SignerStateActionContext,
+> = (
+  request:
+    | FrameRequest<TSignerStateActionContext>
+    | CastActionRequest<TSignerStateActionContext>
+    | ComposerActionRequest<TSignerStateActionContext>,
+  /**
+   * If true, the frame stack will be cleared before the new frame is loaded
+   *
+   * @defaultValue false
+   */
+  shouldClear?: boolean
+) => Promise<void>;
+
+export type FrameState<
+  TSignerStorageType = object,
+  TFrameContextType extends FrameContext = FarcasterFrameContext,
+> = {
+  fetchFrame: FetchFrameFunction<
+    SignerStateActionContext<TSignerStorageType, TFrameContextType>
+  >;
   clearFrameStack: () => void;
   dispatchFrameStack: Dispatch<FrameReducerActions>;
   /** The frame at the top of the stack (at index 0) */
@@ -312,13 +470,12 @@ export type FrameState = {
   framesStack: FramesStack;
   inputText: string;
   setInputText: (s: string) => void;
-  onButtonPress: (
-    frame: Frame,
-    frameButton: FrameButton,
-    index: number,
-    fetchFrameOverride?: (request: FrameRequest) => Promise<void>
-  ) => void | Promise<void>;
+  onButtonPress: ButtonPressFunction<
+    SignerStateActionContext<TSignerStorageType, TFrameContextType>
+  >;
   homeframeUrl: string | null | undefined;
+  onCastActionButtonPress: CastActionButtonPressFunction;
+  onComposerActionButtonPress: ComposerActionButtonPressFunction;
 };
 
 export type OnMintArgs = {

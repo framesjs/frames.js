@@ -8,11 +8,11 @@ import {
   fallbackFrameContext,
   type OnTransactionFunc,
   type OnSignatureFunc,
+  type FrameActionBodyPayload,
 } from "@frames.js/render";
 import { useFrame } from "@frames.js/render/use-frame";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import { sendTransaction, signTypedData, switchChain } from "@wagmi/core";
-import type { FrameActionPayload } from "frames.js";
 import { useRouter } from "next/navigation";
 import React, {
   useCallback,
@@ -27,7 +27,10 @@ import pkg from "../package.json";
 import { FrameDebugger, FrameDebuggerRef } from "./components/frame-debugger";
 import { LOCAL_STORAGE_KEYS } from "./constants";
 import { useFarcasterFrameContext } from "./hooks/use-farcaster-context";
-import { useFarcasterIdentity } from "./hooks/use-farcaster-identity";
+import {
+  StoredIdentity,
+  useFarcasterIdentity,
+} from "./hooks/use-farcaster-identity";
 import { useXmtpFrameContext } from "./hooks/use-xmtp-context";
 import { useXmtpIdentity } from "./hooks/use-xmtp-identity";
 import { useAnonymousIdentity } from "./hooks/use-anonymous-identity";
@@ -37,8 +40,10 @@ import {
   protocolConfigurationMap,
   ProtocolConfigurationButton,
 } from "./components/protocol-config-button";
-import { ActionDebugger } from "./components/action-debugger";
-import { ParseActionResult } from "./actions/types";
+import {
+  ActionDebugger,
+  ActionDebuggerRef,
+} from "./components/action-debugger";
 import type { ParseResult } from "frames.js/frame-parsers";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -50,6 +55,10 @@ import {
 import { useLensIdentity } from "./hooks/use-lens-identity";
 import { useLensFrameContext } from "./hooks/use-lens-context";
 import { ProfileSelectorModal } from "./components/lens-profile-select";
+import type {
+  CastActionDefinitionResponse,
+  FrameDefinitionResponse,
+} from "./frames/route";
 
 const FALLBACK_URL =
   process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
@@ -77,6 +86,7 @@ export default function DebuggerPage({
   examples?: React.ReactNode;
 }): JSX.Element {
   const debuggerRef = useRef<FrameDebuggerRef>(null);
+  const actionDebuggerRef = useRef<ActionDebuggerRef>(null);
   const { logs, clear: clearLogs } = useDebuggerConsole();
   const { toast } = useToast();
   const urlInputRef = useRef<HTMLInputElement>(null);
@@ -103,7 +113,8 @@ export default function DebuggerPage({
     }
   }, [searchParams.url]);
   const [initialFrame, setInitialFrame] = useState<ParseResult>();
-  const [initialAction, setInitialAction] = useState<ParseActionResult>();
+  const [initialAction, setInitialAction] =
+    useState<CastActionDefinitionResponse>();
   const [mockHubContext, setMockHubContext] = useState<
     Partial<MockHubActionContext>
   >({
@@ -167,9 +178,9 @@ export default function DebuggerPage({
             const json = await res.json();
             throw new Error(json.message);
           }
+
           return res.json() as Promise<
-            | ({ type: "action" } & ParseActionResult)
-            | ({ type: "frame" } & ParseResult)
+            CastActionDefinitionResponse | FrameDefinitionResponse
           >;
         })
         .then((json) => {
@@ -407,7 +418,7 @@ export default function DebuggerPage({
   );
 
   const useFrameConfig: Omit<
-    UseFrameOptions<object, FrameActionPayload>,
+    UseFrameOptions<object, FrameActionBodyPayload>,
     "signerState" | "specification"
   > = {
     homeframeUrl: url,
@@ -424,6 +435,52 @@ export default function DebuggerPage({
     onSignature,
     onError(error) {
       console.error(error);
+
+      if (actionDebuggerRef.current) {
+        if (error.message.includes("Must be called from composer")) {
+          toast({
+            title: "Error occurred",
+            description:
+              "It seems that you tried to call a composer action in the cast action debugger.",
+            variant: "destructive",
+            action: (
+              <ToastAction
+                altText="Switch to composer action debugger"
+                onClick={() => {
+                  actionDebuggerRef.current?.switchTo("composer-action");
+                }}
+              >
+                Switch
+              </ToastAction>
+            ),
+          });
+
+          return;
+        } else if (
+          error.message.includes(
+            "Unexpected composer action response from the server"
+          )
+        ) {
+          toast({
+            title: "Error occurred",
+            description:
+              "It seems that you tried to call a cast action in the composer action debugger.",
+            variant: "destructive",
+            action: (
+              <ToastAction
+                altText="Switch to cast action debugger"
+                onClick={() => {
+                  actionDebuggerRef.current?.switchTo("cast-action");
+                }}
+              >
+                Switch
+              </ToastAction>
+            ),
+          });
+
+          return;
+        }
+      }
 
       toast({
         title: "Error occurred",
@@ -493,7 +550,10 @@ export default function DebuggerPage({
     },
   };
 
-  const farcasterFrameConfig = {
+  const farcasterFrameConfig: UseFrameOptions<
+    StoredIdentity | null,
+    FrameActionBodyPayload
+  > = {
     ...useFrameConfig,
     signerState: farcasterSignerState,
     specification: "farcaster",
@@ -501,7 +561,7 @@ export default function DebuggerPage({
       ...farcasterFrameContext.frameContext,
       address: account.address || farcasterFrameContext.frameContext.address,
     },
-  } as const;
+  };
 
   const farcasterFrameState = useFrame(farcasterFrameConfig);
 
@@ -690,6 +750,7 @@ export default function DebuggerPage({
                   mockHubContext={mockHubContext}
                   setMockHubContext={setMockHubContext}
                   hasExamples={!!examples}
+                  ref={actionDebuggerRef}
                 ></ActionDebugger>
               </div>
             )}

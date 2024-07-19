@@ -1,12 +1,27 @@
-import { useReducer } from "react";
+import { useMemo, useReducer } from "react";
 import type { Frame } from "frames.js";
 import type { ParseResult } from "frames.js/frame-parsers";
-import type { FrameReducerActions, FramesStack } from "./types";
+import type {
+  CastActionMessageResponse,
+  ErrorMessageResponse,
+} from "frames.js/types";
+import type {
+  FrameGETRequest,
+  FramePOSTRequest,
+  FrameReducerActions,
+  FramesStack,
+  FrameStackGetPending,
+  FrameStackPostPending,
+  GetFrameResult,
+  SignedFrameAction,
+} from "./types";
 
-export function isParseResult(
-  result: Frame | ParseResult
-): result is ParseResult {
-  return "status" in result;
+function computeDurationInSeconds(start: Date, end: Date): number {
+  return Number(((end.getTime() - start.getTime()) / 1000).toFixed(2));
+}
+
+export function isParseResult(result: unknown): result is ParseResult {
+  return typeof result === "object" && result !== null && "status" in result;
 }
 
 function framesStackReducer(
@@ -16,29 +31,6 @@ function framesStackReducer(
   switch (action.action) {
     case "LOAD":
       return [action.item, ...state];
-    case "ADD_REQUEST_DETAILS": {
-      const index = state.findIndex(
-        (item) => item.timestamp === action.pendingItem.timestamp
-      );
-
-      if (index === -1) {
-        return state;
-      }
-
-      const item = state[index];
-
-      if (!item || item.status !== "pending") {
-        return state;
-      }
-
-      state[index] = {
-        ...item,
-        requestDetails: action.requestDetails,
-        url: action.url,
-      };
-
-      return state.slice();
-    }
     case "DONE_REDIRECT": {
       const index = state.findIndex(
         (item) => item.timestamp === action.pendingItem.timestamp
@@ -127,11 +119,81 @@ type UseFrameStackOptions = {
   initialFrameUrl?: string | null;
 };
 
+export type FrameStackAPI = {
+  clear: () => void;
+  createGetPendingItem: (arg: {
+    request: FrameGETRequest;
+  }) => FrameStackGetPending;
+  createPostPendingItem: (arg: {
+    action: SignedFrameAction;
+    request: FramePOSTRequest;
+  }) => FrameStackPostPending;
+  /**
+   * Creates a pending item without dispatching it
+   */
+  createCastOrComposerActionPendingItem: (arg: {
+    action: SignedFrameAction;
+    request: FramePOSTRequest;
+  }) => FrameStackPostPending;
+  markCastMessageAsDone: (arg: {
+    pendingItem: FrameStackPostPending;
+    endTime: Date;
+    response: Response;
+    responseData: CastActionMessageResponse;
+  }) => void;
+  markCastFrameAsDone: (arg: {
+    pendingItem: FrameStackPostPending;
+    endTime: Date;
+  }) => void;
+  markComposerFormActionAsDone: (arg: {
+    pendingItem: FrameStackPostPending;
+    endTime: Date;
+  }) => void;
+  markAsDone: (arg: {
+    pendingItem: FrameStackGetPending | FrameStackPostPending;
+    endTime: Date;
+    response: Response;
+    frameResult: GetFrameResult;
+  }) => void;
+  markAsDoneWithRedirect: (arg: {
+    pendingItem: FrameStackPostPending;
+    endTime: Date;
+    location: string;
+    response: Response;
+    responseBody: unknown;
+  }) => void;
+  markAsDoneWithErrorMessage: (arg: {
+    pendingItem: FrameStackPostPending;
+    endTime: Date;
+    response: Response;
+    responseData: ErrorMessageResponse;
+  }) => void;
+  markAsFailed: (arg: {
+    pendingItem: FrameStackGetPending | FrameStackPostPending;
+    endTime: Date;
+    requestError: Error;
+    response: Response | null;
+    responseBody: unknown;
+    responseStatus: number;
+  }) => void;
+  markAsFailedWithRequestError: (arg: {
+    endTime: Date;
+    pendingItem: FrameStackPostPending;
+    error: Error;
+    response: Response;
+    responseBody: unknown;
+  }) => void;
+};
+
 export function useFrameStack({
   initialFrame,
   initialFrameUrl,
-}: UseFrameStackOptions): [FramesStack, React.Dispatch<FrameReducerActions>] {
-  return useReducer(
+}: UseFrameStackOptions): [
+  FramesStack,
+  React.Dispatch<FrameReducerActions>,
+  FrameStackAPI,
+] {
+  const [stack, dispatch] = useReducer(
     framesStackReducer,
     [initialFrame, initialFrameUrl] as const,
     ([frame, frameUrl]): FramesStack => {
@@ -184,4 +246,189 @@ export function useFrameStack({
       return [];
     }
   );
+
+  const api: FrameStackAPI = useMemo(() => {
+    return {
+      clear() {
+        dispatch({
+          action: "CLEAR",
+        });
+      },
+      createGetPendingItem(arg) {
+        const item: FrameStackGetPending = {
+          method: "GET",
+          request: arg.request,
+          requestDetails: {},
+          url: arg.request.url,
+          timestamp: new Date(),
+          status: "pending",
+        };
+
+        dispatch({
+          action: "LOAD",
+          item,
+        });
+
+        return item;
+      },
+      createPostPendingItem(arg) {
+        const item: FrameStackPostPending = {
+          method: "POST",
+          request: arg.request,
+          requestDetails: {
+            body: arg.action.body,
+            searchParams: arg.action.searchParams,
+          },
+          url: arg.action.searchParams.get("postUrl") ?? "missing postUrl",
+          timestamp: new Date(),
+          status: "pending",
+        };
+
+        dispatch({
+          action: "LOAD",
+          item,
+        });
+
+        return item;
+      },
+      createCastOrComposerActionPendingItem(arg) {
+        return {
+          method: "POST",
+          requestDetails: {
+            body: arg.action.body,
+            searchParams: arg.action.searchParams,
+          },
+          request: arg.request,
+          status: "pending",
+          timestamp: new Date(),
+          url: arg.action.searchParams.get("postUrl") ?? "missing postUrl",
+        } satisfies FrameStackPostPending;
+      },
+      markCastFrameAsDone() {
+        // noop
+      },
+      markCastMessageAsDone(arg) {
+        dispatch({
+          action: "LOAD",
+          item: arg.pendingItem,
+        });
+        dispatch({
+          action: "DONE",
+          pendingItem: arg.pendingItem,
+          item: {
+            ...arg.pendingItem,
+            status: "message",
+            message: arg.responseData.message,
+            response: arg.response.clone(),
+            responseBody: arg.responseData,
+            responseStatus: arg.response.status,
+            speed: computeDurationInSeconds(
+              arg.pendingItem.timestamp,
+              arg.endTime
+            ),
+            type: "info",
+          },
+        });
+      },
+      markComposerFormActionAsDone() {
+        // noop
+      },
+      markAsDone(arg) {
+        dispatch({
+          action: "DONE",
+          pendingItem: arg.pendingItem,
+          item: {
+            ...arg.pendingItem,
+            status: "done",
+            frameResult: arg.frameResult,
+            speed: computeDurationInSeconds(
+              arg.pendingItem.timestamp,
+              arg.endTime
+            ),
+            response: arg.response.clone(),
+            responseStatus: arg.response.status,
+            responseBody: arg.frameResult,
+          },
+        });
+      },
+      markAsDoneWithErrorMessage(arg) {
+        dispatch({
+          action: "DONE",
+          pendingItem: arg.pendingItem,
+          item: {
+            ...arg.pendingItem,
+            responseStatus: arg.response.status,
+            response: arg.response.clone(),
+            speed: computeDurationInSeconds(
+              arg.pendingItem.timestamp,
+              arg.endTime
+            ),
+            status: "message",
+            type: "error",
+            message: arg.responseData.message,
+            responseBody: arg.responseData,
+          },
+        });
+      },
+      markAsDoneWithRedirect(arg) {
+        dispatch({
+          action: "DONE_REDIRECT",
+          pendingItem: arg.pendingItem,
+          item: {
+            ...arg.pendingItem,
+            location: arg.location,
+            response: arg.response.clone(),
+            responseBody: arg.responseBody,
+            responseStatus: arg.response.status,
+            status: "doneRedirect",
+            speed: computeDurationInSeconds(
+              arg.pendingItem.timestamp,
+              arg.endTime
+            ),
+          },
+        });
+      },
+      markAsFailed(arg) {
+        dispatch({
+          action: "REQUEST_ERROR",
+          pendingItem: arg.pendingItem,
+          item: {
+            request: arg.pendingItem.request,
+            requestDetails: arg.pendingItem.requestDetails,
+            timestamp: arg.pendingItem.timestamp,
+            url: arg.pendingItem.url,
+            response: arg.response?.clone() ?? null,
+            responseStatus: arg.responseStatus,
+            requestError: arg.requestError,
+            speed: computeDurationInSeconds(
+              arg.pendingItem.timestamp,
+              arg.endTime
+            ),
+            status: "requestError",
+            responseBody: arg.responseBody,
+          },
+        });
+      },
+      markAsFailedWithRequestError(arg) {
+        dispatch({
+          action: "REQUEST_ERROR",
+          pendingItem: arg.pendingItem,
+          item: {
+            ...arg.pendingItem,
+            status: "requestError",
+            requestError: arg.error,
+            response: arg.response.clone(),
+            responseStatus: arg.response.status,
+            responseBody: arg.responseBody,
+            speed: computeDurationInSeconds(
+              arg.pendingItem.timestamp,
+              arg.endTime
+            ),
+          },
+        });
+      },
+    };
+  }, [dispatch]);
+
+  return [stack, dispatch, api];
 }

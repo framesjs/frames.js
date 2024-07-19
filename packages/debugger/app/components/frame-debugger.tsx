@@ -59,6 +59,10 @@ import { urlSearchParamsToObject } from "../utils/url-search-params-to-object";
 import { FrameUI } from "./frame-ui";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
+import { StoredIdentity } from "../hooks/use-farcaster-identity";
+import { XmtpSigner } from "../hooks/use-xmtp-identity";
+import { LensSigner } from "../hooks/use-lens-identity";
+import { AnonymousSigner } from "../hooks/use-anonymous-identity";
 
 type FrameDiagnosticsProps = {
   stackItem: FramesStackItem;
@@ -278,7 +282,9 @@ const FramesRequestCardContentIcon: React.FC<{
 
 const FramesRequestCardContent: React.FC<{
   stack: FramesStack;
-  fetchFrame: FrameState["fetchFrame"];
+  fetchFrame: FrameState<
+    StoredIdentity | XmtpSigner | LensSigner | AnonymousSigner | null
+  >["fetchFrame"];
 }> = ({ fetchFrame, stack }) => {
   return stack.map((frameStackItem, i) => {
     return (
@@ -354,7 +360,7 @@ const FramesRequestCardContent: React.FC<{
 
 type FrameDebuggerProps = {
   specification: SupportedParsingSpecification;
-  frameState: FrameState;
+  frameState: FrameState<any, any>;
   url: string;
   mockHubContext?: Partial<MockHubActionContext>;
   setMockHubContext?: Dispatch<SetStateAction<Partial<MockHubActionContext>>>;
