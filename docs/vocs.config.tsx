@@ -45,7 +45,7 @@ const examplesSidebarItems: SidebarItem[] = [
   },
   {
     text: "Custom Font (nodejs)",
-    link: "/examples/custom-font-nodejs",
+    link: "/examples/custom-font",
   },
   {
     text: "Custom Farcaster Hub",
