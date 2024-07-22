@@ -1,12 +1,16 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { FrameUI as BaseFrameUI } from "@frames.js/render/ui";
 import { MessageSquareIcon, AlertOctagonIcon, ZapIcon } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 
-type Props = React.ComponentProps<
-  typeof BaseFrameUI<{ className?: string; style?: React.CSSProperties }>
+type Props = Omit<
+  React.ComponentProps<
+    typeof BaseFrameUI<{ className?: string; style?: React.CSSProperties }>
+  >,
+  "onMessage"
 >;
 
 const components: Props["components"] = {
@@ -45,7 +49,25 @@ const components: Props["components"] = {
       </button>
     );
   },
+  Message(props, stylingProps) {
+    // we use onMessage to render a toast instead
+    return null;
+    return (
+      <div
+        {...stylingProps}
+        className={cn(
+          "p-2 text-sm text-gray-700 border border-gray-300 rounded-md shadow-md bg-white",
+          props.status === "error" && "border-red-500 text-red-500",
+          stylingProps.className
+        )}
+      >
+        {props.message}
+      </div>
+    );
+  },
   MessageTooltip(props, stylingProps) {
+    // we use onMessage to render a toast instead
+    return null;
     return (
       <div
         {...stylingProps}
@@ -123,5 +145,19 @@ const theme: Props["theme"] = {
 };
 
 export function FrameUI(props: Props) {
-  return <BaseFrameUI {...props} components={components} theme={theme} />;
+  const { toast } = useToast();
+
+  return (
+    <BaseFrameUI
+      {...props}
+      components={components}
+      theme={theme}
+      onMessage={(message) => {
+        toast({
+          description: message.message,
+          variant: message.status === "error" ? "destructive" : "default",
+        });
+      }}
+    />
+  );
 }

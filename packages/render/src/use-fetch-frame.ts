@@ -405,6 +405,12 @@ export function useFetchFrame<
     request: FramePOSTRequest<TSignerStateActionContext>,
     shouldClear?: boolean
   ): Promise<void> {
+    if ("source" in request) {
+      throw new Error(
+        "Invalid request, transaction should be invoked only from a Frame. It was probably invoked from cast or composer action."
+      );
+    }
+
     const button = request.frameButton;
     const sourceFrame = request.sourceFrame;
 
@@ -607,12 +613,8 @@ export function useFetchFrame<
         frameButton,
         signerStateActionContext,
         method: "POST",
-        // @todo find a better way how to do this, perhaps pending item should not be create here at all and be created only for relevant requests
-        // actions don't have source frame, fake it
-        sourceFrame: {
-          image: "",
-          version: "vNext",
-        },
+        source: "cast-action",
+        sourceFrame: undefined,
       },
     });
 
@@ -662,11 +664,7 @@ export function useFetchFrame<
         stackAPI.markCastFrameAsDone({ pendingItem, endTime });
 
         await fetchPOSTRequest({
-          // actions don't have source frame, fake it
-          sourceFrame: {
-            image: "",
-            version: "vNext",
-          },
+          sourceFrame: undefined,
           frameButton: {
             action: "post",
             label: "action",
@@ -674,6 +672,7 @@ export function useFetchFrame<
           },
           isDangerousSkipSigning: request.isDangerousSkipSigning,
           method: "POST",
+          source: "cast-action",
           signerStateActionContext: {
             ...request.signerStateActionContext,
             buttonIndex: 1,
@@ -742,10 +741,8 @@ export function useFetchFrame<
         frameButton,
         signerStateActionContext,
         method: "POST",
-        sourceFrame: {
-          image: "",
-          version: "vNext",
-        },
+        source: "composer-action",
+        sourceFrame: undefined,
       },
     });
 

@@ -11,6 +11,10 @@ The component doesn't have any styles so you must provide your own styles. Only 
 
 Error screen happens if the frame is not renderable.
 
+### Message
+
+Message happens only if the response for cast or composer action returns a message. Can be turned off by returning `null` from `Message` component. In combination with `onMessage()` handler you can provide your own message handling experience.
+
 ### Root
 
 Root is the main container for the rendered frame.
@@ -37,7 +41,7 @@ Rendered inside `ImageContainer`.
 
 ### Message Tooltip
 
-Rendered inside `ImageContainer`.
+Rendered inside `ImageContainer`. Can be turned off by returning `null` from `MessageTooltip` component. In combination with `onMessage()` handler you can provide your own message handling experience.
 
 #### Text Input Container
 
@@ -91,6 +95,7 @@ By default you can use `className` or `style` to style the components.
     LoadingScreen: {},
     Image: {},
     ImageContainer: {},
+    Message: {},
     MessageTooltip: {},
     Root: {
       // you can use className or style
@@ -119,6 +124,7 @@ By default you can use `style` prop to style the components. Also `className` is
     LoadingScreen: {},
     Image: {},
     ImageContainer: {},
+    Message: {},
     MessageTooltip: {},
     Root: {
       // className: 'flex', native wind
@@ -161,6 +167,9 @@ In case you want to change how components behave you can override them. Each com
     ImageContainer(props, stylingProps) {
       // ...
     },
+    Message(props, stylingProps) {
+      // ...
+    },
     MessageTooltip(props, stylingProps) {
       // ...
     },
@@ -176,3 +185,10 @@ In case you want to change how components behave you can override them. Each com
   }}
 />
 ```
+
+## Error handling and message handling
+
+You can also use `onError()` and `onMessage()` handlers if you want to provide your own error or message handling experience (e.g. show a toast).
+
+- `onError(error: Error): void` is called when there is an error rendering the frame.
+- `onMessage(message: { message: string, status: 'error' | 'message' }): void` is called when the response contains a message.

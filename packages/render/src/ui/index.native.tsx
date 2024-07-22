@@ -155,6 +155,13 @@ function createDefaultComponents<TStylingProps extends Record<string, unknown>>(
         createElement(Text, null, "Loading...")
       );
     },
+    Message(props, stylingProps) {
+      return createElement(
+        View,
+        stylingProps,
+        createElement(Text, null, props.message)
+      );
+    },
     MessageTooltip(props, stylingProps) {
       return createElement(
         View,

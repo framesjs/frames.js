@@ -160,6 +160,16 @@ function createDefaultComponents<TStylingProps extends Record<string, unknown>>(
     LoadingScreen(props, stylingProps) {
       return createElement("div", stylingProps, "Loading...");
     },
+    Message(props, stylingProps) {
+      return createElement(
+        "div",
+        {
+          ...stylingProps,
+          "data-status": props.status,
+        },
+        props.message
+      );
+    },
     MessageTooltip(props, stylingProps) {
       return createElement(
         "div",

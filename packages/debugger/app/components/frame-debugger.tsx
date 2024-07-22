@@ -261,7 +261,7 @@ const FramesRequestCardContentIcon: React.FC<{
     if (stackItem.type === "info") {
       return <InfoIcon size={20} color="blue" />;
     } else {
-      return <XCircle size={20} color="blue" />;
+      return <XCircle size={20} color="red" />;
     }
   }
 
@@ -728,7 +728,8 @@ export const FrameDebugger = React.forwardRef<
                           }}
                         >
                           {getFrameHtmlHead(
-                            "sourceFrame" in currentFrameStackItem.request
+                            "sourceFrame" in currentFrameStackItem.request &&
+                              currentFrameStackItem.request.sourceFrame
                               ? currentFrameStackItem.request.sourceFrame
                               : currentFrameStackItem.frameResult.frame
                           )
