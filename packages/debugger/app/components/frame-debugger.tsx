@@ -261,7 +261,7 @@ const FramesRequestCardContentIcon: React.FC<{
     if (stackItem.type === "info") {
       return <InfoIcon size={20} color="blue" />;
     } else {
-      return <XCircle size={20} color="blue" />;
+      return <XCircle size={20} color="red" />;
     }
   }
 

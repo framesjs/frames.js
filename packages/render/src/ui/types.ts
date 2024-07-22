@@ -147,14 +147,14 @@ export type FrameUIComponents<TStylingProps extends Record<string, unknown>> = {
   MessageTooltip: (
     props: FrameMessageTooltipProps,
     stylingProps: TStylingProps
-  ) => ReactElement;
+  ) => ReactElement | null;
   /**
    * Rendered in case there is a message in response to a cast or composer action invokation.
    */
   Message: (
     props: FrameMessageProps,
     stylingProps: TStylingProps
-  ) => ReactElement;
+  ) => ReactElement | null;
 };
 
 export type RootContainerElement = {
@@ -244,12 +244,11 @@ export type FrameTextInputProps = {
   value?: string;
 } & FrameUIStateProps;
 
-export type FrameMessageTooltipProps = {
-  message: string;
-  status: "error" | "message";
-} & FrameUIStateProps;
-
-export type FrameMessageProps = {
+export type FrameMessage = {
   message: string;
   status: "error" | "message";
 };
+
+export type FrameMessageTooltipProps = FrameMessage & FrameUIStateProps;
+
+export type FrameMessageProps = FrameMessage;

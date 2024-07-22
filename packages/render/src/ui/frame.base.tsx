@@ -8,6 +8,7 @@ import {
 } from "react";
 import type { FrameState } from "../types";
 import type {
+  FrameMessage,
   FrameUIComponents,
   FrameUIComponentStylingProps,
   FrameUIState,
@@ -40,6 +41,10 @@ export type BaseFrameUIProps<TStylingProps extends Record<string, unknown>> = {
    */
   onError?: (error: Error) => void;
   /**
+   * Called when a messages is returned in response to frame button press
+   */
+  onMessage?: (message: FrameMessage) => void;
+  /**
    * Custom createElement function to use when rendering components.
    *
    * This is useful for libraries like Nativewind that require a custom createElement function.
@@ -49,6 +54,9 @@ export type BaseFrameUIProps<TStylingProps extends Record<string, unknown>> = {
   createElement?: typeof reactCreateElement;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function -- this is noop
+function defaultMessageHandler(): void {}
+
 export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
   frameState,
   components,
@@ -57,6 +65,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
   enableImageDebugging = false,
   // eslint-disable-next-line no-console -- provide at least some feedback to the user
   onError = console.error,
+  onMessage = defaultMessageHandler,
   createElement = reactCreateElement,
 }: BaseFrameUIProps<TStylingProps>): JSX.Element | null {
   const [isImageLoading, setIsImageLoading] = useState(true);
@@ -76,11 +85,26 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
     }
   }, [currentFrameStackItem?.status]);
 
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
+
   useEffect(() => {
     if (currentFrameStackItem?.status === "requestError") {
-      onError(currentFrameStackItem.requestError);
+      onErrorRef.current(currentFrameStackItem.requestError);
     }
-  }, [currentFrameStackItem, onError]);
+  }, [currentFrameStackItem]);
+
+  const onMessageRef = useRef(onMessage);
+  onMessageRef.current = onMessage;
+
+  useEffect(() => {
+    if (currentFrameStackItem?.status === "message") {
+      onMessageRef.current({
+        message: currentFrameStackItem.message,
+        status: currentFrameStackItem.type === "info" ? "message" : "error",
+      });
+    }
+  }, [currentFrameStackItem]);
 
   if (!frameState.homeframeUrl) {
     return components.Error(
