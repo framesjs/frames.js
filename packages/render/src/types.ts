@@ -234,16 +234,26 @@ export type FramePOSTRequest<
     any,
     any
   > = SignerStateActionContext,
-> = {
-  method: "POST";
-  frameButton: FrameButtonPost | FrameButtonTx;
-  signerStateActionContext: TSignerStateActionContext;
-  isDangerousSkipSigning: boolean;
-  /**
-   * The frame that was the source of the button press.
-   */
-  sourceFrame: Frame;
-};
+> =
+  | {
+      method: "POST";
+      source?: never;
+      frameButton: FrameButtonPost | FrameButtonTx;
+      signerStateActionContext: TSignerStateActionContext;
+      isDangerousSkipSigning: boolean;
+      /**
+       * The frame that was the source of the button press.
+       */
+      sourceFrame: Frame;
+    }
+  | {
+      method: "POST";
+      source: "cast-action" | "composer-action";
+      frameButton: FrameButtonPost | FrameButtonTx;
+      signerStateActionContext: TSignerStateActionContext;
+      isDangerousSkipSigning: boolean;
+      sourceFrame: undefined;
+    };
 
 export type FrameRequest<
   TSignerStateActionContext extends SignerStateActionContext<

@@ -45,6 +45,20 @@ const components: Props["components"] = {
       </button>
     );
   },
+  Message(props, stylingProps) {
+    return (
+      <div
+        {...stylingProps}
+        className={cn(
+          "p-2 text-sm text-gray-700 border border-gray-300 rounded-md shadow-md bg-white",
+          props.status === "error" && "border-red-500 text-red-500",
+          stylingProps.className
+        )}
+      >
+        {props.message}
+      </div>
+    );
+  },
   MessageTooltip(props, stylingProps) {
     return (
       <div

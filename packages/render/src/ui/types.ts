@@ -14,6 +14,7 @@ export type FrameUIComponentStylingProps<
   ImageContainer: TStylingProps;
   LoadingScreen: TStylingProps;
   MessageTooltip: TStylingProps;
+  Message: TStylingProps;
   Root: TStylingProps;
   TextInput: TStylingProps;
   TextInputContainer: TStylingProps;
@@ -147,6 +148,13 @@ export type FrameUIComponents<TStylingProps extends Record<string, unknown>> = {
     props: FrameMessageTooltipProps,
     stylingProps: TStylingProps
   ) => ReactElement;
+  /**
+   * Rendered in case there is a message in response to a cast or composer action invokation.
+   */
+  Message: (
+    props: FrameMessageProps,
+    stylingProps: TStylingProps
+  ) => ReactElement;
 };
 
 export type RootContainerElement = {
@@ -240,3 +248,8 @@ export type FrameMessageTooltipProps = {
   message: string;
   status: "error" | "message";
 } & FrameUIStateProps;
+
+export type FrameMessageProps = {
+  message: string;
+  status: "error" | "message";
+};

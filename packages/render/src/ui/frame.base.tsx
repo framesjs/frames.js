@@ -97,7 +97,10 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
 
   switch (currentFrameStackItem.status) {
     case "requestError": {
-      if ("sourceFrame" in currentFrameStackItem.request) {
+      if (
+        "sourceFrame" in currentFrameStackItem.request &&
+        currentFrameStackItem.request.sourceFrame
+      ) {
         frameUiState = {
           status: "complete",
           frame: currentFrameStackItem.request.sourceFrame,
@@ -116,12 +119,38 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
       break;
     }
     case "message":
-    case "doneRedirect": {
+      if (!currentFrameStackItem.request.sourceFrame) {
+        // this happens only for composer or cast actions, in that case just render Message
+        return components.Message(
+          {
+            message: currentFrameStackItem.message,
+            status:
+              currentFrameStackItem.type === "error" ? "error" : "message",
+          },
+          theme?.Message ?? ({} as TStylingProps)
+        );
+      }
+
       frameUiState = {
         status: "complete",
         frame: currentFrameStackItem.request.sourceFrame,
         isImageLoading,
       };
+
+      break;
+    case "doneRedirect": {
+      if (!currentFrameStackItem.request.sourceFrame) {
+        frameUiState = {
+          status: "loading",
+        };
+      } else {
+        frameUiState = {
+          status: "complete",
+          frame: currentFrameStackItem.request.sourceFrame,
+          isImageLoading,
+        };
+      }
+
       break;
     }
     case "done": {

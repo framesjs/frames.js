@@ -728,7 +728,8 @@ export const FrameDebugger = React.forwardRef<
                           }}
                         >
                           {getFrameHtmlHead(
-                            "sourceFrame" in currentFrameStackItem.request
+                            "sourceFrame" in currentFrameStackItem.request &&
+                              currentFrameStackItem.request.sourceFrame
                               ? currentFrameStackItem.request.sourceFrame
                               : currentFrameStackItem.frameResult.frame
                           )
