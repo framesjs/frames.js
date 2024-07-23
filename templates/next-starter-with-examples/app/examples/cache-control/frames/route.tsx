@@ -10,10 +10,7 @@ const handleRequest = frames(async (ctx) => {
       </div>
     ),
     imageOptions: {
-      // Tell the client how long to cache the image for using the Cache-Control header
-      headers: {
-        "Cache-Control": "public, max-age=0",
-      },
+      dynamic: true,
     },
     buttons: [<Button action="post">Refresh</Button>],
   };
