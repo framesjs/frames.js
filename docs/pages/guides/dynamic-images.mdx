@@ -15,6 +15,14 @@ Frames allows you to return dynamic images from your initial frame. This is usef
   property on other frame it will be ignored.
 </Callout>
 
+<Callout type="warning">
+  When using `next/image` from
+  [Next.js](https://nextjs.org/docs/app/building-your-application/optimizing/images)
+  make sure your
+  [`minimumCacheTTL`](https://nextjs.org/docs/app/api-reference/components/image#minimumcachettl)
+  is lower than the `max-age` of your dynamic image.
+</Callout>
+
 ```tsx [frames/route.tsx]
 // ...
 const handleRequest = frames(async (ctx) => {
