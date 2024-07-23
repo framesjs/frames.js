@@ -129,6 +129,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
           status: "complete",
           frame: currentFrameStackItem.request.sourceFrame,
           isImageLoading,
+          id: currentFrameStackItem.timestamp.getTime(),
         };
       } else {
         return components.Error(
@@ -159,6 +160,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
         status: "complete",
         frame: currentFrameStackItem.request.sourceFrame,
         isImageLoading,
+        id: currentFrameStackItem.timestamp.getTime(),
       };
 
       break;
@@ -166,12 +168,14 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
       if (!currentFrameStackItem.request.sourceFrame) {
         frameUiState = {
           status: "loading",
+          id: currentFrameStackItem.timestamp.getTime(),
         };
       } else {
         frameUiState = {
           status: "complete",
           frame: currentFrameStackItem.request.sourceFrame,
           isImageLoading,
+          id: currentFrameStackItem.timestamp.getTime(),
         };
       }
 
@@ -186,6 +190,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
             ? currentFrameStackItem.frameResult.framesDebugInfo?.image
             : undefined,
           isImageLoading,
+          id: currentFrameStackItem.timestamp.getTime(),
         };
       } else if (
         isPartialFrameStackItem(currentFrameStackItem) &&
@@ -198,6 +203,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
             ? currentFrameStackItem.frameResult.framesDebugInfo?.image
             : undefined,
           isImageLoading,
+          id: currentFrameStackItem.timestamp.getTime(),
         };
       } else {
         return components.Error(
@@ -209,7 +215,10 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
       break;
     }
     case "pending": {
-      frameUiState = { status: "loading" };
+      frameUiState = {
+        status: "loading",
+        id: currentFrameStackItem.timestamp.getTime(),
+      };
       break;
     }
   }

@@ -2,7 +2,7 @@ import {
   FRAMES_IMAGES_DEBUG_FLAG,
   FRAMES_IMAGES_PARAM_FLAG,
 } from "../../core/constants";
-import type { FramesMiddleware } from "../../core/types";
+import type { FrameDefinition, FramesMiddleware } from "../../core/types";
 import { generateTargetURL, isFrameDefinition } from "../../core/utils";
 import { createHMACSignature } from "../../lib/crypto";
 import {
@@ -10,6 +10,10 @@ import {
   serializeJsx,
   type SerializedNode,
 } from "../jsx-utils";
+import {
+  IMAGE_WORKER_DEFAULT_DYNAMIC_IMAGE_CACHE_CONTROL_HEADER,
+  IMAGE_WORKER_DYNAMIC_IMAGE_FETCH_HEADER,
+} from "./constants";
 import {
   type ImageWorkerOptions,
   createImagesWorkerRequestHandler,
@@ -72,9 +76,45 @@ export function imagesWorkerMiddleware({
 
     if (
       !isFrameDefinition(nextResult) ||
-      typeof nextResult.image === "string"
+      !isFrameDefinitionWithJsx(nextResult)
     ) {
       return nextResult;
+    }
+
+    if (ctx.request.method === "GET" && nextResult.imageOptions?.dynamic) {
+      if (ctx.request.headers.has(IMAGE_WORKER_DYNAMIC_IMAGE_FETCH_HEADER)) {
+        // request comes from the image worker so render the frame and redirect to its image url
+        const jsx = imageToSearchParams(nextResult, imageUrl.searchParams);
+
+        await signRequest(jsx, secret, imageUrl.searchParams);
+
+        const headers = new Headers(nextResult.imageOptions.headers);
+
+        if (!hasCacheControlHeader(headers)) {
+          imageUrl.searchParams.set(
+            "headers",
+            JSON.stringify({
+              ...headers,
+              "Cache-Control":
+                IMAGE_WORKER_DEFAULT_DYNAMIC_IMAGE_CACHE_CONTROL_HEADER,
+            })
+          );
+        }
+
+        return Response.redirect(imageUrl.toString(), 303);
+      }
+
+      const currentUrl = ctx.request.url;
+
+      imageUrl.searchParams.set("url", currentUrl);
+      imageUrl.searchParams.set(FRAMES_IMAGES_PARAM_FLAG, "true");
+
+      await signRequest(currentUrl, secret, imageUrl.searchParams);
+
+      return {
+        ...nextResult,
+        image: imageUrl.toString(),
+      };
     }
 
     if (nextResult.imageOptions?.fonts !== undefined) {
@@ -84,26 +124,9 @@ export function imagesWorkerMiddleware({
       );
     }
 
-    const imageJsonString = JSON.stringify(serializeJsx(nextResult.image));
+    const jsx = imageToSearchParams(nextResult, imageUrl.searchParams);
 
-    imageUrl.searchParams.set("jsx", imageJsonString);
-
-    nextResult.imageOptions &&
-      Object.entries(nextResult.imageOptions).forEach(([key, value]) => {
-        if (typeof value === "object") {
-          imageUrl.searchParams.append(key, JSON.stringify(value));
-        } else if (typeof value === "string") {
-          imageUrl.searchParams.append(key, value);
-        }
-      });
-
-    imageUrl.searchParams.append(FRAMES_IMAGES_PARAM_FLAG, "true");
-
-    if (secret) {
-      const signature = await createHMACSignature(imageJsonString, secret);
-
-      imageUrl.searchParams.append("signature", signature.toString("hex"));
-    }
+    await signRequest(jsx, secret, imageUrl.searchParams);
 
     if (ctx.debug) {
       const debugUrl = new URL(imageUrl);
@@ -120,4 +143,54 @@ export function imagesWorkerMiddleware({
   };
 
   return middleware;
+}
+
+function hasCacheControlHeader(headers: Headers): boolean {
+  return headers.has("cache-control");
+}
+
+async function signRequest(
+  data: string,
+  secret: string | undefined,
+  searchParams: URLSearchParams
+): Promise<void> {
+  if (secret) {
+    const signature = await createHMACSignature(data, secret);
+    searchParams.set("signature", signature.toString("hex"));
+  }
+}
+
+function imageToSearchParams(
+  frame: Omit<FrameDefinition<any>, "image"> & {
+    image: Exclude<FrameDefinition<any>["image"], string>;
+  },
+  /**
+   * Mutated
+   */
+  searchParams: URLSearchParams
+): string {
+  const imageJsonString = JSON.stringify(serializeJsx(frame.image));
+
+  searchParams.set("jsx", imageJsonString);
+
+  frame.imageOptions &&
+    Object.entries(frame.imageOptions).forEach(([key, value]) => {
+      if (typeof value === "object") {
+        searchParams.append(key, JSON.stringify(value));
+      } else if (typeof value === "string") {
+        searchParams.append(key, value);
+      }
+    });
+
+  searchParams.append(FRAMES_IMAGES_PARAM_FLAG, "true");
+
+  return imageJsonString;
+}
+
+function isFrameDefinitionWithJsx(
+  definition: FrameDefinition<any>
+): definition is Omit<FrameDefinition<any>, "image"> & {
+  image: Exclude<FrameDefinition<any>["image"], string>;
+} {
+  return isFrameDefinition(definition) && typeof definition.image !== "string";
 }

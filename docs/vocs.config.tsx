@@ -56,6 +56,10 @@ const examplesSidebarItems: SidebarItem[] = [
     link: "/examples/custom-middleware",
   },
   {
+    text: "Dynamic Image",
+    link: "/examples/dynamic-image",
+  },
+  {
     text: "Error Handling",
     link: "/examples/error-handling",
   },
@@ -153,6 +157,10 @@ const sidebar: SidebarItem[] = [
       {
         text: "Image Generation",
         link: "/guides/image-generation",
+      },
+      {
+        text: "Dynamic Images",
+        link: "/guides/dynamic-images",
       },
       {
         text: "Performance",

@@ -148,7 +148,14 @@ The image to be rendered in the frame. If a string is provided, it must be a val
 
 ### `imageOptions`
 
-- Type: `{ aspectRatio?: "1.91:1" | "1:1" } & ConstructorParameters<typeof ImageResponse>[1]`
+- Type: `{ aspectRatio?: "1.91:1" | "1:1", dynamic?: boolean; } & ConstructorParameters<typeof ImageResponse>[1]`
+
+#### `dynamic`
+
+- Type: `boolean`
+- Default: `false`
+
+If `true`, the resulting image URL will call your frame handler where it was defined so you can dynamically change the content of the initial frame's image. This is useful for showing dynamic content in the feed that changes on every feed reload. Works only with `GET` requests.
 
 Options for the image. The `aspectRatio` property can be set to `"1.91:1"` or `"1:1"`.
 
