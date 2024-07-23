@@ -32,10 +32,6 @@ const examplesSidebarItems: SidebarItem[] = [
     link: "/examples/basic",
   },
   {
-    text: "Cache Control",
-    link: "/examples/cache-control",
-  },
-  {
     text: "Cast Actions",
     link: "/examples/cast-actions",
   },
@@ -169,10 +165,6 @@ const sidebar: SidebarItem[] = [
       {
         text: "Verifying Frame Actions",
         link: "/guides/security",
-      },
-      {
-        text: "Caching",
-        link: "/guides/caching",
       },
       {
         text: "Middleware",
