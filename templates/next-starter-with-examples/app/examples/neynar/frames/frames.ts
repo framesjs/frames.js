@@ -3,7 +3,7 @@ import { createFrames } from "frames.js/next";
 import { appURL } from "../../../utils";
 
 export const frames = createFrames({
-  basePath: "/examples/neynar",
+  basePath: "/examples/neynar/frames",
   baseUrl: appURL(),
   middleware: [
     neynarValidate({

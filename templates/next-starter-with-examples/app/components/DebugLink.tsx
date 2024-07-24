@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-export function DebugLink() {
+type DebugLinkProps = {
+  url: string;
+};
+
+export function DebugLink({ url }: DebugLinkProps) {
   const [href, setHref] = useState("/");
 
   useEffect(() => {
@@ -15,12 +19,12 @@ export function DebugLink() {
       debuggerUrl = window.location.href.replace(/\-\-\d+\-\-/, "--3010--");
     }
 
-    const url = new URL("/", debuggerUrl);
+    const debugUrl = new URL("/", debuggerUrl);
 
-    url.searchParams.set("url", window.location.href);
+    debugUrl.searchParams.set("url", url);
 
-    setHref(url.toString());
-  }, []);
+    setHref(debugUrl.toString());
+  }, [url]);
 
   return (
     <Link className="underline" href={href}>

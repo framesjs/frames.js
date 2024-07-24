@@ -30,3 +30,7 @@ export function vercelURL() {
     ? `https://${process.env.VERCEL_URL}`
     : undefined;
 }
+
+export function createExampleURL(path: string) {
+  return new URL(path, appURL()).toString();
+}

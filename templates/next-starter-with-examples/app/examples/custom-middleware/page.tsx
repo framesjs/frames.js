@@ -1,23 +1,26 @@
-import { appURL } from "../../utils";
+import { createExampleURL } from "../../utils";
 import type { Metadata } from "next";
 import { fetchMetadata } from "frames.js/next";
-import { DebugLink } from "../../components/DebugLink";
+import { Frame } from "../../components/Frame";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Frames.js Custom Middleware Example",
     other: {
       ...(await fetchMetadata(
-        new URL("/examples/custom-middleware/frames", appURL())
+        createExampleURL("/examples/custom-middleware/frames")
       )),
     },
   };
 }
 
 export default async function Home() {
+  const metadata = await generateMetadata();
+
   return (
-    <div>
-      Frames.js Custom Middleware example <DebugLink />
-    </div>
+    <Frame
+      metadata={metadata}
+      url={createExampleURL("/examples/custom-middleware/frames")}
+    />
   );
 }

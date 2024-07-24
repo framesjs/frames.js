@@ -1,23 +1,26 @@
-import { appURL } from "../../utils";
+import { createExampleURL } from "../../utils";
 import type { Metadata } from "next";
 import { fetchMetadata } from "frames.js/next";
-import { DebugLink } from "../../components/DebugLink";
+import { Frame } from "../../components/Frame";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Frames.js Image Worker (Custom) example",
     other: {
       ...(await fetchMetadata(
-        new URL("/examples/images-worker-custom/frames", appURL())
+        createExampleURL("/examples/images-worker-custom/frames")
       )),
     },
   };
 }
 
 export default async function Home() {
+  const metadata = await generateMetadata();
+
   return (
-    <div>
-      Frames.js Image Worker (Custom) example <DebugLink />
-    </div>
+    <Frame
+      metadata={metadata}
+      url={createExampleURL("/examples/images-worker-custom/frames")}
+    />
   );
 }

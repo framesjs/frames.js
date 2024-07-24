@@ -1,23 +1,26 @@
-import { appURL } from "../../utils";
+import { createExampleURL } from "../../utils";
 import type { Metadata } from "next";
 import { fetchMetadata } from "frames.js/next";
-import { DebugLink } from "../../components/DebugLink";
+import { Frame } from "../../components/Frame";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Frames.js Custom font Example",
     other: {
       ...(await fetchMetadata(
-        new URL("/examples/custom-font-nodejs/frames", appURL())
+        createExampleURL("/examples/custom-font-nodejs/frames")
       )),
     },
   };
 }
 
 export default async function Home() {
+  const metadata = await generateMetadata();
+
   return (
-    <div>
-      Frames.js Custom font example <DebugLink />
-    </div>
+    <Frame
+      metadata={metadata}
+      url={createExampleURL("/examples/custom-font-nodejs/frames")}
+    />
   );
 }

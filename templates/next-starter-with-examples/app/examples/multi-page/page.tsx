@@ -1,23 +1,24 @@
-import { appURL } from "../../utils";
+import { createExampleURL } from "../../utils";
 import type { Metadata } from "next";
 import { fetchMetadata } from "frames.js/next";
-import { DebugLink } from "../../components/DebugLink";
+import { Frame } from "../../components/Frame";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Frames.js Multi Page Example",
     other: {
-      ...(await fetchMetadata(
-        new URL("/examples/multi-page/frames", appURL())
-      )),
+      ...(await fetchMetadata(createExampleURL("/examples/multi-page/frames"))),
     },
   };
 }
 
 export default async function Home() {
+  const metadata = await generateMetadata();
+
   return (
-    <div>
-      Frames.js Multi Page example <DebugLink />
-    </div>
+    <Frame
+      metadata={metadata}
+      url={createExampleURL("/examples/multi-page/frames")}
+    />
   );
 }

@@ -1,7 +1,7 @@
-import { appURL } from "../../utils";
+import { createExampleURL } from "../../utils";
 import type { Metadata } from "next";
 import { fetchMetadata } from "frames.js/next";
-import { DebugLink } from "../../components/DebugLink";
+import { Frame } from "../../components/Frame";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -9,16 +9,19 @@ export async function generateMetadata(): Promise<Metadata> {
     description: "This is a new api example",
     other: {
       ...(await fetchMetadata(
-        new URL("/examples/dynamic-routes/frames", appURL())
+        createExampleURL("/examples/dynamic-routes/frames")
       )),
     },
   };
 }
 
 export default async function Home() {
+  const metadata = await generateMetadata();
+
   return (
-    <div>
-      Frames.js dynamic routes example. <DebugLink />
-    </div>
+    <Frame
+      metadata={metadata}
+      url={createExampleURL("/examples/dynamic-routes/frames")}
+    />
   );
 }
