@@ -2,9 +2,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { FrameUI as BaseFrameUI } from "@frames.js/render/ui";
-import { MessageSquareIcon, AlertOctagonIcon, ZapIcon } from "lucide-react";
+import { ZapIcon } from "lucide-react";
 import Image from "next/image";
+import defaultImageLoader from "next/dist/shared/lib/image-loader";
 import React from "react";
+import type { ImageLoaderProps } from "next/dist/shared/lib/image-config";
 
 type Props = Omit<
   React.ComponentProps<
@@ -52,40 +54,10 @@ const components: Props["components"] = {
   Message(props, stylingProps) {
     // we use onMessage to render a toast instead
     return null;
-    return (
-      <div
-        {...stylingProps}
-        className={cn(
-          "p-2 text-sm text-gray-700 border border-gray-300 rounded-md shadow-md bg-white",
-          props.status === "error" && "border-red-500 text-red-500",
-          stylingProps.className
-        )}
-      >
-        {props.message}
-      </div>
-    );
   },
   MessageTooltip(props, stylingProps) {
     // we use onMessage to render a toast instead
     return null;
-    return (
-      <div
-        {...stylingProps}
-        className={cn(
-          "absolute bottom-2 border border-slate-100 rounded-sm shadow-md inset-x-2 bg-white",
-          "items-center p-2 flex gap-2 text-sm",
-          props.status === "error" && "text-red-500",
-          stylingProps.className
-        )}
-      >
-        {props.status === "error" ? (
-          <AlertOctagonIcon />
-        ) : (
-          <MessageSquareIcon />
-        )}
-        {props.message}
-      </div>
-    );
   },
   LoadingScreen(props, stylingProps) {
     return (
@@ -99,9 +71,32 @@ const components: Props["components"] = {
       return <div />;
     }
 
+    /**
+     * Because of how browsers behave we want to force browser to reload the dynamic image on each render
+     * but for the rest of images we want default behaviour.
+     */
+    const url = new URL(props.src);
+    const isDynamicUrl =
+      url.searchParams.has("url") && !url.searchParams.has("jsx");
+
+    const loader = (loaderProps: ImageLoaderProps) => {
+      /**
+       * This is debugger specific loader. We need that because dynamic images have static URL
+       * and browser will not reload the url if it already has been rendered.
+       *
+       * The beautiful thing about this is that internally the cache headers of dynamic image are respected
+       * because next.js caches them.
+       */
+      return `${defaultImageLoader(loaderProps as any)}&_id=${props.frameState.id}`;
+    };
+
+    // this is necessary for nextjs so it passes config to default image loader
+    loader.__next_img_default = true;
+
     return (
       <Image
         {...stylingProps}
+        loader={isDynamicUrl ? loader : undefined}
         src={props.src}
         onLoad={props.onImageLoadEnd}
         onError={props.onImageLoadEnd}
@@ -135,6 +130,9 @@ const theme: Props["theme"] = {
   ImageContainer: {
     className:
       "relative w-full h-full border-b border-gray-300 overflow-hidden",
+    style: {
+      aspectRatio: "var(--frame-image-aspect-ratio)", // fixed loading skeleton size
+    },
   },
   TextInput: {
     className: "p-[6px] border rounded border-gray-300 box-border w-full",

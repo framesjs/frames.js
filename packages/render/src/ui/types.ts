@@ -29,14 +29,16 @@ export type PartialFrame = Omit<Partial<Frame>, RequiredFrameProperties> &
   Required<Pick<Frame, RequiredFrameProperties>>;
 
 export type FrameUIState =
-  | { status: "loading" }
+  | { status: "loading"; id: number }
   | {
+      id: number;
       status: "partial";
       frame: PartialFrame;
       debugImage?: string;
       isImageLoading: boolean;
     }
   | {
+      id: number;
       status: "complete";
       frame: Frame;
       debugImage?: string;

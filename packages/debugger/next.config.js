@@ -10,6 +10,8 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+    // 1 second of cache time for images by default, this allows you to have dynamic images without cache busting
+    minimumCacheTTL: 1,
     remotePatterns: [
       {
         hostname: "*",

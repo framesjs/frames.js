@@ -148,7 +148,14 @@ The image to be rendered in the frame. If a string is provided, it must be a val
 
 ### `imageOptions`
 
-- Type: `{ aspectRatio?: "1.91:1" | "1:1" } & ConstructorParameters<typeof ImageResponse>[1]`
+- Type: `{ aspectRatio?: "1.91:1" | "1:1", dynamic?: boolean; } & ConstructorParameters<typeof ImageResponse>[1]`
+
+#### `dynamic`
+
+- Type: `boolean`
+- Default: `false`
+
+If `true`, the resulting image URL will call your frame handler where it was defined so you can dynamically change the content of the initial frame's image. This is useful for showing dynamic content in the feed that changes on every feed reload. Works only with `GET` requests.
 
 Options for the image. The `aspectRatio` property can be set to `"1.91:1"` or `"1:1"`.
 
@@ -193,39 +200,6 @@ Global app state that will be available on the next frame.
 Custom headers to be included in the response.
 
 The `ResponseInit` properties allow you to specify custom headers such as `Cache-Control`.
-
-### Cache-Control
-
-If you wish to have dynamic content in your frame which is re-rendered on every feed reload, you can specify a low `Cache-Control` `max-age` value.
-
-Here is an example of a frame definition with a `Cache-Control` header set to `max-age=0`. It will always show the current time in the user's feed.
-
-```tsx
-/* eslint-disable react/jsx-key */
-import { Button } from "frames.js/next";
-import { createFrames } from "frames.js/next";
-
-const frames = createFrames();
-
-const handleRequest = frames(async (ctx) => {
-  return {
-    image: (
-      <div tw="bg-purple-800 text-white w-full h-full justify-center items-center flex">
-        The current time is {new Date().toLocaleString()}
-      </div>
-    ),
-    imageOptions: {
-      aspectRatio: "1:1",
-    },
-    buttons: [<Button action="post">Refresh</Button>],
-    headers: {
-      // [!code focus]
-      // Max cache age in seconds // [!code focus]
-      "Cache-Control": "max-age=0", // [!code focus]
-    }, // [!code focus]
-  };
-});
-```
 
 ## Request Handler
 

@@ -1,5 +1,6 @@
 import type { FrameDefinition, FramesContext } from "../../core/types";
 import { resolveBaseUrl } from "../../core/utils";
+import { IMAGE_WORKER_DYNAMIC_IMAGE_FETCH_HEADER } from "./constants";
 import * as ImagesWorker from ".";
 
 describe("imagesWorker", () => {
@@ -126,5 +127,110 @@ describe("imagesWorker", () => {
     );
 
     consoleWarnSpy.mockRestore();
+  });
+
+  describe("dynamic image", () => {
+    it("should generate special url for dynamic image for GET requests", async () => {
+      const frameDefinition: FrameDefinition<undefined> = {
+        image: <div>Test</div>,
+        imageOptions: {
+          dynamic: true,
+        },
+      };
+
+      const result = (await mw(context, () =>
+        Promise.resolve(frameDefinition)
+      )) as FrameDefinition<undefined>;
+
+      expect(typeof result.image).toBe("string");
+
+      const url = new URL(result.image as string);
+
+      expect(url.origin).toBe("https://example.com");
+      expect(url.pathname).toBe("/image");
+      expect(url.searchParams.has("url")).toBe(true);
+    });
+
+    it("should include signature in request if secret is provided for dynamic image", async () => {
+      const frameDefinition: FrameDefinition<undefined> = {
+        image: <div>Test</div>,
+        imageOptions: {
+          dynamic: true,
+        },
+      };
+      const mwWithSecret = ImagesWorker.imagesWorkerMiddleware({
+        imagesRoute,
+        secret: "MY_SECRET",
+      });
+
+      const result = (await mwWithSecret(context, () =>
+        Promise.resolve(frameDefinition)
+      )) as FrameDefinition<undefined>;
+
+      expect(typeof result.image).toBe("string");
+
+      const url = new URL(result.image as string);
+
+      expect(url.origin).toBe("https://example.com");
+      expect(url.pathname).toBe("/image");
+      expect(url.searchParams.has("url")).toBe(true);
+      expect(url.searchParams.has("signature")).toBe(true);
+    });
+
+    it("should not do anything special for POST requests", async () => {
+      const frameDefinition: FrameDefinition<undefined> = {
+        image: <div>Test</div>,
+        imageOptions: {
+          dynamic: true,
+        },
+      };
+
+      const result = (await mw(
+        {
+          ...context,
+          request: new Request("https://example.com", {
+            method: "POST",
+          }),
+        },
+        () => Promise.resolve(frameDefinition)
+      )) as FrameDefinition<undefined>;
+
+      expect(typeof result.image).toBe("string");
+
+      const url = new URL(result.image as string);
+
+      expect(url.origin).toBe("https://example.com");
+      expect(url.pathname).toBe("/image");
+      expect(url.searchParams.has("url")).toBe(false);
+      expect(url.searchParams.has("jsx")).toBe(true);
+    });
+
+    it("should redirect if there is a special header that indicates that this is a fetch from image worker handler", async () => {
+      const url = new URL("https://example.com");
+      url.searchParams.set("url", "https://example.com");
+
+      const req = new Request(url, {
+        headers: {
+          [IMAGE_WORKER_DYNAMIC_IMAGE_FETCH_HEADER]: "true",
+        },
+      });
+      const frameDefinition: FrameDefinition<undefined> = {
+        image: <div>Test</div>,
+        imageOptions: {
+          dynamic: true,
+        },
+      };
+
+      const result = (await mw(
+        {
+          ...context,
+          request: req,
+        },
+        () => Promise.resolve(frameDefinition)
+      )) as FrameDefinition<undefined>;
+
+      expect(result).toBeInstanceOf(Response);
+      expect(result.status).toBe(303);
+    });
   });
 });

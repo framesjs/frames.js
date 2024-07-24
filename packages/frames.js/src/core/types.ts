@@ -109,6 +109,16 @@ export type FrameDefinition<TState extends JsonValue | undefined> = {
      * @defaultValue '1.91:1'
      */
     aspectRatio?: "1.91:1" | "1:1";
+    /**
+     * If true it makes image dynamic, this means that the image worker will render the current route's image using GET request and return its image.
+     *
+     * This property works only during initial frame rendering (GET request).
+     *
+     * If no cache-control header is provided it uses `Cache-Control: public, immutable, no-transform, max-age=60`
+     *
+     * @defaultValue false
+     */
+    dynamic?: boolean;
   } & ConstructorParameters<typeof ImageResponse>[1];
   /**
    * Up to 4 buttons are allowed. If more are provided error is returned.

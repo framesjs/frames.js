@@ -1,0 +1,70 @@
+---
+title: "Dynamic Images"
+description: ""
+---
+
+import StackblitzLink from "../../components/StackblitzLink";
+import { Callout } from "vocs/components";
+
+# Dynamic Images
+
+Frames allows you to return dynamic images from your initial frame. This is useful for showing dynamic content each time the frame is rendered.
+
+<Callout type="warning">
+  Dynamic images are supported only on initial frame. If you set the dynamic
+  property on other frame it will be ignored.
+</Callout>
+
+<Callout type="warning">
+  When using `next/image` from
+  [Next.js](https://nextjs.org/docs/app/building-your-application/optimizing/images)
+  make sure your
+  [`minimumCacheTTL`](https://nextjs.org/docs/app/api-reference/components/image#minimumcachettl)
+  is lower than the `max-age` of your dynamic image.
+</Callout>
+
+```tsx [frames/route.tsx]
+// ...
+const handleRequest = frames(async (ctx) => {
+  return {
+    image: (
+      <div tw="bg-purple-800 text-white w-full h-full justify-center items-center flex text-[48px]">
+        The current time is {new Date().toLocaleString()}
+      </div>
+    ),
+    imageOptions: {
+      dynamic: true,
+    },
+    // ...
+  };
+});
+```
+
+By default the dynamic image uses `Cache-Control: public, immutable, no-transform, max-age=60`. In order to change the default `Cache-Control` just provide your own.
+
+```tsx [frames/route.tsx]
+// ...
+const handleRequest = frames(async (ctx) => {
+  return {
+    image: (
+      <div tw="bg-purple-800 text-white w-full h-full justify-center items-center flex text-[48px]">
+        The current time is {new Date().toLocaleString()}
+      </div>
+    ),
+    imageOptions: {
+      dynamic: true,
+      headers: {
+        'Cache-Control`: 'max-age=10',
+      }
+    },
+    // ...
+  };
+});
+```
+
+See an example of how to use the dynamic images header in the [Dynamic Image example](https://github.com/framesjs/frames.js/tree/main/templates/next-starter-with-examples/app/examples/dynamic-image).
+
+<StackblitzLink
+  entrypointFile="app/examples/dynamic-image/page.tsx"
+  browserPath="/examples/dynamic-image"
+/>

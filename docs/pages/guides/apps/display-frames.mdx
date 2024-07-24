@@ -3,16 +3,22 @@ title: "Guide: Display Frames in your app"
 description: "Frames.js is the react based framework for making frames. Debugger included."
 ---
 
+import { Callout } from "vocs/components";
+
 # Quickstart Guide: Display Frames
 
 This guide shows you how to add frames rendering to your next.js + tailwind app using frames.js.
+
+<Callout type="warning">
+  This guide works only with [Next.js App
+  Router](https://nextjs.org/docs#app-router-vs-pages-router).
+</Callout>
 
 ## Steps
 
 ::::steps
 
 ### Create a new repo
-
 
 Create a new Next.js app
 
@@ -28,6 +34,7 @@ yarn add @frames.js/render
 ```
 
 ### Add proxies for routing frame requests via your backend for privacy + preventing CORS issues
+
 ```tsx [./app/frames/route.tsx]
 export { GET, POST } from "@frames.js/render/next";
 ```
@@ -36,12 +43,8 @@ export { GET, POST } from "@frames.js/render/next";
 
 ```tsx [./app/page.tsx]
 "use client";
-import {
-  FrameUI,
-  fallbackFrameContext,
-  FrameContext,
-} from "@frames.js/render";
-import { signFrameAction, FarcasterSigner } from '@frames.js/render/farcaster'
+import { FrameUI, fallbackFrameContext, FrameContext } from "@frames.js/render";
+import { signFrameAction, FarcasterSigner } from "@frames.js/render/farcaster";
 import { FrameImageNext } from "@frames.js/render/next";
 import { FrameButton } from "frames.js";
 import { useFrame } from "@frames.js/render/use-frame";
@@ -50,13 +53,13 @@ export default function Page() {
   // TODO: replace with your farcaster signer
   const farcasterSigner: FarcasterSigner = {
     fid: 1,
-    status: 'approved',
+    status: "approved",
     publicKey:
       "0x00000000000000000000000000000000000000000000000000000000000000000",
     privateKey:
       "0x00000000000000000000000000000000000000000000000000000000000000000",
   };
-  
+
   const frameState = useFrame({
     // replace with your frame url
     homeframeUrl:
@@ -74,7 +77,9 @@ export default function Page() {
       onSignerlessFramePress: () => {
         // Only run if `hasSigner` is set to `false`
         // This is a good place to throw an error or prompt the user to login
-        alert("A frame button was pressed without a signer. Perhaps you want to prompt a login");
+        alert(
+          "A frame button was pressed without a signer. Perhaps you want to prompt a login"
+        );
       },
       signFrameAction: signFrameAction,
     },
@@ -86,22 +91,21 @@ export default function Page() {
     </div>
   );
 }
-
 ```
 
 ### In order for the styles to work, your project should have tailwind set up as well as the tailwind.config.js rule
 
 ```tsx [tailwind.config.js]
 const config = {
+  // ...
+  content: [
+    "./app/*.{ts,tsx,js,css}",
+    "./app/**/*.{ts,tsx,js,css}",
+    "./node_modules/@frames.js/render/dist/*.{ts,tsx,js,css}",
+    "./node_modules/@frames.js/render/dist/**/*.{ts,tsx,js,css}",
     // ...
-    content: [
-      "./app/*.{ts,tsx,js,css}",
-      "./app/**/*.{ts,tsx,js,css}",
-      "./node_modules/@frames.js/render/dist/*.{ts,tsx,js,css}",
-      "./node_modules/@frames.js/render/dist/**/*.{ts,tsx,js,css}",
-      // ...
-    ]
-}
+  ],
+};
 ```
 
 ### Allow images from any domain
@@ -122,6 +126,7 @@ const nextConfig = {
 ### Run `yarn run dev`
 
 ### Done! 🎉
+
 ::::
 
 ### Optional

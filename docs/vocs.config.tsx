@@ -32,10 +32,6 @@ const examplesSidebarItems: SidebarItem[] = [
     link: "/examples/basic",
   },
   {
-    text: "Cache Control",
-    link: "/examples/cache-control",
-  },
-  {
     text: "Cast Actions",
     link: "/examples/cast-actions",
   },
@@ -54,6 +50,10 @@ const examplesSidebarItems: SidebarItem[] = [
   {
     text: "Custom Middleware",
     link: "/examples/custom-middleware",
+  },
+  {
+    text: "Dynamic Image",
+    link: "/examples/dynamic-image",
   },
   {
     text: "Error Handling",
@@ -155,16 +155,16 @@ const sidebar: SidebarItem[] = [
         link: "/guides/image-generation",
       },
       {
+        text: "Dynamic Images",
+        link: "/guides/dynamic-images",
+      },
+      {
         text: "Performance",
         link: "/guides/performance",
       },
       {
         text: "Verifying Frame Actions",
         link: "/guides/security",
-      },
-      {
-        text: "Caching",
-        link: "/guides/caching",
       },
       {
         text: "Middleware",
