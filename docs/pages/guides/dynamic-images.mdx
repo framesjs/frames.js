@@ -27,7 +27,11 @@ Frames allows you to return dynamic images from your initial frame. This is usef
 // ...
 const handleRequest = frames(async (ctx) => {
   return {
-    image: "/images/my-image",
+    image: (
+      <div tw="bg-purple-800 text-white w-full h-full justify-center items-center flex text-[48px]">
+        The current time is {new Date().toLocaleString()}
+      </div>
+    ),
     imageOptions: {
       dynamic: true,
     },
@@ -42,7 +46,11 @@ By default the dynamic image uses `Cache-Control: public, immutable, no-transfor
 // ...
 const handleRequest = frames(async (ctx) => {
   return {
-    image: "/images/my-image",
+    image: (
+      <div tw="bg-purple-800 text-white w-full h-full justify-center items-center flex text-[48px]">
+        The current time is {new Date().toLocaleString()}
+      </div>
+    ),
     imageOptions: {
       dynamic: true,
       headers: {
