@@ -12,6 +12,17 @@ import { getAddressesForFid } from "./getAddressesForFid";
 import { getUserDataForFid } from "./getUserDataForFid";
 import { validateFrameMessage } from "./validateFrameMessage";
 import { DEFAULT_HUB_API_KEY, DEFAULT_HUB_API_URL } from "./default";
+import { InvalidFrameActionPayloadError } from "./core/errors";
+
+function assertIsFarcasterMessage(
+  message: Message
+): asserts message is FrameActionMessage {
+  if (!message.data) {
+    throw new InvalidFrameActionPayloadError(
+      "Could not decode the message, it is not a valid Farcaster message."
+    );
+  }
+}
 
 export type GetFrameMessageOptions = {
   fetchHubContext?: boolean;
@@ -47,7 +58,9 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
 
   const decodedMessage = Message.decode(
     Buffer.from(payload.trustedData.messageBytes, "hex")
-  ) as FrameActionMessage;
+  );
+
+  assertIsFarcasterMessage(decodedMessage);
 
   const {
     buttonIndex,

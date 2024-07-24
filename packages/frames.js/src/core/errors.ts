@@ -1,12 +1,12 @@
 export class RequestBodyNotJSONError extends Error {
   constructor() {
-    super("Invalid frame action payload");
+    super("Invalid frame action payload, request body is not JSON");
   }
 }
 
 export class InvalidFrameActionPayloadError extends Error {
-  constructor() {
-    super("Invalid frame action payload");
+  constructor(message = "Invalid frame action payload") {
+    super(message);
   }
 }
 

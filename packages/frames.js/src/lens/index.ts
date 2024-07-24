@@ -5,8 +5,9 @@ import {
   production,
 } from "@lens-protocol/client";
 import type { MessageWithWalletAddressImplementation } from "../middleware/walletAddressMiddleware";
+import { InvalidFrameActionPayloadError } from "../core/errors";
 
-type LensFrameRequest = {
+export type LensFrameRequest = {
   clientProtocol: string;
   untrustedData: {
     specVersion: string;
@@ -83,17 +84,25 @@ export async function getLensFrameMessage(
     identityToken,
   } = frameActionPayload.untrustedData;
 
-  const typedData = await lensClient.frames.createFrameTypedData({
-    url,
-    inputText,
-    state,
-    buttonIndex,
-    actionResponse,
-    profileId,
-    pubId,
-    specVersion,
-    deadline,
-  });
+  const typedData = await lensClient.frames
+    .createFrameTypedData({
+      url,
+      inputText,
+      state,
+      buttonIndex,
+      actionResponse,
+      profileId,
+      pubId,
+      specVersion,
+      deadline,
+    })
+    .catch((e) => {
+      // eslint-disable-next-line no-console -- provide feedback to the developer
+      console.error(e);
+      throw new InvalidFrameActionPayloadError(
+        "Could not create typed data for Lens, invalid payload."
+      );
+    });
 
   const response = await lensClient.frames.verifyFrameSignature({
     identityToken,
