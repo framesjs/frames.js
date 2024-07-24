@@ -7,22 +7,27 @@ import {
 import { DebugLink } from "../../../app/components/DebugLink";
 
 export const getServerSideProps = async function getServerSideProps() {
+  const url = new URL(
+    "/api/frames",
+    process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3000"
+  );
+
   return {
     props: {
-      metadata: await fetchMetadata(
-        new URL(
-          "/api/frames",
-          process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"
-        )
-      ),
+      url: url.toString(),
+      metadata: await fetchMetadata(url),
     },
   };
 } satisfies GetServerSideProps<{
   metadata: Awaited<ReturnType<typeof fetchMetadata>>;
+  url: string;
 }>;
 
 export default function Page({
   metadata,
+  url,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   return (
     <>
@@ -32,7 +37,7 @@ export default function Page({
       </Head>
 
       <div>
-        Next.js Page Router example <DebugLink />
+        Next.js Page Router example <DebugLink url={url} />
       </div>
     </>
   );
