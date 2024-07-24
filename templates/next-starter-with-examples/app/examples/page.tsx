@@ -14,16 +14,36 @@ const examples = [
     path: "/examples/cast-actions",
   },
   {
-    title: "Custom Farcaster Hub",
-    path: "/examples/custom-hub",
+    title: "Composer Actions",
+    path: "/examples/composer-actions",
+  },
+  {
+    title: "Custom Font (edge)",
+    path: "/examples/custom-font-edge",
+  },
+  {
+    title: "Custom Font (inline)",
+    path: "/examples/custom-font-inline",
   },
   {
     title: "Custom Font (nodejs)",
     path: "/examples/custom-font-nodejs",
   },
   {
+    title: "Custom Farcaster Hub",
+    path: "/examples/custom-hub",
+  },
+  {
     title: "Custom Middleware",
     path: "/examples/custom-middleware",
+  },
+  {
+    title: "Dynamic Image",
+    path: "/examples/dynamic-image",
+  },
+  {
+    title: "Dynamic Routes",
+    path: "/examples/dynamic-routes",
   },
   {
     title: "Error Message handling",
@@ -38,6 +58,10 @@ const examples = [
     path: "/examples/images-worker-custom",
   },
   {
+    title: "Inline Images",
+    path: "/examples/inline-images",
+  },
+  {
     title: "Mint Button",
     path: "/examples/mint-button",
   },
@@ -48,6 +72,10 @@ const examples = [
   {
     title: "Multi Protocol",
     path: "/examples/multi-protocol",
+  },
+  {
+    title: "Neynar",
+    path: "/examples/neynar",
   },
   {
     title: "Only Followers Can Mint",
@@ -80,6 +108,10 @@ const examples = [
   {
     title: "User Data",
     path: "/examples/user-data",
+  },
+  {
+    title: "Wallet Signatures",
+    path: "/examples/wallet-signatures",
   },
 ];
 

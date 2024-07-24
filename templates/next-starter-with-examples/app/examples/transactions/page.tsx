@@ -1,24 +1,26 @@
-import { appURL } from "../../utils";
+import { createExampleURL } from "../../utils";
 import type { Metadata } from "next";
 import { fetchMetadata } from "frames.js/next";
-import { DebugLink } from "../../components/DebugLink";
+import { Frame } from "../../components/Frame";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Frames.js Transactions example",
     other: {
       ...(await fetchMetadata(
-        new URL("/examples/transactions/frames", appURL())
+        createExampleURL("/examples/transactions/frames")
       )),
     },
   };
 }
 
 export default async function Home() {
+  const metadata = await generateMetadata();
+
   return (
-    <div>
-      Frames.js Transactions example rent farcaster storage example{" "}
-      <DebugLink />
-    </div>
+    <Frame
+      metadata={metadata}
+      url={createExampleURL("/examples/transactions/frames")}
+    />
   );
 }

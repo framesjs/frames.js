@@ -1,21 +1,24 @@
-import { appURL } from "../../utils";
+import { createExampleURL } from "../../utils";
 import type { Metadata } from "next";
 import { fetchMetadata } from "frames.js/next";
-import { DebugLink } from "../../components/DebugLink";
+import { Frame } from "../../components/Frame";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Basic Frames.js example",
     other: {
-      ...(await fetchMetadata(new URL("/examples/basic/frames", appURL()))),
+      ...(await fetchMetadata(createExampleURL("/examples/basic/frames"))),
     },
   };
 }
 
 export default async function Home() {
+  const metadata = await generateMetadata();
+
   return (
-    <div>
-      Basic Frames.js example. <DebugLink />
-    </div>
+    <Frame
+      metadata={metadata}
+      url={createExampleURL("/examples/basic/frames")}
+    />
   );
 }

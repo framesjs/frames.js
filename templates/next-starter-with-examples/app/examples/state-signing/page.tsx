@@ -1,23 +1,26 @@
-import { appURL } from "../../utils";
 import type { Metadata } from "next";
 import { fetchMetadata } from "frames.js/next";
-import { DebugLink } from "../../components/DebugLink";
+import { Frame } from "../../components/Frame";
+import { createExampleURL } from "../../utils";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Frames.js State Signing example",
     other: {
       ...(await fetchMetadata(
-        new URL("/examples/state-signing/frames", appURL())
+        createExampleURL("/examples/state-signing/frames")
       )),
     },
   };
 }
 
 export default async function Home() {
+  const metadata = await generateMetadata();
+
   return (
-    <div>
-      Frames.js State Signing example <DebugLink />
-    </div>
+    <Frame
+      metadata={metadata}
+      url={createExampleURL("/examples/state-signing/frames")}
+    />
   );
 }
