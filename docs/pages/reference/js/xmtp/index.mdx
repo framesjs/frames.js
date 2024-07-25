@@ -4,11 +4,16 @@ import { HomePage } from "vocs/components";
 
 Cross-protocol frames are supported by frames.js via familiar APIs. This guide will showcase how to write a simple stateless frame, which returns the identity of the user that interacted with the frame in Farcaster or an XMTP chat.
 
+⚠️⚠️⚠️ This tutorial is out of date and uses an old version of frames.js ⚠️⚠️⚠️
+
 ## Setup
 
 First, you need to install `frames.js` and `@xmtp/frames-validator`. You can do this by running the following command:
 
-<HomePage.InstallPackage name="frames.js @xmtp/frames-validator" type="install" />
+<HomePage.InstallPackage
+  name="frames.js @xmtp/frames-validator"
+  type="install"
+/>
 
 ## Writing a Frame
 
@@ -63,12 +68,15 @@ import {
 } from "frames.js/next/server";
 import { getXmtpFrameMessage, isXmtpFrameActionPayload } from "frames.js/xmtp";
 
-const acceptedProtocols: ClientProtocolId[] = [ // [!code focus]
-  {// [!code focus]
+const acceptedProtocols: ClientProtocolId[] = [
+  // [!code focus]
+  {
+    // [!code focus]
     id: "xmtp", // [!code focus]
     version: "vNext", // [!code focus]
   }, // [!code focus]
-  { // [!code focus]
+  {
+    // [!code focus]
     id: "farcaster", // [!code focus]
     version: "vNext", // [!code focus]
   }, // [!code focus]
@@ -90,16 +98,18 @@ export default async function Home({
 
   // return the frame
 
-  return <FrameContainer
-    pathname="/"
-    postUrl="/frames"
-    state={{}}
-    previousFrame={previousFrame}
-    accepts={acceptedProtocols}
-  >
-    <FrameImage>Hello world</FrameImage>
-    <FrameButton>Next</FrameButton>
-  </FrameContainer>;
+  return (
+    <FrameContainer
+      pathname="/"
+      postUrl="/frames"
+      state={{}}
+      previousFrame={previousFrame}
+      accepts={acceptedProtocols}
+    >
+      <FrameImage>Hello world</FrameImage>
+      <FrameButton>Next</FrameButton>
+    </FrameContainer>
+  );
 }
 ```
 
@@ -117,13 +127,16 @@ const previousFrame = getPreviousFrame(searchParams);
 let fid: number | undefined;
 let walletAddress: string | undefined;
 
-if ( // [!code focus]
+if (
+  // [!code focus]
   previousFrame.postBody && // [!code focus]
   isXmtpFrameActionPayload(previousFrame.postBody) // [!code focus]
-) { // [!code focus]
+) {
+  // [!code focus]
   const frameMessage = await getXmtpFrameMessage(previousFrame.postBody); // [!code focus]
   // do something with XMTP frame message // [!code focus]
-} else { // [!code focus]
+} else {
+  // [!code focus]
   const frameMessage = await getFrameMessage(previousFrame.postBody); // [!code focus]
   // do something with Farcaster frame message // [!code focus]
 } // [!code focus]

@@ -371,7 +371,7 @@ const sidebar: SidebarItem[] = [
                 link: "/reference/js/lens/getLensFrameMessage",
               },
               {
-                text: "isXmtpFrameActionPayload",
+                text: "isLensFrameActionPayload",
                 link: "/reference/js/lens/isLensFrameActionPayload",
               },
             ],
