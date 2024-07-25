@@ -15,6 +15,7 @@
     "@types/react-dom": "^18.2.0",
     "@frames.js/debugger": "^0.3.6",
     "concurrently": "^8.2.2",
+    "dotenv": "^16.4.5",
     "is-port-reachable": "^4.0.0",
     "typescript": "^5.4.5"
   },
