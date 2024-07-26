@@ -29,9 +29,21 @@ cd my-project
 
 Add `@frames.js/render` to your project
 
-```sh
+:::code-group
+
+```bash [npm]
+npm install @frames.js/render
+```
+
+```bash [yarn]
 yarn add @frames.js/render
 ```
+
+```bash [pnpm]
+pnpm add @frames.js/render
+```
+
+:::
 
 ### Add proxies for routing frame requests via your backend for privacy + preventing CORS issues
 
@@ -39,73 +51,18 @@ yarn add @frames.js/render
 export { GET, POST } from "@frames.js/render/next";
 ```
 
-### Add the renderer to your page
+### Set up the `useFrame()` hook
 
-```tsx [./app/page.tsx]
-"use client";
-import { FrameUI, fallbackFrameContext, FrameContext } from "@frames.js/render";
-import { signFrameAction, FarcasterSigner } from "@frames.js/render/farcaster";
-import { FrameImageNext } from "@frames.js/render/next";
-import { FrameButton } from "frames.js";
-import { useFrame } from "@frames.js/render/use-frame";
+See the [`useFrame()` hook](/reference/render/use-frame) documentation for more information.
 
-export default function Page() {
-  // TODO: replace with your farcaster signer
-  const farcasterSigner: FarcasterSigner = {
-    fid: 1,
-    status: "approved",
-    publicKey:
-      "0x00000000000000000000000000000000000000000000000000000000000000000",
-    privateKey:
-      "0x00000000000000000000000000000000000000000000000000000000000000000",
-  };
-
-  const frameState = useFrame({
-    // replace with your frame url
-    homeframeUrl:
-      "https://fc-polls.vercel.app/polls/73c6efda-bae7-4d46-8f36-3bb3b8377448",
-    // corresponds to the name of the route for POST in step 3
-    frameActionProxy: "/frames",
-    connectedAddress: undefined,
-    // corresponds to the name of the route for GET in step 3
-    frameGetProxy: "/frames",
-    frameContext: fallbackFrameContext,
-    // map to your identity if you have one
-    signerState: {
-      hasSigner: farcasterSigner !== undefined,
-      signer: farcasterSigner,
-      onSignerlessFramePress: () => {
-        // Only run if `hasSigner` is set to `false`
-        // This is a good place to throw an error or prompt the user to login
-        alert(
-          "A frame button was pressed without a signer. Perhaps you want to prompt a login"
-        );
-      },
-      signFrameAction: signFrameAction,
-    },
-  });
-
-  return (
-    <div className="w-[400px]">
-      <FrameUI frameState={frameState} theme={{}} FrameImage={FrameImageNext} />
-    </div>
-  );
-}
+```tsx
+// [!include ~/pages/guides/apps/snippets/react.tsx]
 ```
 
-### In order for the styles to work, your project should have tailwind set up as well as the tailwind.config.js rule
+### Add the renderer to your page
 
-```tsx [tailwind.config.js]
-const config = {
-  // ...
-  content: [
-    "./app/*.{ts,tsx,js,css}",
-    "./app/**/*.{ts,tsx,js,css}",
-    "./node_modules/@frames.js/render/dist/*.{ts,tsx,js,css}",
-    "./node_modules/@frames.js/render/dist/**/*.{ts,tsx,js,css}",
-    // ...
-  ],
-};
+```tsx
+// [!include ~/pages/guides/apps/snippets/react-full.tsx]
 ```
 
 ### Allow images from any domain
@@ -123,12 +80,24 @@ const nextConfig = {
 };
 ```
 
-### Run `yarn run dev`
+### Run
+
+:::code-group
+
+```bash [npm]
+npm run dev
+```
+
+```bash [yarn]
+yarn dev
+```
+
+```bash [pnpm]
+pnpm dev
+```
+
+:::
 
 ### Done! 🎉
 
 ::::
-
-### Optional
-
-If needed, you can implement `FrameUI` yourself, using the [FrameUI](https://github.com/framesjs/frames.js/blob/main/packages/render/src/frame-ui.tsx) component as a template

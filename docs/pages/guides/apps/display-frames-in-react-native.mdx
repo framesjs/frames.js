@@ -1,0 +1,64 @@
+---
+title: "Guide: Display Frames in your React Native app"
+description: "Use @frames.js/render headless ui to display frames in your React Native app."
+---
+
+# Display Frames in your React Native app
+
+This guide shows you how to use the `@frames.js/render` [Headless UI](/reference/render/headless-ui) to display frames in your React Native app.
+
+## Steps
+
+::::steps
+
+### Install the render package to your app
+
+:::code-group
+
+```bash [npm]
+npm install @frames.js/render
+```
+
+```bash [yarn]
+yarn add @frames.js/render
+```
+
+```bash [pnpm]
+pnpm add @frames.js/render
+```
+
+:::
+
+### Add render proxy for routing frame requests via your backend
+
+This helps to protect privacy of your users and prevent CORS issues.
+
+Please follow the instructions in the [Display Frames in React](/guides/apps/display-frames#add-proxies-for-routing-frame-requests-via-your-backend-for-privacy--preventing-cors-issues).
+
+### Set up the `useFrame()` hook
+
+See the [`useFrame()` hook](/reference/render/use-frame) documentation for more information.
+
+```tsx
+// [!include ~/pages/guides/apps/snippets/react-native.tsx]
+```
+
+### Add the renderer
+
+See the [Headless UI](/reference/render/headless-ui) documentation for more information about the structure, components and theme.
+
+```tsx
+// [!include ~/pages/guides/apps/snippets/react-native-full.tsx]
+```
+
+### Done! 🎉
+
+::::
+
+## Native Wind Support
+
+If you are using [Native Wind](https://native.wind.org) in your React Native app, you can use the `@frames.js/render` package to render frames in your app with few simple changes.
+
+```tsx
+// [!include ~/pages/guides/apps/snippets/react-native-nativewind.tsx]
+```
