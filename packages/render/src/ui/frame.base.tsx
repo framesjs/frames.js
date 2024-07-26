@@ -9,7 +9,7 @@ import {
 import type { FrameState } from "../types";
 import type {
   FrameMessage,
-  FrameUIComponents,
+  FrameUIComponents as BaseFrameUIComponents,
   FrameUIComponentStylingProps,
   FrameUIState,
   RootContainerDimensions,
@@ -19,6 +19,12 @@ import {
   getErrorMessageFromFramesStackItem,
   isPartialFrameStackItem,
 } from "./utils";
+
+export type FrameUIComponents<TStylingProps extends Record<string, unknown>> =
+  Partial<BaseFrameUIComponents<TStylingProps>>;
+
+export type FrameUITheme<TStylingProps extends Record<string, unknown>> =
+  Partial<FrameUIComponentStylingProps<TStylingProps>>;
 
 export type BaseFrameUIProps<TStylingProps extends Record<string, unknown>> = {
   frameState: FrameState<any, any>;
@@ -32,8 +38,8 @@ export type BaseFrameUIProps<TStylingProps extends Record<string, unknown>> = {
    * Renders debug image if available
    */
   enableImageDebugging?: boolean;
-  components: FrameUIComponents<TStylingProps>;
-  theme?: Partial<FrameUIComponentStylingProps<TStylingProps>> | undefined;
+  components: Required<FrameUIComponents<TStylingProps>>;
+  theme?: FrameUITheme<TStylingProps> | undefined;
   /**
    * Called when an error occurs in response to frame button press
    *
