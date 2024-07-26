@@ -1,0 +1,150 @@
+import { Callout } from "vocs/components";
+
+# Lens Support
+
+Cross-protocol frames are supported by frames.js via familiar APIs. This guide will showcase how to write a simple stateless frame, which returns the identity of the user that interacted with the frame in [Farcaster](https://www.farcaster.xyz) or a [Lens](https://www.lens.xyz).
+
+<Callout type="info">
+  This guide uses [Next.js App
+  Router](https://nextjs.org/docs#app-router-vs-pages-router).
+</Callout>
+
+## Steps
+
+::::steps
+
+### Create a new project
+
+Create a new Next.js based Frames app
+
+```sh
+npx create-next-app@latest my-project --ts --eslint --tailwind --app
+cd my-project
+```
+
+### Add `frames.js` to your project
+
+:::code-group
+
+```bash [npm]
+npm install frames.js
+```
+
+```bash [yarn]
+yarn add frames.js
+```
+
+```bash [pnpm]
+pnpm add frames.js
+```
+
+:::
+
+### Create your Frames app
+
+Create a `frames` directory in your Next.js `app` directory and add the following file:
+
+```tsx [./app/frames/frames.ts]
+import { openframes } from "frames.js/middleware";
+import { createFrames } from "frames.js/next";
+import { getXmtpFrameMessage, isXmtpFrameActionPayload } from "frames.js/xmtp";
+
+export const frames = createFrames({
+  // basePath must point to the route of initial frame
+  // in this case it will reside in app/frames/route.tsx therefore /frames
+  basePath: "/frames",
+  middleware: [
+    openframes({
+      clientProtocol: {
+        id: "lens",
+        version: "1.0.0",
+      },
+      handler: {
+        isValidPayload: (body) => isLensFrameActionPayload(body),
+        getFrameMessage: async (body) => {
+          if (!isLensFrameActionPayload(body)) {
+            return undefined;
+          }
+
+          return getLensFrameMessage(body);
+        },
+      },
+    }),
+  ],
+});
+```
+
+Your Frames app by default always supports [Farcaster](https://www.farcaster.xyz), now you also added [Lens](https://www.lens.xyz) support.
+
+### Create a route
+
+Create following file:
+
+```tsx [./app/frames/route.tsx]
+/* eslint-disable react/jsx-key */
+import { Button } from "frames.js/next";
+import { frames } from "./frames";
+
+const handleRequest = frames(async (ctx) => {
+  let iAm: string | undefined;
+
+  if (ctx.message) {
+    iAm = (await ctx.message.walletAddress()) ?? "anonymous";
+  }
+
+  return {
+    image: <span>{iAm ? `I am ${iAm}` : `Click the button`}</span>,
+    buttons: [<Button action="post">Who am I?</Button>],
+  };
+});
+
+export const GET = handleRequest;
+export const POST = handleRequest;
+```
+
+### If you have an existing page, render Frames in your metadata
+
+```tsx [./app/page.tsx]
+import { fetchMetadata } from "frames.js/next";
+
+export async function generateMetadata() {
+  return {
+    title: "My Page",
+    // provide a full URL to your /frames endpoint
+    other: await fetchMetadata(
+      new URL(
+        "/frames",
+        process.env.VERCEL_URL
+          ? `https://$${process.env.VERCEL_URL}`
+          : "http://localhost:3000"
+      )
+    ),
+  };
+}
+
+export default function Page() {
+  return <span>My existing page</span>;
+}
+```
+
+### Run
+
+:::code-group
+
+```bash [npm]
+npm run dev
+```
+
+```bash [yarn]
+yarn dev
+```
+
+```bash [pnpm]
+pnpm dev
+```
+
+:::
+
+### Done! 🎉
+
+::::
