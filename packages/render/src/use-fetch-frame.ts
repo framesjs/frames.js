@@ -8,6 +8,7 @@ import type { types } from "frames.js/core";
 import type {
   CastActionFrameResponse,
   ComposerActionFormResponse,
+  ComposerActionStateFromMessage,
   ErrorMessageResponse,
   FramesContext,
 } from "frames.js/types";
@@ -717,7 +718,11 @@ export function useFetchFrame<
     const signerStateActionContext = {
       ...request.signerStateActionContext,
       frameButton,
-      state: encodeURIComponent(JSON.stringify(request.composerActionState)),
+      state: encodeURIComponent(
+        JSON.stringify({
+          cast: request.composerActionState,
+        } satisfies ComposerActionStateFromMessage)
+      ),
     };
     const signedDataOrError = await signAndGetFrameActionBodyPayload({
       signerStateActionContext,
