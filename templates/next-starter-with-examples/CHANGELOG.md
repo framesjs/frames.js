@@ -1,5 +1,17 @@
 # template-next-starter-with-examples
 
+## 0.1.1
+
+### Patch Changes
+
+- e4b0ef9: feat: support dynamic images
+- f374083: fix: correctly parse composer action state
+- 8a4780f: feat: starter kit frame renderer
+- Updated dependencies [e4b0ef9]
+- Updated dependencies [365a9e5]
+- Updated dependencies [f374083]
+  - frames.js@0.18.1
+
 ## 0.1.0
 
 ### Minor Changes

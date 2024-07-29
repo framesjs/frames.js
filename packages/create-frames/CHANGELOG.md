@@ -1,5 +1,12 @@
 # create-frames
 
+## 0.1.29
+
+### Patch Changes
+
+- f374083: fix: correctly parse composer action state
+- af2f4de: fix(templates): missing dotenv dependency
+
 ## 0.1.28
 
 ### Patch Changes

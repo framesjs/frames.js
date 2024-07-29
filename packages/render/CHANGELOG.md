@@ -1,5 +1,18 @@
 # @frames.js/render
 
+## 0.2.23
+
+### Patch Changes
+
+- e4b0ef9: feat: support dynamic images
+- 6373546: feat(render): export types for components and themes of headless ui
+- bbf865b: fix(@frames.js/render): render an inline message for messages returned from cast / composer actions
+- f374083: fix: correctly parse composer action state
+- Updated dependencies [e4b0ef9]
+- Updated dependencies [365a9e5]
+- Updated dependencies [f374083]
+  - frames.js@0.18.1
+
 ## 0.2.22
 
 ### Patch Changes

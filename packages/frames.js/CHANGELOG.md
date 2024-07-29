@@ -1,5 +1,13 @@
 # frames.js
 
+## 0.18.1
+
+### Patch Changes
+
+- e4b0ef9: feat: support dynamic images
+- 365a9e5: feat: improve error messages when parsing frame actions
+- f374083: fix: correctly parse composer action state
+
 ## 0.18.0
 
 ### Minor Changes

@@ -1,5 +1,14 @@
 # docs
 
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [e4b0ef9]
+- Updated dependencies [365a9e5]
+- Updated dependencies [f374083]
+  - frames.js@0.18.1
+
 ## 0.3.0
 
 ### Minor Changes

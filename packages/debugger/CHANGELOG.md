@@ -1,5 +1,14 @@
 # @frames.js/debugger
 
+## 0.3.7
+
+### Patch Changes
+
+- e4b0ef9: feat: support dynamic images
+- bbf865b: fix(@frames.js/render): render an inline message for messages returned from cast / composer actions
+- f374083: fix: correctly parse composer action state
+- e4b0ef9: fix(debugger): properly render loading skeleton
+
 ## 0.3.6
 
 ### Patch Changes
