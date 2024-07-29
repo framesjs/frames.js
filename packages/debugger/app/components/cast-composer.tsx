@@ -22,7 +22,6 @@ import type {
 import { FrameUI } from "./frame-ui";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@radix-ui/react-toast";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 type CastComposerProps = {
@@ -153,7 +152,6 @@ function CastEmbedPreview({
   onRemove,
   url,
 }: CastEmbedPreviewProps) {
-  const router = useRouter();
   const { toast } = useToast();
   const frame = useFrame({
     ...farcasterFrameConfig,

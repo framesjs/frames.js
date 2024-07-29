@@ -1,19 +1,29 @@
 import type {
   ComposerActionState,
+  ComposerActionStateFromMessage,
   FramesContext,
   FramesMiddleware,
 } from "../core/types";
 
-function isComposerActionState(value: unknown): value is ComposerActionState {
-  return (
+function isComposerActionState(
+  value: unknown
+): value is ComposerActionStateFromMessage {
+  if (
     typeof value === "object" &&
     !!value &&
-    "text" in value &&
-    typeof value.text === "string" &&
-    "embeds" in value &&
-    Array.isArray(value.embeds) &&
-    value.embeds.every((embed) => typeof embed === "string" && !!embed)
-  );
+    "cast" in value &&
+    !!value.cast &&
+    typeof value.cast === "object" &&
+    "text" in value.cast &&
+    typeof value.cast.text === "string" &&
+    "embeds" in value.cast &&
+    Array.isArray(value.cast.embeds) &&
+    value.cast.embeds.every((embed) => typeof embed === "string" && !!embed)
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 function extractComposerActionStateFromMessage(
@@ -36,7 +46,7 @@ function extractComposerActionStateFromMessage(
       const parsedState = JSON.parse(jsonString) as unknown;
 
       if (isComposerActionState(parsedState)) {
-        return parsedState;
+        return parsedState.cast;
       }
 
       throw new Error("Invalid state shape");

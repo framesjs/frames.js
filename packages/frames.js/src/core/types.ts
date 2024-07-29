@@ -381,6 +381,13 @@ export type ComposerActionFormResponse = {
   url: string;
 };
 
+/**
+ * This is the shape that client sends to the server in message state
+ */
+export type ComposerActionStateFromMessage = {
+  cast: ComposerActionState;
+};
+
 export type ComposerActionState = {
   /**
    * Parent cast hash
