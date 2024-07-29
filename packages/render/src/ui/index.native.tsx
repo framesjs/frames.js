@@ -24,6 +24,8 @@ import type {
   RootContainerElement,
 } from "./types";
 
+export type { FrameUIComponents, FrameUITheme } from "./frame.base";
+
 type StylingProps = {
   /**
    * Nativewind support

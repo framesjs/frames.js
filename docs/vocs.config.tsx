@@ -179,6 +179,14 @@ const sidebar: SidebarItem[] = [
         link: "/guides/open-frames",
       },
       {
+        text: "Lens Support",
+        link: "/guides/lens",
+      },
+      {
+        text: "XMTP Support",
+        link: "/guides/xmtp",
+      },
+      {
         text: "Cast Actions",
         link: "/guides/cast-actions",
       },
@@ -197,8 +205,12 @@ const sidebar: SidebarItem[] = [
     collapsed: false,
     items: [
       {
-        text: "Display Frames",
+        text: "Display Frames in React",
         link: "/guides/apps/display-frames",
+      },
+      {
+        text: "Display Frames in React Native",
+        link: "/guides/apps/display-frames-in-react-native",
       },
     ],
   },
@@ -371,7 +383,7 @@ const sidebar: SidebarItem[] = [
                 link: "/reference/js/lens/getLensFrameMessage",
               },
               {
-                text: "isXmtpFrameActionPayload",
+                text: "isLensFrameActionPayload",
                 link: "/reference/js/lens/isLensFrameActionPayload",
               },
             ],

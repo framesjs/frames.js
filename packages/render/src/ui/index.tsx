@@ -13,6 +13,8 @@ import type {
   RootContainerElement,
 } from "./types";
 
+export type { FrameUIComponents, FrameUITheme } from "./frame.base";
+
 declare module "react" {
   interface CSSProperties {
     "--frame-image-aspect-ratio"?: string;
