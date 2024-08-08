@@ -341,7 +341,7 @@ describe("validateFrameImage", () => {
 
   it("fails if invalid data url mime type", () => {
     expect(() => validateFrameImage("data:invalid;base64,")).toThrow(
-      'Invalid image URL. Only "image/png", "image/jpg", "image/jpeg" and "image/gif" MIME types are allowed'
+      'Invalid image URL. Only "image/png", "image/jpg", "image/jpeg", "image/avif", "image/webp" and "image/gif" MIME types are allowed'
     );
   });
 
@@ -357,14 +357,18 @@ describe("validateFrameImage", () => {
     );
   });
 
-  it.each(["image/jpeg", "image/png", "image/gif", "image/jpg"])(
-    "returns data url with %s content type",
-    (contentType) => {
-      expect(
-        validateFrameImage(`data:${contentType};base64,${"A".repeat(10)}`)
-      ).toBe(`data:${contentType};base64,${"A".repeat(10)}`);
-    }
-  );
+  it.each([
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/jpg",
+    "image/webp",
+    "image/avif",
+  ])("returns data url with %s content type", (contentType) => {
+    expect(
+      validateFrameImage(`data:${contentType};base64,${"A".repeat(10)}`)
+    ).toBe(`data:${contentType};base64,${"A".repeat(10)}`);
+  });
 });
 
 describe("validateInputText", () => {

@@ -51,10 +51,12 @@ export function validateFrameImage(image: string): string | never {
         "image/jpg;base64,",
         "image/jpeg;base64,",
         "image/gif;base64,",
+        "image/webp;base64,",
+        "image/avif;base64,",
       ].some((mimeTypePrefix) => mimeTypeAndBase64.startsWith(mimeTypePrefix))
     ) {
       throw new Error(
-        'Invalid image URL. Only "image/png", "image/jpg", "image/jpeg" and "image/gif" MIME types are allowed'
+        'Invalid image URL. Only "image/png", "image/jpg", "image/jpeg", "image/avif", "image/webp" and "image/gif" MIME types are allowed'
       );
     }
 
