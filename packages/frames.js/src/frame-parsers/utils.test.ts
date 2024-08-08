@@ -341,7 +341,7 @@ describe("validateFrameImage", () => {
 
   it("fails if invalid data url mime type", () => {
     expect(() => validateFrameImage("data:invalid;base64,")).toThrow(
-      'Invalid image URL. Only "image/png", "image/jpg", "image/jpeg", "image/webp", "image/gif" and "image/avif" MIME types are allowed'
+      'Invalid image URL. Only "image/png", "image/jpg", "image/jpeg", "image/avif", "image/webp" and "image/gif" MIME types are allowed'
     );
   });
 
