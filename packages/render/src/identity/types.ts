@@ -1,3 +1,5 @@
+export type { VisibilityDetectionHook } from "../hooks/use-visibility-detection";
+
 export interface Storage {
   getObject: <T extends Record<string, unknown>>(
     key: string

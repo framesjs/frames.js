@@ -183,17 +183,23 @@ const identityReducer: Reducer<State, Action> = (state, action) => {
 };
 
 type UseFarcasterIdentityOptions = {
+  /**
+   * Called when it is required to create a new signer in order to proceed
+   */
   onMissingIdentity: () => void;
   /**
    * @defaultValue WebStorage
    */
   storage?: Storage;
+  /**
+   * Used to detect if the current context is visible, this affects the polling of the signer approval status.
+   */
   visibilityChangeDetectionHook?: typeof useVisibilityDetection;
 };
 
 export type FarcasterSignerInstance =
   FarcasterSignerState<FarcasterSigner | null> & {
-    onCreateSignerPress: () => Promise<void>;
+    createSigner: () => Promise<void>;
     impersonateUser: (fid: number) => Promise<void>;
     removeIdentity: () => Promise<void>;
     identities: FarcasterSigner[];
@@ -359,7 +365,7 @@ export function useFarcasterIdentity({
     return Promise.resolve();
   }, [onMissingIdentity]);
 
-  const onCreateSignerPress = useCallback(async () => {
+  const createSigner = useCallback(async () => {
     setIsLoading(true);
     await createFarcasterSigner();
     setIsLoading(false);
@@ -436,7 +442,7 @@ export function useFarcasterIdentity({
       isLoadingSigner: isLoading,
       impersonateUser,
       onSignerlessFramePress,
-      onCreateSignerPress,
+      createSigner,
       logout,
       removeIdentity,
       identities: state.identities,
@@ -449,7 +455,7 @@ export function useFarcasterIdentity({
       impersonateUser,
       isLoading,
       logout,
-      onCreateSignerPress,
+      createSigner,
       onSignerlessFramePress,
       removeIdentity,
       selectIdentity,

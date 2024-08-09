@@ -191,9 +191,7 @@ export const ProtocolConfigurationButton = forwardRef<
               <FarcasterSignerWindow
                 farcasterUser={farcasterSignerState.signer ?? null}
                 loading={!!farcasterSignerState.isLoadingSigner ?? false}
-                startFarcasterSignerProcess={
-                  farcasterSignerState.onCreateSignerPress
-                }
+                startFarcasterSignerProcess={farcasterSignerState.createSigner}
                 impersonateUser={farcasterSignerState.impersonateUser}
                 logout={farcasterSignerState.logout}
                 removeIdentity={farcasterSignerState.removeIdentity}

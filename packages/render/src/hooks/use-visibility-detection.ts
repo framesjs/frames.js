@@ -10,6 +10,8 @@ type VisibilityDetector = {
   ) => UnregisterVisibilityChangeFunction;
 };
 
+export type VisibilityDetectionHook = () => VisibilityDetector;
+
 export function useVisibilityDetection(): VisibilityDetector {
   const listenersRef = useRef<OnVisibilityChangeFunction[]>([]);
 
