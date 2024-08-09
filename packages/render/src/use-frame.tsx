@@ -43,7 +43,7 @@ function onMintFallback({ target }: OnMintArgs): void {
 }
 
 export async function unsignedFrameAction<
-  TSignerStorageType = object,
+  TSignerStorageType = Record<string, unknown>,
   TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
   TFrameContextType extends FrameContext = FarcasterFrameContext,
 >({
@@ -170,7 +170,7 @@ function defaultComposerFormActionHandler(): Promise<never> {
 }
 
 export function useFrame<
-  TSignerStorageType = object,
+  TSignerStorageType = Record<string, unknown>,
   TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
   TFrameContextType extends FrameContext = FarcasterFrameContext,
 >({

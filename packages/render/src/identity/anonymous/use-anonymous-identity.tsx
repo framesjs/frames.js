@@ -6,9 +6,12 @@ import type {
   SignFrameActionFunction,
 } from "../../types";
 
-export type AnonymousSigner = {};
+// we don't use Record<string, never> here as it is hard to satisfy
+// Record<string, unknown> is good enough we actually don't care about the values here
+// as we don't use the at all
+export type AnonymousSigner = Record<string, unknown>;
 
-export type AnonymousFrameContext = {};
+export type AnonymousFrameContext = Record<string, unknown>;
 
 type AnonymousSignerInstance = SignerStateInstance<
   AnonymousSigner,

@@ -422,7 +422,7 @@ export default function DebuggerPage({
   );
 
   const useFrameConfig: Omit<
-    UseFrameOptions<object, FrameActionBodyPayload>,
+    UseFrameOptions<Record<string, unknown>, FrameActionBodyPayload>,
     "signerState" | "specification"
   > = useMemo(
     () => ({
