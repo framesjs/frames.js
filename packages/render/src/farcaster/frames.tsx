@@ -180,7 +180,7 @@ function isFarcasterFrameContext(
  * Used to create an unsigned frame action when signer is not defined
  */
 export async function unsignedFrameAction<
-  TSignerStorageType = object,
+  TSignerStorageType = Record<string, unknown>,
   TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
   TFrameContextType extends FrameContext = FarcasterFrameContext,
 >(

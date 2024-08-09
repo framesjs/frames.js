@@ -1,14 +1,18 @@
-"use client";
-
-import type { SignerStateInstance } from "@frames.js/render";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { type FramePostPayload, FramesClient } from "@xmtp/frames-client";
 import { Client, type Signer } from "@xmtp/xmtp-js";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { zeroAddress } from "viem";
 import { useAccount, useConfig } from "wagmi";
 import { getAccount, signMessage } from "wagmi/actions";
-import { LOCAL_STORAGE_KEYS } from "../constants";
+import { STORAGE_KEYS } from "../constants";
+import type { Storage } from "../types";
+import type {
+  SignerStateActionContext,
+  SignerStateInstance,
+  SignFrameActionFunction,
+} from "../../types";
+import { WebStorage } from "../storage";
 import type { XmtpFrameContext } from "./use-xmtp-context";
 
 export type XmtpSigner = {
@@ -27,8 +31,19 @@ type XmtpSignerInstance = SignerStateInstance<
   XmtpFrameContext
 >;
 
-export function useXmtpIdentity(): XmtpSignerInstance {
-  const [isLoading, setLoading] = useState(false);
+type XmtpIdentityOptions = {
+  /**
+   * @defaultValue WebStorage
+   */
+  storage?: Storage;
+};
+
+export function useXmtpIdentity({
+  storage,
+}: XmtpIdentityOptions = {}): XmtpSignerInstance {
+  // we use ref so we don't instantiate the storage if user passed their own storage
+  const storageRef = useRef(storage ?? new WebStorage());
+  const [isLoading, setIsLoading] = useState(false);
   const [xmtpSigner, setXmtpSigner] = useState<XmtpSigner | null>(null);
   const [xmtpClient, setXmtpClient] = useState<Client | null>(null);
   const config = useConfig();
@@ -57,84 +72,93 @@ export function useXmtpIdentity(): XmtpSignerInstance {
     [address, config]
   );
 
-  function getSignerFromLocalStorage(): XmtpSigner | null {
-    if (typeof window !== "undefined") {
-      const storedData = localStorage.getItem(LOCAL_STORAGE_KEYS.XMTP_SIGNER);
-      if (storedData) {
-        const signerRaw = JSON.parse(storedData) as XmtpStoredSigner;
-        const signer: XmtpSigner = {
-          walletAddress: signerRaw.walletAddress,
-          keys: Buffer.from(signerRaw.keys, "hex"),
-        };
-        return signer;
+  useEffect(() => {
+    async function instantiateXmtpSignerAndClient(): Promise<void> {
+      const storedSigner = await storageRef.current.getObject<XmtpStoredSigner>(
+        STORAGE_KEYS.XMTP_SIGNER
+      );
+
+      if (!storedSigner) {
+        return;
       }
-      return null;
+
+      const signer: XmtpSigner = {
+        walletAddress: storedSigner.walletAddress,
+        keys: Buffer.from(storedSigner.keys, "hex"),
+      };
+
+      const client = await Client.create(null, {
+        privateKeyOverride: signer.keys,
+      });
+
+      setXmtpSigner(signer);
+      setXmtpClient(client);
     }
 
-    return null;
-  }
-
-  useEffect(() => {
-    const signer = getSignerFromLocalStorage();
-    if (signer) setXmtpSigner(signer);
+    instantiateXmtpSignerAndClient().catch((e) => {
+      // eslint-disable-next-line no-console -- provide feedback
+      console.error(
+        "@frames.js/render: Could not instantiate the XMTP signer and client",
+        e
+      );
+    });
   }, []);
 
-  useEffect(() => {
-    if (xmtpSigner) {
-      void Client.create(null, {
-        privateKeyOverride: xmtpSigner.keys,
-      }).then((client) => {
-        setXmtpClient(client);
-      });
-    }
-  }, [xmtpSigner]);
+  const logout = useCallback(async () => {
+    await storageRef.current.delete(STORAGE_KEYS.XMTP_SIGNER);
 
-  function logout(): void {
-    localStorage.removeItem(LOCAL_STORAGE_KEYS.XMTP_SIGNER);
+    setXmtpClient(null);
     setXmtpSigner(null);
-  }
+  }, []);
 
-  async function onSignerlessFramePress(): Promise<void> {
-    setLoading(true);
-    await createAndStoreSigner();
-    setLoading(false);
-  }
-
-  async function createAndStoreSigner(): Promise<void> {
+  const onSignerlessFramePress = useCallback(async (): Promise<void> => {
     try {
+      setIsLoading(true);
+
       if (!xmtpSigner) {
         if (!walletSigner) {
           connect.openConnectModal?.();
           return;
         }
+
         const keys = await Client.getKeys(walletSigner, {
           env: "dev",
           skipContactPublishing: true,
           persistConversations: false,
         });
+        const client = await Client.create(null, {
+          privateKeyOverride: keys,
+        });
 
         const walletAddress = getAccount(config).address || zeroAddress;
-        localStorage.setItem(
-          LOCAL_STORAGE_KEYS.XMTP_SIGNER,
-          JSON.stringify({
+
+        await storageRef.current.setObject<XmtpStoredSigner>(
+          STORAGE_KEYS.XMTP_SIGNER,
+          {
             walletAddress,
             keys: Buffer.from(keys).toString("hex"),
-          } satisfies XmtpStoredSigner)
+          }
         );
+
         setXmtpSigner({
           keys,
           walletAddress,
         });
+        setXmtpClient(client);
       }
     } catch (error) {
-      console.error("frames.js: API Call failed", error);
+      // eslint-disable-next-line no-console -- provide feedback
+      console.error("@frames.js/render: API Call failed", error);
+    } finally {
+      setIsLoading(false);
     }
-  }
+  }, [config, walletSigner, xmtpSigner, connect]);
 
-  return {
-    signer: xmtpSigner,
-    hasSigner: !!xmtpSigner?.keys,
-    async signFrameAction(actionContext) {
+  const signFrameAction: SignFrameActionFunction<
+    SignerStateActionContext<XmtpSigner, XmtpFrameContext>,
+    FramePostPayload
+  > = useCallback(
+    async (actionContext) => {
       if (!xmtpClient) {
         throw new Error("No xmtp client");
       }
@@ -180,8 +204,18 @@ export function useXmtpIdentity(): XmtpSignerInstance {
         searchParams,
       };
     },
-    isLoadingSigner: isLoading,
-    onSignerlessFramePress,
-    logout,
-  };
+    [address, xmtpClient]
+  );
+
+  return useMemo(
+    () => ({
+      signer: xmtpSigner,
+      hasSigner: !!xmtpSigner?.keys,
+      signFrameAction,
+      isLoadingSigner: isLoading,
+      onSignerlessFramePress,
+      logout,
+    }),
+    [isLoading, logout, onSignerlessFramePress, signFrameAction, xmtpSigner]
+  );
 }

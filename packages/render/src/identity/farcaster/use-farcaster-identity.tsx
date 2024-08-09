@@ -1,15 +1,25 @@
-"use client";
-
-import { Reducer, useCallback, useEffect, useReducer, useState } from "react";
-import { LOCAL_STORAGE_KEYS } from "../constants";
-import { convertKeypairToHex, createKeypairEDDSA } from "../lib/crypto";
 import {
-  type FarcasterSignerState,
-  type FarcasterSignerApproved,
-  type FarcasterSignerImpersonating,
-  type FarcasterSignerPendingApproval,
-  signFrameAction,
-} from "@frames.js/render";
+  type Reducer,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { STORAGE_KEYS } from "../constants";
+import { convertKeypairToHex, createKeypairEDDSA } from "../crypto";
+import type {
+  FarcasterSignerApproved,
+  FarcasterSignerImpersonating,
+  FarcasterSignerPendingApproval,
+  FarcasterSignerState,
+} from "../../farcaster";
+import { signFrameAction } from "../../farcaster";
+import type { Storage } from "../types";
+import { useVisibilityDetection } from "../../hooks/use-visibility-detection";
+import { WebStorage } from "../storage";
+import { usePersistedReducer } from "../../hooks/use-persisted-reducer";
+import { IdentityPoller } from "./identity-poller";
 
 interface SignedKeyRequest {
   deeplinkUrl: string;
@@ -23,15 +33,15 @@ interface SignedKeyRequest {
   signerUserMetadata?: object;
 }
 
-export type StoredIdentity = (
+export type FarcasterSigner = (
   | FarcasterSignerPendingApproval
   | FarcasterSignerImpersonating
   | (FarcasterSignerApproved & { signedKeyRequest: SignedKeyRequest })
 ) & { _id: number };
 
 type State = {
-  activeIdentity: StoredIdentity | null;
-  identities: StoredIdentity[];
+  activeIdentity: FarcasterSigner | null;
+  identities: FarcasterSigner[];
 };
 
 type Action =
@@ -64,7 +74,7 @@ const identityReducer: Reducer<State, Action> = (state, action) => {
   switch (action.type) {
     case "IMPERSONATE": {
       const _id = Date.now();
-      const identity: StoredIdentity = {
+      const identity: FarcasterSigner = {
         status: "impersonating",
         fid: action.fid,
         privateKey: action.privateKey,
@@ -109,7 +119,7 @@ const identityReducer: Reducer<State, Action> = (state, action) => {
     }
     case "START_FARCASTER_SIGN_IN": {
       const _id = Date.now();
-      const identity: StoredIdentity = {
+      const identity: FarcasterSigner = {
         _id,
         status: "pending_approval",
         privateKey: action.privateKey,
@@ -125,20 +135,23 @@ const identityReducer: Reducer<State, Action> = (state, action) => {
       const identities = [
         ...state.identities
           // Remove all current pending approvals
-          .filter((identity) => identity.status !== "pending_approval"),
+          .filter(
+            (storedIdentity) => storedIdentity.status !== "pending_approval"
+          ),
         // Add new pending approval
         identity,
       ];
 
       return {
         activeIdentity: identity,
-        identities: identities,
+        identities,
       };
     }
     case "FARCASTER_SIGN_IN_SUCCESS": {
       const { activeIdentity } = state;
 
       if (activeIdentity?.status !== "pending_approval") {
+        // eslint-disable-next-line no-console -- provide feedback
         console.warn(
           "Active identity must be selected and be in pending_approval status to be approved"
         );
@@ -146,7 +159,7 @@ const identityReducer: Reducer<State, Action> = (state, action) => {
         return state;
       }
 
-      const updatedActiveIdentity: StoredIdentity = {
+      const updatedActiveIdentity: FarcasterSigner = {
         ...activeIdentity,
         status: "approved",
         fid: action.signedKeyRequest.userFid,
@@ -169,63 +182,82 @@ const identityReducer: Reducer<State, Action> = (state, action) => {
   }
 };
 
-function getSignerFromLocalStorage(): State {
-  if (typeof window !== "undefined") {
-    const storedData = localStorage.getItem(
-      LOCAL_STORAGE_KEYS.FARCASTER_IDENTITIES
-    );
+type UseFarcasterIdentityOptions = {
+  /**
+   * Called when it is required to create a new signer in order to proceed
+   */
+  onMissingIdentity: () => void;
+  /**
+   * @defaultValue WebStorage
+   */
+  storage?: Storage;
+  /**
+   * Used to detect if the current context is visible, this affects the polling of the signer approval status.
+   */
+  visibilityChangeDetectionHook?: typeof useVisibilityDetection;
+};
 
-    if (storedData) {
-      const state: State = JSON.parse(storedData);
+export type FarcasterSignerInstance =
+  FarcasterSignerState<FarcasterSigner | null> & {
+    createSigner: () => Promise<void>;
+    impersonateUser: (fid: number) => Promise<void>;
+    removeIdentity: () => Promise<void>;
+    identities: FarcasterSigner[];
+    selectIdentity: (id: number) => Promise<void>;
+    identityPoller: IdentityPoller;
+  };
+
+export function useFarcasterIdentity({
+  onMissingIdentity,
+  storage,
+  visibilityChangeDetectionHook = useVisibilityDetection,
+}: UseFarcasterIdentityOptions): FarcasterSignerInstance {
+  // we use ref so we don't instantiate the storage if user passed their own storage
+  const storageRef = useRef(storage ?? new WebStorage());
+  const identityPoller = useRef(new IdentityPoller()).current;
+  const [isLoading, setIsLoading] = useState(false);
+  const [state, dispatch] = usePersistedReducer(
+    identityReducer,
+    {
+      activeIdentity: null,
+      identities: [],
+    },
+    async () => {
+      const storedState = await storageRef.current.getObject<State>(
+        STORAGE_KEYS.FARCASTER_IDENTITIES
+      );
+
+      if (!storedState) {
+        return {
+          activeIdentity: null,
+          identities: [],
+        };
+      }
 
       const stateWithoutExpiredPendingApprovals: State = {
-        activeIdentity: state.activeIdentity,
-        identities: state.identities.filter(
+        activeIdentity: storedState.activeIdentity,
+        identities: storedState.identities.filter(
           (signer) =>
             signer.status !== "pending_approval" ||
             (signer.deadline && signer.deadline > Math.floor(Date.now() / 1000))
         ),
       };
 
-      if (stateWithoutExpiredPendingApprovals.activeIdentity) {
-        if (
-          !stateWithoutExpiredPendingApprovals.identities.some(
-            (identity) =>
-              identity._id ===
-              stateWithoutExpiredPendingApprovals.activeIdentity?._id
-          )
-        ) {
-          stateWithoutExpiredPendingApprovals.activeIdentity = null;
-        }
-      }
+      stateWithoutExpiredPendingApprovals.activeIdentity =
+        stateWithoutExpiredPendingApprovals.identities.find(
+          (identity) =>
+            identity._id ===
+            stateWithoutExpiredPendingApprovals.activeIdentity?._id
+        ) ?? null;
 
       return stateWithoutExpiredPendingApprovals;
+    },
+    async (newState) => {
+      await storageRef.current.setObject(
+        STORAGE_KEYS.FARCASTER_IDENTITIES,
+        newState
+      );
     }
-
-    return { activeIdentity: null, identities: [] };
-  }
-
-  return { activeIdentity: null, identities: [] };
-}
-
-type UseFarcasterIdentityOptions = {
-  onMissingIdentity: () => void;
-};
-
-export type FarcasterIdentity = FarcasterSignerState<StoredIdentity | null> & {
-  onCreateSignerPress: () => Promise<void>;
-  impersonateUser: (fid: number) => Promise<void>;
-  removeIdentity: () => void;
-  identities: StoredIdentity[];
-  selectIdentity: (id: number) => void;
-};
-
-export function useFarcasterIdentity({
-  onMissingIdentity,
-}: UseFarcasterIdentityOptions): FarcasterIdentity {
-  const [isLoading, setLoading] = useState(false);
-  const [state, dispatch] = useReducer(identityReducer, {}, () =>
-    getSignerFromLocalStorage()
   );
 
   const createFarcasterSigner = useCallback(async () => {
@@ -242,15 +274,14 @@ export function useFarcasterIdentity({
           }),
         }
       );
-      const authorizationBody:
+      const authorizationBody = (await authorizationResponse.json()) as
         | {
             signature: string;
             requestFid: string;
             deadline: number;
             requestSigner: string;
           }
-        | { code: number; message: string } =
-        await authorizationResponse.json();
+        | { code: number; message: string };
       if (authorizationResponse.status === 200) {
         const { signature, requestFid, deadline, requestSigner } =
           authorizationBody as {
@@ -292,7 +323,7 @@ export function useFarcasterIdentity({
 
         signerApprovalUrl.searchParams.set("token", signedKeyRequestToken);
 
-        dispatch({
+        await dispatch({
           type: "START_FARCASTER_SIGN_IN",
           publicKey: keypairString.publicKey,
           privateKey: keypairString.privateKey,
@@ -303,144 +334,132 @@ export function useFarcasterIdentity({
           requestSigner,
           signature,
         });
-      } else if (
-        (authorizationBody as { code: number; message: string }).code === 1
-      ) {
-        window.alert(
-          (authorizationBody as { code: number; message: string }).message
-        );
+      } else if ("message" in authorizationBody) {
+        throw new Error(authorizationBody.message);
       }
     } catch (error) {
-      console.error("frames.js: API Call failed", error);
+      // eslint-disable-next-line no-console -- provide feedback
+      console.error("@frames.js/render: API Call failed", error);
     }
   }, [dispatch]);
 
   const impersonateUser = useCallback(
     async (fid: number) => {
       try {
-        setLoading(true);
+        setIsLoading(true);
 
         const keypair = await createKeypairEDDSA();
         const { privateKey, publicKey } = convertKeypairToHex(keypair);
 
-        dispatch({ type: "IMPERSONATE", fid, privateKey, publicKey });
+        await dispatch({ type: "IMPERSONATE", fid, privateKey, publicKey });
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     },
-    [dispatch, setLoading]
+    [dispatch, setIsLoading]
   );
 
-  const onSignerlessFramePress = useCallback(async () => {
+  const onSignerlessFramePress = useCallback((): Promise<void> => {
     onMissingIdentity();
+
+    return Promise.resolve();
   }, [onMissingIdentity]);
 
-  const onCreateSignerPress = useCallback(async () => {
-    setLoading(true);
+  const createSigner = useCallback(async () => {
+    setIsLoading(true);
     await createFarcasterSigner();
-    setLoading(false);
+    setIsLoading(false);
   }, [createFarcasterSigner]);
 
-  const logout = useCallback(() => {
-    dispatch({ type: "LOGOUT" });
+  const logout = useCallback(async () => {
+    await dispatch({ type: "LOGOUT" });
   }, [dispatch]);
 
-  const removeIdentity = useCallback(() => {
-    dispatch({ type: "REMOVE" });
+  const removeIdentity = useCallback(async () => {
+    await dispatch({ type: "REMOVE" });
   }, [dispatch]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      LOCAL_STORAGE_KEYS.FARCASTER_IDENTITIES,
-      JSON.stringify(state)
-    );
-  }, [state]);
 
   const farcasterUser = state.activeIdentity;
 
+  const visibilityDetector = visibilityChangeDetectionHook();
+
   useEffect(() => {
     if (farcasterUser && farcasterUser.status === "pending_approval") {
-      let intervalId: any;
-
-      const startPolling = () => {
-        intervalId = setInterval(async () => {
-          try {
-            const fcSignerRequestResponse = await fetch(
-              `https://api.warpcast.com/v2/signed-key-request?token=${farcasterUser.token}`,
-              {
-                method: "GET",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              }
-            );
-            const responseBody = (await fcSignerRequestResponse.json()) as {
-              result: { signedKeyRequest: SignedKeyRequest };
-            };
-            if (responseBody.result.signedKeyRequest.state !== "completed") {
-              throw new Error("hasnt succeeded yet");
+      const startPolling = (): void => {
+        // start polling because the effect is active
+        identityPoller
+          .start(farcasterUser.token)
+          .then((signedKeyRequest) => {
+            if (signedKeyRequest) {
+              return dispatch({
+                type: "FARCASTER_SIGN_IN_SUCCESS",
+                signedKeyRequest,
+              });
             }
+          })
+          .catch((e) => {
+            // eslint-disable-next-line no-console -- provide feedback
+            console.error(
+              "Error while polling for the signer approval status",
+              e
+            );
+          });
+      };
 
-            dispatch({
-              type: "FARCASTER_SIGN_IN_SUCCESS",
-              signedKeyRequest: responseBody.result.signedKeyRequest,
-            });
-
-            clearInterval(intervalId);
-          } catch (error) {
-            console.info(error);
+      const unregisterVisibilityChangeListener = visibilityDetector.register(
+        (visible) => {
+          if (visible) {
+            startPolling();
+          } else {
+            identityPoller.stop();
           }
-        }, 2000);
-      };
-
-      const stopPolling = () => {
-        clearInterval(intervalId);
-      };
-
-      const handleVisibilityChange = () => {
-        if (document.hidden) {
-          stopPolling();
-        } else {
-          startPolling();
         }
-      };
+      );
 
-      document.addEventListener("visibilitychange", handleVisibilityChange);
-
-      // Start the polling when the effect runs.
       startPolling();
 
-      // Cleanup function to remove the event listener and clear interval.
       return () => {
-        document.removeEventListener(
-          "visibilitychange",
-          handleVisibilityChange
-        );
-        clearInterval(intervalId);
+        identityPoller.stop();
+        unregisterVisibilityChangeListener();
       };
     }
-  }, [farcasterUser]);
+  }, [farcasterUser, identityPoller, visibilityDetector, dispatch]);
 
   const selectIdentity = useCallback(
-    (id: number) => {
-      dispatch({ type: "SELECT_IDENTITY", _id: id });
+    async (id: number) => {
+      await dispatch({ type: "SELECT_IDENTITY", _id: id });
     },
     [dispatch]
   );
 
-  return {
-    signer: farcasterUser,
-    hasSigner:
-      farcasterUser?.status === "approved" ||
-      farcasterUser?.status === "impersonating",
-    signFrameAction,
-    isLoadingSigner: isLoading,
-    impersonateUser,
-    onSignerlessFramePress,
-    onCreateSignerPress,
-    logout,
-    removeIdentity,
-    identities: state.identities,
-    selectIdentity,
-  };
+  return useMemo(
+    () => ({
+      signer: farcasterUser,
+      hasSigner:
+        farcasterUser?.status === "approved" ||
+        farcasterUser?.status === "impersonating",
+      signFrameAction,
+      isLoadingSigner: isLoading,
+      impersonateUser,
+      onSignerlessFramePress,
+      createSigner,
+      logout,
+      removeIdentity,
+      identities: state.identities,
+      selectIdentity,
+      identityPoller,
+    }),
+    [
+      farcasterUser,
+      identityPoller,
+      impersonateUser,
+      isLoading,
+      logout,
+      createSigner,
+      onSignerlessFramePress,
+      removeIdentity,
+      selectIdentity,
+      state.identities,
+    ]
+  );
 }
