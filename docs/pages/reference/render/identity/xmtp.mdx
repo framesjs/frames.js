@@ -1,0 +1,61 @@
+# XMTP Identity
+
+XMTP identity allows you to use [Open Frames](/guides/open-frames) that support [XMTP](/guides/xmtp).
+
+## Requirements
+
+In order to use XMTP identity you need to install `@rainbow-me/rainbowkit`, `@xmtp/frames-client`, `viem` and `wagmi` dependencies.
+
+:::code-group
+
+```bash [npm]
+npm install @rainbow-me/rainbowkit @xmtp/frames-client viem wagmi
+```
+
+```bash [yarn]
+yarn add @rainbow-me/rainbowkit @xmtp/frames-client viem wagmi
+```
+
+```bash [pnpm]
+pnpm add @rainbow-me/rainbowkit @xmtp/frames-client viem wagmi
+```
+
+:::
+
+## Usage
+
+```tsx
+import {
+  useXmtpFrameContext,
+  useXmtpIdentity,
+} from "@frames.js/render/identity/xmtp";
+import { FrameUI } from "@frames.js/render/ui";
+import { useFrame } from "@frames.js/render/use-frame";
+import { WebStorage } from "@frames.js/render/identity/storage";
+
+export function MyFrame() {
+  const xmtpFrameContext = useXmtpFrameContext({
+    fallbackContext: {
+      conversationTopic: 'test',
+      participantAccountAddresses: [...],
+    },
+  });
+  const signerState = useXmtpIdentity({
+    // WebStorage is default value for storage option. It uses local storage by default.
+    // You can implement your own storage that implements the Storage interface from @frames.js/render/identity/types.
+    // storage: new WebStorage(),
+  });
+  const frameState = useFrame({
+    homeframeUrl: "...", // url to frame
+    frameActionProxy: "/frames",
+    frameGetProxy: "/frames",
+    frameContext: xmtpFrameContext.frameContext,
+    signerState,
+    specification: "openframes",
+  });
+
+  return <FrameUI frameState={frameState} />;
+}
+```
+
+Please see our guide on how to use [Headless UI](/reference/render/headless-ui), [`useFrame()`](/reference/render/use-frame) and [Storage](/reference/render/identity/storage).

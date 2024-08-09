@@ -1,0 +1,46 @@
+# Identity Storage
+
+Used to store signed in users.
+
+## WebStorage
+
+Uses `localStorage` to store the data. If the local storage is not available it doesn't store anything.
+
+This is **default** storage for all identity hooks.
+
+```tsx
+import { WebStorage } from "@frames.js/render/identity/storage";
+```
+
+## Custom Storage
+
+You can implement your own storage by implementing `Storage` interface from `@frames.js/render/identity/types`.
+
+```tsx
+import type { Storage } from "@frames.js/render/identity/types";
+
+const data = new Map<string, unknown>();
+
+class MyMemoryStorage implements Storage {
+  delete = (key: string): Promise<void> => {
+    data.delete(key);
+
+    return Promise.resolve();
+  };
+
+  getObject = <T extends Record<string, unknown>>(
+    key: string
+  ): Promise<T | undefined> => {
+    return data.get(key) as T | undefined;
+  };
+
+  setObject = <T extends Record<string, unknown>>(
+    key: string,
+    value: T
+  ): Promise<void> => {
+    data.set(key, value);
+
+    return Promise.resolve();
+  };
+}
+```
