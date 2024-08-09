@@ -1,0 +1,47 @@
+# Farcaster Identity
+
+Farcaster identity allows you to use [Farcaster Frames](https://docs.farcaster.xyz/developers/frames/).
+
+## Usage
+
+```tsx
+import {
+  useFarcasterFrameContext,
+  useFarcasterIdentity,
+} from "@frames.js/render/identity/farcaster";
+import { FrameUI } from "@frames.js/render/ui";
+import { useFrame } from "@frames.js/render/use-frame";
+import { fallbackFrameContext } from "@frames.js/render";
+import { WebStorage } from "@frames.js/render/identity/storage";
+
+export function MyFrame() {
+  const farcasterFrameContext = useFarcasterFrameContext({
+    fallbackContext: fallbackFrameContext,
+  });
+  const signerState = useFarcasterIdentity({
+    onMissingIdentity: () => {
+      // @todo implement a sign in dialog or anything you want that will then call signerState.createSigner()
+    },
+
+    // WebStorage is default value for storage option. It uses local storage by default.
+    // You can implement your own storage that implements the Storage interface from @frames.js/render/identity/types.
+    // storage: new WebStorage(),
+
+    // visibilityChangeDetectionHook is used to detect whether the current UI is visible to the user. For example if the user changed to another tab.
+    // It affects how polling for the identity is done. By default it uses the Page Visibility API.
+    // The hook must satisfy VisibilityDetectionHook type from @frames.js/render/identity/types.
+    // visibilityChangeDetectionHook: ...
+  });
+  const frameState = useFrame({
+    homeframeUrl: "...", // url to frame
+    frameActionProxy: "/frames",
+    frameGetProxy: "/frames",
+    frameContext: farcasterFrameContext.frameContext,
+    signerState,
+  });
+
+  return <FrameUI frameState={frameState} />;
+}
+```
+
+Please see our guide on how to use [Headless UI](/reference/render/headless-ui), [`useFrame()`](/reference/render/use-frame) and [Storage](/reference/render/identity/storage).

@@ -1,0 +1,27 @@
+# Anonymous Identity
+
+Anonymous identity allows you to use [Open Frames](/guides/open-frames) that don't require users to be signed in. See [Open Frames guide](/guides/open-frames#unauthenticated-frames) for more information.
+
+## Usage
+
+```tsx
+import { useAnonymousIdentity } from '@frames.js/render/identity/anonymous';
+import { FrameUI } from "@frames.js/render/ui';
+import { useFrame } from "@frames.js/render/use-frame";
+
+export function MyFrame() {
+  const signerState = useAnonymousIdentity();
+  const frameState = useFrame({
+    homeframeUrl: '...', // url to frame
+    frameActionProxy: '/frames',
+    frameGetProxy: '/frames',
+    frameContext: {},
+    signerState,
+    specification: 'openframes',
+  });
+
+  return <FrameUI frameState={frameState} />;
+}
+```
+
+Please see our guide on how to use [Headless UI](/reference/render/headless-ui) and [`useFrame()`](/reference/render/use-frame).

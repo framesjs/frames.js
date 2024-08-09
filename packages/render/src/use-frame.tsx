@@ -43,7 +43,7 @@ function onMintFallback({ target }: OnMintArgs): void {
 }
 
 export async function unsignedFrameAction<
-  TSignerStorageType = object,
+  TSignerStorageType = Record<string, unknown>,
   TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
   TFrameContextType extends FrameContext = FarcasterFrameContext,
 >({
@@ -170,7 +170,7 @@ function defaultComposerFormActionHandler(): Promise<never> {
 }
 
 export function useFrame<
-  TSignerStorageType = object,
+  TSignerStorageType = Record<string, unknown>,
   TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
   TFrameContextType extends FrameContext = FarcasterFrameContext,
 >({
@@ -387,7 +387,7 @@ export function useFrame<
         !dangerousSkipSigning &&
         buttonRequiresAuth
       ) {
-        signerState.onSignerlessFramePress();
+        await signerState.onSignerlessFramePress();
         // don't continue, let the app handle
         return;
       }
@@ -476,7 +476,7 @@ export function useFrame<
   const onCastActionButtonPress: CastActionButtonPressFunction = useCallback(
     async function onActionButtonPress(arg) {
       if (!signerState.hasSigner && !dangerousSkipSigning) {
-        signerState.onSignerlessFramePress();
+        await signerState.onSignerlessFramePress();
         // don't continue, let the app handle
         return;
       }
@@ -504,7 +504,7 @@ export function useFrame<
     useCallback(
       async function onActionButtonPress(arg) {
         if (!signerState.hasSigner && !dangerousSkipSigning) {
-          signerState.onSignerlessFramePress();
+          await signerState.onSignerlessFramePress();
           // don't continue, let the app handle
           return;
         }

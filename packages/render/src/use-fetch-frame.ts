@@ -92,7 +92,7 @@ function defaultErrorHandler(error: Error): void {
 }
 
 export function useFetchFrame<
-  TSignerStorageType = object,
+  TSignerStorageType = Record<string, unknown>,
   TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
   TFrameContextType extends FrameContext = FarcasterFrameContext,
 >({

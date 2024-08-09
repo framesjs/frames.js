@@ -1,0 +1,60 @@
+# Lens Identity
+
+Lens identity allows you to use [Open Frames](/guides/open-frames) that support [Lens](/guides/lens).
+
+## Requirements
+
+In order to use Lens identity you need to install `@rainbow-me/rainbowkit`, `@lens-protocol/client`, `viem` and `wagmi` dependencies.
+
+:::code-group
+
+```bash [npm]
+npm install @rainbow-me/rainbowkit @lens-protocol/client viem wagmi
+```
+
+```bash [yarn]
+yarn add @rainbow-me/rainbowkit @lens-protocol/client viem wagmi
+```
+
+```bash [pnpm]
+pnpm add @rainbow-me/rainbowkit @lens-protocol/client viem wagmi
+```
+
+:::
+
+## Usage
+
+```tsx
+import {
+  useLensFrameContext,
+  useLensIdentity,
+} from "@frames.js/render/identity/lens";
+import { FrameUI } from "@frames.js/render/ui";
+import { useFrame } from "@frames.js/render/use-frame";
+import { WebStorage } from "@frames.js/render/identity/storage";
+
+export function MyFrame() {
+  const lensFrameContext = useLensFrameContext({
+    fallbackContext: {
+      pubId: "0x01-0x01",
+    },
+  });
+  const signerState = useLensIdentity({
+    // WebStorage is default value for storage option. It uses local storage by default.
+    // You can implement your own storage that implements the Storage interface from @frames.js/render/identity/types.
+    // storage: new WebStorage(),
+  });
+  const frameState = useFrame({
+    homeframeUrl: "...", // url to frame
+    frameActionProxy: "/frames",
+    frameGetProxy: "/frames",
+    frameContext: lensFrameContext.frameContext,
+    signerState,
+    specification: "openframes",
+  });
+
+  return <FrameUI frameState={frameState} />;
+}
+```
+
+Please see our guide on how to use [Headless UI](/reference/render/headless-ui), [`useFrame()`](/reference/render/use-frame) and [Storage](/reference/render/identity/storage).

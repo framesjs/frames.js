@@ -1,16 +1,18 @@
 import type { MessageWithWalletAddressImplementation } from "../middleware/walletAddressMiddleware";
 
+export type AnonymousFrameMessage = {
+  buttonIndex: number;
+  state?: string;
+  inputText?: string;
+  unixTimestamp: number;
+};
+
 export type AnonymousFrameMessageReturnType =
-  MessageWithWalletAddressImplementation & {
-    buttonIndex: number;
-    state?: string;
-    inputText?: string;
-    unixTimestamp: number;
-  };
+  MessageWithWalletAddressImplementation & AnonymousFrameMessage;
 
 export type AnonymousOpenFramesRequest = {
   clientProtocol: string;
-  untrustedData: AnonymousFrameMessageReturnType;
+  untrustedData: AnonymousFrameMessage;
 };
 
 export function isAnonymousFrameActionPayload(
