@@ -59,10 +59,10 @@ import { urlSearchParamsToObject } from "../utils/url-search-params-to-object";
 import { FrameUI } from "./frame-ui";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
-import { StoredIdentity } from "../hooks/use-farcaster-identity";
-import { XmtpSigner } from "../hooks/use-xmtp-identity";
-import { LensSigner } from "../hooks/use-lens-identity";
-import { AnonymousSigner } from "../hooks/use-anonymous-identity";
+import type { AnonymousSigner } from "@frames.js/render/identity/anonymous";
+import type { LensSigner } from "@frames.js/render/identity/lens";
+import type { FarcasterSigner } from "@frames.js/render/identity/farcaster";
+import type { XmtpSigner } from "@frames.js/render/identity/xmtp";
 
 type FrameDiagnosticsProps = {
   stackItem: FramesStackItem;
@@ -283,7 +283,7 @@ const FramesRequestCardContentIcon: React.FC<{
 const FramesRequestCardContent: React.FC<{
   stack: FramesStack;
   fetchFrame: FrameState<
-    StoredIdentity | XmtpSigner | LensSigner | AnonymousSigner | null
+    FarcasterSigner | XmtpSigner | LensSigner | AnonymousSigner | null
   >["fetchFrame"];
 }> = ({ fetchFrame, stack }) => {
   return stack.map((frameStackItem, i) => {
@@ -358,14 +358,23 @@ const FramesRequestCardContent: React.FC<{
   });
 };
 
-type FrameDebuggerProps = {
+type FrameDebuggerSharedProps = {
   specification: SupportedParsingSpecification;
-  frameState: FrameState<any, any>;
   url: string;
   mockHubContext?: Partial<MockHubActionContext>;
   setMockHubContext?: Dispatch<SetStateAction<Partial<MockHubActionContext>>>;
   hasExamples: boolean;
 };
+
+type FrameDebuggerProps = FrameDebuggerSharedProps &
+  (
+    | {
+        useFrameHook: () => FrameState<any, any>;
+      }
+    | {
+        frameState: FrameState<any, any>;
+      }
+  );
 
 export type FrameDebuggerRef = {
   showConsole(): void;
@@ -382,12 +391,16 @@ export const FrameDebugger = React.forwardRef<
       hasExamples,
       specification,
       url,
-      frameState,
       mockHubContext,
       setMockHubContext,
+      ...restProps
     },
     ref
   ) => {
+    const frameState =
+      "useFrameHook" in restProps
+        ? restProps.useFrameHook()
+        : restProps.frameState;
     const { toast } = useToast();
     const debuggerConsoleTabRef = useRef<HTMLDivElement>(null);
     const [activeTab, setActiveTab] = useState<TabValues>("diagnostics");

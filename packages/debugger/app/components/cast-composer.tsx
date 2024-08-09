@@ -13,7 +13,6 @@ import {
 import IconByName from "./octicons";
 import { useFrame } from "@frames.js/render/use-frame";
 import { WithTooltip } from "./with-tooltip";
-import type { StoredIdentity } from "../hooks/use-farcaster-identity";
 import type {
   FarcasterFrameContext,
   FrameActionBodyPayload,
@@ -23,13 +22,14 @@ import { FrameUI } from "./frame-ui";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@radix-ui/react-toast";
 import Link from "next/link";
+import type { FarcasterSigner } from "@frames.js/render/identity/farcaster";
 
 type CastComposerProps = {
   composerAction: Partial<ComposerActionResponse>;
   onComposerActionClick: (state: ComposerActionState) => any;
   farcasterFrameConfig: Parameters<
     typeof useFrame<
-      StoredIdentity | null,
+      FarcasterSigner | null,
       FrameActionBodyPayload,
       FarcasterFrameContext
     >
@@ -121,7 +121,7 @@ CastComposer.displayName = "CastComposer";
 type CastEmbedPreviewProps = {
   farcasterFrameConfig: Parameters<
     typeof useFrame<
-      StoredIdentity | null,
+      FarcasterSigner | null,
       FrameActionBodyPayload,
       FarcasterFrameContext
     >

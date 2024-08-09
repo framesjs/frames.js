@@ -220,8 +220,8 @@ export interface SignerStateInstance<
   /** is loading the signer */
   isLoadingSigner: boolean;
   /** A function called when a frame button is clicked without a signer */
-  onSignerlessFramePress: () => void;
-  logout: () => void;
+  onSignerlessFramePress: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 export type FrameGETRequest = {
