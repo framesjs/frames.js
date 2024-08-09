@@ -411,6 +411,31 @@ const sidebar: SidebarItem[] = [
             link: "/reference/render/frame-ui",
           },
           {
+            text: "Identity",
+            items: [
+              {
+                text: "Anonymous",
+                link: "/reference/render/identity/anonymous",
+              },
+              {
+                text: "Farcaster",
+                link: "/reference/render/identity/farcaster",
+              },
+              {
+                text: "Lens",
+                link: "/reference/render/identity/lens",
+              },
+              {
+                text: "XMTP",
+                link: "/reference/render/identity/xmtp",
+              },
+              {
+                text: "Storage",
+                link: "/reference/render/identity/storage",
+              },
+            ],
+          },
+          {
             text: "Next.js",
             collapsed: true,
             items: [
