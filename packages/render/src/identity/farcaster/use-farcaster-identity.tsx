@@ -188,6 +188,12 @@ type UseFarcasterIdentityOptions = {
    */
   onMissingIdentity: () => void;
   /**
+   * URL to signer endpoint
+   *
+   * @defaultValue '/signer'
+   */
+  signerUrl?: string;
+  /**
    * @defaultValue WebStorage
    */
   storage?: Storage;
@@ -209,6 +215,7 @@ export type FarcasterSignerInstance =
 
 export function useFarcasterIdentity({
   onMissingIdentity,
+  signerUrl = "/signer",
   storage,
   visibilityChangeDetectionHook = useVisibilityDetection,
 }: UseFarcasterIdentityOptions): FarcasterSignerInstance {
@@ -266,7 +273,7 @@ export function useFarcasterIdentity({
       const keypairString = convertKeypairToHex(keypair);
       const authorizationResponse = await fetch(
         // real signer or local one are handled by local route so we don't need to expose anything to client side bundle
-        "/signer",
+        signerUrl,
         {
           method: "POST",
           body: JSON.stringify({
@@ -341,7 +348,7 @@ export function useFarcasterIdentity({
       // eslint-disable-next-line no-console -- provide feedback
       console.error("@frames.js/render: API Call failed", error);
     }
-  }, [dispatch]);
+  }, [dispatch, signerUrl]);
 
   const impersonateUser = useCallback(
     async (fid: number) => {
