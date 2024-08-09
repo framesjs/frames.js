@@ -1,8 +1,8 @@
 import type { AnonymousOpenFramesRequest } from "frames.js/anonymous";
 import { useCallback, useMemo } from "react";
-import type { SignerStateInstance } from "@frames.js/render";
 import type {
   SignerStateActionContext,
+  SignerStateInstance,
   SignFrameActionFunction,
 } from "../../types";
 
