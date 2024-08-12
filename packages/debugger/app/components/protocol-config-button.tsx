@@ -13,7 +13,7 @@ import { WithTooltip } from "./with-tooltip";
 import { useAnonymousIdentity } from "@frames.js/render/identity/anonymous";
 import {
   useFarcasterFrameContext,
-  useFarcasterIdentity,
+  useFarcasterMultiIdentity,
 } from "@frames.js/render/identity/farcaster";
 import {
   useLensFrameContext,
@@ -64,7 +64,7 @@ export const protocolConfigurationMap: Record<string, ProtocolConfiguration> = {
 type ProtocolConfigurationButtonProps = {
   onChange: (configuration: ProtocolConfiguration) => void;
   value: ProtocolConfiguration | null;
-  farcasterSignerState: ReturnType<typeof useFarcasterIdentity>;
+  farcasterSignerState: ReturnType<typeof useFarcasterMultiIdentity>;
   xmtpSignerState: ReturnType<typeof useXmtpIdentity>;
   lensSignerState: ReturnType<typeof useLensIdentity>;
   anonymousSignerState: ReturnType<typeof useAnonymousIdentity>;

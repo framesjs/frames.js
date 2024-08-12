@@ -53,7 +53,7 @@ import type {
 import { useAnonymousIdentity } from "@frames.js/render/identity/anonymous";
 import {
   useFarcasterFrameContext,
-  useFarcasterIdentity,
+  useFarcasterMultiIdentity,
   type FarcasterSigner,
 } from "@frames.js/render/identity/farcaster";
 import {
@@ -253,7 +253,7 @@ export default function DebuggerPage({
     refreshUrl(url);
   }, [url, protocolConfiguration, refreshUrl, toast, clearLogs]);
 
-  const farcasterSignerState = useFarcasterIdentity({
+  const farcasterSignerState = useFarcasterMultiIdentity({
     onMissingIdentity() {
       toast({
         title: "Please select an identity",

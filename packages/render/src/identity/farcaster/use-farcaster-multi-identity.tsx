@@ -16,7 +16,10 @@ import { usePersistedReducer } from "../../hooks/use-persisted-reducer";
 import { IdentityPoller } from "./identity-poller";
 import type { FarcasterSignedKeyRequest, FarcasterSigner } from "./types";
 
-type State = FarcasterSigner | { status: "init" };
+type State = {
+  activeIdentity: FarcasterSigner | null;
+  identities: FarcasterSigner[];
+};
 
 type Action =
   | {
@@ -25,7 +28,9 @@ type Action =
       privateKey: string;
       publicKey: string;
     }
+  | { type: "SELECT_IDENTITY"; _id: number }
   | { type: "LOGOUT" }
+  | { type: "REMOVE" }
   | {
       type: "START_FARCASTER_SIGN_IN";
       publicKey: string;
@@ -54,10 +59,40 @@ const identityReducer: Reducer<State, Action> = (state, action) => {
         _id,
       };
 
-      return identity;
+      return {
+        activeIdentity: identity,
+        identities: state.identities.concat(identity),
+      };
+    }
+    case "SELECT_IDENTITY": {
+      const activeIdentity =
+        state.identities.find((identity) => identity._id === action._id) ??
+        null;
+
+      return {
+        ...state,
+        activeIdentity,
+      };
     }
     case "LOGOUT": {
-      return { status: "init" };
+      return {
+        activeIdentity: null,
+        identities: state.identities,
+      };
+    }
+    case "REMOVE": {
+      const { activeIdentity } = state;
+
+      if (!activeIdentity) {
+        return state;
+      }
+
+      return {
+        activeIdentity: null,
+        identities: state.identities.filter(
+          (identity) => identity._id !== activeIdentity._id
+        ),
+      };
     }
     case "START_FARCASTER_SIGN_IN": {
       const _id = Date.now();
@@ -74,10 +109,25 @@ const identityReducer: Reducer<State, Action> = (state, action) => {
         signature: action.signature,
       };
 
-      return identity;
+      const identities = [
+        ...state.identities
+          // Remove all current pending approvals
+          .filter(
+            (storedIdentity) => storedIdentity.status !== "pending_approval"
+          ),
+        // Add new pending approval
+        identity,
+      ];
+
+      return {
+        activeIdentity: identity,
+        identities,
+      };
     }
     case "FARCASTER_SIGN_IN_SUCCESS": {
-      if (state.status !== "pending_approval") {
+      const { activeIdentity } = state;
+
+      if (activeIdentity?.status !== "pending_approval") {
         // eslint-disable-next-line no-console -- provide feedback
         console.warn(
           "Active identity must be selected and be in pending_approval status to be approved"
@@ -86,21 +136,30 @@ const identityReducer: Reducer<State, Action> = (state, action) => {
         return state;
       }
 
-      const updatedIdentity: FarcasterSigner = {
-        ...state,
+      const updatedActiveIdentity: FarcasterSigner = {
+        ...activeIdentity,
         status: "approved",
         fid: action.signedKeyRequest.userFid,
         signedKeyRequest: action.signedKeyRequest,
       };
 
-      return updatedIdentity;
+      return {
+        activeIdentity: updatedActiveIdentity,
+        identities: state.identities.map((identity) => {
+          if (identity._id === activeIdentity._id) {
+            return updatedActiveIdentity;
+          }
+
+          return identity;
+        }),
+      };
     }
     default:
       return state;
   }
 };
 
-type UseFarcasterIdentityOptions = {
+type UseFarcasterMultiIdentityOptions = {
   /**
    * Called when it is required to create a new signer in order to proceed
    */
@@ -116,7 +175,7 @@ type UseFarcasterIdentityOptions = {
    */
   storage?: Storage;
   /**
-   * @defaultValue 'farcasterIdentity'
+   * @defaultValue 'farcasterIdentities'
    */
   storageKey?: string;
   /**
@@ -125,41 +184,60 @@ type UseFarcasterIdentityOptions = {
   visibilityChangeDetectionHook?: typeof useVisibilityDetection;
 };
 
-export type FarcasterSignerInstance =
+export type FarcasterMultiSignerInstance =
   FarcasterSignerState<FarcasterSigner | null> & {
     createSigner: () => Promise<void>;
     impersonateUser: (fid: number) => Promise<void>;
+    removeIdentity: () => Promise<void>;
+    identities: FarcasterSigner[];
+    selectIdentity: (id: number) => Promise<void>;
     identityPoller: IdentityPoller;
   };
 
-export function useFarcasterIdentity({
+export function useFarcasterMultiIdentity({
   onMissingIdentity,
   signerUrl = "/signer",
   storage,
-  storageKey = "farcasterIdentity",
+  storageKey = "farcasterIdentities",
   visibilityChangeDetectionHook = useVisibilityDetection,
-}: UseFarcasterIdentityOptions): FarcasterSignerInstance {
+}: UseFarcasterMultiIdentityOptions): FarcasterMultiSignerInstance {
   // we use ref so we don't instantiate the storage if user passed their own storage
   const storageRef = useRef(storage ?? new WebStorage());
   const identityPoller = useRef(new IdentityPoller()).current;
   const [isLoading, setIsLoading] = useState(false);
   const [state, dispatch] = usePersistedReducer(
     identityReducer,
-    { status: "init" as const },
+    {
+      activeIdentity: null,
+      identities: [],
+    },
     async () => {
       const storedState = await storageRef.current.getObject<State>(storageKey);
 
-      if (
-        !storedState ||
-        (storedState.status === "pending_approval" &&
-          storedState.deadline < Math.floor(Date.now() / 1000))
-      ) {
+      if (!storedState) {
         return {
-          status: "init" as const,
+          activeIdentity: null,
+          identities: [],
         };
       }
 
-      return storedState;
+      const stateWithoutExpiredPendingApprovals: State = {
+        activeIdentity: storedState.activeIdentity,
+        identities: storedState.identities.filter(
+          (signer) =>
+            signer.status !== "pending_approval" ||
+            (signer.deadline && signer.deadline > Math.floor(Date.now() / 1000))
+        ),
+      };
+
+      stateWithoutExpiredPendingApprovals.activeIdentity =
+        stateWithoutExpiredPendingApprovals.identities.find(
+          (identity) =>
+            identity._id ===
+            stateWithoutExpiredPendingApprovals.activeIdentity?._id
+        ) ?? null;
+
+      return stateWithoutExpiredPendingApprovals;
     },
     async (newState) => {
       await storageRef.current.setObject<State>(storageKey, newState);
@@ -281,7 +359,11 @@ export function useFarcasterIdentity({
     await dispatch({ type: "LOGOUT" });
   }, [dispatch]);
 
-  const farcasterUser = state.status === "init" ? null : state;
+  const removeIdentity = useCallback(async () => {
+    await dispatch({ type: "REMOVE" });
+  }, [dispatch]);
+
+  const farcasterUser = state.activeIdentity;
 
   const visibilityDetector = visibilityChangeDetectionHook();
 
@@ -327,6 +409,13 @@ export function useFarcasterIdentity({
     }
   }, [farcasterUser, identityPoller, visibilityDetector, dispatch]);
 
+  const selectIdentity = useCallback(
+    async (id: number) => {
+      await dispatch({ type: "SELECT_IDENTITY", _id: id });
+    },
+    [dispatch]
+  );
+
   return useMemo(
     () => ({
       signer: farcasterUser,
@@ -339,6 +428,9 @@ export function useFarcasterIdentity({
       onSignerlessFramePress,
       createSigner,
       logout,
+      removeIdentity,
+      identities: state.identities,
+      selectIdentity,
       identityPoller,
     }),
     [
@@ -349,6 +441,9 @@ export function useFarcasterIdentity({
       logout,
       createSigner,
       onSignerlessFramePress,
+      removeIdentity,
+      selectIdentity,
+      state.identities,
     ]
   );
 }
