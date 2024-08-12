@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { STORAGE_KEYS } from "../constants";
 import type { FrameContextManager, Storage } from "../types";
 import type { FarcasterFrameContext } from "../../farcaster";
 import { WebStorage } from "../storage";
@@ -10,11 +9,16 @@ type FarcasterFrameContextOptions = {
    * @defaultValue WebStorage
    */
   storage?: Storage;
+  /**
+   * @defaultValue "farcasterFrameContext"
+   */
+  storageKey?: string;
 };
 
 export function useFarcasterFrameContext({
   fallbackContext,
   storage,
+  storageKey = "farcasterFrameContext",
 }: FarcasterFrameContextOptions): FrameContextManager<FarcasterFrameContext> {
   // we use ref so we don't instantiate the storage if user passed their own storage
   const storageRef = useRef(storage ?? new WebStorage());
@@ -23,7 +27,7 @@ export function useFarcasterFrameContext({
 
   useEffect(() => {
     storageRef.current
-      .getObject<FarcasterFrameContext>(STORAGE_KEYS.FARCASTER_FRAME_CONTEXT)
+      .getObject<FarcasterFrameContext>(storageKey)
       .then((data) => {
         if (data) {
           setFrameContext(data);
@@ -36,21 +40,21 @@ export function useFarcasterFrameContext({
           e
         );
       });
-  }, []);
+  }, [storageKey]);
 
   const handleSetFrameContext: FrameContextManager<FarcasterFrameContext>["setFrameContext"] =
     useCallback(async (newFrameContext) => {
       await storageRef.current.setObject<FarcasterFrameContext>(
-        STORAGE_KEYS.FARCASTER_FRAME_CONTEXT,
+        storageKey,
         newFrameContext
       );
       setFrameContext(newFrameContext);
     }, []);
 
   const resetFrameContext = useCallback(async () => {
-    await storageRef.current.delete(STORAGE_KEYS.FARCASTER_FRAME_CONTEXT);
+    await storageRef.current.delete(storageKey);
     setFrameContext(null);
-  }, []);
+  }, [storageKey]);
 
   return useMemo(
     () => ({

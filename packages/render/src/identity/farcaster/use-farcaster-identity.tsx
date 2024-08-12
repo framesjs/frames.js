@@ -6,7 +6,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { STORAGE_KEYS } from "../constants";
 import { convertKeypairToHex, createKeypairEDDSA } from "../crypto";
 import type {
   FarcasterSignerApproved,
@@ -198,6 +197,10 @@ type UseFarcasterIdentityOptions = {
    */
   storage?: Storage;
   /**
+   * @defaultValue 'farcasterIdentities'
+   */
+  storageKey?: string;
+  /**
    * Used to detect if the current context is visible, this affects the polling of the signer approval status.
    */
   visibilityChangeDetectionHook?: typeof useVisibilityDetection;
@@ -217,6 +220,7 @@ export function useFarcasterIdentity({
   onMissingIdentity,
   signerUrl = "/signer",
   storage,
+  storageKey = "farcasterIdentities",
   visibilityChangeDetectionHook = useVisibilityDetection,
 }: UseFarcasterIdentityOptions): FarcasterSignerInstance {
   // we use ref so we don't instantiate the storage if user passed their own storage
@@ -230,9 +234,7 @@ export function useFarcasterIdentity({
       identities: [],
     },
     async () => {
-      const storedState = await storageRef.current.getObject<State>(
-        STORAGE_KEYS.FARCASTER_IDENTITIES
-      );
+      const storedState = await storageRef.current.getObject<State>(storageKey);
 
       if (!storedState) {
         return {
@@ -260,10 +262,7 @@ export function useFarcasterIdentity({
       return stateWithoutExpiredPendingApprovals;
     },
     async (newState) => {
-      await storageRef.current.setObject(
-        STORAGE_KEYS.FARCASTER_IDENTITIES,
-        newState
-      );
+      await storageRef.current.setObject<State>(storageKey, newState);
     }
   );
 

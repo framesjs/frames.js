@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { STORAGE_KEYS } from "../constants";
 import type { FrameContextManager, Storage } from "../types";
 import { WebStorage } from "../storage";
 
@@ -16,11 +15,16 @@ type XmtpFrameContextOptions = {
    * @defaultValue WebStorage
    */
   storage?: Storage;
+  /**
+   * @defaultValue "xmtpFrameContext"
+   */
+  storageKey?: string;
 };
 
 export function useXmtpFrameContext({
   fallbackContext,
   storage,
+  storageKey = "xmtpFrameContext",
 }: XmtpFrameContextOptions): FrameContextManager<XmtpFrameContext> {
   // we use ref so we don't instantiate the storage if user passed their own storage
   const storageRef = useRef(storage ?? new WebStorage());
@@ -30,7 +34,7 @@ export function useXmtpFrameContext({
 
   useEffect(() => {
     storageRef.current
-      .getObject<XmtpFrameContext>(STORAGE_KEYS.XMTP_FRAME_CONTEXT)
+      .getObject<XmtpFrameContext>(storageKey)
       .then((storedData) => {
         if (storedData) {
           setFrameContext(storedData);
@@ -43,21 +47,24 @@ export function useXmtpFrameContext({
           e
         );
       });
-  }, []);
+  }, [storageKey]);
 
   const handleSetFrameContext: FrameContextManager<XmtpFrameContext>["setFrameContext"] =
-    useCallback(async (newFrameContext) => {
-      await storageRef.current.setObject<XmtpFrameContext>(
-        STORAGE_KEYS.XMTP_FRAME_CONTEXT,
-        newFrameContext
-      );
-      setFrameContext(newFrameContext);
-    }, []);
+    useCallback(
+      async (newFrameContext) => {
+        await storageRef.current.setObject<XmtpFrameContext>(
+          storageKey,
+          newFrameContext
+        );
+        setFrameContext(newFrameContext);
+      },
+      [storageKey]
+    );
 
   const resetFrameContext = useCallback(async () => {
-    await storageRef.current.delete(STORAGE_KEYS.XMTP_FRAME_CONTEXT);
+    await storageRef.current.delete(storageKey);
     setFrameContext(null);
-  }, []);
+  }, [storageKey]);
 
   return useMemo(
     () => ({

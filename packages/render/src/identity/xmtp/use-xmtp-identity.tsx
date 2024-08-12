@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { zeroAddress } from "viem";
 import { useAccount, useConfig } from "wagmi";
 import { getAccount, signMessage } from "wagmi/actions";
-import { STORAGE_KEYS } from "../constants";
 import type { Storage } from "../types";
 import type {
   SignerStateActionContext,
@@ -36,10 +35,15 @@ type XmtpIdentityOptions = {
    * @defaultValue WebStorage
    */
   storage?: Storage;
+  /**
+   * @defaultValue "xmtpSigner"
+   */
+  storageKey?: string;
 };
 
 export function useXmtpIdentity({
   storage,
+  storageKey = "xmtpSigner",
 }: XmtpIdentityOptions = {}): XmtpSignerInstance {
   // we use ref so we don't instantiate the storage if user passed their own storage
   const storageRef = useRef(storage ?? new WebStorage());
@@ -74,9 +78,8 @@ export function useXmtpIdentity({
 
   useEffect(() => {
     async function instantiateXmtpSignerAndClient(): Promise<void> {
-      const storedSigner = await storageRef.current.getObject<XmtpStoredSigner>(
-        STORAGE_KEYS.XMTP_SIGNER
-      );
+      const storedSigner =
+        await storageRef.current.getObject<XmtpStoredSigner>(storageKey);
 
       if (!storedSigner) {
         return;
@@ -102,14 +105,14 @@ export function useXmtpIdentity({
         e
       );
     });
-  }, []);
+  }, [storageKey]);
 
   const logout = useCallback(async () => {
-    await storageRef.current.delete(STORAGE_KEYS.XMTP_SIGNER);
+    await storageRef.current.delete(storageKey);
 
     setXmtpClient(null);
     setXmtpSigner(null);
-  }, []);
+  }, [storageKey]);
 
   const onSignerlessFramePress = useCallback(async (): Promise<void> => {
     try {
@@ -132,13 +135,10 @@ export function useXmtpIdentity({
 
         const walletAddress = getAccount(config).address || zeroAddress;
 
-        await storageRef.current.setObject<XmtpStoredSigner>(
-          STORAGE_KEYS.XMTP_SIGNER,
-          {
-            walletAddress,
-            keys: Buffer.from(keys).toString("hex"),
-          }
-        );
+        await storageRef.current.setObject<XmtpStoredSigner>(storageKey, {
+          walletAddress,
+          keys: Buffer.from(keys).toString("hex"),
+        });
 
         setXmtpSigner({
           keys,
@@ -152,7 +152,7 @@ export function useXmtpIdentity({
     } finally {
       setIsLoading(false);
     }
-  }, [config, walletSigner, xmtpSigner, connect]);
+  }, [config, walletSigner, xmtpSigner, connect, storageKey]);
 
   const signFrameAction: SignFrameActionFunction<
     SignerStateActionContext<XmtpSigner, XmtpFrameContext>,

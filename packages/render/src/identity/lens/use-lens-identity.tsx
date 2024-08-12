@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAccount, useConfig, useConnections } from "wagmi";
 import { signMessage, signTypedData, switchChain } from "wagmi/actions";
 import { LensClient, production } from "@lens-protocol/client";
-import { STORAGE_KEYS } from "../constants";
 import type {
   SignerStateActionContext,
   SignerStateInstance,
@@ -62,10 +61,15 @@ type LensIdentityOptions = {
    * @defaultValue WebStorage
    */
   storage?: Storage;
+  /**
+   * @defaultValue "lensProfile"
+   */
+  storageKey?: string;
 };
 
 export function useLensIdentity({
   storage,
+  storageKey = "lensProfile",
 }: LensIdentityOptions = {}): LensSignerInstance {
   // we use ref so we don't instantiate the storage if user passed their own storage
   const storageRef = useRef(storage ?? new WebStorage());
@@ -86,7 +90,7 @@ export function useLensIdentity({
 
   useEffect(() => {
     storageRef.current
-      .getObject<LensSigner>(STORAGE_KEYS.LENS_PROFILE)
+      .getObject<LensSigner>(storageKey)
       .then((storedData) => {
         if (storedData) {
           setLensSigner(storedData);
@@ -96,12 +100,12 @@ export function useLensIdentity({
         // eslint-disable-next-line no-console -- provide feedback
         console.error("@frames.js/render: Could not get the Lens profile", e);
       });
-  }, []);
+  }, [storageKey]);
 
   const logout = useCallback(async () => {
-    await storageRef.current.delete(STORAGE_KEYS.LENS_PROFILE);
+    await storageRef.current.delete(storageKey);
     setLensSigner(null);
-  }, []);
+  }, [storageKey]);
 
   const handleSelectProfile = useCallback(
     async (profile: LensProfile) => {
@@ -146,10 +150,7 @@ export function useLensIdentity({
             handle,
           };
 
-          await storageRef.current.setObject<LensSigner>(
-            STORAGE_KEYS.LENS_PROFILE,
-            signer
-          );
+          await storageRef.current.setObject<LensSigner>(storageKey, signer);
 
           setLensSigner(signer);
         }
@@ -158,7 +159,7 @@ export function useLensIdentity({
         console.error("@frames.js/render: Create Lens signer failed", error);
       }
     },
-    [address, config, lensClient.authentication, lensClient.profile]
+    [address, config, lensClient.authentication, lensClient.profile, storageKey]
   );
 
   const onSignerlessFramePress = useCallback(async () => {
