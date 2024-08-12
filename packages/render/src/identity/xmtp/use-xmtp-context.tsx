@@ -1,6 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { FrameContextManager, Storage } from "../types";
-import { WebStorage } from "../storage";
+import { createFrameContextHook } from "../create-frame-context-hook";
 
 export type XmtpFrameContext = {
   conversationTopic: string;
@@ -9,69 +7,6 @@ export type XmtpFrameContext = {
   groupSecret?: Uint8Array;
 };
 
-type XmtpFrameContextOptions = {
-  fallbackContext: XmtpFrameContext;
-  /**
-   * @defaultValue WebStorage
-   */
-  storage?: Storage;
-  /**
-   * @defaultValue "xmtpFrameContext"
-   */
-  storageKey?: string;
-};
-
-export function useXmtpFrameContext({
-  fallbackContext,
-  storage,
-  storageKey = "xmtpFrameContext",
-}: XmtpFrameContextOptions): FrameContextManager<XmtpFrameContext> {
-  // we use ref so we don't instantiate the storage if user passed their own storage
-  const storageRef = useRef(storage ?? new WebStorage());
-  const [frameContext, setFrameContext] = useState<XmtpFrameContext | null>(
-    null
-  );
-
-  useEffect(() => {
-    storageRef.current
-      .getObject<XmtpFrameContext>(storageKey)
-      .then((storedData) => {
-        if (storedData) {
-          setFrameContext(storedData);
-        }
-      })
-      .catch((e) => {
-        // eslint-disable-next-line no-console -- provide feedback
-        console.error(
-          "@frames.js/render: Could not get the XMTP frame context",
-          e
-        );
-      });
-  }, [storageKey]);
-
-  const handleSetFrameContext: FrameContextManager<XmtpFrameContext>["setFrameContext"] =
-    useCallback(
-      async (newFrameContext) => {
-        await storageRef.current.setObject<XmtpFrameContext>(
-          storageKey,
-          newFrameContext
-        );
-        setFrameContext(newFrameContext);
-      },
-      [storageKey]
-    );
-
-  const resetFrameContext = useCallback(async () => {
-    await storageRef.current.delete(storageKey);
-    setFrameContext(null);
-  }, [storageKey]);
-
-  return useMemo(
-    () => ({
-      frameContext: frameContext || fallbackContext,
-      setFrameContext: handleSetFrameContext,
-      resetFrameContext,
-    }),
-    [fallbackContext, frameContext, handleSetFrameContext, resetFrameContext]
-  );
-}
+export const useXmtpFrameContext = createFrameContextHook<XmtpFrameContext>({
+  storageKey: "xmtpFrameContext",
+});
