@@ -50,7 +50,7 @@ type FarcasterSignerConfigProps = {
   logout: () => void;
   removeIdentity: () => void;
   storedUsers?: FarcasterSigner[];
-  onIdentitySelect: (id: number) => void;
+  onIdentitySelect: (id: number | string) => void;
 };
 
 export default function FarcasterSignerConfig({

@@ -67,12 +67,13 @@ type LensIdentityOptions = {
   storageKey?: string;
 };
 
+const defaultStorage = new WebStorage();
+
 export function useLensIdentity({
-  storage,
+  storage = defaultStorage,
   storageKey = "lensProfile",
 }: LensIdentityOptions = {}): LensSignerInstance {
-  // we use ref so we don't instantiate the storage if user passed their own storage
-  const storageRef = useRef(storage ?? new WebStorage());
+  const storageRef = useRef(storage);
   const [isLoading, setIsLoading] = useState(false);
   const [lensSigner, setLensSigner] = useState<LensSigner | null>(null);
   const [showProfileSelector, setShowProfileSelector] = useState(false);
@@ -90,7 +91,7 @@ export function useLensIdentity({
 
   useEffect(() => {
     storageRef.current
-      .getObject<LensSigner>(storageKey)
+      .get<LensSigner>(storageKey)
       .then((storedData) => {
         if (storedData) {
           setLensSigner(storedData);
@@ -150,7 +151,7 @@ export function useLensIdentity({
             handle,
           };
 
-          await storageRef.current.setObject<LensSigner>(storageKey, signer);
+          await storageRef.current.set<LensSigner>(storageKey, () => signer);
 
           setLensSigner(signer);
         }

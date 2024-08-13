@@ -41,12 +41,13 @@ type XmtpIdentityOptions = {
   storageKey?: string;
 };
 
+const defaultStorage = new WebStorage();
+
 export function useXmtpIdentity({
-  storage,
+  storage = defaultStorage,
   storageKey = "xmtpSigner",
 }: XmtpIdentityOptions = {}): XmtpSignerInstance {
-  // we use ref so we don't instantiate the storage if user passed their own storage
-  const storageRef = useRef(storage ?? new WebStorage());
+  const storageRef = useRef(storage);
   const [isLoading, setIsLoading] = useState(false);
   const [xmtpSigner, setXmtpSigner] = useState<XmtpSigner | null>(null);
   const [xmtpClient, setXmtpClient] = useState<Client | null>(null);
@@ -79,7 +80,7 @@ export function useXmtpIdentity({
   useEffect(() => {
     async function instantiateXmtpSignerAndClient(): Promise<void> {
       const storedSigner =
-        await storageRef.current.getObject<XmtpStoredSigner>(storageKey);
+        await storageRef.current.get<XmtpStoredSigner>(storageKey);
 
       if (!storedSigner) {
         return;
@@ -135,10 +136,10 @@ export function useXmtpIdentity({
 
         const walletAddress = getAccount(config).address || zeroAddress;
 
-        await storageRef.current.setObject<XmtpStoredSigner>(storageKey, {
+        await storageRef.current.set<XmtpStoredSigner>(storageKey, () => ({
           walletAddress,
           keys: Buffer.from(keys).toString("hex"),
-        });
+        }));
 
         setXmtpSigner({
           keys,

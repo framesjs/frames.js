@@ -12,22 +12,30 @@ import { signFrameAction } from "../../farcaster";
 import type { Storage } from "../types";
 import { useVisibilityDetection } from "../../hooks/use-visibility-detection";
 import { WebStorage } from "../storage";
-import { usePersistedReducer } from "../../hooks/use-persisted-reducer";
+import { useStorage } from "../../hooks/use-storage";
 import { IdentityPoller } from "./identity-poller";
-import type { FarcasterSignedKeyRequest, FarcasterSigner } from "./types";
+import type {
+  FarcasterSignedKeyRequest,
+  FarcasterSigner,
+  FarcasterSignerApproved,
+  FarcasterSignerImpersonating,
+  FarcasterSignerPendingApproval,
+} from "./types";
 
 type State = FarcasterSigner | { status: "init" };
 
 type Action =
   | {
       type: "IMPERSONATE";
+      id: string | number;
       fid: number;
       privateKey: string;
       publicKey: string;
     }
   | { type: "LOGOUT" }
   | {
-      type: "START_FARCASTER_SIGN_IN";
+      type: "LOGIN_START";
+      id: string | number;
       publicKey: string;
       privateKey: string;
       deadline: number;
@@ -38,20 +46,19 @@ type Action =
       signature: string;
     }
   | {
-      type: "FARCASTER_SIGN_IN_SUCCESS";
+      type: "LOGIN_SUCCESS";
       signedKeyRequest: FarcasterSignedKeyRequest;
     };
 
 const identityReducer: Reducer<State, Action> = (state, action) => {
   switch (action.type) {
     case "IMPERSONATE": {
-      const _id = Date.now();
       const identity: FarcasterSigner = {
         status: "impersonating",
         fid: action.fid,
         privateKey: action.privateKey,
         publicKey: action.publicKey,
-        _id,
+        _id: action.id,
       };
 
       return identity;
@@ -59,10 +66,9 @@ const identityReducer: Reducer<State, Action> = (state, action) => {
     case "LOGOUT": {
       return { status: "init" };
     }
-    case "START_FARCASTER_SIGN_IN": {
-      const _id = Date.now();
+    case "LOGIN_START": {
       const identity: FarcasterSigner = {
-        _id,
+        _id: action.id,
         status: "pending_approval",
         privateKey: action.privateKey,
         publicKey: action.publicKey,
@@ -76,7 +82,7 @@ const identityReducer: Reducer<State, Action> = (state, action) => {
 
       return identity;
     }
-    case "FARCASTER_SIGN_IN_SUCCESS": {
+    case "LOGIN_SUCCESS": {
       if (state.status !== "pending_approval") {
         // eslint-disable-next-line no-console -- provide feedback
         console.warn(
@@ -106,6 +112,13 @@ type UseFarcasterIdentityOptions = {
    */
   onMissingIdentity: () => void;
   /**
+   * Allows you to disable the polling of the signer approval status
+   * when user starts signin in
+   *
+   * @defaultValue true
+   */
+  enableIdentityPolling?: boolean;
+  /**
    * URL to signer endpoint
    *
    * @defaultValue '/signer'
@@ -119,10 +132,15 @@ type UseFarcasterIdentityOptions = {
    * @defaultValue 'farcasterIdentity'
    */
   storageKey?: string;
+  generateUserId?: () => string | number;
   /**
    * Used to detect if the current context is visible, this affects the polling of the signer approval status.
    */
   visibilityChangeDetectionHook?: typeof useVisibilityDetection;
+  onImpersonate?: (identity: FarcasterSignerImpersonating) => void;
+  onLogIn?: (identity: FarcasterSignerApproved) => void;
+  onLogInStart?: (identity: FarcasterSignerPendingApproval) => void;
+  onLogOut?: (identity: FarcasterSigner) => void;
 };
 
 export type FarcasterSignerInstance =
@@ -132,39 +150,52 @@ export type FarcasterSignerInstance =
     identityPoller: IdentityPoller;
   };
 
+const defaultStorage = new WebStorage();
+const defaultGenerateUserId = (): number => {
+  return Date.now();
+};
+
 export function useFarcasterIdentity({
   onMissingIdentity,
+  enableIdentityPolling = true,
   signerUrl = "/signer",
-  storage,
+  storage = defaultStorage,
   storageKey = "farcasterIdentity",
   visibilityChangeDetectionHook = useVisibilityDetection,
+  onImpersonate,
+  onLogIn,
+  onLogInStart,
+  onLogOut,
+  generateUserId = defaultGenerateUserId,
 }: UseFarcasterIdentityOptions): FarcasterSignerInstance {
-  // we use ref so we don't instantiate the storage if user passed their own storage
-  const storageRef = useRef(storage ?? new WebStorage());
+  const storageRef = useRef(storage);
   const identityPoller = useRef(new IdentityPoller()).current;
   const [isLoading, setIsLoading] = useState(false);
-  const [state, dispatch] = usePersistedReducer(
-    identityReducer,
-    { status: "init" as const },
-    async () => {
-      const storedState = await storageRef.current.getObject<State>(storageKey);
-
+  const [state, setState] = useStorage<State>({
+    key: storageKey,
+    storage: storageRef.current,
+    initialValue: { status: "init" },
+    preprocessValue(value) {
       if (
-        !storedState ||
-        (storedState.status === "pending_approval" &&
-          storedState.deadline < Math.floor(Date.now() / 1000))
+        value.status === "pending_approval" &&
+        value.deadline < Math.floor(Date.now() / 1000)
       ) {
-        return {
-          status: "init" as const,
-        };
+        return { status: "init" };
       }
 
-      return storedState;
+      return value;
     },
-    async (newState) => {
-      await storageRef.current.setObject<State>(storageKey, newState);
-    }
-  );
+  });
+  const onImpersonateRef = useRef(onImpersonate);
+  onImpersonateRef.current = onImpersonate;
+  const onLogInRef = useRef(onLogIn);
+  onLogInRef.current = onLogIn;
+  const onLogInStartRef = useRef(onLogInStart);
+  onLogInStartRef.current = onLogInStart;
+  const onLogOutRef = useRef(onLogOut);
+  onLogOutRef.current = onLogOut;
+  const generateUserIdRef = useRef(generateUserId);
+  generateUserIdRef.current = generateUserId;
 
   const createFarcasterSigner = useCallback(async () => {
     try {
@@ -229,16 +260,25 @@ export function useFarcasterIdentity({
 
         signerApprovalUrl.searchParams.set("token", signedKeyRequestToken);
 
-        await dispatch({
-          type: "START_FARCASTER_SIGN_IN",
-          publicKey: keypairString.publicKey,
-          privateKey: keypairString.privateKey,
-          deadline,
-          token: signedKeyRequest.token,
-          signerApprovalUrl: signerApprovalUrl.toString(),
-          requestFid: parseInt(requestFid, 10),
-          requestSigner,
-          signature,
+        await setState((currentState) => {
+          const newState = identityReducer(currentState, {
+            type: "LOGIN_START",
+            id: generateUserIdRef.current(),
+            publicKey: keypairString.publicKey,
+            privateKey: keypairString.privateKey,
+            deadline,
+            token: signedKeyRequestToken,
+            signerApprovalUrl: signerApprovalUrl.toString(),
+            requestFid: parseInt(requestFid, 10),
+            requestSigner,
+            signature,
+          });
+
+          if (newState.status === "pending_approval") {
+            onLogInStartRef.current?.(newState);
+          }
+
+          return newState;
         });
       } else if ("message" in authorizationBody) {
         throw new Error(authorizationBody.message);
@@ -247,7 +287,7 @@ export function useFarcasterIdentity({
       // eslint-disable-next-line no-console -- provide feedback
       console.error("@frames.js/render: API Call failed", error);
     }
-  }, [dispatch, signerUrl]);
+  }, [setState, signerUrl]);
 
   const impersonateUser = useCallback(
     async (fid: number) => {
@@ -257,12 +297,26 @@ export function useFarcasterIdentity({
         const keypair = await createKeypairEDDSA();
         const { privateKey, publicKey } = convertKeypairToHex(keypair);
 
-        await dispatch({ type: "IMPERSONATE", fid, privateKey, publicKey });
+        await setState((currentState) => {
+          const newState = identityReducer(currentState, {
+            type: "IMPERSONATE",
+            id: generateUserIdRef.current(),
+            fid,
+            privateKey,
+            publicKey,
+          });
+
+          if (newState.status === "impersonating") {
+            onImpersonateRef.current?.(newState);
+          }
+
+          return newState;
+        });
       } finally {
         setIsLoading(false);
       }
     },
-    [dispatch, setIsLoading]
+    [setState]
   );
 
   const onSignerlessFramePress = useCallback((): Promise<void> => {
@@ -278,24 +332,42 @@ export function useFarcasterIdentity({
   }, [createFarcasterSigner]);
 
   const logout = useCallback(async () => {
-    await dispatch({ type: "LOGOUT" });
-  }, [dispatch]);
+    await setState((currentState) => {
+      if (currentState.status !== "init") {
+        onLogOutRef.current?.(currentState);
+      }
+
+      return identityReducer(currentState, { type: "LOGOUT" });
+    });
+  }, [setState]);
 
   const farcasterUser = state.status === "init" ? null : state;
 
   const visibilityDetector = visibilityChangeDetectionHook();
 
   useEffect(() => {
-    if (farcasterUser && farcasterUser.status === "pending_approval") {
+    if (
+      farcasterUser &&
+      farcasterUser.status === "pending_approval" &&
+      enableIdentityPolling
+    ) {
       const startPolling = (): void => {
         // start polling because the effect is active
         identityPoller
           .start(farcasterUser.token)
           .then((signedKeyRequest) => {
             if (signedKeyRequest) {
-              return dispatch({
-                type: "FARCASTER_SIGN_IN_SUCCESS",
-                signedKeyRequest,
+              return setState((currentState) => {
+                const newState = identityReducer(currentState, {
+                  type: "LOGIN_SUCCESS",
+                  signedKeyRequest,
+                });
+
+                if (newState.status === "approved") {
+                  onLogInRef.current?.(newState);
+                }
+
+                return newState;
               });
             }
           })
@@ -325,7 +397,13 @@ export function useFarcasterIdentity({
         unregisterVisibilityChangeListener();
       };
     }
-  }, [farcasterUser, identityPoller, visibilityDetector, dispatch]);
+  }, [
+    farcasterUser,
+    identityPoller,
+    visibilityDetector,
+    setState,
+    enableIdentityPolling,
+  ]);
 
   return useMemo(
     () => ({

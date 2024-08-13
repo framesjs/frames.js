@@ -1,10 +1,10 @@
 import type {
-  FarcasterSignerApproved,
-  FarcasterSignerImpersonating,
-  FarcasterSignerPendingApproval,
+  FarcasterSignerApproved as BaseFarcasterSignerApproved,
+  FarcasterSignerImpersonating as BaseFarcasterSignerImpersonating,
+  FarcasterSignerPendingApproval as BaseFarcasterSignerPendingApproval,
 } from "../../farcaster";
 
-export interface FarcasterSignedKeyRequest {
+export type FarcasterSignedKeyRequest = {
   deeplinkUrl: string;
   isSponsored: boolean;
   key: string;
@@ -12,12 +12,25 @@ export interface FarcasterSignedKeyRequest {
   state: string;
   token: string;
   userFid: number;
-  signerUser?: object;
-  signerUserMetadata?: object;
-}
+  signerUser?: Record<string, any>;
+  signerUserMetadata?: Record<string, any>;
+};
 
-export type FarcasterSigner = (
-  | FarcasterSignerPendingApproval
+export type FarcasterSignerApproved = BaseFarcasterSignerApproved & {
+  _id: number | string;
+  signedKeyRequest: FarcasterSignedKeyRequest;
+};
+
+export type FarcasterSignerImpersonating = BaseFarcasterSignerImpersonating & {
+  _id: number | string;
+};
+
+export type FarcasterSignerPendingApproval =
+  BaseFarcasterSignerPendingApproval & {
+    _id: number | string;
+  };
+
+export type FarcasterSigner =
+  | FarcasterSignerApproved
   | FarcasterSignerImpersonating
-  | (FarcasterSignerApproved & { signedKeyRequest: FarcasterSignedKeyRequest })
-) & { _id: number };
+  | FarcasterSignerPendingApproval;

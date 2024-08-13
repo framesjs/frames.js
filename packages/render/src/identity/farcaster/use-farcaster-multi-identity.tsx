@@ -12,9 +12,15 @@ import { signFrameAction } from "../../farcaster";
 import type { Storage } from "../types";
 import { useVisibilityDetection } from "../../hooks/use-visibility-detection";
 import { WebStorage } from "../storage";
-import { usePersistedReducer } from "../../hooks/use-persisted-reducer";
+import { useStorage } from "../../hooks/use-storage";
 import { IdentityPoller } from "./identity-poller";
-import type { FarcasterSignedKeyRequest, FarcasterSigner } from "./types";
+import type {
+  FarcasterSignedKeyRequest,
+  FarcasterSigner,
+  FarcasterSignerApproved,
+  FarcasterSignerImpersonating,
+  FarcasterSignerPendingApproval,
+} from "./types";
 
 type State = {
   activeIdentity: FarcasterSigner | null;
@@ -24,15 +30,17 @@ type State = {
 type Action =
   | {
       type: "IMPERSONATE";
+      id: number | string;
       fid: number;
       privateKey: string;
       publicKey: string;
     }
-  | { type: "SELECT_IDENTITY"; _id: number }
+  | { type: "SELECT_IDENTITY"; id: number | string }
   | { type: "LOGOUT" }
   | { type: "REMOVE" }
   | {
-      type: "START_FARCASTER_SIGN_IN";
+      type: "LOGIN_START";
+      id: number | string;
       publicKey: string;
       privateKey: string;
       deadline: number;
@@ -43,20 +51,19 @@ type Action =
       signature: string;
     }
   | {
-      type: "FARCASTER_SIGN_IN_SUCCESS";
+      type: "LOGIN_SUCCESS";
       signedKeyRequest: FarcasterSignedKeyRequest;
     };
 
 const identityReducer: Reducer<State, Action> = (state, action) => {
   switch (action.type) {
     case "IMPERSONATE": {
-      const _id = Date.now();
       const identity: FarcasterSigner = {
         status: "impersonating",
         fid: action.fid,
         privateKey: action.privateKey,
         publicKey: action.publicKey,
-        _id,
+        _id: action.id,
       };
 
       return {
@@ -66,8 +73,7 @@ const identityReducer: Reducer<State, Action> = (state, action) => {
     }
     case "SELECT_IDENTITY": {
       const activeIdentity =
-        state.identities.find((identity) => identity._id === action._id) ??
-        null;
+        state.identities.find((identity) => identity._id === action.id) ?? null;
 
       return {
         ...state,
@@ -94,10 +100,9 @@ const identityReducer: Reducer<State, Action> = (state, action) => {
         ),
       };
     }
-    case "START_FARCASTER_SIGN_IN": {
-      const _id = Date.now();
+    case "LOGIN_START": {
       const identity: FarcasterSigner = {
-        _id,
+        _id: action.id,
         status: "pending_approval",
         privateKey: action.privateKey,
         publicKey: action.publicKey,
@@ -124,7 +129,7 @@ const identityReducer: Reducer<State, Action> = (state, action) => {
         identities,
       };
     }
-    case "FARCASTER_SIGN_IN_SUCCESS": {
+    case "LOGIN_SUCCESS": {
       const { activeIdentity } = state;
 
       if (activeIdentity?.status !== "pending_approval") {
@@ -182,6 +187,13 @@ type UseFarcasterMultiIdentityOptions = {
    * Used to detect if the current context is visible, this affects the polling of the signer approval status.
    */
   visibilityChangeDetectionHook?: typeof useVisibilityDetection;
+  onImpersonate?: (identity: FarcasterSignerImpersonating) => void;
+  onLogIn?: (identity: FarcasterSignerApproved) => void;
+  onLogInStart?: (identity: FarcasterSignerPendingApproval) => void;
+  onLogOut?: (identity: FarcasterSigner) => void;
+  onIdentityRemove?: (identity: FarcasterSigner) => void;
+  onIdentitySelect?: (identity: FarcasterSigner) => void;
+  generateUserId?: () => string | number;
 };
 
 export type FarcasterMultiSignerInstance =
@@ -190,40 +202,37 @@ export type FarcasterMultiSignerInstance =
     impersonateUser: (fid: number) => Promise<void>;
     removeIdentity: () => Promise<void>;
     identities: FarcasterSigner[];
-    selectIdentity: (id: number) => Promise<void>;
+    selectIdentity: (id: number | string) => Promise<void>;
     identityPoller: IdentityPoller;
   };
+
+const defaultStorage = new WebStorage();
+const defaultGenerateUserId = (): number => Date.now();
 
 export function useFarcasterMultiIdentity({
   onMissingIdentity,
   signerUrl = "/signer",
-  storage,
+  storage = defaultStorage,
   storageKey = "farcasterIdentities",
   visibilityChangeDetectionHook = useVisibilityDetection,
+  onImpersonate,
+  onLogIn,
+  onLogInStart,
+  onLogOut,
+  onIdentityRemove,
+  onIdentitySelect,
+  generateUserId = defaultGenerateUserId,
 }: UseFarcasterMultiIdentityOptions): FarcasterMultiSignerInstance {
-  // we use ref so we don't instantiate the storage if user passed their own storage
-  const storageRef = useRef(storage ?? new WebStorage());
+  const storageRef = useRef(storage);
   const identityPoller = useRef(new IdentityPoller()).current;
   const [isLoading, setIsLoading] = useState(false);
-  const [state, dispatch] = usePersistedReducer(
-    identityReducer,
-    {
-      activeIdentity: null,
-      identities: [],
-    },
-    async () => {
-      const storedState = await storageRef.current.getObject<State>(storageKey);
-
-      if (!storedState) {
-        return {
-          activeIdentity: null,
-          identities: [],
-        };
-      }
-
+  const [state, setState] = useStorage<State>({
+    key: storageKey,
+    storage: storageRef.current,
+    preprocessValue(value) {
       const stateWithoutExpiredPendingApprovals: State = {
-        activeIdentity: storedState.activeIdentity,
-        identities: storedState.identities.filter(
+        activeIdentity: value.activeIdentity,
+        identities: value.identities.filter(
           (signer) =>
             signer.status !== "pending_approval" ||
             (signer.deadline && signer.deadline > Math.floor(Date.now() / 1000))
@@ -239,10 +248,25 @@ export function useFarcasterMultiIdentity({
 
       return stateWithoutExpiredPendingApprovals;
     },
-    async (newState) => {
-      await storageRef.current.setObject<State>(storageKey, newState);
-    }
-  );
+    initialValue: {
+      activeIdentity: null,
+      identities: [],
+    },
+  });
+  const onImpersonateRef = useRef(onImpersonate);
+  onImpersonateRef.current = onImpersonate;
+  const onLogInRef = useRef(onLogIn);
+  onLogInRef.current = onLogIn;
+  const onLogInStartRef = useRef(onLogInStart);
+  onLogInStartRef.current = onLogInStart;
+  const onLogOutRef = useRef(onLogOut);
+  onLogOutRef.current = onLogOut;
+  const onIdentityRemoveRef = useRef(onIdentityRemove);
+  onIdentityRemoveRef.current = onIdentityRemove;
+  const onIdentitySelectRef = useRef(onIdentitySelect);
+  onIdentitySelectRef.current = onIdentitySelect;
+  const generateUserIdRef = useRef(generateUserId);
+  generateUserIdRef.current = generateUserId;
 
   const createFarcasterSigner = useCallback(async () => {
     try {
@@ -307,16 +331,25 @@ export function useFarcasterMultiIdentity({
 
         signerApprovalUrl.searchParams.set("token", signedKeyRequestToken);
 
-        await dispatch({
-          type: "START_FARCASTER_SIGN_IN",
-          publicKey: keypairString.publicKey,
-          privateKey: keypairString.privateKey,
-          deadline,
-          token: signedKeyRequest.token,
-          signerApprovalUrl: signerApprovalUrl.toString(),
-          requestFid: parseInt(requestFid, 10),
-          requestSigner,
-          signature,
+        await setState((currentState) => {
+          const newState = identityReducer(currentState, {
+            type: "LOGIN_START",
+            id: generateUserIdRef.current(),
+            publicKey: keypairString.publicKey,
+            privateKey: keypairString.privateKey,
+            deadline,
+            token: signedKeyRequestToken,
+            signerApprovalUrl: signerApprovalUrl.toString(),
+            requestFid: parseInt(requestFid, 10),
+            requestSigner,
+            signature,
+          });
+
+          if (newState.activeIdentity?.status === "pending_approval") {
+            onLogInStartRef.current?.(newState.activeIdentity);
+          }
+
+          return newState;
         });
       } else if ("message" in authorizationBody) {
         throw new Error(authorizationBody.message);
@@ -325,7 +358,7 @@ export function useFarcasterMultiIdentity({
       // eslint-disable-next-line no-console -- provide feedback
       console.error("@frames.js/render: API Call failed", error);
     }
-  }, [dispatch, signerUrl]);
+  }, [setState, signerUrl]);
 
   const impersonateUser = useCallback(
     async (fid: number) => {
@@ -335,12 +368,26 @@ export function useFarcasterMultiIdentity({
         const keypair = await createKeypairEDDSA();
         const { privateKey, publicKey } = convertKeypairToHex(keypair);
 
-        await dispatch({ type: "IMPERSONATE", fid, privateKey, publicKey });
+        await setState((currentState) => {
+          const newState = identityReducer(currentState, {
+            type: "IMPERSONATE",
+            id: generateUserIdRef.current(),
+            fid,
+            privateKey,
+            publicKey,
+          });
+
+          if (newState.activeIdentity?.status === "impersonating") {
+            onImpersonateRef.current?.(newState.activeIdentity);
+          }
+
+          return newState;
+        });
       } finally {
         setIsLoading(false);
       }
     },
-    [dispatch, setIsLoading]
+    [setState]
   );
 
   const onSignerlessFramePress = useCallback((): Promise<void> => {
@@ -356,12 +403,24 @@ export function useFarcasterMultiIdentity({
   }, [createFarcasterSigner]);
 
   const logout = useCallback(async () => {
-    await dispatch({ type: "LOGOUT" });
-  }, [dispatch]);
+    await setState((currentState) => {
+      if (currentState.activeIdentity) {
+        onLogOutRef.current?.(currentState.activeIdentity);
+      }
+
+      return identityReducer(currentState, { type: "LOGOUT" });
+    });
+  }, [setState]);
 
   const removeIdentity = useCallback(async () => {
-    await dispatch({ type: "REMOVE" });
-  }, [dispatch]);
+    await setState((currentState) => {
+      if (currentState.activeIdentity) {
+        onIdentityRemoveRef.current?.(currentState.activeIdentity);
+      }
+
+      return identityReducer(currentState, { type: "REMOVE" });
+    });
+  }, [setState]);
 
   const farcasterUser = state.activeIdentity;
 
@@ -375,9 +434,17 @@ export function useFarcasterMultiIdentity({
           .start(farcasterUser.token)
           .then((signedKeyRequest) => {
             if (signedKeyRequest) {
-              return dispatch({
-                type: "FARCASTER_SIGN_IN_SUCCESS",
-                signedKeyRequest,
+              return setState((currentState) => {
+                const newState = identityReducer(currentState, {
+                  type: "LOGIN_SUCCESS",
+                  signedKeyRequest,
+                });
+
+                if (newState.activeIdentity?.status === "approved") {
+                  onLogInRef.current?.(newState.activeIdentity);
+                }
+
+                return newState;
               });
             }
           })
@@ -407,13 +474,24 @@ export function useFarcasterMultiIdentity({
         unregisterVisibilityChangeListener();
       };
     }
-  }, [farcasterUser, identityPoller, visibilityDetector, dispatch]);
+  }, [farcasterUser, identityPoller, visibilityDetector, setState]);
 
   const selectIdentity = useCallback(
-    async (id: number) => {
-      await dispatch({ type: "SELECT_IDENTITY", _id: id });
+    async (id: number | string) => {
+      await setState((currentState) => {
+        const newState = identityReducer(currentState, {
+          type: "SELECT_IDENTITY",
+          id,
+        });
+
+        if (newState.activeIdentity) {
+          onIdentitySelectRef.current?.(newState.activeIdentity);
+        }
+
+        return newState;
+      });
     },
-    [dispatch]
+    [setState]
   );
 
   return useMemo(

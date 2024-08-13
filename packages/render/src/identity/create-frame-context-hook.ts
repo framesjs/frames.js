@@ -15,23 +15,24 @@ type CreateFrameContextHookOptions = {
   storageKey: string;
 };
 
+const defaultStorage = new WebStorage();
+
 export function createFrameContextHook<
   TFrameContext extends Record<string, unknown>,
 >(options: CreateFrameContextHookOptions) {
   return function useFrameContext({
     fallbackContext,
-    storage,
+    storage = defaultStorage,
     storageKey = options.storageKey,
   }: UseFrameContextOptions<TFrameContext>): FrameContextManager<TFrameContext> {
-    // we use ref so we don't instantiate the storage if user passed their own storage
-    const storageRef = useRef(storage ?? new WebStorage());
+    const storageRef = useRef(storage);
     const [frameContext, setFrameContext] = useState<TFrameContext | null>(
       null
     );
 
     useEffect(() => {
       storageRef.current
-        .getObject<TFrameContext>(storageKey)
+        .get<TFrameContext>(storageKey)
         .then((data) => {
           if (data) {
             setFrameContext(data);
@@ -49,9 +50,9 @@ export function createFrameContextHook<
     const handleSetFrameContext: FrameContextManager<TFrameContext>["setFrameContext"] =
       useCallback(
         async (newFrameContext) => {
-          await storageRef.current.setObject<TFrameContext>(
+          await storageRef.current.set<TFrameContext>(
             storageKey,
-            newFrameContext
+            () => newFrameContext
           );
           setFrameContext(newFrameContext);
         },
