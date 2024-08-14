@@ -5,19 +5,19 @@ Anonymous identity allows you to use [Open Frames](/guides/open-frames) that don
 ## Usage
 
 ```tsx
-import { useAnonymousIdentity } from '@frames.js/render/identity/anonymous';
-import { FrameUI } from "@frames.js/render/ui';
+import { useAnonymousIdentity } from "@frames.js/render/identity/anonymous";
+import { FrameUI } from "@frames.js/render/ui";
 import { useFrame } from "@frames.js/render/use-frame";
 
 export function MyFrame() {
   const signerState = useAnonymousIdentity();
   const frameState = useFrame({
-    homeframeUrl: '...', // url to frame
-    frameActionProxy: '/frames',
-    frameGetProxy: '/frames',
+    homeframeUrl: "...", // url to frame
+    frameActionProxy: "/frames",
+    frameGetProxy: "/frames",
     frameContext: {},
     signerState,
-    specification: 'openframes',
+    specification: "openframes",
   });
 
   return <FrameUI frameState={frameState} />;
