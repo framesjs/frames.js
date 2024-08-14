@@ -538,9 +538,13 @@ export default defineConfig({
           <meta name="of:accepts:farcaster" content="vNext" />
           <meta name="of:accepts:xmtp" content="2024-02-09" />
           <meta name="of:accepts:lens" content="1.0.0" />
-          <meta name="of:accepts:*" content="*" />
+          <meta name="of:accepts:anonymous" content="1.0.0" />
           <meta
             name="fc:frame:post_url"
+            content="https://framesjs-homeframe.vercel.app/frames?page=2"
+          />
+          <meta
+            name="of:post_url"
             content="https://framesjs-homeframe.vercel.app/frames?page=2"
           />
           <meta name="fc:frame:image" content="https://framesjs.org/og.png" />
