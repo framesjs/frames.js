@@ -71,7 +71,7 @@ export type OnConnectWalletFunc = () => void;
  * Used to sign frame action
  */
 export type SignFrameActionFunc<
-  TSignerStorageType = object,
+  TSignerStorageType = Record<string, unknown>,
   TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
   TFrameContextType extends FrameContext = FarcasterFrameContext,
 > = (
@@ -217,14 +217,14 @@ type SignerStateActionSharedContext<
 };
 
 export type SignerStateDefaultActionContext<
-  TSignerStorageType = object,
+  TSignerStorageType = Record<string, unknown>,
   TFrameContextType extends FrameContext = FarcasterFrameContext,
 > = {
   type?: "default";
 } & SignerStateActionSharedContext<TSignerStorageType, TFrameContextType>;
 
 export type SignerStateTransactionDataActionContext<
-  TSignerStorageType = object,
+  TSignerStorageType = Record<string, unknown>,
   TFrameContextType extends FrameContext = FarcasterFrameContext,
 > = {
   type: "tx-data";
@@ -233,7 +233,7 @@ export type SignerStateTransactionDataActionContext<
 } & SignerStateActionSharedContext<TSignerStorageType, TFrameContextType>;
 
 export type SignerStateTransactionPostActionContext<
-  TSignerStorageType = object,
+  TSignerStorageType = Record<string, unknown>,
   TFrameContextType extends FrameContext = FarcasterFrameContext,
 > = {
   type: "tx-post";
@@ -243,7 +243,7 @@ export type SignerStateTransactionPostActionContext<
 } & SignerStateActionSharedContext<TSignerStorageType, TFrameContextType>;
 
 export type SignerStateActionContext<
-  TSignerStorageType = object,
+  TSignerStorageType = Record<string, unknown>,
   TFrameContextType extends FrameContext = FarcasterFrameContext,
 > =
   | SignerStateDefaultActionContext<TSignerStorageType, TFrameContextType>
