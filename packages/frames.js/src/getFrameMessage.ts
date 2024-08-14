@@ -67,19 +67,19 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
     inputText: inputTextBytes,
     state: stateBytes,
     transactionId: transactionIdBytes,
+    address: transactionAddressBytes,
   } = decodedMessage.data.frameActionBody;
   const inputText = Buffer.from(inputTextBytes).toString("utf-8");
   const transactionId =
     transactionIdBytes.length > 0 ? bytesToHex(transactionIdBytes) : undefined;
+  const address =
+    transactionAddressBytes.length > 0
+      ? bytesToHex(transactionAddressBytes)
+      : undefined;
   const requesterFid = decodedMessage.data.fid;
   const castId = decodedMessage.data.frameActionBody.castId
     ? normalizeCastId(decodedMessage.data.frameActionBody.castId)
     : undefined;
-
-  const connectedAddress =
-    decodedMessage.data.frameActionBody.address.length > 0
-      ? bytesToHex(decodedMessage.data.frameActionBody.address)
-      : undefined;
 
   const state = Buffer.from(stateBytes).toString("utf-8");
 
@@ -89,7 +89,8 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
     inputText,
     requesterFid,
     state,
-    connectedAddress,
+    connectedAddress: address,
+    address,
     transactionId,
   };
 

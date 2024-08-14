@@ -6,6 +6,7 @@ import {
 } from "@lens-protocol/client";
 import type { MessageWithWalletAddressImplementation } from "../middleware/walletAddressMiddleware";
 import { InvalidFrameActionPayloadError } from "../core/errors";
+import type { OpenFramesActionData } from "../types";
 
 export type LensFrameRequest = {
   clientProtocol: string;
@@ -40,7 +41,8 @@ type LensFrameVerifiedFields = {
 };
 
 export type LensFrameResponse = MessageWithWalletAddressImplementation &
-  LensFrameVerifiedFields & {
+  LensFrameVerifiedFields &
+  OpenFramesActionData & {
     isValid: boolean;
   };
 

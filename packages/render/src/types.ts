@@ -60,6 +60,24 @@ export type OnComposerFormActionFunc = (
   arg: OnComposerFormActionFuncArgs
 ) => Promise<OnComposeFormActionFuncReturnType>;
 
+/**
+ * Called when user presses transaction button but there is no wallet connected.
+ *
+ * After wallet is connect, "connectAddress" option on useFrame() should be set to the connected address.
+ */
+export type OnConnectWalletFunc = () => void;
+
+/**
+ * Used to sign frame action
+ */
+export type SignFrameActionFunc<
+  TSignerStorageType = object,
+  TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
+  TFrameContextType extends FrameContext = FarcasterFrameContext,
+> = (
+  actionContext: SignerStateActionContext<TSignerStorageType, TFrameContextType>
+) => Promise<SignedFrameAction<TFrameActionBodyType>>;
+
 export type UseFetchFrameSignFrameActionFunction<
   TSignerStateActionContext extends SignerStateActionContext<any, any>,
   TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
@@ -95,6 +113,9 @@ export type UseFetchFrameOptions<
     SignerStateActionContext<TSignerStorageType, TFrameContextType>,
     TFrameActionBodyType
   >;
+  /**
+   * Called after transaction data has been returned from the server and user needs to approve the transaction.
+   */
   onTransaction: OnTransactionFunc;
   onSignature: OnSignatureFunc;
   onComposerFormAction: OnComposerFormActionFunc;
@@ -137,7 +158,9 @@ export type UseFrameOptions<
   homeframeUrl: string | null | undefined;
   /** the initial frame. if not specified will fetch it from the homeframeUrl prop */
   frame?: Frame | ParseResult;
-  /** connected wallet address of the user */
+  /**
+   * connected wallet address of the user, send to the frame for transaction requests
+   */
   connectedAddress: `0x${string}` | undefined;
   /** a function to handle mint buttons */
   onMint?: (t: OnMintArgs) => void;
@@ -145,6 +168,10 @@ export type UseFrameOptions<
   onTransaction?: OnTransactionFunc;
   /** A function to handle transaction buttons that returned signature data from the target, returns signature hash or null */
   onSignature?: OnSignatureFunc;
+  /**
+   * Called when user presses transaction button but there is no wallet connected.
+   */
+  onConnectWallet?: OnConnectWalletFunc;
   /** the context of this frame, used for generating Frame Action payloads */
   frameContext: TFrameContextType;
   /**
@@ -169,22 +196,59 @@ export type UseFrameOptions<
   Pick<UseFetchFrameOptions, "fetchFn" | "onRedirect" | "onComposerFormAction">
 >;
 
-export type SignerStateActionContext<
-  SignerStorageType = object,
-  FrameContextType extends FrameContext = FarcasterFrameContext,
+type SignerStateActionSharedContext<
+  TSignerStorageType = object,
+  TFrameContextType extends FrameContext = FarcasterFrameContext,
 > = {
   target?: string;
   frameButton: FrameButton;
   buttonIndex: number;
   url: string;
   inputText?: string;
-  signer: SignerStorageType | null;
+  signer: TSignerStorageType | null;
   state?: string;
-  transactionId?: `0x${string}`;
-  address?: `0x${string}`;
-  /** Transacting address is not included in non-transaction frame actions */
-  frameContext: FrameContextType | Omit<FrameContextType, "address">;
+  frameContext: TFrameContextType;
 };
+
+export type SignerStateDefaultActionContext<
+  TSignerStorageType = object,
+  TFrameContextType extends FrameContext = FarcasterFrameContext,
+> = {
+  type?: "default";
+} & SignerStateActionSharedContext<TSignerStorageType, TFrameContextType>;
+
+export type SignerStateTransactionDataActionContext<
+  TSignerStorageType = object,
+  TFrameContextType extends FrameContext = FarcasterFrameContext,
+> = {
+  type: "tx-data";
+  /** Wallet address used to create the transaction, available only for "tx" button actions */
+  address: `0x${string}`;
+} & SignerStateActionSharedContext<TSignerStorageType, TFrameContextType>;
+
+export type SignerStateTransactionPostActionContext<
+  TSignerStorageType = object,
+  TFrameContextType extends FrameContext = FarcasterFrameContext,
+> = {
+  type: "tx-post";
+  /** Wallet address used to create the transaction, available only for "tx" button actions */
+  address: `0x${string}`;
+  transactionId: `0x${string}`;
+} & SignerStateActionSharedContext<TSignerStorageType, TFrameContextType>;
+
+export type SignerStateActionContext<
+  TSignerStorageType = object,
+  TFrameContextType extends FrameContext = FarcasterFrameContext,
+> =
+  | SignerStateDefaultActionContext<TSignerStorageType, TFrameContextType>
+  | SignerStateTransactionDataActionContext<
+      TSignerStorageType,
+      TFrameContextType
+    >
+  | SignerStateTransactionPostActionContext<
+      TSignerStorageType,
+      TFrameContextType
+    >;
 
 export type SignedFrameAction<
   TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
@@ -505,6 +569,7 @@ export const themeParams = [
 
 export type FrameTheme = Partial<Record<(typeof themeParams)[number], string>>;
 
+// @TODO define minimal action body payload shape, because it is mostly the same
 export type FrameActionBodyPayload = Record<string, unknown>;
 
 export type FrameContext = Record<string, unknown>;

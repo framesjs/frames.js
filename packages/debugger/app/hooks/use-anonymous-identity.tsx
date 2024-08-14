@@ -22,9 +22,10 @@ export function useAnonymousIdentity(): AnonymousSignerInstance {
     },
     async signFrameAction(actionContext) {
       const searchParams = new URLSearchParams({
-        postType: actionContext.transactionId
-          ? "post"
-          : actionContext.frameButton.action,
+        postType:
+          actionContext.type !== "default"
+            ? "post"
+            : actionContext.frameButton.action,
         postUrl: actionContext.target ?? "",
         specification: "openframes",
       });

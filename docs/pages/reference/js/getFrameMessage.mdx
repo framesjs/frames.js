@@ -16,7 +16,7 @@ console.log(frameMessage);
   inputText: '',
   requesterFid: 1689,
   isValid: true,
-  connectedAddress: '0x8d25687829d6b85d9e0020b8c89e3ca24de20a89',
+  address: '0x8d25687829d6b85d9e0020b8c89e3ca24de20a89',
   casterFollowsRequester: false,
   requesterFollowsCaster: false,
   likedCast: false,
@@ -44,7 +44,7 @@ console.log(frameMessage);
   castId: { fid: 1, hash: '0x0000000000000000000000000000000000000000' },
   inputText: '',
   requesterFid: 1689,
-  connectedAddress: '0x8d25687829d6b85d9e0020b8c89e3ca24de20a89'
+  address: '0x8d25687829d6b85d9e0020b8c89e3ca24de20a89'
 }
 **/
 ```
@@ -60,7 +60,7 @@ type FrameActionData = {
   };
   inputText?: string;
   /** Only available in payloads of buttons with action `tx` **/
-  connectedAddress: string;
+  address: string;
 };
 ```
 

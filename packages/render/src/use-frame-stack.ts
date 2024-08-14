@@ -14,6 +14,7 @@ import type {
   FrameStackPostPending,
   GetFrameResult,
   SignedFrameAction,
+  SignerStateActionContext,
 } from "./types";
 
 function computeDurationInSeconds(start: Date, end: Date): number {
@@ -124,16 +125,20 @@ export type FrameStackAPI = {
   createGetPendingItem: (arg: {
     request: FrameGETRequest;
   }) => FrameStackGetPending;
-  createPostPendingItem: (arg: {
+  createPostPendingItem: <
+    TSignerStateActionContext extends SignerStateActionContext<any, any>,
+  >(arg: {
     action: SignedFrameAction;
-    request: FramePOSTRequest;
+    request: FramePOSTRequest<TSignerStateActionContext>;
   }) => FrameStackPostPending;
   /**
    * Creates a pending item without dispatching it
    */
-  createCastOrComposerActionPendingItem: (arg: {
+  createCastOrComposerActionPendingItem: <
+    TSignerStateActionContext extends SignerStateActionContext<any, any>,
+  >(arg: {
     action: SignedFrameAction;
-    request: FramePOSTRequest;
+    request: FramePOSTRequest<TSignerStateActionContext>;
   }) => FrameStackPostPending;
   markCastMessageAsDone: (arg: {
     pendingItem: FrameStackPostPending;

@@ -108,6 +108,7 @@ describe("farcaster middleware", () => {
     expect(next).toHaveBeenCalledWith({
       clientProtocol: { id: "farcaster", version: "vNext" },
       message: {
+        address: "0x89",
         buttonIndex: 1,
         castId: {
           fid: 456,

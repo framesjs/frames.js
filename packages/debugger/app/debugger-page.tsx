@@ -9,6 +9,7 @@ import {
   type OnTransactionFunc,
   type OnSignatureFunc,
   type FrameActionBodyPayload,
+  type OnConnectWalletFunc,
 } from "@frames.js/render";
 import { useFrame } from "@frames.js/render/use-frame";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
@@ -59,6 +60,7 @@ import type {
   CastActionDefinitionResponse,
   FrameDefinitionResponse,
 } from "./frames/route";
+import { AwaitableController } from "./lib/awaitable-controller";
 
 const FALLBACK_URL =
   process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
@@ -292,17 +294,16 @@ export default function DebuggerPage({
 
   const anonymousFrameContext = {};
 
+  const onConnectWallet: OnConnectWalletFunc = useCallback(async () => {
+    if (!openConnectModal) {
+      throw new Error(`openConnectModal not implemented`);
+    }
+
+    openConnectModal();
+  }, [openConnectModal]);
+
   const onTransaction: OnTransactionFunc = useCallback(
     async ({ transactionData }) => {
-      if (!account.address) {
-        openConnectModal?.();
-        console.info(
-          "Opened connect modal because the account address is not set"
-        );
-
-        return null;
-      }
-
       try {
         const { params, chainId } = transactionData;
         const requestedChainId = parseChainId(chainId);
@@ -354,7 +355,7 @@ export default function DebuggerPage({
         return null;
       }
     },
-    [account.address, currentChainId, config, openConnectModal, toast]
+    [currentChainId, config, toast]
   );
 
   const onSignature: OnSignatureFunc = useCallback(
@@ -433,6 +434,7 @@ export default function DebuggerPage({
     extraButtonRequestPayload: { mockData: mockHubContext },
     onTransaction,
     onSignature,
+    onConnectWallet,
     onError(error) {
       console.error(error);
 

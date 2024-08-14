@@ -199,7 +199,8 @@ export function useLensIdentity(): LensSignerInstance {
           inputText: actionContext.inputText || "",
           state: actionContext.state || "",
           buttonIndex: actionContext.buttonIndex,
-          actionResponse: actionContext.transactionId || "",
+          actionResponse:
+            actionContext.type === "tx-post" ? actionContext.transactionId : "",
           profileId: lensSigner.profileId,
           pubId: actionContext.frameContext.pubId || "",
           specVersion: "1.0.0",
@@ -210,9 +211,10 @@ export function useLensIdentity(): LensSignerInstance {
         }
 
         const searchParams = new URLSearchParams({
-          postType: actionContext.transactionId
-            ? "post"
-            : actionContext.frameButton.action,
+          postType:
+            actionContext.type !== "default"
+              ? "post"
+              : actionContext.frameButton.action,
           postUrl:
             actionContext.frameButton.target ?? actionContext.target ?? "",
         });
@@ -237,7 +239,8 @@ export function useLensIdentity(): LensSignerInstance {
           inputText: actionContext.inputText || "",
           state: actionContext.state || "",
           buttonIndex: actionContext.buttonIndex,
-          actionResponse: actionContext.transactionId || "",
+          actionResponse:
+            actionContext.type === "tx-post" ? actionContext.transactionId : "",
           profileId: lensSigner.profileId,
           pubId: actionContext.frameContext.pubId || "",
           specVersion: "1.0.0",
@@ -260,9 +263,10 @@ export function useLensIdentity(): LensSignerInstance {
         });
 
         const searchParams = new URLSearchParams({
-          postType: actionContext.transactionId
-            ? "post"
-            : actionContext.frameButton.action,
+          postType:
+            actionContext.type !== "default"
+              ? "post"
+              : actionContext.frameButton.action,
           postUrl: actionContext.target ?? "",
         });
 

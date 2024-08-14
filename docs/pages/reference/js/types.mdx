@@ -286,8 +286,10 @@ export type FrameActionDataParsed = {
   };
   inputText?: string;
   state?: string;
-  /** address of the user's connected wallet, only present in transaction data requests */
-  connectedAddress?: string;
+  /**
+   * address of the user's connected wallet used to create the transaction, only present in transaction data requests
+   */
+  address?: `0x${string}`;
   transactionId?: `0x${string}`;
 };
 
@@ -325,5 +327,4 @@ export type ActionMetadata = {
     type: "post";
   };
 };
-
 ```

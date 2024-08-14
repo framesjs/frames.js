@@ -10,7 +10,6 @@ import type {
   ComposerActionFormResponse,
   ComposerActionStateFromMessage,
   ErrorMessageResponse,
-  FramesContext,
 } from "frames.js/types";
 import type {
   CastActionRequest,
@@ -25,6 +24,7 @@ import type {
   GetFrameResult,
   SignedFrameAction,
   SignerStateActionContext,
+  SignerStateDefaultActionContext,
   UseFetchFrameOptions,
   UseFetchFrameSignFrameActionFunction,
 } from "./types";
@@ -221,10 +221,10 @@ export function useFetchFrame<
     onError(response);
   }
 
-  async function fetchPOSTRequest<
-    TSignerStateActionContext extends SignerStateActionContext<any, any>,
-  >(
-    request: FramePOSTRequest<TSignerStateActionContext>,
+  async function fetchPOSTRequest(
+    request: FramePOSTRequest<
+      SignerStateActionContext<TSignerStorageType, TFrameContextType>
+    >,
     options?: { pendingFrameStackItem: FrameStackPostPending; startTime: Date },
     shouldClear?: boolean
   ): Promise<void> {
@@ -400,10 +400,10 @@ export function useFetchFrame<
     onError(response);
   }
 
-  async function fetchTransactionRequest<
-    TSignerStateActionContext extends SignerStateActionContext<any, any>,
-  >(
-    request: FramePOSTRequest<TSignerStateActionContext>,
+  async function fetchTransactionRequest(
+    request: FramePOSTRequest<
+      SignerStateActionContext<TSignerStorageType, TFrameContextType>
+    >,
     shouldClear?: boolean
   ): Promise<void> {
     if ("source" in request) {
@@ -417,6 +417,12 @@ export function useFetchFrame<
 
     if (button.action !== "tx") {
       throw new Error("Invalid frame button action, tx expected");
+    }
+
+    if (request.signerStateActionContext.type !== "tx-data") {
+      throw new Error(
+        "Invalid signer state action context type, tx-data expected"
+      );
     }
 
     if (shouldClear) {
@@ -563,6 +569,7 @@ export function useFetchFrame<
         ...request,
         signerStateActionContext: {
           ...request.signerStateActionContext,
+          type: "tx-post",
           // include transactionId in payload
           transactionId: transactionIdOrError,
           // override target so the the request is sent to proper endpoint
@@ -577,10 +584,10 @@ export function useFetchFrame<
     );
   }
 
-  async function fetchCastActionRequest<
-    TSignerStateActionContext extends SignerStateActionContext<any, any>,
-  >(
-    request: CastActionRequest<TSignerStateActionContext>,
+  async function fetchCastActionRequest(
+    request: CastActionRequest<
+      SignerStateActionContext<TSignerStorageType, TFrameContextType>
+    >,
     shouldClear = false
   ): Promise<void> {
     const frameButton: FrameButtonPost = {
@@ -588,11 +595,19 @@ export function useFetchFrame<
       label: request.action.name,
       target: request.action.url,
     };
-    const signerStateActionContext = {
+    const signerStateActionContext: SignerStateDefaultActionContext<
+      TSignerStorageType,
+      TFrameContextType
+    > = {
       ...request.signerStateActionContext,
+      type: "default",
       frameButton,
     };
-    const signedDataOrError = await signAndGetFrameActionBodyPayload({
+    const signedDataOrError = await signAndGetFrameActionBodyPayload<
+      TSignerStorageType,
+      TFrameActionBodyType,
+      TFrameContextType
+    >({
       signerStateActionContext,
       signFrameAction,
     });
@@ -676,6 +691,7 @@ export function useFetchFrame<
           source: "cast-action",
           signerStateActionContext: {
             ...request.signerStateActionContext,
+            type: "default",
             buttonIndex: 1,
             frameButton: {
               action: "post",
@@ -704,10 +720,10 @@ export function useFetchFrame<
     }
   }
 
-  async function fetchComposerActionRequest<
-    TSignerStateActionContext extends SignerStateActionContext<any, any>,
-  >(
-    request: ComposerActionRequest<TSignerStateActionContext>,
+  async function fetchComposerActionRequest(
+    request: ComposerActionRequest<
+      SignerStateActionContext<TSignerStorageType, TFrameContextType>
+    >,
     shouldClear = false
   ): Promise<void> {
     const frameButton: FrameButtonPost = {
@@ -715,8 +731,12 @@ export function useFetchFrame<
       label: request.action.name,
       target: request.action.url,
     };
-    const signerStateActionContext = {
+    const signerStateActionContext: SignerStateDefaultActionContext<
+      TSignerStorageType,
+      TFrameContextType
+    > = {
       ...request.signerStateActionContext,
+      type: "default",
       frameButton,
       state: encodeURIComponent(
         JSON.stringify({
@@ -724,7 +744,11 @@ export function useFetchFrame<
         } satisfies ComposerActionStateFromMessage)
       ),
     };
-    const signedDataOrError = await signAndGetFrameActionBodyPayload({
+    const signedDataOrError = await signAndGetFrameActionBodyPayload<
+      TSignerStorageType,
+      TFrameActionBodyType,
+      TFrameContextType
+    >({
       signerStateActionContext,
       signFrameAction,
     });
@@ -921,7 +945,7 @@ function getResponseBody(response: Response): Promise<unknown> {
 type SignAndGetFrameActionPayloadOptions<
   TSignerStorageType,
   TFrameActionBodyType extends FrameActionBodyPayload,
-  TFrameContextType extends FramesContext,
+  TFrameContextType extends FrameContext,
 > = {
   signerStateActionContext: SignerStateActionContext<
     TSignerStorageType,
@@ -939,7 +963,7 @@ type SignAndGetFrameActionPayloadOptions<
 async function signAndGetFrameActionBodyPayload<
   TSignerStorageType,
   TFrameActionBodyType extends FrameActionBodyPayload,
-  TFrameContextType extends FramesContext,
+  TFrameContextType extends FrameContext,
 >({
   signerStateActionContext,
   signFrameAction,

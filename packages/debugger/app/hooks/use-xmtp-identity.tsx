@@ -158,14 +158,19 @@ export function useXmtpIdentity(): XmtpSignerInstance {
         ...(actionContext.frameContext.groupSecret
           ? { groupSecret: actionContext.frameContext.groupSecret }
           : {}),
-        address: actionContext.address,
-        transactionId: actionContext.transactionId,
+        ...(actionContext.type === "tx-data" || actionContext.type === "tx-post"
+          ? { address: actionContext.address }
+          : {}),
+        ...(actionContext.type === "tx-post"
+          ? { transactionId: actionContext.transactionId }
+          : {}),
       });
 
       const searchParams = new URLSearchParams({
-        postType: actionContext.transactionId
-          ? "post"
-          : actionContext.frameButton.action,
+        postType:
+          actionContext.type !== "default"
+            ? "post"
+            : actionContext.frameButton.action,
         postUrl: actionContext.target ?? "",
         specification: "openframes",
       });
