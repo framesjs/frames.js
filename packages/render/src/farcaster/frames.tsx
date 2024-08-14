@@ -4,12 +4,18 @@ import {
   FrameActionBody,
   Message,
   NobleEd25519Signer,
+  getFarcasterTime,
   makeFrameAction,
 } from "@farcaster/core";
-import type { FrameButton } from "frames.js";
 import { hexToBytes } from "viem";
-import type { FrameActionBodyPayload } from "../types";
-import type { FarcasterSignerState } from "./signers";
+import type {
+  FrameActionBodyPayload,
+  FrameContext,
+  SignedFrameAction,
+  SignerStateActionContext,
+  SignFrameActionFunc,
+} from "../types";
+import type { FarcasterSigner } from "./signers";
 
 export type FarcasterFrameContext = {
   /** Connected address of user, only sent with transaction data request */
@@ -18,31 +24,21 @@ export type FarcasterFrameContext = {
 };
 
 /** Creates a frame action for use with `useFrame` and a proxy */
-export const signFrameAction = async ({
-  buttonIndex,
-  frameContext,
-  frameButton,
-  signer,
-  target,
-  inputText,
-  state,
-  transactionId,
-  url,
-}: {
-  target?: string;
-  frameButton: FrameButton;
-  buttonIndex: number;
-  url: string;
-  signer: FarcasterSignerState["signer"];
-  inputText?: string;
-  state?: string;
-  transactionId?: `0x${string}`;
-  frameContext: FarcasterFrameContext;
-}): Promise<{
-  body: FrameActionBodyPayload;
-  searchParams: URLSearchParams;
-}> => {
-  if (!signer || signer.status === 'pending_approval') {
+export const signFrameAction: SignFrameActionFunc<FarcasterSigner> = async (
+  actionContext
+) => {
+  const {
+    frameButton,
+    signer,
+    buttonIndex,
+    inputText,
+    frameContext,
+    state,
+    url,
+    target,
+  } = actionContext;
+
+  if (!signer || signer.status === "pending_approval") {
     throw new Error("Missing signer fid to sign message");
   }
 
@@ -60,11 +56,13 @@ export const signFrameAction = async ({
       // it seems the message in hubs actually requires a value here.
       inputText: inputText !== undefined ? Buffer.from(inputText) : undefined,
       address:
-        frameContext.address !== undefined
-          ? hexToBytes(frameContext.address)
+        actionContext.type === "tx-data" || actionContext.type === "tx-post"
+          ? hexToBytes(actionContext.address)
           : undefined,
       transactionId:
-        transactionId !== undefined ? hexToBytes(transactionId) : undefined,
+        actionContext.type === "tx-post"
+          ? hexToBytes(actionContext.transactionId)
+          : undefined,
     }
   );
 
@@ -73,7 +71,7 @@ export const signFrameAction = async ({
   }
 
   const searchParams = new URLSearchParams({
-    postType: transactionId ? "post" : frameButton.action,
+    postType: actionContext.type !== "default" ? "post" : frameButton.action,
     postUrl: target ?? "",
   });
 
@@ -92,9 +90,15 @@ export const signFrameAction = async ({
           hash: frameContext.castId.hash,
         },
         inputText,
-        address: frameContext.address,
-        transactionId,
         state,
+        address:
+          actionContext.type === "tx-data" || actionContext.type === "tx-post"
+            ? actionContext.address
+            : undefined,
+        transactionId:
+          actionContext.type === "tx-post"
+            ? actionContext.transactionId
+            : undefined,
       },
       trustedData: {
         messageBytes: trustedBytes,
@@ -164,4 +168,70 @@ export async function createFrameActionMessageWithSignerKey(
   ).toString("hex");
 
   return { message: message.unwrapOr(null), trustedBytes };
+}
+
+function isFarcasterFrameContext(
+  frameContext: FrameContext
+): frameContext is FarcasterFrameContext {
+  return "castId" in frameContext;
+}
+
+/**
+ * Used to create an unsigned frame action when signer is not defined
+ */
+export async function unsignedFrameAction<
+  TSignerStorageType = object,
+  TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
+  TFrameContextType extends FrameContext = FarcasterFrameContext,
+>(
+  actionContext: SignerStateActionContext<TSignerStorageType, TFrameContextType>
+): Promise<SignedFrameAction<TFrameActionBodyType>> {
+  const {
+    frameButton,
+    target,
+    frameContext,
+    url,
+    buttonIndex,
+    state,
+    inputText,
+  } = actionContext;
+  const searchParams = new URLSearchParams({
+    postType: frameButton.action,
+    postUrl: target ?? "",
+  });
+
+  return Promise.resolve({
+    searchParams,
+    body: {
+      untrustedData: {
+        url,
+        ...(isFarcasterFrameContext(frameContext)
+          ? {
+              castId: {
+                fid: frameContext.castId.fid,
+                hash: frameContext.castId.hash,
+              },
+              network: 1,
+              timestamp: getFarcasterTime()._unsafeUnwrap(),
+            }
+          : {
+              timestamp: Date.now(),
+            }),
+        buttonIndex,
+        state,
+        inputText,
+        address:
+          actionContext.type === "tx-data" || actionContext.type === "tx-post"
+            ? actionContext.address
+            : undefined,
+        transactionId:
+          actionContext.type === "tx-post"
+            ? actionContext.transactionId
+            : undefined,
+      },
+      trustedData: {
+        messageBytes: Buffer.from("").toString("hex"),
+      },
+    } as unknown as TFrameActionBodyType,
+  });
 }

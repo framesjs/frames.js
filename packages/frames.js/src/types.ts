@@ -280,8 +280,20 @@ export type FrameActionDataParsed = {
   };
   inputText?: string;
   state?: string;
-  /** address of the user's connected wallet, only present in transaction data requests */
+  /**
+   * address of the user's connected wallet, only present in transaction data requests
+   *
+   * @deprecated use `address` instead
+   */
   connectedAddress?: string;
+  /**
+   * address of the user's connected wallet used to create the transaction,
+   * only present in transaction data requests to endpoint defined by `post_url` and `target` properties
+   */
+  address?: `0x${string}`;
+  /**
+   * available only in tx button's endpoint defined by `post_url` property
+   */
   transactionId?: `0x${string}`;
 };
 

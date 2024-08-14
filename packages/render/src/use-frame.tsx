@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/require-await -- we expect async functions */
 /* eslint-disable no-console -- provide feedback */
 /* eslint-disable no-alert -- provide feedback */
-"use client";
-
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   Frame,
@@ -12,7 +10,6 @@ import type {
   FrameButtonTx,
   TransactionTargetResponse,
 } from "frames.js";
-import { getFarcasterTime } from "@farcaster/core";
 import type {
   FrameState,
   OnMintArgs,
@@ -22,11 +19,9 @@ import type {
   OnTransactionArgs,
   OnSignatureArgs,
   CastActionButtonPressFunction,
-  SignerStateActionContext,
-  SignedFrameAction,
   ComposerActionButtonPressFunction,
 } from "./types";
-import type { FarcasterFrameContext } from "./farcaster";
+import { unsignedFrameAction, type FarcasterFrameContext } from "./farcaster";
 import { useFrameStack } from "./use-frame-stack";
 import { useFetchFrame } from "./use-fetch-frame";
 
@@ -42,49 +37,10 @@ function onMintFallback({ target }: OnMintArgs): void {
   }
 }
 
-export async function unsignedFrameAction<
-  TSignerStorageType = object,
-  TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
-  TFrameContextType extends FrameContext = FarcasterFrameContext,
->({
-  buttonIndex,
-  frameContext,
-  frameButton,
-  state,
-  target,
-  inputText,
-  url,
-}: SignerStateActionContext<TSignerStorageType, TFrameContextType>): Promise<
-  SignedFrameAction<TFrameActionBodyType>
-> {
-  const searchParams = new URLSearchParams({
-    postType: frameButton.action,
-    postUrl: target ?? "",
-  });
-
-  const isFarcaster = "castId" in frameContext;
-
-  return {
-    searchParams,
-    // @todo properly define the type of  TFrameActionBodyType so it covers all usages, farcaster, xmtp, lens
-    body: {
-      untrustedData: {
-        url,
-        timestamp: isFarcaster
-          ? getFarcasterTime()._unsafeUnwrap()
-          : Date.now(),
-        ...(isFarcaster ? { network: 1 } : {}),
-        buttonIndex,
-        state,
-        inputText,
-        address: frameContext.connectedAddress,
-        ...frameContext,
-      },
-      trustedData: {
-        messageBytes: Buffer.from("").toString("hex"),
-      },
-    } as unknown as TFrameActionBodyType,
-  };
+function onConnectWalletFallback(): never {
+  throw new Error(
+    "Please implement this function in order to use transactions"
+  );
 }
 
 async function onTransactionFallback({
@@ -179,6 +135,7 @@ export function useFrame<
   dangerousSkipSigning,
   onMint = onMintFallback,
   onTransaction = onTransactionFallback,
+  onConnectWallet = onConnectWalletFallback,
   onSignature = onSignatureFallback,
   connectedAddress,
   signerState,
@@ -235,6 +192,8 @@ export function useFrame<
 
   const fetchFrameRef = useRef(fetchFrame);
   fetchFrameRef.current = fetchFrame;
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
 
   useEffect(() => {
     if (!frame && homeframeUrl) {
@@ -268,7 +227,6 @@ export function useFrame<
       frameButton,
       target,
       state,
-      transactionId,
       fetchFrameOverride,
     }: {
       currentFrame: Frame;
@@ -276,16 +234,20 @@ export function useFrame<
       buttonIndex: number;
       postInputText: string | undefined;
       state?: string;
-      transactionId?: `0x${string}`;
       target: string;
       fetchFrameOverride?: typeof fetchFrame;
     }): Promise<void> {
       if (!dangerousSkipSigning && !signerState.hasSigner) {
-        console.error("frames.js: missing required auth state");
+        const error = new Error("Missing signer");
+        onErrorRef.current?.(error);
+
+        console.error(`@frames.js/render: ${error.message}`);
         return;
       }
       if (!homeframeUrl) {
-        console.error("frames.js: missing required value for post");
+        const error = new Error("Missing homeframeUrl");
+        onErrorRef.current?.(error);
+        console.error(`@frames.js/render: ${error.message}`);
         return;
       }
 
@@ -304,7 +266,6 @@ export function useFrame<
           frameButton,
           buttonIndex,
           state,
-          transactionId,
         },
         sourceFrame: currentFrame,
       });
@@ -318,6 +279,9 @@ export function useFrame<
       signerState.signer,
     ]
   );
+
+  const onConnectWalletRef = useRef(onConnectWallet);
+  onConnectWalletRef.current = onConnectWallet;
 
   const onTransactionButton = useCallback(
     async function onTransactionButton({
@@ -333,11 +297,27 @@ export function useFrame<
     }): Promise<TransactionTargetResponse | undefined> {
       // Send post request to get calldata
       if (!dangerousSkipSigning && !signerState.hasSigner) {
-        console.error("frames.js: missing required auth state");
+        const error = new Error("Missing signer");
+        onErrorRef.current?.(error);
+
+        console.error(`@frames.js/render: ${error.message}`);
         return;
       }
       if (!homeframeUrl) {
-        console.error("frames.js: missing required value for post");
+        const error = new Error("Missing homeframeUrl");
+        onErrorRef.current?.(error);
+        console.error(`@frames.js/render: ${error.message}`);
+        return;
+      }
+
+      if (!connectedAddress) {
+        try {
+          onConnectWalletRef.current();
+        } catch (e) {
+          onErrorRef.current?.(e instanceof Error ? e : new Error(String(e)));
+          console.error(`@frames.js/render: ${String(e)}`);
+        }
+
         return;
       }
 
@@ -346,6 +326,7 @@ export function useFrame<
         isDangerousSkipSigning: dangerousSkipSigning ?? false,
         method: "POST",
         signerStateActionContext: {
+          type: "tx-data",
           inputText: postInputText,
           signer: signerState.signer ?? null,
           frameContext,
@@ -444,7 +425,7 @@ export function useFrame<
             setInputText("");
           } catch (err) {
             if (err instanceof Error) {
-              onError?.(err);
+              onErrorRef.current?.(err);
             }
 
             console.error(err);
@@ -460,7 +441,6 @@ export function useFrame<
       fetchFrame,
       homeframeUrl,
       inputText,
-      onError,
       onLinkButtonClick,
       onMint,
       onPostButton,

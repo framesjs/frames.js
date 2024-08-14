@@ -6,6 +6,15 @@ export type AnonymousFrameMessageReturnType =
     state?: string;
     inputText?: string;
     unixTimestamp: number;
+    /**
+     * address of the user's connected wallet used to create the transaction,
+     * only present in transaction data requests to endpoint defined by `post_url` and `target` properties
+     */
+    address?: `0x${string}`;
+    /**
+     * available only in tx button's endpoint defined by `post_url` property
+     */
+    transactionId?: `0x${string}`;
   };
 
 export type AnonymousOpenFramesRequest = {
@@ -43,8 +52,10 @@ export async function getAnonymousFrameMessage(
     state: body.untrustedData.state,
     inputText: body.untrustedData.inputText,
     unixTimestamp: body.untrustedData.unixTimestamp,
+    address: body.untrustedData.address,
+    transactionId: body.untrustedData.transactionId,
     walletAddress() {
-      return Promise.resolve(undefined);
+      return Promise.resolve(body.untrustedData.address || undefined);
     },
   } as const;
 }

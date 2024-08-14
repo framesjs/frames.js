@@ -6,7 +6,9 @@
 
 - Type: `0x${string} | undefined`
 
-The connected wallet address of the user.
+The connected wallet address of the user. The address is part of the frame action payload when a frame button with `action="tx"` is pressed.
+
+If the user presses transaction button without a connected wallet, the `onConnectWallet` function is called.
 
 ### `dangerousSkipSigning`
 
@@ -50,6 +52,12 @@ The url of the homeframe, if null won't load a frame.
 
 The initial frame. if not specified will fetch it from the url prop.
 
+### `onConnectWallet`
+
+- Type: `() => void`
+
+A function to start wallet connecting process. This function is called when a user presses a transaction button without a connected wallet.
+
 ### `onError`
 
 - Type: `(e: Error) => void`
@@ -78,7 +86,7 @@ A function to handle redirect responses from the frame. This happens when you cl
 
 - Type: `OnTransactionFunc`
 
-A function to handle transaction button presses, returns the transaction hash or null.
+A function to handle transaction button presses, returns the transaction hash or null. The function is called when a user presses a transaction button and endpoint specified by `target` returns transaction data.
 
 ### `frameContext`
 

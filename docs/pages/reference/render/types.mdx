@@ -43,7 +43,7 @@ export type UseFrameReturn<
   homeframeUrl: string | null | undefined;
   /** the initial frame. if not specified will fetch it from the url prop */
   frame?: Frame;
-  /** connected wallet address of the user */
+  /** connected wallet address of the user, send to the frame for transaction requests */
   connectedAddress: `0x${string}` | undefined;
   /** a function to handle mint buttons */
   onMint?: (t: OnMintArgs) => void;

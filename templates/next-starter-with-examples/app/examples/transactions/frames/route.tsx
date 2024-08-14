@@ -7,7 +7,9 @@ const handleRequest = frames(async (ctx) => {
     return {
       image: (
         <div tw="bg-purple-800 text-white w-full h-full justify-center items-center flex">
-          Transaction submitted! {ctx.message.transactionId}
+          {ctx.message.address
+            ? `Transaction ${ctx.message.transactionId} from ${ctx.message.address} submitted!`
+            : `Transaction ${ctx.message.transactionId} submitted!`}
         </div>
       ),
       imageOptions: {
@@ -27,7 +29,7 @@ const handleRequest = frames(async (ctx) => {
   return {
     image: (
       <div tw="bg-purple-800 text-white w-full h-full justify-center items-center">
-        Rent farcaster storage
+        Rent farcaster storage or send to yourself
       </div>
     ),
     imageOptions: {
@@ -36,6 +38,9 @@ const handleRequest = frames(async (ctx) => {
     buttons: [
       <Button action="tx" target="/txdata" post_url="/">
         Buy a unit
+      </Button>,
+      <Button action="tx" target="/txdata-self" post_url="/">
+        Send to yourself
       </Button>,
     ],
   };
