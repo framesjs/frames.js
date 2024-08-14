@@ -268,24 +268,20 @@ export type HubHttpUrlOptions = {
   hubRequestOptions?: RequestInit;
 };
 
-/** Data extracted and parsed from the frame message body */
-export type FrameActionDataParsed = {
+/**
+ * This is a shape of frame action data defined by spec
+ */
+export type OpenFramesActionData = {
+  /**
+   * 1 indexed button index that was pressed by the user
+   */
   buttonIndex: number;
-  requesterFid: number;
-  castId?: {
-    /** the fid of the Farcaster user (unique identifier) that shared the cast that included the frame */
-    fid: number;
-    /** the hash of the cast (unique identifier) that included the frame */
-    hash: `0x${string}`;
-  };
+  /**
+   * An input text entered by the user.
+   * In some implementations it can contain empty string so make sure to check for undefined and empty string as well.
+   */
   inputText?: string;
   state?: string;
-  /**
-   * address of the user's connected wallet, only present in transaction data requests
-   *
-   * @deprecated use `address` instead
-   */
-  connectedAddress?: string;
   /**
    * address of the user's connected wallet used to create the transaction,
    * only present in transaction data requests to endpoint defined by `post_url` and `target` properties
@@ -295,6 +291,23 @@ export type FrameActionDataParsed = {
    * available only in tx button's endpoint defined by `post_url` property
    */
   transactionId?: `0x${string}`;
+  /**
+   * address of the user's connected wallet, only present in transaction data requests
+   *
+   * @deprecated use `address` instead
+   */
+  connectedAddress?: string;
+};
+
+/** Data extracted and parsed from the frame message body */
+export type FrameActionDataParsed = OpenFramesActionData & {
+  requesterFid: number;
+  castId?: {
+    /** the fid of the Farcaster user (unique identifier) that shared the cast that included the frame */
+    fid: number;
+    /** the hash of the cast (unique identifier) that included the frame */
+    hash: `0x${string}`;
+  };
 };
 
 /** Additional context for a frame message which requires communication with a Hub */

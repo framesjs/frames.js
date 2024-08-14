@@ -1,24 +1,14 @@
 import type { MessageWithWalletAddressImplementation } from "../middleware/walletAddressMiddleware";
+import type { OpenFramesActionData } from "../types";
 
 export type AnonymousFrameMessageReturnType =
-  MessageWithWalletAddressImplementation & {
-    buttonIndex: number;
-    state?: string;
-    inputText?: string;
-    unixTimestamp: number;
-    /**
-     * address of the user's connected wallet used to create the transaction,
-     * only present in transaction data requests to endpoint defined by `post_url` and `target` properties
-     */
-    address?: `0x${string}`;
-    /**
-     * available only in tx button's endpoint defined by `post_url` property
-     */
-    transactionId?: `0x${string}`;
-  };
+  MessageWithWalletAddressImplementation &
+    OpenFramesActionData & {
+      unixTimestamp: number;
+    };
 
 export type AnonymousOpenFramesRequest = {
-  clientProtocol: string;
+  clientProtocol: `anonymous@${string}`;
   untrustedData: AnonymousFrameMessageReturnType;
 };
 
@@ -53,6 +43,7 @@ export async function getAnonymousFrameMessage(
     inputText: body.untrustedData.inputText,
     unixTimestamp: body.untrustedData.unixTimestamp,
     address: body.untrustedData.address,
+    connectedAddress: body.untrustedData.address,
     transactionId: body.untrustedData.transactionId,
     walletAddress() {
       return Promise.resolve(body.untrustedData.address || undefined);

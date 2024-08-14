@@ -1,7 +1,13 @@
 import type { ImageResponse } from "@vercel/og";
-import type { ActionMetadata, ClientProtocolId } from "../types";
+import type {
+  ActionMetadata,
+  ClientProtocolId,
+  OpenFramesActionData,
+} from "../types";
 import type { ImageWorkerOptions } from "../middleware/images-worker/handler";
 import type { Button, ButtonProps } from "./components";
+
+export type { OpenFramesActionData };
 
 export type JsonObject = { [Key in string]: JsonValue } & {
   [Key in string]?: JsonValue | undefined;
