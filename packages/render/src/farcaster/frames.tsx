@@ -71,7 +71,7 @@ export const signFrameAction: SignFrameActionFunc<FarcasterSigner> = async (
   }
 
   const searchParams = new URLSearchParams({
-    postType: actionContext.type !== "default" ? "post" : frameButton.action,
+    postType: actionContext.type === "tx-post" ? "post" : frameButton.action,
     postUrl: target ?? "",
   });
 
@@ -180,7 +180,7 @@ function isFarcasterFrameContext(
  * Used to create an unsigned frame action when signer is not defined
  */
 export async function unsignedFrameAction<
-  TSignerStorageType = object,
+  TSignerStorageType = Record<string, unknown>,
   TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
   TFrameContextType extends FrameContext = FarcasterFrameContext,
 >(
@@ -196,7 +196,7 @@ export async function unsignedFrameAction<
     inputText,
   } = actionContext;
   const searchParams = new URLSearchParams({
-    postType: frameButton.action,
+    postType: actionContext.type === "tx-post" ? "post" : frameButton.action,
     postUrl: target ?? "",
   });
 

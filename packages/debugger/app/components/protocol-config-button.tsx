@@ -7,17 +7,22 @@ import {
 } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { isAddress } from "viem";
-import { useFarcasterFrameContext } from "../hooks/use-farcaster-context";
-import { useFarcasterIdentity } from "../hooks/use-farcaster-identity";
-import { useXmtpFrameContext } from "../hooks/use-xmtp-context";
-import { useXmtpIdentity } from "../hooks/use-xmtp-identity";
-import { useLensIdentity } from "../hooks/use-lens-identity";
-import { useLensFrameContext } from "../hooks/use-lens-context";
-import { cn } from "../lib/utils";
 import FarcasterSignerWindow from "./farcaster-signer-config";
-import { forwardRef, useMemo, useState } from "react";
+import { forwardRef, useMemo } from "react";
 import { WithTooltip } from "./with-tooltip";
-import { useAnonymousIdentity } from "../hooks/use-anonymous-identity";
+import { useAnonymousIdentity } from "@frames.js/render/identity/anonymous";
+import {
+  useFarcasterFrameContext,
+  useFarcasterMultiIdentity,
+} from "@frames.js/render/identity/farcaster";
+import {
+  useLensFrameContext,
+  useLensIdentity,
+} from "@frames.js/render/identity/lens";
+import {
+  useXmtpFrameContext,
+  useXmtpIdentity,
+} from "@frames.js/render/identity/xmtp";
 
 export type ProtocolConfiguration =
   | {
@@ -59,7 +64,7 @@ export const protocolConfigurationMap: Record<string, ProtocolConfiguration> = {
 type ProtocolConfigurationButtonProps = {
   onChange: (configuration: ProtocolConfiguration) => void;
   value: ProtocolConfiguration | null;
-  farcasterSignerState: ReturnType<typeof useFarcasterIdentity>;
+  farcasterSignerState: ReturnType<typeof useFarcasterMultiIdentity>;
   xmtpSignerState: ReturnType<typeof useXmtpIdentity>;
   lensSignerState: ReturnType<typeof useLensIdentity>;
   anonymousSignerState: ReturnType<typeof useAnonymousIdentity>;
@@ -186,9 +191,7 @@ export const ProtocolConfigurationButton = forwardRef<
               <FarcasterSignerWindow
                 farcasterUser={farcasterSignerState.signer ?? null}
                 loading={!!farcasterSignerState.isLoadingSigner ?? false}
-                startFarcasterSignerProcess={
-                  farcasterSignerState.onCreateSignerPress
-                }
+                startFarcasterSignerProcess={farcasterSignerState.createSigner}
                 impersonateUser={farcasterSignerState.impersonateUser}
                 logout={farcasterSignerState.logout}
                 removeIdentity={farcasterSignerState.removeIdentity}
@@ -281,10 +284,10 @@ export const ProtocolConfigurationButton = forwardRef<
                       xmtpFrameContext.frameContext.conversationTopic
                     }
                     onChange={(e) => {
-                      xmtpFrameContext.setFrameContext((c) => ({
+                      xmtpFrameContext.setFrameContext({
                         ...xmtpFrameContext.frameContext,
                         conversationTopic: e.target.value,
-                      }));
+                      });
                     }}
                   />
                   <div>Participant Addresses (CSV)</div>
@@ -353,10 +356,10 @@ export const ProtocolConfigurationButton = forwardRef<
                     placeholder="Lens Publication ID (0x01-0x01)"
                     defaultValue={lensFrameContext.frameContext.pubId}
                     onChange={(e) => {
-                      lensFrameContext.setFrameContext((c) => ({
+                      lensFrameContext.setFrameContext({
                         ...lensFrameContext.frameContext,
                         pubId: e.target.value,
-                      }));
+                      });
                     }}
                   />
                   <Button

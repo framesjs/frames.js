@@ -37,13 +37,12 @@ import { useFrame } from "@frames.js/render/use-frame";
 import { WithTooltip } from "./with-tooltip";
 import { useToast } from "@/components/ui/use-toast";
 import type { CastActionDefinitionResponse } from "../frames/route";
-import { StoredIdentity } from "../hooks/use-farcaster-identity";
 import { ComposerFormActionDialog } from "./composer-form-action-dialog";
 import { AwaitableController } from "../lib/awaitable-controller";
 import type { ComposerActionFormResponse } from "frames.js/types";
 import { CastComposer, CastComposerRef } from "./cast-composer";
-import { Toggle } from "@/components/ui/toggle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { FarcasterSigner } from "@frames.js/render/identity/farcaster";
 
 type FrameDebuggerFramePropertiesTableRowsProps = {
   actionMetadataItem: CastActionDefinitionResponse;
@@ -180,7 +179,7 @@ type ActionDebuggerProps = {
   actionMetadataItem: CastActionDefinitionResponse;
   farcasterFrameConfig: Parameters<
     typeof useFrame<
-      StoredIdentity | null,
+      FarcasterSigner | null,
       FrameActionBodyPayload,
       FarcasterFrameContext
     >

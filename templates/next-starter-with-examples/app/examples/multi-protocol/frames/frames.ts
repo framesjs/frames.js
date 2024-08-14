@@ -55,6 +55,6 @@ export const frames = createFrames({
         },
       },
     }),
-    openframes(),
+    openframes(), // enables anonymous access
   ],
 });

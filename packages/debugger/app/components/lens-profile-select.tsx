@@ -1,13 +1,9 @@
+import { LensProfile } from "@frames.js/render/identity/lens";
 import React from "react";
 
-export type Profile = {
-  id: string;
-  handle?: string;
-};
-
 type ProfileSelectorModalProps = {
-  profiles: Profile[];
-  onSelect: (profile: Profile) => void;
+  profiles: LensProfile[];
+  onSelect: (profile: LensProfile) => void;
   show: boolean;
   onClose: () => void;
 };
@@ -18,7 +14,9 @@ export const ProfileSelectorModal: React.FC<ProfileSelectorModalProps> = ({
   show,
   onClose,
 }) => {
-  if (!show) return null;
+  if (!show) {
+    return null;
+  }
 
   return (
     <div className="modal">

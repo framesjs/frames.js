@@ -27,17 +27,9 @@ import { useAccount, useChainId, useConfig } from "wagmi";
 import pkg from "../package.json";
 import { FrameDebugger, FrameDebuggerRef } from "./components/frame-debugger";
 import { LOCAL_STORAGE_KEYS } from "./constants";
-import { useFarcasterFrameContext } from "./hooks/use-farcaster-context";
-import {
-  StoredIdentity,
-  useFarcasterIdentity,
-} from "./hooks/use-farcaster-identity";
-import { useXmtpFrameContext } from "./hooks/use-xmtp-context";
-import { useXmtpIdentity } from "./hooks/use-xmtp-identity";
-import { useAnonymousIdentity } from "./hooks/use-anonymous-identity";
 import { MockHubActionContext } from "./utils/mock-hub-utils";
 import {
-  ProtocolConfiguration,
+  type ProtocolConfiguration,
   protocolConfigurationMap,
   ProtocolConfigurationButton,
 } from "./components/protocol-config-button";
@@ -53,14 +45,25 @@ import {
   DebuggerConsoleContextProvider,
   useDebuggerConsole,
 } from "./components/debugger-console";
-import { useLensIdentity } from "./hooks/use-lens-identity";
-import { useLensFrameContext } from "./hooks/use-lens-context";
 import { ProfileSelectorModal } from "./components/lens-profile-select";
 import type {
   CastActionDefinitionResponse,
   FrameDefinitionResponse,
 } from "./frames/route";
-import { AwaitableController } from "./lib/awaitable-controller";
+import { useAnonymousIdentity } from "@frames.js/render/identity/anonymous";
+import {
+  useFarcasterFrameContext,
+  useFarcasterMultiIdentity,
+  type FarcasterSigner,
+} from "@frames.js/render/identity/farcaster";
+import {
+  useLensFrameContext,
+  useLensIdentity,
+} from "@frames.js/render/identity/lens";
+import {
+  useXmtpFrameContext,
+  useXmtpIdentity,
+} from "@frames.js/render/identity/xmtp";
 
 const FALLBACK_URL =
   process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
@@ -79,6 +82,8 @@ function parseChainId(id: string): number {
 
   return parseInt(id.split("eip155:")[1]!);
 }
+
+const anonymousFrameContext = {};
 
 export default function DebuggerPage({
   searchParams,
@@ -248,7 +253,7 @@ export default function DebuggerPage({
     refreshUrl(url);
   }, [url, protocolConfiguration, refreshUrl, toast, clearLogs]);
 
-  const farcasterSignerState = useFarcasterIdentity({
+  const farcasterSignerState = useFarcasterMultiIdentity({
     onMissingIdentity() {
       toast({
         title: "Please select an identity",
@@ -419,181 +424,220 @@ export default function DebuggerPage({
   );
 
   const useFrameConfig: Omit<
-    UseFrameOptions<object, FrameActionBodyPayload>,
+    UseFrameOptions<Record<string, unknown>, FrameActionBodyPayload>,
     "signerState" | "specification"
-  > = {
-    homeframeUrl: url,
-    frame: initialFrame,
-    frameActionProxy: "/frames",
-    frameGetProxy: "/frames",
-    frameContext: {
-      ...fallbackFrameContext,
-      address: account.address || fallbackFrameContext.address,
-    },
-    connectedAddress: account.address,
-    extraButtonRequestPayload: { mockData: mockHubContext },
-    onTransaction,
-    onSignature,
-    onConnectWallet,
-    onError(error) {
-      console.error(error);
+  > = useMemo(
+    () => ({
+      homeframeUrl: url,
+      frame: initialFrame,
+      frameActionProxy: "/frames",
+      frameGetProxy: "/frames",
+      frameContext: {
+        ...fallbackFrameContext,
+        address: account.address || fallbackFrameContext.address,
+      },
+      connectedAddress: account.address,
+      extraButtonRequestPayload: { mockData: mockHubContext },
+      onTransaction,
+      onSignature,
+      onConnectWallet,
+      onError(error) {
+        console.error(error);
 
-      if (actionDebuggerRef.current) {
-        if (error.message.includes("Must be called from composer")) {
-          toast({
-            title: "Error occurred",
-            description:
-              "It seems that you tried to call a composer action in the cast action debugger.",
-            variant: "destructive",
-            action: (
-              <ToastAction
-                altText="Switch to composer action debugger"
-                onClick={() => {
-                  actionDebuggerRef.current?.switchTo("composer-action");
-                }}
-              >
-                Switch
-              </ToastAction>
-            ),
-          });
+        if (actionDebuggerRef.current) {
+          if (error.message.includes("Must be called from composer")) {
+            toast({
+              title: "Error occurred",
+              description:
+                "It seems that you tried to call a composer action in the cast action debugger.",
+              variant: "destructive",
+              action: (
+                <ToastAction
+                  altText="Switch to composer action debugger"
+                  onClick={() => {
+                    actionDebuggerRef.current?.switchTo("composer-action");
+                  }}
+                >
+                  Switch
+                </ToastAction>
+              ),
+            });
 
-          return;
-        } else if (
-          error.message.includes(
-            "Unexpected composer action response from the server"
-          )
-        ) {
-          toast({
-            title: "Error occurred",
-            description:
-              "It seems that you tried to call a cast action in the composer action debugger.",
-            variant: "destructive",
-            action: (
-              <ToastAction
-                altText="Switch to cast action debugger"
-                onClick={() => {
-                  actionDebuggerRef.current?.switchTo("cast-action");
-                }}
-              >
-                Switch
-              </ToastAction>
-            ),
-          });
+            return;
+          } else if (
+            error.message.includes(
+              "Unexpected composer action response from the server"
+            )
+          ) {
+            toast({
+              title: "Error occurred",
+              description:
+                "It seems that you tried to call a cast action in the composer action debugger.",
+              variant: "destructive",
+              action: (
+                <ToastAction
+                  altText="Switch to cast action debugger"
+                  onClick={() => {
+                    actionDebuggerRef.current?.switchTo("cast-action");
+                  }}
+                >
+                  Switch
+                </ToastAction>
+              ),
+            });
 
+            return;
+          }
+        }
+
+        toast({
+          title: "Error occurred",
+          description: (
+            <div className="space-y-2">
+              <p>{error.message}</p>
+              <p>Please check the console for more information</p>
+            </div>
+          ),
+          variant: "destructive",
+          action: debuggerRef.current ? (
+            <ToastAction
+              altText="Show console"
+              onClick={() => {
+                debuggerRef.current?.showConsole();
+              }}
+            >
+              Show console
+            </ToastAction>
+          ) : undefined,
+        });
+      },
+      onMint(t) {
+        if (!confirm(`Mint ${t.target}?`)) {
           return;
         }
-      }
 
-      toast({
-        title: "Error occurred",
-        description: (
-          <div className="space-y-2">
-            <p>{error.message}</p>
-            <p>Please check the console for more information</p>
-          </div>
-        ),
-        variant: "destructive",
-        action: debuggerRef.current ? (
-          <ToastAction
-            altText="Show console"
-            onClick={() => {
-              debuggerRef.current?.showConsole();
-            }}
-          >
-            Show console
-          </ToastAction>
-        ) : undefined,
-      });
-    },
-    onMint(t) {
-      if (!confirm(`Mint ${t.target}?`)) {
-        return;
-      }
+        if (!account.address) {
+          openConnectModal?.();
+          return;
+        }
 
-      if (!account.address) {
-        openConnectModal?.();
-        return;
-      }
-
-      const searchParams = new URLSearchParams({
-        target: t.target,
-        taker: account.address,
-      });
-
-      fetch(`/mint?${searchParams.toString()}`)
-        .then(async (res) => {
-          if (!res.ok) {
-            const json = await res.json();
-            throw new Error(json.message);
-          }
-          return await res.json();
-        })
-        .then((json) => {
-          onTransaction({ ...t, transactionData: json.data });
-        })
-        .catch((e) => {
-          toast({
-            title: "Error minting",
-            description: "Please check the console for more information",
-            variant: "destructive",
-            action: debuggerRef.current ? (
-              <ToastAction
-                altText="Show console"
-                onClick={() => {
-                  debuggerRef.current?.showConsole();
-                }}
-              >
-                Show console
-              </ToastAction>
-            ) : undefined,
-          });
-          console.error(e);
+        const searchParams = new URLSearchParams({
+          target: t.target,
+          taker: account.address,
         });
-    },
-  };
+
+        fetch(`/mint?${searchParams.toString()}`)
+          .then(async (res) => {
+            if (!res.ok) {
+              const json = await res.json();
+              throw new Error(json.message);
+            }
+            return await res.json();
+          })
+          .then((json) => {
+            onTransaction({ ...t, transactionData: json.data });
+          })
+          .catch((e) => {
+            toast({
+              title: "Error minting",
+              description: "Please check the console for more information",
+              variant: "destructive",
+              action: debuggerRef.current ? (
+                <ToastAction
+                  altText="Show console"
+                  onClick={() => {
+                    debuggerRef.current?.showConsole();
+                  }}
+                >
+                  Show console
+                </ToastAction>
+              ) : undefined,
+            });
+            console.error(e);
+          });
+      },
+    }),
+    [
+      account.address,
+      initialFrame,
+      mockHubContext,
+      onSignature,
+      onTransaction,
+      openConnectModal,
+      toast,
+      url,
+    ]
+  );
 
   const farcasterFrameConfig: UseFrameOptions<
-    StoredIdentity | null,
+    FarcasterSigner | null,
     FrameActionBodyPayload
-  > = {
-    ...useFrameConfig,
-    signerState: farcasterSignerState,
-    specification: "farcaster",
-    frameContext: {
-      ...farcasterFrameContext.frameContext,
-      address: account.address || farcasterFrameContext.frameContext.address,
-    },
-  };
+  > = useMemo(
+    () => ({
+      ...useFrameConfig,
+      signerState: farcasterSignerState,
+      specification: "farcaster",
+      frameContext: {
+        ...farcasterFrameContext.frameContext,
+        address: account.address || farcasterFrameContext.frameContext.address,
+      },
+    }),
+    [
+      account.address,
+      farcasterFrameContext.frameContext,
+      farcasterSignerState,
+      useFrameConfig,
+    ]
+  );
 
-  const farcasterFrameState = useFrame(farcasterFrameConfig);
+  const useFrameHook = useMemo(() => {
+    return () => {
+      const selectedProtocol = protocolConfiguration?.protocol ?? "farcaster";
 
-  const xmtpFrameState = useFrame({
-    ...useFrameConfig,
-    signerState: xmtpSignerState,
-    specification: "openframes",
-    frameContext: xmtpFrameContext.frameContext,
-  });
-
-  const lensFrameState = useFrame({
-    ...useFrameConfig,
-    signerState: lensSignerState,
-    specification: "openframes",
-    frameContext: lensFrameContext.frameContext,
-  });
-
-  const anonymousFrameState = useFrame({
-    ...useFrameConfig,
-    signerState: anonymousSignerState,
-    specification: "openframes",
-    frameContext: anonymousFrameContext,
-  });
-
-  const selectedFrameState = {
-    farcaster: farcasterFrameState,
-    xmtp: xmtpFrameState,
-    lens: lensFrameState,
-    anonymous: anonymousFrameState,
-  }[protocolConfiguration?.protocol ?? "farcaster"];
+      switch (selectedProtocol) {
+        case "anonymous": {
+          // eslint-disable-next-line react-hooks/rules-of-hooks -- this is used as a hook in FrameDebugger
+          return useFrame({
+            ...useFrameConfig,
+            signerState: anonymousSignerState,
+            specification: "openframes",
+            frameContext: anonymousFrameContext,
+          });
+        }
+        case "lens": {
+          // eslint-disable-next-line react-hooks/rules-of-hooks -- this is used as a hook in FrameDebugger
+          return useFrame({
+            ...useFrameConfig,
+            signerState: lensSignerState,
+            specification: "openframes",
+            frameContext: lensFrameContext.frameContext,
+          });
+        }
+        case "xmtp": {
+          // eslint-disable-next-line react-hooks/rules-of-hooks -- this is used as a hook in FrameDebugger
+          return useFrame({
+            ...useFrameConfig,
+            signerState: xmtpSignerState,
+            specification: "openframes",
+            frameContext: xmtpFrameContext.frameContext,
+          });
+        }
+        default: {
+          // eslint-disable-next-line react-hooks/rules-of-hooks -- this is used as a hook in FrameDebugger
+          return useFrame(farcasterFrameConfig);
+        }
+      }
+    };
+  }, [
+    anonymousSignerState,
+    farcasterFrameConfig,
+    lensFrameContext.frameContext,
+    lensSignerState,
+    protocolConfiguration?.protocol,
+    useFrameConfig,
+    xmtpFrameContext.frameContext,
+    xmtpSignerState,
+  ]);
 
   return (
     <DebuggerConsoleContextProvider value={logs}>
@@ -757,11 +801,13 @@ export default function DebuggerPage({
               </div>
             )}
 
-            {selectedFrameState &&
-              initialFrame &&
-              protocolConfiguration?.specification && (
+            {initialFrame &&
+              !!protocolConfiguration?.protocol &&
+              !!protocolConfiguration.specification && (
                 <FrameDebugger
-                  frameState={selectedFrameState}
+                  useFrameHook={useFrameHook}
+                  // use key so the frame debugger state is completely reset when protocol changes
+                  key={protocolConfiguration.protocol}
                   url={url}
                   mockHubContext={mockHubContext}
                   setMockHubContext={setMockHubContext}

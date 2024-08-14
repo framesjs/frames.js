@@ -1,15 +1,16 @@
 import type { MessageWithWalletAddressImplementation } from "../middleware/walletAddressMiddleware";
 import type { OpenFramesActionData } from "../types";
 
+export type AnonymousFrameMessage = OpenFramesActionData & {
+  unixTimestamp: number;
+};
+
 export type AnonymousFrameMessageReturnType =
-  MessageWithWalletAddressImplementation &
-    OpenFramesActionData & {
-      unixTimestamp: number;
-    };
+  MessageWithWalletAddressImplementation & AnonymousFrameMessage;
 
 export type AnonymousOpenFramesRequest = {
   clientProtocol: `anonymous@${string}`;
-  untrustedData: AnonymousFrameMessageReturnType;
+  untrustedData: AnonymousFrameMessage;
 };
 
 export function isAnonymousFrameActionPayload(

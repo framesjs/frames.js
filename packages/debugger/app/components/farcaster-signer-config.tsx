@@ -38,19 +38,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import type { StoredIdentity } from "../hooks/use-farcaster-identity";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
+import type { FarcasterSigner } from "@frames.js/render/identity/farcaster";
 
 type FarcasterSignerConfigProps = {
-  farcasterUser: StoredIdentity | null;
+  farcasterUser: FarcasterSigner | null;
   loading: boolean;
   startFarcasterSignerProcess: () => Promise<void>;
   impersonateUser: (fid: number) => Promise<void>;
   logout: () => void;
   removeIdentity: () => void;
-  storedUsers?: StoredIdentity[];
-  onIdentitySelect: (id: number) => void;
+  storedUsers?: FarcasterSigner[];
+  onIdentitySelect: (id: number | string) => void;
 };
 
 export default function FarcasterSignerConfig({
@@ -191,7 +191,7 @@ function IdentityCommandLabel({
   user,
 }: {
   selected: boolean;
-  user: StoredIdentity;
+  user: FarcasterSigner;
 }) {
   const selectedIcon = <Check className="mr-2 h-4 w-4" />;
 
@@ -222,7 +222,7 @@ function IdentityCommandLabel({
 }
 
 type SelectedIdentityProps = {
-  user: StoredIdentity;
+  user: FarcasterSigner;
   onLogout: () => void;
   onRemove: () => void;
 };

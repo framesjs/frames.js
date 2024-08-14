@@ -109,6 +109,76 @@
         "types": "./dist/use-frame.d.cts",
         "default": "./dist/use-frame.cjs"
       }
+    },
+    "./identity/anonymous": {
+      "import": {
+        "types": "./dist/identity/anonymous/index.d.ts",
+        "default": "./dist/identity/anonymous/index.js"
+      },
+      "require": {
+        "types": "./dist/identity/anonymous/index.d.cts",
+        "default": "./dist/identity/anonymous/index.cjs"
+      }
+    },
+    "./identity/farcaster": {
+      "import": {
+        "types": "./dist/identity/farcaster/index.d.ts",
+        "default": "./dist/identity/farcaster/index.js"
+      },
+      "require": {
+        "types": "./dist/identity/farcaster/index.d.cts",
+        "default": "./dist/identity/farcaster/index.cjs"
+      }
+    },
+    "./identity/lens": {
+      "import": {
+        "types": "./dist/identity/lens/index.d.ts",
+        "default": "./dist/identity/lens/index.js"
+      },
+      "require": {
+        "types": "./dist/identity/lens/index.d.cts",
+        "default": "./dist/identity/lens/index.cjs"
+      }
+    },
+    "./identity/xmtp": {
+      "import": {
+        "types": "./dist/identity/xmtp/index.d.ts",
+        "default": "./dist/identity/xmtp/index.js"
+      },
+      "require": {
+        "types": "./dist/identity/xmtp/index.d.cts",
+        "default": "./dist/identity/xmtp/index.cjs"
+      }
+    },
+    "./identity/storage": {
+      "import": {
+        "types": "./dist/identity/storage/index.d.ts",
+        "default": "./dist/identity/storage/index.js"
+      },
+      "require": {
+        "types": "./dist/identity/storage/index.d.cts",
+        "default": "./dist/identity/storage/index.cjs"
+      }
+    },
+    "./identity/storage/*": {
+      "import": {
+        "types": "./dist/identity/storage/*.d.ts",
+        "default": "./dist/identity/storage/*.js"
+      },
+      "require": {
+        "types": "./dist/identity/storage/*.d.cts",
+        "default": "./dist/identity/storage/*.cjs"
+      }
+    },
+    "./identity/types": {
+      "import": {
+        "types": "./dist/identity/types.d.ts",
+        "default": "./dist/identity/types.js"
+      },
+      "require": {
+        "types": "./dist/identity/types.d.cts",
+        "default": "./dist/identity/types.cjs"
+      }
     }
   },
   "files": [
@@ -116,23 +186,35 @@
     "src"
   ],
   "devDependencies": {
+    "@lens-protocol/client": "2.0.0",
+    "@rainbow-me/rainbowkit": "^2.1.2",
+    "@remix-run/node": "^2.8.1",
     "@types/react-native": "^0.73.0",
     "@types/react": "^18.2.0",
-    "@remix-run/node": "^2.8.1",
+    "@xmtp/xmtp-js": "^12.0.0",
+    "@xmtp/frames-client": "^0.5.3",
     "tsup": "^8.0.1",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "viem": "^2.13.7",
+    "wagmi": "^2.9.10"
   },
   "license": "MIT",
   "peerDependencies": {
+    "@lens-protocol/client": "2.0.0",
+    "@rainbow-me/rainbowkit": "^2.1.2",
     "@types/react": "^18.2.0",
     "@types/react-native": "^0.73.0",
+    "@xmtp/xmtp-js": "^12.0.0",
+    "@xmtp/frames-client": "^0.5.3",
     "next": "^14.1.0",
     "react": "^18.2.0",
     "react-native": "^0.74.3",
-    "viem": "^2.7.8"
+    "viem": "^2.7.8",
+    "wagmi": "^2.9.10"
   },
   "dependencies": {
     "@farcaster/core": "^0.14.7",
+    "@noble/ed25519": "^2.0.0",
     "frames.js": "^0.18.1"
   }
 }
