@@ -71,7 +71,7 @@ export const signFrameAction: SignFrameActionFunc<FarcasterSigner> = async (
   }
 
   const searchParams = new URLSearchParams({
-    postType: actionContext.type !== "default" ? "post" : frameButton.action,
+    postType: actionContext.type === "tx-post" ? "post" : frameButton.action,
     postUrl: target ?? "",
   });
 
@@ -196,7 +196,7 @@ export async function unsignedFrameAction<
     inputText,
   } = actionContext;
   const searchParams = new URLSearchParams({
-    postType: frameButton.action,
+    postType: actionContext.type === "tx-post" ? "post" : frameButton.action,
     postUrl: target ?? "",
   });
 

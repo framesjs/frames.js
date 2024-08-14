@@ -30,7 +30,7 @@ export function useAnonymousIdentity(): AnonymousSignerInstance {
   > = useCallback((actionContext) => {
     const searchParams = new URLSearchParams({
       postType:
-        actionContext.type !== "default"
+        actionContext.type === "tx-post"
           ? "post"
           : actionContext.frameButton.action,
       postUrl: actionContext.target ?? "",
