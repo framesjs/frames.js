@@ -88,6 +88,12 @@ A function to handle redirect responses from the frame. This happens when you cl
 
 A function to handle transaction button presses, returns the transaction hash or null. The function is called when a user presses a transaction button and endpoint specified by `target` returns transaction data.
 
+### `transactionDataSuffix`
+
+- Type: `0x${string}`
+
+A suffix to add to the transaction data. Useful for [client attribution](https://www.notion.so/warpcast/Frame-Transactions-Public-9d9f9f4f527249519a41bd8d16165f73#c1c3182208ce4ae4a7ffa72129b9795a) in farcaster. Use the `attribution` helper from `@frames.js/render/farcaster` to generate this.
+
 ### `frameContext`
 
 - Type: `FrameContext`

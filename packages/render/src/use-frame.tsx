@@ -135,6 +135,7 @@ export function useFrame<
   dangerousSkipSigning,
   onMint = onMintFallback,
   onTransaction = onTransactionFallback,
+  transactionDataSuffix,
   onConnectWallet = onConnectWalletFallback,
   onSignature = onSignatureFallback,
   connectedAddress,
@@ -171,6 +172,7 @@ export function useFrame<
     frameActionProxy,
     frameGetProxy,
     onTransaction,
+    transactionDataSuffix,
     onSignature,
     signFrameAction({ actionContext, forceRealSigner }) {
       return dangerousSkipSigning && !forceRealSigner

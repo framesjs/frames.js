@@ -11,6 +11,8 @@ import type {
   ComposerActionStateFromMessage,
   ErrorMessageResponse,
 } from "frames.js/types";
+import { hexToBytes } from "viem";
+import type { FarcasterFrameContext } from "./farcaster";
 import type {
   CastActionRequest,
   ComposerActionRequest,
@@ -28,7 +30,6 @@ import type {
   UseFetchFrameOptions,
   UseFetchFrameSignFrameActionFunction,
 } from "./types";
-import type { FarcasterFrameContext } from "./farcaster";
 import { isParseResult } from "./use-frame-stack";
 
 class UnexpectedCastActionResponseError extends Error {
@@ -104,6 +105,7 @@ export function useFetchFrame<
   extraButtonRequestPayload,
   signFrameAction,
   onTransaction,
+  transactionDataSuffix,
   onSignature,
   onError = defaultErrorHandler,
   fetchFn,
@@ -521,6 +523,18 @@ export function useFetchFrame<
 
     // get transaction id or signature id from transaction data
     if (transactionData.method === "eth_sendTransaction") {
+      // Add transaction data suffix
+      if (
+        transactionData.params.data &&
+        transactionData.attribution !== false &&
+        transactionDataSuffix &&
+        // Has a function signature
+        hexToBytes(transactionData.params.data).length > 4
+      ) {
+        transactionData.params.data = (transactionData.params.data +
+          transactionDataSuffix.slice(2)) as `0x${string}`;
+      }
+
       transactionIdOrError = await tryCall(
         onTransaction({
           frame: sourceFrame,
