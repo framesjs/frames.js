@@ -1,5 +1,15 @@
 # template-next-starter-with-examples
 
+## 0.1.2
+
+### Patch Changes
+
+- 3eeb57b: fix: add missing imageUrl to composer action metadata
+- Updated dependencies [381669d]
+- Updated dependencies [3eeb57b]
+- Updated dependencies [cf67e3d]
+  - frames.js@0.18.2
+
 ## 0.1.1
 
 ### Patch Changes

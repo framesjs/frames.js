@@ -1,5 +1,13 @@
 # frames.js
 
+## 0.18.2
+
+### Patch Changes
+
+- 381669d: feat: address and transactionId in tx frame messages
+- 3eeb57b: fix: add missing imageUrl to composer action metadata
+- cf67e3d: fix(frames.js): use correct type for untrusted data
+
 ## 0.18.1
 
 ### Patch Changes

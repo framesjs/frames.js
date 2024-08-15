@@ -1,5 +1,20 @@
 # @frames.js/render
 
+## 0.3.0
+
+### Minor Changes
+
+- 381669d: feat: onConnectWallet function that complements onTransaction function
+
+### Patch Changes
+
+- cf67e3d: feat(@frames.js/render): introduce new identity hooks
+- 52d7028: feat: farcaster client transaction attribution
+- Updated dependencies [381669d]
+- Updated dependencies [3eeb57b]
+- Updated dependencies [cf67e3d]
+  - frames.js@0.18.2
+
 ## 0.2.23
 
 ### Patch Changes

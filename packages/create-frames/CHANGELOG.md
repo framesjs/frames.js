@@ -1,5 +1,11 @@
 # create-frames
 
+## 0.1.30
+
+### Patch Changes
+
+- 3eeb57b: fix: add missing imageUrl to composer action metadata
+
 ## 0.1.29
 
 ### Patch Changes

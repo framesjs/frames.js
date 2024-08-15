@@ -1,5 +1,14 @@
 # @frames.js/debugger
 
+## 0.3.8
+
+### Patch Changes
+
+- 381669d: feat: onConnectWallet function that complements onTransaction function
+- 3eeb57b: fix: add missing imageUrl to composer action metadata
+- 52d7028: feat: farcaster client transaction attribution
+- cf67e3d: feat(@frames.js/debugger): use new identity hooks
+
 ## 0.3.7
 
 ### Patch Changes
