@@ -1,5 +1,11 @@
 # create-frames
 
+## 0.1.31
+
+### Patch Changes
+
+- chore: bump packages
+
 ## 0.1.30
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @frames.js/render
 
+## 0.3.1
+
+### Patch Changes
+
+- 97619a8: fix(render): encodePacked for attribution
+
 ## 0.3.0
 
 ### Minor Changes
