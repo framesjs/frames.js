@@ -1,8 +1,5 @@
-import { encodeAbiParameters } from "viem";
+import { encodePacked } from "viem";
 
 export function attribution(fid: number): `0x${string}` {
-  return encodeAbiParameters(
-    [{ type: "bytes1" }, { type: "uint32" }],
-    ["0xfc", fid]
-  );
+  return encodePacked(["bytes1", "uint32"], ["0xfc", fid]);
 }
