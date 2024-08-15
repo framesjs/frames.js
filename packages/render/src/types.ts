@@ -120,6 +120,8 @@ export type UseFetchFrameOptions<
    * Called after transaction data has been returned from the server and user needs to approve the transaction.
    */
   onTransaction: OnTransactionFunc;
+  /** Transaction data suffix */
+  transactionDataSuffix?: `0x${string}`;
   onSignature: OnSignatureFunc;
   onComposerFormAction: OnComposerFormActionFunc;
   /**
@@ -169,6 +171,8 @@ export type UseFrameOptions<
   onMint?: (t: OnMintArgs) => void;
   /** a function to handle transaction buttons that returned transaction data from the target, returns the transaction hash or null */
   onTransaction?: OnTransactionFunc;
+  /** Transaction data suffix */
+  transactionDataSuffix?: `0x${string}`;
   /** A function to handle transaction buttons that returned signature data from the target, returns signature hash or null */
   onSignature?: OnSignatureFunc;
   /**

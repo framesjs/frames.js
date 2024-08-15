@@ -15,6 +15,10 @@ declare global {
        * Used in combination with FARCASTER_DEVELOPER_MNEMONIC if SIGNER_URL is not provided.
        */
       FARCASTER_DEVELOPER_FID: string | undefined;
+      /**
+       * FID to be attributed for farcaster frame transactions.
+       */
+      NEXT_PUBLIC_FARCASTER_ATTRIBUTION_FID: string | undefined;
     }
   }
 }

@@ -11,6 +11,7 @@ import {
   type FrameActionBodyPayload,
   type OnConnectWalletFunc,
 } from "@frames.js/render";
+import { attribution } from "@frames.js/render/farcaster";
 import { useFrame } from "@frames.js/render/use-frame";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import { sendTransaction, signTypedData, switchChain } from "@wagmi/core";
@@ -572,8 +573,11 @@ export default function DebuggerPage({
   const farcasterFrameConfig: UseFrameOptions<
     FarcasterSigner | null,
     FrameActionBodyPayload
-  > = useMemo(
-    () => ({
+  > = useMemo(() => {
+    const attributionData = process.env.NEXT_PUBLIC_FARCASTER_ATTRIBUTION_FID
+      ? attribution(parseInt(process.env.NEXT_PUBLIC_FARCASTER_ATTRIBUTION_FID))
+      : undefined;
+    return {
       ...useFrameConfig,
       signerState: farcasterSignerState,
       specification: "farcaster",
@@ -581,14 +585,14 @@ export default function DebuggerPage({
         ...farcasterFrameContext.frameContext,
         address: account.address || farcasterFrameContext.frameContext.address,
       },
-    }),
-    [
-      account.address,
-      farcasterFrameContext.frameContext,
-      farcasterSignerState,
-      useFrameConfig,
-    ]
-  );
+      transactionDataSuffix: attributionData,
+    };
+  }, [
+    account.address,
+    farcasterFrameContext.frameContext,
+    farcasterSignerState,
+    useFrameConfig,
+  ]);
 
   const useFrameHook = useMemo(() => {
     return () => {
