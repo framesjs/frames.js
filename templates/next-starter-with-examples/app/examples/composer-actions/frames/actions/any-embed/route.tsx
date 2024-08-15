@@ -11,6 +11,7 @@ export const GET = async (req: NextRequest) => {
     icon: "globe",
     name: "Embed any URL",
     aboutUrl: `${appURL()}/examples/composer-actions`,
+    imageUrl: "https://framesjs.org/logo.png",
     description: "Embed a URL.",
   });
 };

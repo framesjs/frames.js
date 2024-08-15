@@ -12,6 +12,7 @@ export const GET = async (req: NextRequest) => {
     name: "Create a game",
     aboutUrl: `${appURL()}/examples/composer-actions`,
     description: "Guess a number game.",
+    imageUrl: "https://framesjs.org/logo.png",
   });
 };
 

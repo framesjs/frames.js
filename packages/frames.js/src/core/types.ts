@@ -450,7 +450,7 @@ export type ComposerActionResponse = {
    *
    * Should be square, no more than 300x300px.
    */
-  imageUrl?: string;
+  imageUrl: string;
   /** The action type. (Same type options as frame buttons). Only post is accepted in V1. */
   action: {
     type: "post";
