@@ -561,6 +561,7 @@ export default function DebuggerPage({
       account.address,
       initialFrame,
       mockHubContext,
+      onConnectWallet,
       onSignature,
       onTransaction,
       openConnectModal,
@@ -630,6 +631,7 @@ export default function DebuggerPage({
     };
   }, [
     anonymousSignerState,
+    anonymousFrameContext,
     farcasterFrameConfig,
     lensFrameContext.frameContext,
     lensSignerState,

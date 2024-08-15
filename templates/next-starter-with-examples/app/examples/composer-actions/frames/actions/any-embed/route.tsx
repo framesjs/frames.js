@@ -11,7 +11,7 @@ export const GET = async (req: NextRequest) => {
     icon: "globe",
     name: "Embed any URL",
     aboutUrl: `${appURL()}/examples/composer-actions`,
-    description: "Embeds any URL to a cast.",
+    description: "Embed a URL.",
   });
 };
 

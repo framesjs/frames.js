@@ -1,9 +1,5 @@
 import type { ImageResponse } from "@vercel/og";
-import type {
-  ActionMetadata,
-  ClientProtocolId,
-  OpenFramesActionData,
-} from "../types";
+import type { ClientProtocolId, OpenFramesActionData } from "../types";
 import type { ImageWorkerOptions } from "../middleware/images-worker/handler";
 import type { Button, ButtonProps } from "./components";
 
@@ -422,5 +418,41 @@ export type CastActionFrameResponse = {
   frameUrl: string;
 };
 
-export type CastActionResponse = ActionMetadata;
-export type ComposerActionResponse = { type: "composer" } & ActionMetadata;
+/** Metadata of an action typically triggered on a social post */
+export type CastActionResponse = {
+  /** The action name. Must be less than 30 characters. */
+  name: string;
+  /** An [Octicons](https://primer.style/foundations/icons) icon name. */
+  icon: string;
+  /** A short description up to 80 characters. */
+  description: string;
+  /** External link to an "about" page for extended description. */
+  aboutUrl?: string;
+  /** The action type. (Same type options as frame buttons). Only post is accepted in V1. */
+  action: {
+    type: "post";
+  };
+};
+
+/** Metadata of an action triggered from social post composer */
+export type ComposerActionResponse = {
+  type: "composer";
+  /** The action name. Must be less than 15 characters. */
+  name: string;
+  /** An [Octicons](https://primer.style/foundations/icons) icon name. */
+  icon: string;
+  /** A short description up to 20 characters. */
+  description: string;
+  /** External link to an "about" page for extended description. */
+  aboutUrl?: string;
+  /**
+   * Will be shown as the action logo in marketplace.
+   *
+   * Should be square, no more than 300x300px.
+   */
+  imageUrl?: string;
+  /** The action type. (Same type options as frame buttons). Only post is accepted in V1. */
+  action: {
+    type: "post";
+  };
+};

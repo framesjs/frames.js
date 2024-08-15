@@ -1,3 +1,4 @@
+import { getByteLength } from "../utils";
 import type {
   CastActionResponse,
   ComposerActionFormResponse,
@@ -10,6 +11,16 @@ import type {
  * Returns a response defining composer action.
  */
 export function castAction(definition: CastActionResponse): Response {
+  if (getByteLength(definition.name) > 30) {
+    throw new Error("Cast action name must be at most 30 characters long");
+  }
+
+  if (getByteLength(definition.description) > 80) {
+    throw new Error(
+      "Cast action description must be at most 80 characters long"
+    );
+  }
+
   return Response.json(definition);
 }
 
@@ -19,6 +30,16 @@ export function castAction(definition: CastActionResponse): Response {
 export function composerAction(
   definition: Omit<ComposerActionResponse, "type">
 ): Response {
+  if (getByteLength(definition.name) > 14) {
+    throw new Error("Composer action name must be at most 14 characters long");
+  }
+
+  if (getByteLength(definition.description) > 20) {
+    throw new Error(
+      "Composer action description must be at most 20 characters long"
+    );
+  }
+
   return Response.json({
     ...definition,
     type: "composer",
