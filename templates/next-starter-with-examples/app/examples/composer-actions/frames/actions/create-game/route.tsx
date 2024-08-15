@@ -11,7 +11,8 @@ export const GET = async (req: NextRequest) => {
     icon: "trophy",
     name: "Create a game",
     aboutUrl: `${appURL()}/examples/composer-actions`,
-    description: "Creates a guess a number game.",
+    description: "Guess a number game.",
+    imageUrl: "https://framesjs.org/logo.png",
   });
 };
 
