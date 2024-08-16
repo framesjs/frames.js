@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.3.10
+
+### Patch Changes
+
+- chore: bump package versions
+
 ## 0.3.9
 
 ### Patch Changes

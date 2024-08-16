@@ -1,5 +1,11 @@
 # @frames.js/render
 
+## 0.3.2
+
+### Patch Changes
+
+- 39341c0: fix: use initial state when value is not stored in storage or is removed from it
+
 ## 0.3.1
 
 ### Patch Changes
