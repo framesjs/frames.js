@@ -9,15 +9,31 @@ type Obj = { [key in string]: AllowedValue } & {
 };
 type AllowedValue = Primitives | Arr | Obj;
 
-type UseStorageOptions<TValue extends AllowedValue | undefined> = {
+type SharedOptions<TValue extends AllowedValue | undefined> = {
   key: string;
-  initialValue?: TValue;
-  preprocessValue?: (value: TValue) => TValue;
+  /**
+   * Called each time the value in storage changes or is loaded.
+   *
+   * You can modify the value before it is set in the state.
+   */
+  preprocessValue?: (value: Exclude<TValue, undefined>) => TValue;
   /**
    * @defaultValue WebStorage
    */
   storage?: Storage;
 };
+
+type UseStorageWithoutInitialValue<TValue extends AllowedValue> = {
+  initialValue?: never;
+} & SharedOptions<TValue>;
+
+type UseStorageOptionsWithInitialValue<TValue extends AllowedValue> = {
+  initialValue: TValue;
+} & SharedOptions<TValue>;
+
+type UseStorageOptions<TValue extends AllowedValue | undefined> = {
+  initialValue?: TValue;
+} & SharedOptions<TValue>;
 
 type Setter<TValue extends AllowedValue | undefined> = (
   value: TValue | ((prevState: TValue) => TValue)
@@ -25,8 +41,12 @@ type Setter<TValue extends AllowedValue | undefined> = (
 
 const defaultStorage = new WebStorage();
 
-export function useStorage<TValue extends AllowedValue | undefined>(
-  options: UseStorageOptions<TValue>
+export function useStorage<TValue extends AllowedValue>(
+  options: UseStorageWithoutInitialValue<TValue>
+): [TValue | undefined, Setter<TValue | undefined>];
+
+export function useStorage<TValue extends AllowedValue>(
+  options: UseStorageOptionsWithInitialValue<TValue>
 ): [TValue, Setter<TValue>];
 
 export function useStorage<
@@ -43,12 +63,27 @@ export function useStorage<
   const storageRef = useRef(storage);
   const preprocessValueRef = useRef(preprocessValue);
   preprocessValueRef.current = preprocessValue;
-  const [value, setValue] = useState<TValue | undefined>(initialValue);
+  const initialValueRef = useRef(initialValue);
+  const [value, setValue] = useState<TValue | undefined>(
+    initialValueRef.current
+  );
 
   useEffect(() => {
+    function isValueNotUndefined<TNewValue extends AllowedValue | undefined>(
+      newValue: TNewValue
+    ): newValue is Exclude<TNewValue, undefined> {
+      return newValue !== undefined;
+    }
+
     const listener = (newValue: TValue | undefined): void => {
-      if (newValue === undefined) {
-        setValue(undefined);
+      if (!isValueNotUndefined(newValue)) {
+        /**
+         * If new value is undefined, use initial value.
+         *
+         * This can happen when you load the app for first time and there is no value
+         * in the storage or when you remove the value from the storage.
+         */
+        setValue(initialValueRef.current);
         return;
       }
 
