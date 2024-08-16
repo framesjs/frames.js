@@ -103,10 +103,15 @@ export function useStorage<
 
   const setState: Setter<TValue | undefined> = useCallback(
     async (setter) => {
-      await storageRef.current.set<TValue | undefined>(
-        key,
-        typeof setter === "function" ? setter : () => setter
-      );
+      await storageRef.current.set<TValue | undefined>(key, (currentState) => {
+        if (typeof setter !== "function") {
+          return setter;
+        }
+
+        return setter(
+          currentState === undefined ? initialValueRef.current : currentState
+        );
+      });
     },
     [key]
   );
