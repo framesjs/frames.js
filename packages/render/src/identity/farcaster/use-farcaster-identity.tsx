@@ -15,6 +15,7 @@ import { WebStorage } from "../storage";
 import { useStorage } from "../../hooks/use-storage";
 import { IdentityPoller } from "./identity-poller";
 import type {
+  FarcasterCreateSignerResult,
   FarcasterSignedKeyRequest,
   FarcasterSigner,
   FarcasterSignerApproved,
@@ -145,7 +146,7 @@ type UseFarcasterIdentityOptions = {
 
 export type FarcasterSignerInstance =
   FarcasterSignerState<FarcasterSigner | null> & {
-    createSigner: () => Promise<void>;
+    createSigner: () => Promise<FarcasterCreateSignerResult>;
     impersonateUser: (fid: number) => Promise<void>;
     identityPoller: IdentityPoller;
   };
@@ -197,97 +198,109 @@ export function useFarcasterIdentity({
   const generateUserIdRef = useRef(generateUserId);
   generateUserIdRef.current = generateUserId;
 
-  const createFarcasterSigner = useCallback(async () => {
-    try {
-      const keypair = await createKeypairEDDSA();
-      const keypairString = convertKeypairToHex(keypair);
-      const authorizationResponse = await fetch(
-        // real signer or local one are handled by local route so we don't need to expose anything to client side bundle
-        signerUrl,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            publicKey: keypairString.publicKey,
-          }),
-        }
-      );
-      const authorizationBody = (await authorizationResponse.json()) as
-        | {
-            signature: string;
-            requestFid: string;
-            deadline: number;
-            requestSigner: string;
+  const createFarcasterSigner =
+    useCallback(async (): Promise<FarcasterCreateSignerResult> => {
+      try {
+        const keypair = await createKeypairEDDSA();
+        const keypairString = convertKeypairToHex(keypair);
+        const authorizationResponse = await fetch(
+          // real signer or local one are handled by local route so we don't need to expose anything to client side bundle
+          signerUrl,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              publicKey: keypairString.publicKey,
+            }),
           }
-        | { code: number; message: string };
-      if (authorizationResponse.status === 200) {
-        const { signature, requestFid, deadline, requestSigner } =
-          authorizationBody as {
-            signature: string;
-            requestFid: string;
-            deadline: number;
-            requestSigner: string;
+        );
+        const authorizationBody = (await authorizationResponse.json()) as
+          | {
+              signature: string;
+              requestFid: string;
+              deadline: number;
+              requestSigner: string;
+            }
+          | { code: number; message: string };
+
+        if (authorizationResponse.status === 200) {
+          const { signature, requestFid, deadline, requestSigner } =
+            authorizationBody as {
+              signature: string;
+              requestFid: string;
+              deadline: number;
+              requestSigner: string;
+            };
+
+          const {
+            result: { signedKeyRequest },
+          } = (await (
+            await fetch(`https://api.warpcast.com/v2/signed-key-requests`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                key: keypairString.publicKey,
+                signature,
+                requestFid,
+                deadline,
+              }),
+            })
+          ).json()) as {
+            result: {
+              signedKeyRequest: { token: string; deeplinkUrl: string };
+            };
           };
 
-        const {
-          result: { signedKeyRequest },
-        } = (await (
-          await fetch(`https://api.warpcast.com/v2/signed-key-requests`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              key: keypairString.publicKey,
-              signature,
-              requestFid,
-              deadline,
-            }),
-          })
-        ).json()) as {
-          result: { signedKeyRequest: { token: string; deeplinkUrl: string } };
-        };
+          // this deeplink works only on iOS, make sure it works on android too by using app link
+          const deepLinkUrl = new URL(signedKeyRequest.deeplinkUrl);
+          const signedKeyRequestToken = deepLinkUrl.searchParams.get("token");
+          const signerApprovalUrl = new URL(
+            "https://client.warpcast.com/deeplinks/signed-key-request"
+          );
 
-        // this deeplink works only on iOS, make sure it works on android too by using app link
-        const deepLinkUrl = new URL(signedKeyRequest.deeplinkUrl);
-        const signedKeyRequestToken = deepLinkUrl.searchParams.get("token");
-        const signerApprovalUrl = new URL(
-          "https://client.warpcast.com/deeplinks/signed-key-request"
-        );
-
-        if (!signedKeyRequestToken) {
-          throw new Error("No token found in the deep link URL");
-        }
-
-        signerApprovalUrl.searchParams.set("token", signedKeyRequestToken);
-
-        await setState((currentState) => {
-          const newState = identityReducer(currentState, {
-            type: "LOGIN_START",
-            id: generateUserIdRef.current(),
-            publicKey: keypairString.publicKey,
-            privateKey: keypairString.privateKey,
-            deadline,
-            token: signedKeyRequestToken,
-            signerApprovalUrl: signerApprovalUrl.toString(),
-            requestFid: parseInt(requestFid, 10),
-            requestSigner,
-            signature,
-          });
-
-          if (newState.status === "pending_approval") {
-            onLogInStartRef.current?.(newState);
+          if (!signedKeyRequestToken) {
+            throw new Error("No token found in the deep link URL");
           }
 
-          return newState;
-        });
-      } else if ("message" in authorizationBody) {
-        throw new Error(authorizationBody.message);
+          signerApprovalUrl.searchParams.set("token", signedKeyRequestToken);
+
+          await setState((currentState) => {
+            const newState = identityReducer(currentState, {
+              type: "LOGIN_START",
+              id: generateUserIdRef.current(),
+              publicKey: keypairString.publicKey,
+              privateKey: keypairString.privateKey,
+              deadline,
+              token: signedKeyRequestToken,
+              signerApprovalUrl: signerApprovalUrl.toString(),
+              requestFid: parseInt(requestFid, 10),
+              requestSigner,
+              signature,
+            });
+
+            if (newState.status === "pending_approval") {
+              onLogInStartRef.current?.(newState);
+            }
+
+            return newState;
+          });
+
+          return {
+            token: signedKeyRequestToken,
+            signerApprovalUrl: signerApprovalUrl.toString(),
+          };
+        } else if ("message" in authorizationBody) {
+          throw new Error(authorizationBody.message);
+        }
+
+        throw new Error("Could not request signer approval");
+      } catch (error) {
+        // eslint-disable-next-line no-console -- provide feedback
+        console.error("@frames.js/render: API Call failed", error);
+        throw error;
       }
-    } catch (error) {
-      // eslint-disable-next-line no-console -- provide feedback
-      console.error("@frames.js/render: API Call failed", error);
-    }
-  }, [setState, signerUrl]);
+    }, [setState, signerUrl]);
 
   const impersonateUser = useCallback(
     async (fid: number) => {
@@ -327,8 +340,10 @@ export function useFarcasterIdentity({
 
   const createSigner = useCallback(async () => {
     setIsLoading(true);
-    await createFarcasterSigner();
+    const result = await createFarcasterSigner();
     setIsLoading(false);
+
+    return result;
   }, [createFarcasterSigner]);
 
   const logout = useCallback(async () => {
