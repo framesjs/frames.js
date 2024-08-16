@@ -34,3 +34,8 @@ export type FarcasterSigner =
   | FarcasterSignerApproved
   | FarcasterSignerImpersonating
   | FarcasterSignerPendingApproval;
+
+export type FarcasterCreateSignerResult = {
+  token: string;
+  signerApprovalUrl: string;
+};
