@@ -45,7 +45,7 @@ import type { FarcasterSigner } from "@frames.js/render/identity/farcaster";
 type FarcasterSignerConfigProps = {
   farcasterUser: FarcasterSigner | null;
   loading: boolean;
-  startFarcasterSignerProcess: () => Promise<void>;
+  startFarcasterSignerProcess: () => Promise<any>;
   impersonateUser: (fid: number) => Promise<void>;
   logout: () => void;
   removeIdentity: () => void;
