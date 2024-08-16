@@ -1,5 +1,12 @@
 # @frames.js/render
 
+## 0.3.3
+
+### Patch Changes
+
+- c914877: fix: pass initial state to setter if the storage value is undefined
+- 49b7ae8: feat: return signer approval when creating signer on farcaster
+
 ## 0.3.2
 
 ### Patch Changes
