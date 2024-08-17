@@ -37,6 +37,7 @@ export async function getXmtpFrameMessage(
 
   return {
     ...actionBody,
+    url: actionBody.frameUrl,
     address,
     connectedAddress: address,
     transactionId: (actionBody.transactionId || "").startsWith("0x")
