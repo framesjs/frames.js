@@ -273,6 +273,10 @@ export type HubHttpUrlOptions = {
  */
 export type OpenFramesActionData = {
   /**
+   * The URL of the frame that the action was triggered from
+   */
+  url: string;
+  /**
    * 1 indexed button index that was pressed by the user
    */
   buttonIndex: number;

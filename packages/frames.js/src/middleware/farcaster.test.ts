@@ -20,6 +20,7 @@ describe("farcaster middleware", () => {
                 data: {
                   fid: 123,
                   frameActionBody: {
+                    url: Buffer.from("https://example.com"),
                     castId: {
                       fid: 456,
                     },
@@ -108,6 +109,7 @@ describe("farcaster middleware", () => {
     expect(next).toHaveBeenCalledWith({
       clientProtocol: { id: "farcaster", version: "vNext" },
       message: {
+        url: "https://example.com",
         address: "0x89",
         buttonIndex: 1,
         castId: {

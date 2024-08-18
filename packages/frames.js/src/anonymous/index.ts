@@ -39,6 +39,7 @@ export async function getAnonymousFrameMessage(
   }
 
   return {
+    url: body.untrustedData.url,
     buttonIndex: body.untrustedData.buttonIndex,
     state: body.untrustedData.state,
     inputText: body.untrustedData.inputText,

@@ -63,12 +63,14 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
   assertIsFarcasterMessage(decodedMessage);
 
   const {
+    url: urlBytes,
     buttonIndex,
     inputText: inputTextBytes,
     state: stateBytes,
     transactionId: transactionIdBytes,
     address: transactionAddressBytes,
   } = decodedMessage.data.frameActionBody;
+  const url = Buffer.from(urlBytes).toString("utf-8");
   const inputText = Buffer.from(inputTextBytes).toString("utf-8");
   const transactionId =
     transactionIdBytes.length > 0 ? bytesToHex(transactionIdBytes) : undefined;
@@ -84,6 +86,7 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
   const state = Buffer.from(stateBytes).toString("utf-8");
 
   const parsedData: FrameActionDataParsed = {
+    url,
     buttonIndex,
     castId,
     inputText,
