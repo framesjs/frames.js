@@ -1,5 +1,12 @@
 # template-cloudflare-worker-with-custom-images-worker
 
+## 0.0.17
+
+### Patch Changes
+
+- Updated dependencies [68c5c7e]
+  - frames.js@0.19.0
+
 ## 0.0.16
 
 ### Patch Changes
