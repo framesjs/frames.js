@@ -327,7 +327,7 @@ export function useFarcasterMultiIdentity({
           const deepLinkUrl = new URL(signedKeyRequest.deeplinkUrl);
           const signedKeyRequestToken = deepLinkUrl.searchParams.get("token");
           const signerApprovalUrl = new URL(
-            "https://client.warpcast.com/deeplinks/signed-key-request"
+            "https://api.warpcast.com/v2/signed-key-request"
           );
 
           if (!signedKeyRequestToken) {
