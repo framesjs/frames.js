@@ -210,6 +210,11 @@ export type FarcasterMultiSignerInstance =
 const defaultStorage = new WebStorage();
 const defaultGenerateUserId = (): number => Date.now();
 
+type SignedKeyRequestSponsorship = {
+  sponsorFid: number;
+  signature: string; // sponsorship signature by sponsorFid
+};
+
 export function useFarcasterMultiIdentity({
   onMissingIdentity,
   signerUrl = "/signer",
@@ -289,17 +294,19 @@ export function useFarcasterMultiIdentity({
               signature: string;
               requestFid: string;
               deadline: number;
+              sponsorship: SignedKeyRequestSponsorship;
               requestSigner: string;
             }
           | { code: number; message: string };
 
         if (authorizationResponse.status === 200) {
-          const { signature, requestFid, deadline, requestSigner } =
+          const { signature, requestFid, deadline, requestSigner, sponsorship } =
             authorizationBody as {
               signature: string;
               requestFid: string;
               deadline: number;
               requestSigner: string;
+              sponsorship: SignedKeyRequestSponsorship;
             };
 
           const {
@@ -314,15 +321,16 @@ export function useFarcasterMultiIdentity({
                 key: keypairString.publicKey,
                 signature,
                 requestFid,
+                sponsorship,
                 deadline,
               }),
             })
           ).json()) as {
             result: {
-              signedKeyRequest: { token: string; deeplinkUrl: string };
+              signedKeyRequest: { token: string; deeplinkUrl: string, isSponsored };
             };
           };
-
+          console.log(signedKeyRequest)
           // this deeplink works only on iOS, make sure it works on android too by using app link
           const deepLinkUrl = new URL(signedKeyRequest.deeplinkUrl);
           const signedKeyRequestToken = deepLinkUrl.searchParams.get("token");
