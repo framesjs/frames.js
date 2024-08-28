@@ -234,7 +234,7 @@ export function useFarcasterIdentity({
           const {
             result: { signedKeyRequest },
           } = (await (
-            await fetch(`https://api.warpcast.com/v2/signed-key-requests`, {
+            await fetch(`https://client.warpcast.com/deeplinks/signed-key-request`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -256,7 +256,7 @@ export function useFarcasterIdentity({
           const deepLinkUrl = new URL(signedKeyRequest.deeplinkUrl);
           const signedKeyRequestToken = deepLinkUrl.searchParams.get("token");
           const signerApprovalUrl = new URL(
-            "https://api.warpcast.com/v2/signed-key-request"
+            "https://client.warpcast.com/deeplinks/signed-key-request"
           );
 
           if (!signedKeyRequestToken) {
