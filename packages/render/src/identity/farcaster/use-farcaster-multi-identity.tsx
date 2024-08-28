@@ -210,9 +210,10 @@ export type FarcasterMultiSignerInstance =
 const defaultStorage = new WebStorage();
 const defaultGenerateUserId = (): number => Date.now();
 
+
 type SignedKeyRequestSponsorship = {
   sponsorFid: number;
-  signature: string; // sponsorship signature by sponsorFid
+  signature: string;
 };
 
 export function useFarcasterMultiIdentity({
@@ -294,8 +295,8 @@ export function useFarcasterMultiIdentity({
               signature: string;
               requestFid: string;
               deadline: number;
-              sponsorship: SignedKeyRequestSponsorship;
               requestSigner: string;
+              sponsorship: SignedKeyRequestSponsorship;
             }
           | { code: number; message: string };
 
@@ -321,8 +322,8 @@ export function useFarcasterMultiIdentity({
                 key: keypairString.publicKey,
                 signature,
                 requestFid,
-                sponsorship,
                 deadline,
+                sponsorship,
               }),
             })
           ).json()) as {
@@ -330,6 +331,7 @@ export function useFarcasterMultiIdentity({
               signedKeyRequest: { token: string; deeplinkUrl: string, isSponsored: boolean };
             };
           };
+
           // this deeplink works only on iOS, make sure it works on android too by using app link
           const deepLinkUrl = new URL(signedKeyRequest.deeplinkUrl);
           const signedKeyRequestToken = deepLinkUrl.searchParams.get("token");
