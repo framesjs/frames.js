@@ -330,7 +330,6 @@ export function useFarcasterMultiIdentity({
               signedKeyRequest: { token: string; deeplinkUrl: string, isSponsored: boolean };
             };
           };
-          console.log(signedKeyRequest)
           // this deeplink works only on iOS, make sure it works on android too by using app link
           const deepLinkUrl = new URL(signedKeyRequest.deeplinkUrl);
           const signedKeyRequestToken = deepLinkUrl.searchParams.get("token");
