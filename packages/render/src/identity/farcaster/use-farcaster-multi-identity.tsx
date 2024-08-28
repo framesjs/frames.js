@@ -327,7 +327,7 @@ export function useFarcasterMultiIdentity({
             })
           ).json()) as {
             result: {
-              signedKeyRequest: { token: string; deeplinkUrl: string, isSponsored };
+              signedKeyRequest: { token: string; deeplinkUrl: string, isSponsored: boolean };
             };
           };
           console.log(signedKeyRequest)
