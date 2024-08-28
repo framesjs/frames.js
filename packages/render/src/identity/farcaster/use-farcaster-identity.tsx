@@ -234,7 +234,7 @@ export function useFarcasterIdentity({
           const {
             result: { signedKeyRequest },
           } = (await (
-            await fetch(`https://api.warpcast.com/v2/signed-key-request`, {
+            await fetch(`https://api.warpcast.com/v2/signed-key-requests`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
