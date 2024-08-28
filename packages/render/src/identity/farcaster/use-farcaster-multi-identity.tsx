@@ -296,7 +296,7 @@ export function useFarcasterMultiIdentity({
               requestFid: string;
               deadline: number;
               requestSigner: string;
-              sponsorship: SignedKeyRequestSponsorship;
+              sponsorship?: SignedKeyRequestSponsorship;
             }
           | { code: number; message: string };
 
@@ -307,7 +307,7 @@ export function useFarcasterMultiIdentity({
               requestFid: string;
               deadline: number;
               requestSigner: string;
-              sponsorship: SignedKeyRequestSponsorship;
+              sponsorship?: SignedKeyRequestSponsorship;
             };
 
           const {
