@@ -13,7 +13,7 @@ export type AnonymousSigner = Record<string, unknown>;
 
 export type AnonymousFrameContext = Record<string, unknown>;
 
-type AnonymousSignerInstance = SignerStateInstance<
+export type AnonymousSignerInstance = SignerStateInstance<
   AnonymousSigner,
   AnonymousOpenFramesRequest,
   AnonymousFrameContext
