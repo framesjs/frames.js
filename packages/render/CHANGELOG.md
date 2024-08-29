@@ -1,5 +1,11 @@
 # @frames.js/render
 
+## 0.3.5
+
+### Patch Changes
+
+- 8fede88: exports AnonymousSignerInstance from @frames.js/render/identity/anonymous
+
 ## 0.3.4
 
 ### Patch Changes
