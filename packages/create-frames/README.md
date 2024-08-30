@@ -7,19 +7,19 @@ Create a new Frames.js app with a single command using predefined templates.
 ### Using npm
 
 ```sh
-npm init frames
+npm init frames@latest
 ```
 
 ### Using yarn
 
 ```sh
-yarn create frames
+yarn create frames@latest
 ```
 
 ### Using pnpm
 
 ```sh
-pnpm create frames
+pnpm create frames@latest
 ```
 
 ## Installing globally (optional) and running from terminal
