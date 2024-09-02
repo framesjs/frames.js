@@ -1,5 +1,11 @@
 # @frames.js/render
 
+## 0.3.6
+
+### Patch Changes
+
+- 7809b6c: Fix allow sponsorship of new signers created by use-multi-farcaster-identity
+
 ## 0.3.5
 
 ### Patch Changes
