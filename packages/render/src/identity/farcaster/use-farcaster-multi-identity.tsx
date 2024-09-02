@@ -210,7 +210,6 @@ export type FarcasterMultiSignerInstance =
 const defaultStorage = new WebStorage();
 const defaultGenerateUserId = (): number => Date.now();
 
-
 type SignedKeyRequestSponsorship = {
   sponsorFid: number;
   signature: string;
@@ -301,14 +300,19 @@ export function useFarcasterMultiIdentity({
           | { code: number; message: string };
 
         if (authorizationResponse.status === 200) {
-          const { signature, requestFid, deadline, requestSigner, sponsorship } =
-            authorizationBody as {
-              signature: string;
-              requestFid: string;
-              deadline: number;
-              requestSigner: string;
-              sponsorship?: SignedKeyRequestSponsorship;
-            };
+          const {
+            signature,
+            requestFid,
+            deadline,
+            requestSigner,
+            sponsorship,
+          } = authorizationBody as {
+            signature: string;
+            requestFid: string;
+            deadline: number;
+            requestSigner: string;
+            sponsorship?: SignedKeyRequestSponsorship;
+          };
 
           const {
             result: { signedKeyRequest },
@@ -328,7 +332,11 @@ export function useFarcasterMultiIdentity({
             })
           ).json()) as {
             result: {
-              signedKeyRequest: { token: string; deeplinkUrl: string, isSponsored: boolean };
+              signedKeyRequest: {
+                token: string;
+                deeplinkUrl: string;
+                isSponsored: boolean;
+              };
             };
           };
 
