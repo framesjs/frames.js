@@ -52,7 +52,9 @@ export function getFrameFlattened(
               [`of:button:${index + 1}`]: button.label,
               [`of:button:${index + 1}:action`]: button.action,
               [`of:button:${index + 1}:target`]: button.target,
-              ...(button.action === "tx"
+              ...(button.action === "tx" ||
+              button.action === "post" ||
+              button.action === "post_redirect"
                 ? { [`of:button:${index + 1}:post_url`]: button.post_url }
                 : {}),
             }),
@@ -79,7 +81,9 @@ export function getFrameFlattened(
         [`fc:frame:button:${index + 1}`]: button.label,
         [`fc:frame:button:${index + 1}:action`]: button.action,
         [`fc:frame:button:${index + 1}:target`]: button.target,
-        ...(button.action === "tx"
+        ...(button.action === "tx" ||
+        button.action === "post" ||
+        button.action === "post_redirect"
           ? { [`fc:frame:button:${index + 1}:post_url`]: button.post_url }
           : {}),
       }),

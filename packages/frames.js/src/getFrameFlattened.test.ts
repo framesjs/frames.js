@@ -19,7 +19,7 @@ describe("getFrameFlattened", () => {
         {
           label: "Button 1",
           action: "post",
-          target: "target1",
+          post_url: "post1",
         },
         {
           label: "Button 2",
@@ -41,6 +41,7 @@ describe("getFrameFlattened", () => {
           version: "vNext",
         },
       ],
+      title: "test title",
     };
 
     const flattened = getFrameFlattened(frame);
@@ -54,7 +55,7 @@ describe("getFrameFlattened", () => {
       "fc:frame:image:aspect_ratio": "1:1",
       "fc:frame:button:1": "Button 1",
       "fc:frame:button:1:action": "post",
-      "fc:frame:button:1:target": "target1",
+      "fc:frame:button:1:post_url": "post1",
       "fc:frame:button:2": "Button 2",
       "fc:frame:button:2:action": "post",
       "fc:frame:button:2:target": "target2",
@@ -63,7 +64,7 @@ describe("getFrameFlattened", () => {
       "of:accepts:farcaster": "vNext",
       "of:button:1": "Button 1",
       "of:button:1:action": "post",
-      "of:button:1:target": "target1",
+      "of:button:1:post_url": "post1",
       "of:button:2": "Button 2",
       "of:button:2:action": "post",
       "of:button:2:target": "target2",
@@ -74,6 +75,7 @@ describe("getFrameFlattened", () => {
       "of:state": '{"foo":"bar"}',
       "of:version": "vNext",
       "frames.js:version": "0.0.0-mock",
+      "og:title": "test title",
     });
   });
 

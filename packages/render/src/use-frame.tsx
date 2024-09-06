@@ -402,7 +402,10 @@ export function useFrame<
         case "post_redirect": {
           try {
             const target =
-              frameButton.target || currentFrame.postUrl || homeframeUrl;
+              frameButton.target ||
+              frameButton.post_url ||
+              currentFrame.postUrl ||
+              homeframeUrl;
 
             if (!target) {
               throw new Error("missing target");

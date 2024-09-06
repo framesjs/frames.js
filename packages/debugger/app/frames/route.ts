@@ -114,6 +114,11 @@ export async function GET(request: NextRequest): Promise<Response> {
   } catch (err) {
     // eslint-disable-next-line no-console -- provide feedback to the developer
     console.error(err);
+
+    if (err instanceof Error) {
+      return Response.json({ message: err.message }, { status: 500 });
+    }
+
     return Response.json({ message: err }, { status: 500 });
   }
 }

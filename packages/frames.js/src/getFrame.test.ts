@@ -320,4 +320,40 @@ describe("getFrame", () => {
       },
     });
   });
+
+  it("should parse button post_url (farcaster)", () => {
+    const html = `
+    <meta name="fc:frame" content="vNext"/>
+    <meta name="fc:frame:image" content="http://example.com/image.png"/>
+    <meta name="og:image" content="http://example.com/image.png"/>
+    <meta name="fc:frame:button:1" content="Submit"/>
+    <meta name="fc:frame:button:1:post_url" content="https://example.com/submit"/>
+    <title>test</title>
+    `;
+    const frame = getFrame({
+      htmlString: html,
+      url: "https://example.com",
+    });
+
+    expect(frame).toEqual({
+      status: "success",
+      frame: {
+        version: "vNext",
+        image: "http://example.com/image.png",
+        ogImage: "http://example.com/image.png",
+        buttons: [
+          {
+            label: "Submit",
+            action: "post",
+            target: undefined,
+            post_url: "https://example.com/submit",
+          },
+        ],
+        title: "test",
+        postUrl: "https://example.com/",
+      },
+      reports: {},
+      framesVersion: undefined,
+    });
+  });
 });
