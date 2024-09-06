@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.3.12
+
+### Patch Changes
+
+- bb87cd5: fix: handle button post_url attribute
+
 ## 0.3.11
 
 ### Patch Changes

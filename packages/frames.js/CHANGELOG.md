@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.19.1
+
+### Patch Changes
+
+- bb87cd5: fix: handle button post_url attribute
+
 ## 0.19.0
 
 ### Minor Changes

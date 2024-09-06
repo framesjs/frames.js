@@ -1,5 +1,13 @@
 # @frames.js/render
 
+## 0.3.7
+
+### Patch Changes
+
+- bb87cd5: fix: handle button post_url attribute
+- Updated dependencies [bb87cd5]
+  - frames.js@0.19.1
+
 ## 0.3.6
 
 ### Patch Changes

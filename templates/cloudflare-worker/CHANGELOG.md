@@ -1,5 +1,12 @@
 # template-cloudflare-worker
 
+## 0.0.29
+
+### Patch Changes
+
+- Updated dependencies [bb87cd5]
+  - frames.js@0.19.1
+
 ## 0.0.28
 
 ### Patch Changes
