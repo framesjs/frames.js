@@ -292,10 +292,24 @@ function parsePostOrPostRedirectButton(
     return undefined;
   }
 
+  if (
+    button.post_url &&
+    !isValid(
+      reporter,
+      `${metaPropertyPrefix}:${button.index}:post_url`,
+      validateUrl,
+      button.post_url,
+      false
+    )
+  ) {
+    return undefined;
+  }
+
   return {
     action: button.action as "post" | "post_redirect",
     label: button.label,
     target: button.target,
+    post_url: button.post_url,
   };
 }
 

@@ -131,8 +131,10 @@ export interface FrameButtonPost {
   /**
    * POST the packet to fc:frame:button:$idx:action:target if present
    * POST the packet to fc:frame:post_url if target was not present.
+   * POST the packet to fc:frame:button:$idx:post_url if target was not present.
    */
   target?: string;
+  post_url?: string;
   /** A 256-byte string which is label of the button */
   label: string;
 }
