@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^14.0.4",
-    "@frames.js/debugger": "^0.3.12",
+    "@frames.js/debugger": "^0.3.13",
     "@types/eslint": "^8.56.1",
     "@types/node": "^20.10.6",
     "@types/react": "^18.2.46",

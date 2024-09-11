@@ -1,5 +1,11 @@
 # @frames.js/render
 
+## 0.3.8
+
+### Patch Changes
+
+- 53ee761: adds previous frame props to LoadingScreen in FrameUI
+
 ## 0.3.7
 
 ### Patch Changes
