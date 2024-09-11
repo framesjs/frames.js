@@ -14,6 +14,7 @@ import type {
   FrameUIState,
   RootContainerDimensions,
   RootContainerElement,
+  PartialFrame,
 } from "./types";
 import {
   getErrorMessageFromFramesStackItem,
@@ -79,6 +80,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
   const rootRef = useRef<RootContainerElement>(null);
   const rootDimensionsRef = useRef<RootContainerDimensions | undefined>();
   const previousFrameAspectRatioRef = useRef<"1:1" | "1.91:1" | undefined>();
+  const previousFrameRef = useRef<Frame |PartialFrame | null>(null);
 
   const onImageLoadEnd = useCallback(() => {
     setIsImageLoading(false);
@@ -242,6 +244,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
         ? components.LoadingScreen(
             {
               frameState: frameUiState,
+              previousFrame: previousFrameRef.current,
               dimensions: rootDimensionsRef.current ?? null,
             },
             theme?.LoadingScreen || ({} as TStylingProps)
@@ -272,6 +275,8 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
                         previousFrameAspectRatioRef.current =
                           frameUiState.frame.imageAspectRatio ?? "1.91:1";
 
+                        // track frame
+                        previousFrameRef.current = frameUiState.frame;
                         Promise.resolve(
                           frameState.onButtonPress(
                             // @todo change the type onButtonPress to accept partial frame as well because that can happen if partial frames are enabled

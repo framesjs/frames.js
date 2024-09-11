@@ -75,6 +75,7 @@ export type FrameImageContainerProps = {
 
 export type FrameLoadingScreenProps = FrameUIStateProps & {
   dimensions: RootContainerDimensions | null;
+  previousFrame: Frame | PartialFrame | null;
 };
 
 export type FrameButtonContainerProps = {
