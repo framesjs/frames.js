@@ -14,6 +14,7 @@ import type {
   FrameUIState,
   RootContainerDimensions,
   RootContainerElement,
+  PartialFrame,
 } from "./types";
 import {
   getErrorMessageFromFramesStackItem,
@@ -79,8 +80,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
   const rootRef = useRef<RootContainerElement>(null);
   const rootDimensionsRef = useRef<RootContainerDimensions | undefined>();
   const previousFrameAspectRatioRef = useRef<"1:1" | "1.91:1" | undefined>();
-  const previousFrameButtonsRef = useRef<number | null>(null);
-  const previousFrameTextInputRef = useRef<boolean | null>(null);
+  const previousFrameRef = useRef<Frame |PartialFrame | null>(null);
 
   const onImageLoadEnd = useCallback(() => {
     setIsImageLoading(false);
@@ -244,11 +244,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
         ? components.LoadingScreen(
             {
               frameState: frameUiState,
-              previousFrame: {
-                aspectRatio: previousFrameAspectRatioRef.current ?? null,
-                buttons: previousFrameButtonsRef.current ?? 0,
-                textInput: previousFrameTextInputRef.current ?? false,
-              },
+              previousFrame: previousFrameRef.current,
               dimensions: rootDimensionsRef.current ?? null,
             },
             theme?.LoadingScreen || ({} as TStylingProps)
@@ -279,9 +275,8 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
                         previousFrameAspectRatioRef.current =
                           frameUiState.frame.imageAspectRatio ?? "1.91:1";
 
-                        // track number of buttons
-                        previousFrameButtonsRef.current = frameUiState.frame.buttons?.length ?? 0;
-                        previousFrameTextInputRef.current = frameUiState.frame.inputText !== undefined;
+                        // track frame
+                        previousFrameRef.current = frameUiState.frame;
                         Promise.resolve(
                           frameState.onButtonPress(
                             // @todo change the type onButtonPress to accept partial frame as well because that can happen if partial frames are enabled

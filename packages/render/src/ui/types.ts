@@ -75,11 +75,7 @@ export type FrameImageContainerProps = {
 
 export type FrameLoadingScreenProps = FrameUIStateProps & {
   dimensions: RootContainerDimensions | null;
-  previousFrame?: { 
-    aspectRatio?: "1:1" | "1.91:1" | null;
-    buttons?: number;
-    textInput?: boolean;
-  };
+  previousFrame: Frame | PartialFrame | null;
 };
 
 export type FrameButtonContainerProps = {
