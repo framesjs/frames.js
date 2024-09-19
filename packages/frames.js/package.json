@@ -379,7 +379,7 @@
     "react-dom": "^18.2.0"
   },
   "dependencies": {
-    "@vercel/og": "^0.6.2",
+    "@vercel/og": "^0.6.3",
     "cheerio": "^1.0.0-rc.12",
     "protobufjs": "^7.2.6",
     "viem": "^2.7.8"
