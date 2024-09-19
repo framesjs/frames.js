@@ -431,6 +431,8 @@ export type CastActionResponse = {
   /** The action type. (Same type options as frame buttons). Only post is accepted in V1. */
   action: {
     type: "post";
+    /** Optional action handler URL. If not provided, clients will POST to the same URL as the action metadata route. */
+    postUrl?: string;
   };
 };
 

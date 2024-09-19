@@ -607,7 +607,7 @@ export function useFetchFrame<
     const frameButton: FrameButtonPost = {
       action: "post",
       label: request.action.name,
-      target: request.action.url,
+      target: request.action.action.postUrl || request.action.url,
     };
     const signerStateActionContext: SignerStateDefaultActionContext<
       TSignerStorageType,
