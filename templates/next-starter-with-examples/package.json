@@ -1,6 +1,6 @@
 {
   "name": "template-next-starter-with-examples",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": true,
   "type": "module",
   "scripts": {
@@ -15,7 +15,7 @@
     "@vercel/kv": "^1.0.1",
     "@xmtp/frames-validator": "^0.6.1",
     "clsx": "^2.1.0",
-    "frames.js": "^0.19.1",
+    "frames.js": "^0.19.2",
     "next": "^14.1.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

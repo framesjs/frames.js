@@ -1,5 +1,12 @@
 # frames.js
 
+## 0.19.2
+
+### Patch Changes
+
+- 7079958: feat: support for cast action postUrl property
+- 8df14d6: chore: update @vercel/og dependency
+
 ## 0.19.1
 
 ### Patch Changes
