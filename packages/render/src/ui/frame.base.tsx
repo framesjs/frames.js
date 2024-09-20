@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
-import type { FrameState } from "../types";
+import type { FrameStackDone, FrameState } from "../types";
 import type {
   FrameMessage,
   FrameUIComponents as BaseFrameUIComponents,
@@ -14,7 +14,6 @@ import type {
   FrameUIState,
   RootContainerDimensions,
   RootContainerElement,
-  PartialFrame,
 } from "./types";
 import {
   getErrorMessageFromFramesStackItem,
@@ -79,8 +78,6 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
   const { currentFrameStackItem } = frameState;
   const rootRef = useRef<RootContainerElement>(null);
   const rootDimensionsRef = useRef<RootContainerDimensions | undefined>();
-  const previousFrameAspectRatioRef = useRef<"1:1" | "1.91:1" | undefined>();
-  const previousFrameRef = useRef<Frame |PartialFrame | null>(null);
 
   const onImageLoadEnd = useCallback(() => {
     setIsImageLoading(false);
@@ -126,6 +123,9 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
   }
 
   let frameUiState: FrameUIState;
+  const previousFrame = (
+    frameState.framesStack[frameState.framesStack.length - 1] as FrameStackDone
+  )?.frameResult?.frame;
 
   switch (currentFrameStackItem.status) {
     case "requestError": {
@@ -138,6 +138,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
           frame: currentFrameStackItem.request.sourceFrame,
           isImageLoading,
           id: currentFrameStackItem.timestamp.getTime(),
+          frameState,
         };
       } else {
         return components.Error(
@@ -169,6 +170,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
         frame: currentFrameStackItem.request.sourceFrame,
         isImageLoading,
         id: currentFrameStackItem.timestamp.getTime(),
+        frameState,
       };
 
       break;
@@ -177,6 +179,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
         frameUiState = {
           status: "loading",
           id: currentFrameStackItem.timestamp.getTime(),
+          frameState,
         };
       } else {
         frameUiState = {
@@ -184,6 +187,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
           frame: currentFrameStackItem.request.sourceFrame,
           isImageLoading,
           id: currentFrameStackItem.timestamp.getTime(),
+          frameState,
         };
       }
 
@@ -199,6 +203,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
             : undefined,
           isImageLoading,
           id: currentFrameStackItem.timestamp.getTime(),
+          frameState,
         };
       } else if (
         isPartialFrameStackItem(currentFrameStackItem) &&
@@ -212,6 +217,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
             : undefined,
           isImageLoading,
           id: currentFrameStackItem.timestamp.getTime(),
+          frameState,
         };
       } else {
         return components.Error(
@@ -226,6 +232,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
       frameUiState = {
         status: "loading",
         id: currentFrameStackItem.timestamp.getTime(),
+        frameState,
       };
       break;
     }
@@ -244,7 +251,6 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
         ? components.LoadingScreen(
             {
               frameState: frameUiState,
-              previousFrame: previousFrameRef.current,
               dimensions: rootDimensionsRef.current ?? null,
             },
             theme?.LoadingScreen || ({} as TStylingProps)
@@ -271,12 +277,6 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
                         rootDimensionsRef.current =
                           rootRef.current?.computeDimensions();
 
-                        // track aspect ratio of image
-                        previousFrameAspectRatioRef.current =
-                          frameUiState.frame.imageAspectRatio ?? "1.91:1";
-
-                        // track frame
-                        previousFrameRef.current = frameUiState.frame;
                         Promise.resolve(
                           frameState.onButtonPress(
                             // @todo change the type onButtonPress to accept partial frame as well because that can happen if partial frames are enabled
@@ -301,7 +301,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
           frameState: frameUiState,
           aspectRatio:
             (frameUiState.status === "loading"
-              ? previousFrameAspectRatioRef.current
+              ? previousFrame?.imageAspectRatio
               : frameUiState.frame.imageAspectRatio) ?? "1.91:1",
           image: components.Image(
             frameUiState.status === "loading"
@@ -309,7 +309,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
                   status: "frame-loading",
                   frameState: frameUiState,
                   onImageLoadEnd,
-                  aspectRatio: previousFrameAspectRatioRef.current ?? "1.91:1",
+                  aspectRatio: previousFrame?.imageAspectRatio ?? "1.91:1",
                 }
               : {
                   status: "frame-loading-complete",
