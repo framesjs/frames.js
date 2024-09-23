@@ -78,7 +78,10 @@ export function parseOpenFramesFrame(
       fallbackFrameData.imageAspectRatio
     ),
     inputText: getMetaTag($, "of:input:text", fallbackFrameData.inputText),
-    postUrl: getMetaTag($, "of:post_url") ?? fallbackPostUrl,
+    postUrl:
+      getMetaTag($, "of:post_url") ??
+      fallbackFrameData.postUrl ??
+      fallbackPostUrl,
     state: getMetaTag($, "of:state", fallbackFrameData.state),
     title: getMetaTag($, "og:title") || getTagText($, "title"),
   };
