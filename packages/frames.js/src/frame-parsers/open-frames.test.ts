@@ -53,6 +53,7 @@ describe("open frames frame parser", () => {
             {
               action: "post",
               label: "Post",
+              post_url: "http://example.com/farcaster-post/test.js",
             },
           ],
         },
@@ -68,7 +69,13 @@ describe("open frames frame parser", () => {
         image: "http://example.com/farcaster-image.png",
         ogImage: "http://example.com/og-image.png",
         postUrl: fallbackPostUrl,
-        buttons: [{ action: "post", label: "Post" }],
+        buttons: [
+          {
+            action: "post",
+            label: "Post",
+            post_url: "http://example.com/farcaster-post/test.js",
+          },
+        ],
         title: "Test",
       },
     });
@@ -700,7 +707,7 @@ describe("open frames frame parser", () => {
       });
     });
 
-    it("does not fall back to fc:frame:post_url if of:accepts:farcaster is present and post url is missing", () => {
+    it("falls back to fc:frame:post_url", () => {
       const $ = load(`
         <meta name="of:version" content="vNext"/>
         <meta name="of:accepts:farcaster" content="vNext"/>
@@ -725,7 +732,7 @@ describe("open frames frame parser", () => {
           version: "vNext",
           image: "http://example.com/image.png",
           ogImage: "http://example.com/og-image.png",
-          postUrl: fallbackPostUrl,
+          postUrl: "http://test.com/",
           title: "Test",
         },
       });
@@ -756,6 +763,35 @@ describe("open frames frame parser", () => {
           image: "http://example.com/image.png",
           ogImage: "http://example.com/og-image.png",
           postUrl: "http://example.com/post",
+          title: "Test",
+        },
+      });
+    });
+
+    it("falls back to url of a frame if no post_url is specified", () => {
+      const $ = load(`
+        <meta name="of:version" content="vNext"/>
+        <meta name="of:accepts:farcaster" content="vNext"/>
+        <meta name="of:image" content="http://example.com/image.png"/>
+        <meta name="og:image" content="http://example.com/og-image.png"/>
+        <title>Test</title>
+        `);
+
+      expect(
+        parseOpenFramesFrame($, {
+          farcasterFrame: {},
+          fallbackPostUrl,
+          reporter,
+        })
+      ).toEqual({
+        status: "success",
+        reports: {},
+        frame: {
+          accepts: [{ id: "farcaster", version: "vNext" }],
+          version: "vNext",
+          image: "http://example.com/image.png",
+          ogImage: "http://example.com/og-image.png",
+          postUrl: fallbackPostUrl,
           title: "Test",
         },
       });
