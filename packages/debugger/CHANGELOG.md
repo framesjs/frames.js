@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.3.14
+
+### Patch Changes
+
+- 5b99935: fix(debugger): avoid infinite rendering cycles when using console.log
+
 ## 0.3.13
 
 ### Patch Changes

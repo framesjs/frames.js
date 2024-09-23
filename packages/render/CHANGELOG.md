@@ -1,5 +1,11 @@
 # @frames.js/render
 
+## 0.3.10
+
+### Patch Changes
+
+- 4dfba4b: feat: expose full frameState in render UI components
+
 ## 0.3.9
 
 ### Patch Changes
