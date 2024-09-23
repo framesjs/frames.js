@@ -241,6 +241,34 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
   const isLoading =
     frameUiState.status === "loading" || frameUiState.isImageLoading;
 
+  const buttonsProps =
+    frameUiState.status === "loading" ||
+    !frameUiState.frame.buttons ||
+    frameUiState.frame.buttons.length === 0
+      ? null
+      : frameUiState.frame.buttons.map((frameButton, index) => ({
+          frameState: frameUiState,
+          frameButton,
+          index,
+          isDisabled: false,
+          onPress() {
+            // track dimensions of the root if possible
+            rootDimensionsRef.current = rootRef.current?.computeDimensions();
+
+            Promise.resolve(
+              frameState.onButtonPress(
+                // @todo change the type onButtonPress to accept partial frame as well because that can happen if partial frames are enabled
+                frameUiState.frame as Frame,
+                frameButton,
+                index
+              )
+            ).catch((error) => {
+              // eslint-disable-next-line no-console -- provide feedback to the user
+              console.error(error);
+            });
+          },
+        }));
+
   return components.Root(
     {
       createElement,
@@ -259,40 +287,19 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
       buttonsContainer:
         frameUiState.status === "loading" ||
         !frameUiState.frame.buttons ||
-        frameUiState.frame.buttons.length === 0
+        frameUiState.frame.buttons.length === 0 ||
+        !buttonsProps
           ? null
           : components.ButtonsContainer(
               {
                 frameState: frameUiState,
-                buttons: frameUiState.frame.buttons.map((frameButton, index) =>
+                buttons: buttonsProps.map((buttonProps) =>
                   components.Button(
-                    {
-                      frameState: frameUiState,
-                      frameButton,
-                      index,
-                      // @TODO provide previous frame to pending state so we can remove loading check and render some loading indicator?
-                      isDisabled: false,
-                      onPress() {
-                        // track dimensions of the root if possible
-                        rootDimensionsRef.current =
-                          rootRef.current?.computeDimensions();
-
-                        Promise.resolve(
-                          frameState.onButtonPress(
-                            // @todo change the type onButtonPress to accept partial frame as well because that can happen if partial frames are enabled
-                            frameUiState.frame as Frame,
-                            frameButton,
-                            index
-                          )
-                        ).catch((error) => {
-                          // eslint-disable-next-line no-console -- provide feedback to the user
-                          console.error(error);
-                        });
-                      },
-                    },
+                    buttonProps,
                     theme?.Button || ({} as TStylingProps)
                   )
                 ),
+                buttonsProps: buttonsProps,
               },
               theme?.ButtonsContainer || ({} as TStylingProps)
             ),
