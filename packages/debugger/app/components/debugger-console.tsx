@@ -5,20 +5,29 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
+  useReducer,
   useRef,
-  useState,
 } from "react";
 
-export function useDebuggerConsole(): {
-  logs: Message[];
+const LOGS_UPDATED_EVENT = "frames.js/debugger: logs_updated";
+
+type DebuggerConsoleAPI = {
+  readonly logs: Message[];
   clear: () => void;
-} {
-  const [consoleLogs, setConsoleLogs] = useState<Message[]>([]);
+};
+
+export function useDebuggerConsole(): DebuggerConsoleAPI {
+  const consoleLogsRef = useRef<Message[]>([]);
 
   useEffect(() => {
     const hookedConsole = Hook(
       window.console,
-      (log) => setConsoleLogs((logs) => [...logs, log as Message]),
+      (log) => {
+        consoleLogsRef.current = [...consoleLogsRef.current, log as Message];
+
+        window.dispatchEvent(new CustomEvent(LOGS_UPDATED_EVENT));
+      },
       false
     );
 
@@ -28,13 +37,25 @@ export function useDebuggerConsole(): {
   }, []);
 
   const clear = useCallback(() => {
-    setConsoleLogs([]);
+    consoleLogsRef.current = [];
+    window.dispatchEvent(new CustomEvent(LOGS_UPDATED_EVENT));
   }, []);
 
-  return { logs: consoleLogs, clear };
+  return useMemo(
+    () => ({
+      get logs() {
+        return consoleLogsRef.current;
+      },
+      clear,
+    }),
+    [clear]
+  );
 }
 
-const context = createContext<Message[]>([]);
+const context = createContext<DebuggerConsoleAPI>({
+  logs: [],
+  clear: () => {},
+});
 
 context.displayName = "DebuggerConsoleContext";
 
@@ -45,9 +66,10 @@ type DebuggerConsoleProps = {
 };
 
 export function DebuggerConsole({ onMount }: DebuggerConsoleProps) {
-  const logs = useContext(context);
+  const debuggerConsole = useContext(context);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const onMountRef = useRef(onMount);
+  const [, forceUpdate] = useReducer((x) => x + 1, 0);
   onMountRef.current = onMount;
 
   useEffect(() => {
@@ -56,9 +78,21 @@ export function DebuggerConsole({ onMount }: DebuggerConsoleProps) {
     }
   }, []);
 
+  useEffect(() => {
+    const handleLogsUpdated = () => {
+      forceUpdate();
+    };
+
+    window.addEventListener(LOGS_UPDATED_EVENT, handleLogsUpdated);
+
+    return () => {
+      window.removeEventListener(LOGS_UPDATED_EVENT, handleLogsUpdated);
+    };
+  }, []);
+
   return (
     <div ref={wrapperRef}>
-      <Console logs={logs} variant="light"></Console>
+      <Console logs={debuggerConsole.logs} variant="light" />
     </div>
   );
 }

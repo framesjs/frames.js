@@ -95,7 +95,7 @@ export default function DebuggerPage({
 }): JSX.Element {
   const debuggerRef = useRef<FrameDebuggerRef>(null);
   const actionDebuggerRef = useRef<ActionDebuggerRef>(null);
-  const { logs, clear: clearLogs } = useDebuggerConsole();
+  const debuggerConsole = useDebuggerConsole();
   const { toast } = useToast();
   const urlInputRef = useRef<HTMLInputElement>(null);
   const selectProtocolButtonRef = useRef<HTMLButtonElement>(null);
@@ -250,9 +250,9 @@ export default function DebuggerPage({
       return;
     }
 
-    clearLogs();
+    debuggerConsole.clear();
     refreshUrl(url);
-  }, [url, protocolConfiguration, refreshUrl, toast, clearLogs]);
+  }, [url, protocolConfiguration, refreshUrl, toast, debuggerConsole]);
 
   const farcasterSignerState = useFarcasterMultiIdentity({
     onMissingIdentity() {
@@ -646,7 +646,7 @@ export default function DebuggerPage({
   ]);
 
   return (
-    <DebuggerConsoleContextProvider value={logs}>
+    <DebuggerConsoleContextProvider value={debuggerConsole}>
       <div className="bg-slate-50 min-h-lvh grid grid-rows-[auto_1fr]">
         <div className="flex flex-row gap-4 border-b p-2 px-4 items-center h-full bg-white">
           <svg
