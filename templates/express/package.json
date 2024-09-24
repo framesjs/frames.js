@@ -1,12 +1,12 @@
 {
   "name": "template-express",
-  "version": "0.0.30",
+  "version": "0.0.31",
   "type": "module",
   "private": true,
   "dependencies": {
     "compression": "^1.7.4",
     "express": "^4.19.1",
-    "frames.js": "^0.19.2",
+    "frames.js": "^0.19.3",
     "react": "^18.2.0",
     "sirv": "^2.0.4"
   },

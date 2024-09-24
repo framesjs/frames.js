@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.19.3
+
+### Patch Changes
+
+- b761511: fix(frames.js): fall back to fc:frame:post_url if of:post_url is not available
+
 ## 0.19.2
 
 ### Patch Changes
