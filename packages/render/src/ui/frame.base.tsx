@@ -284,25 +284,21 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
             theme?.LoadingScreen || ({} as TStylingProps)
           )
         : null,
-      buttonsContainer:
-        frameUiState.status === "loading" ||
-        !frameUiState.frame.buttons ||
-        frameUiState.frame.buttons.length === 0 ||
-        !buttonsProps
-          ? null
-          : components.ButtonsContainer(
-              {
-                frameState: frameUiState,
-                buttons: buttonsProps.map((buttonProps) =>
-                  components.Button(
-                    buttonProps,
-                    theme?.Button || ({} as TStylingProps)
-                  )
-                ),
-                buttonsProps: buttonsProps,
-              },
-              theme?.ButtonsContainer || ({} as TStylingProps)
-            ),
+      buttonsContainer: buttonsProps
+        ? components.ButtonsContainer(
+            {
+              frameState: frameUiState,
+              buttons: buttonsProps.map((buttonProps) =>
+                components.Button(
+                  buttonProps,
+                  theme?.Button || ({} as TStylingProps)
+                )
+              ),
+              buttonsProps,
+            },
+            theme?.ButtonsContainer || ({} as TStylingProps)
+          )
+        : null,
       imageContainer: components.ImageContainer(
         {
           frameState: frameUiState,
