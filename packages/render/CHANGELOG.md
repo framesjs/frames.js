@@ -1,5 +1,11 @@
 # @frames.js/render
 
+## 0.3.12
+
+### Patch Changes
+
+- 9b97405: feat: pass buttons' props separately to FrameButtonContainer
+
 ## 0.3.11
 
 ### Patch Changes

@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@farcaster/core": "^0.14.7",
-    "@frames.js/render": "^0.3.11",
+    "@frames.js/render": "^0.3.12",
     "@primer/octicons-react": "^19.9.0",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-checkbox": "^1.0.4",
