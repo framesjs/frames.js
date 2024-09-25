@@ -82,6 +82,8 @@ export type FrameLoadingScreenProps = FrameUIStateProps & {
 
 export type FrameButtonContainerProps = {
   buttons: ReactElement[];
+  /** Props passed to buttons in the container */
+  buttonsProps: FrameButtonProps[];
 } & FrameUIStateProps;
 
 export type FrameTextInputContainerProps = {
