@@ -1,5 +1,11 @@
 # create-frames
 
+## 0.1.40
+
+### Patch Changes
+
+- fix: bump package versions
+
 ## 0.1.39
 
 ### Patch Changes

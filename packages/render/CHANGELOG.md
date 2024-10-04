@@ -1,5 +1,11 @@
 # @frames.js/render
 
+## 0.3.13
+
+### Patch Changes
+
+- b2f20d6: fix: UNIX timestamp in milliseconds in farcaster untrusted data
+
 ## 0.3.12
 
 ### Patch Changes
