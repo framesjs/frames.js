@@ -82,7 +82,7 @@ export const signFrameAction: SignFrameActionFunc<FarcasterSigner> = async (
         fid: signer.fid,
         url,
         messageHash: `0x${Buffer.from(message.hash).toString("hex")}`,
-        timestamp: message.data.timestamp,
+        timestamp: new Date().getTime(),
         network: 1,
         buttonIndex: Number(message.data.frameActionBody.buttonIndex),
         castId: {
