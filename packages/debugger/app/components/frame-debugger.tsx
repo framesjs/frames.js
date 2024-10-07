@@ -160,8 +160,8 @@ function FrameDiagnostics({ stackItem }: FrameDiagnosticsProps) {
             {stackItem.speed > 5
               ? `Request took more than 5s (${stackItem.speed} seconds). This may be normal: first request will take longer in development (as next.js builds), but in production, clients will timeout requests after 5s`
               : stackItem.speed > 4
-                ? `Warning: Request took more than 4s (${stackItem.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
-                : `${stackItem.speed} seconds`}
+              ? `Warning: Request took more than 4s (${stackItem.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
+              : `${stackItem.speed} seconds`}
           </TableCell>
         </TableRow>
         {properties.validProperties.map(([propertyKey, value]) => {
@@ -622,10 +622,14 @@ export const FrameDebugger = React.forwardRef<
                 <div className="space-y-1">
                   {currentFrameStackItem?.status === "done" &&
                     currentFrameStackItem.frameResult.frame.buttons
-                      ?.filter((button) =>
-                        button.target?.startsWith(
-                          "https://warpcast.com/~/add-cast-action"
-                        )
+                      ?.filter(
+                        (button) =>
+                          button.target?.startsWith(
+                            "https://warpcast.com/~/add-cast-action"
+                          ) ||
+                          button.target?.startsWith(
+                            "https://warpcast.com/~/composer-action"
+                          )
                       )
                       .map((button) => {
                         // Link to debug target
