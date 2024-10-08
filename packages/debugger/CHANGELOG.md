@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.3.15
+
+### Patch Changes
+
+- 6f6dfc9: feat: debug miniapp frame link shortcut
+
 ## 0.3.14
 
 ### Patch Changes

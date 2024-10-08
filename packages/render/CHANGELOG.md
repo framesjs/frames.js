@@ -1,5 +1,12 @@
 # @frames.js/render
 
+## 0.3.14
+
+### Patch Changes
+
+- 62b749f: fix: enforce http(s) protocol on redirect URLs
+- 62b749f: fix: don't render data URIs that are SVG or not images
+
 ## 0.3.13
 
 ### Patch Changes
