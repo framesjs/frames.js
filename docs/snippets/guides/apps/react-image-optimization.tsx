@@ -35,6 +35,9 @@ const components: FrameUIComponents<StylingProps> = {
       sanitizedSrc = "";
     }
 
+    // Can set the dimensions based on the aspect ratio of the image
+    // const aspectRatio = props.aspectRatio; // "1:1" or "1.91:1"
+
     return (
       <Image
         {...stylingProps}
