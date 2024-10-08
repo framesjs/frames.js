@@ -78,8 +78,7 @@ export default function App() {
 
   const frameState = useFrame({
     // replace with frame URL
-    homeframeUrl:
-      "https://fc-polls.vercel.app/polls/73c6efda-bae7-4d46-8f36-3bb3b8377448",
+    homeframeUrl: "https://framesjs.org",
     // corresponds to the name of the route for POST and GET in step 2
     frameActionProxy: "/frames",
     frameGetProxy: "/frames",
@@ -87,12 +86,10 @@ export default function App() {
     frameContext: fallbackFrameContext,
     // map to your identity if you have one
     signerState: {
-      hasSigner:
-        farcasterSigner.status === "approved" ||
-        farcasterSigner.status === "impersonating",
+      hasSigner: farcasterSigner.status === "approved",
       signer: farcasterSigner,
       isLoadingSigner: false,
-      onSignerlessFramePress: () => {
+      async onSignerlessFramePress() {
         // Only run if `hasSigner` is set to `false`
         // This is a good place to throw an error or prompt the user to login
         console.log(
@@ -100,7 +97,7 @@ export default function App() {
         );
       },
       signFrameAction,
-      logout() {
+      async logout() {
         // here you can add your logout logic
         console.log("logout");
       },
