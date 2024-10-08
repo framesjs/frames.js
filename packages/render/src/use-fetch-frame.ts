@@ -95,7 +95,7 @@ function defaultErrorHandler(error: Error): void {
 export function useFetchFrame<
   TSignerStorageType = Record<string, unknown>,
   TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
-  TFrameContextType extends FrameContext = FarcasterFrameContext,
+  TFrameContextType extends FrameContext = FarcasterFrameContext
 >({
   stackAPI,
   stackDispatch,
@@ -313,6 +313,16 @@ export function useFetchFrame<
 
         // check the URL is valid
         const locationUrl = new URL(location);
+
+        // Reject non-http(s) URLs
+        if (
+          locationUrl.protocol !== "http:" &&
+          locationUrl.protocol !== "https:"
+        ) {
+          throw new Error(
+            `Redirect location ${location} is not a valid HTTP or HTTPS URL.`
+          );
+        }
 
         onRedirect(locationUrl);
 
@@ -959,7 +969,7 @@ function getResponseBody(response: Response): Promise<unknown> {
 type SignAndGetFrameActionPayloadOptions<
   TSignerStorageType,
   TFrameActionBodyType extends FrameActionBodyPayload,
-  TFrameContextType extends FrameContext,
+  TFrameContextType extends FrameContext
 > = {
   signerStateActionContext: SignerStateActionContext<
     TSignerStorageType,
@@ -977,7 +987,7 @@ type SignAndGetFrameActionPayloadOptions<
 async function signAndGetFrameActionBodyPayload<
   TSignerStorageType,
   TFrameActionBodyType extends FrameActionBodyPayload,
-  TFrameContextType extends FrameContext,
+  TFrameContextType extends FrameContext
 >({
   signerStateActionContext,
   signFrameAction,
