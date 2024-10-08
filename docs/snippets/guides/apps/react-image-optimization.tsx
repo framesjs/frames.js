@@ -25,12 +25,12 @@ const components: FrameUIComponents<StylingProps> = {
     // Here you can add your own logic to sanitize and validate the image URL
     let sanitizedSrc = props.src;
 
-    // Don't allow data URLs that are not images
+    // Don't allow data URLs that are not images -- we don't want to allow arbitrary data to be loaded
     if (props.src.startsWith("data:") && !props.src.startsWith("data:image")) {
       sanitizedSrc = "";
     }
 
-    // Don't allow SVG data URLs
+    // Don't allow SVG data URLs -- could contain malicious code
     if (props.src.startsWith("data:image/svg")) {
       sanitizedSrc = "";
     }
