@@ -5,7 +5,7 @@ import {
 } from "@frames.js/render/farcaster";
 import { useFrame } from "@frames.js/render/use-frame";
 import { fallbackFrameContext } from "@frames.js/render";
-// [!code focus:43]
+// [!code focus:64]
 import {
   FrameUI,
   type FrameUIComponents,
@@ -33,19 +33,39 @@ const components: FrameUIComponents<StylingProps> = {};
  * By default there are no styles so it is up to you to style the components as you wish.
  */
 const theme: FrameUITheme<StylingProps> = {
+  ButtonsContainer: {
+    className: "flex gap-[8px] px-2 pb-2 bg-white",
+  },
+  Button: {
+    className:
+      "border text-sm text-gray-700 rounded flex-1 bg-white border-gray-300 p-2",
+  },
   Root: {
     className:
-      "flex flex col w-full gap-2 border rounded-lg ovrflow-hidden bg-white relative",
+      "flex flex-col w-full gap-2 border rounded-lg overflow-hidden bg-white relative",
+  },
+  Error: {
+    className:
+      "flex text-red-500 text-sm p-2 bg-white border border-red-500 rounded-md shadow-md aspect-square justify-center items-center",
   },
   LoadingScreen: {
     className: "absolute top-0 left-0 right-0 bottom-0 bg-gray-300 z-10",
+  },
+  Image: {
+    className: "w-full object-cover max-h-full",
   },
   ImageContainer: {
     className:
       "relative w-full h-full border-b border-gray-300 overflow-hidden",
     style: {
-      aspectRatio: "var(--frame-image-aspect-ratio)", // helps to set the fixed loading skeleton size
+      aspectRatio: "var(--frame-image-aspect-ratio)", // fixed loading skeleton size
     },
+  },
+  TextInput: {
+    className: "p-[6px] border rounded border-gray-300 box-border w-full",
+  },
+  TextInputContainer: {
+    className: "w-full px-2",
   },
 };
 
@@ -62,8 +82,7 @@ export default function App() {
 
   const frameState = useFrame({
     // replace with frame URL
-    homeframeUrl:
-      "https://fc-polls.vercel.app/polls/73c6efda-bae7-4d46-8f36-3bb3b8377448",
+    homeframeUrl: "https://framesjs.org",
     // corresponds to the name of the route for POST and GET in step 2
     frameActionProxy: "/frames",
     frameGetProxy: "/frames",
@@ -71,12 +90,10 @@ export default function App() {
     frameContext: fallbackFrameContext,
     // map to your identity if you have one
     signerState: {
-      hasSigner:
-        farcasterSigner.status === "approved" ||
-        farcasterSigner.status === "impersonating",
+      hasSigner: farcasterSigner.status === "approved",
       signer: farcasterSigner,
       isLoadingSigner: false,
-      onSignerlessFramePress: () => {
+      async onSignerlessFramePress() {
         // Only run if `hasSigner` is set to `false`
         // This is a good place to throw an error or prompt the user to login
         console.log(
@@ -84,7 +101,7 @@ export default function App() {
         );
       },
       signFrameAction,
-      logout() {
+      async logout() {
         // here you can add your logout logic
         console.log("logout");
       },
