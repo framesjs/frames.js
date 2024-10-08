@@ -130,6 +130,22 @@ function createDefaultComponents<TStylingProps extends Record<string, unknown>>(
     Image(props, stylingProps) {
       const aspectRatio = props.aspectRatio.replace(":", "/");
 
+      let sanitizedSrc =
+        props.status === "frame-loading" ? undefined : props.src;
+
+      // Don't allow data URLs that are not images -- we don't want to allow arbitrary data to be loaded
+      if (
+        sanitizedSrc?.startsWith("data:") &&
+        !sanitizedSrc?.startsWith("data:image")
+      ) {
+        sanitizedSrc = "";
+      }
+
+      // Don't allow SVG data URLs -- could contain malicious code
+      if (sanitizedSrc?.startsWith("data:image/svg")) {
+        sanitizedSrc = "";
+      }
+
       return createElement("img", {
         ...stylingProps,
         "data-aspect-ratio": aspectRatio,
@@ -211,7 +227,7 @@ type FrameUIProps<TStylingProps extends Record<string, unknown>> = Omit<
 };
 
 export function FrameUI<
-  TStylingProps extends Record<string, unknown> = StylingProps,
+  TStylingProps extends Record<string, unknown> = StylingProps
 >(props: FrameUIProps<TStylingProps>): JSX.Element {
   const defaultComponents = useMemo(
     () => createDefaultComponents<TStylingProps>(props.createElement),
