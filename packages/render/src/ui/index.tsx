@@ -138,12 +138,12 @@ function createDefaultComponents<TStylingProps extends Record<string, unknown>>(
         sanitizedSrc?.startsWith("data:") &&
         !sanitizedSrc?.startsWith("data:image")
       ) {
-        sanitizedSrc = "";
+        sanitizedSrc = undefined;
       }
 
       // Don't allow SVG data URLs -- could contain malicious code
       if (sanitizedSrc?.startsWith("data:image/svg")) {
-        sanitizedSrc = "";
+        sanitizedSrc = undefined;
       }
 
       return createElement("img", {
@@ -155,7 +155,7 @@ function createDefaultComponents<TStylingProps extends Record<string, unknown>>(
         },
         onLoad: props.onImageLoadEnd,
         onError: props.onImageLoadEnd,
-        src: props.status === "frame-loading" ? undefined : props.src,
+        src: sanitizedSrc,
         alt: "Frame",
       });
     },
