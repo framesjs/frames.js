@@ -47,7 +47,7 @@ Create a `frames` directory in your Next.js `app` directory and add the followin
 ```tsx [./app/frames/frames.ts]
 import { openframes } from "frames.js/middleware";
 import { createFrames } from "frames.js/next";
-import { getXmtpFrameMessage, isXmtpFrameActionPayload } from "frames.js/xmtp";
+import { getLensFrameMessage, isLensFrameActionPayload } from "frames.js/lens";
 
 export const frames = createFrames({
   // basePath must point to the route of initial frame
