@@ -1,5 +1,11 @@
 # @frames.js/render
 
+## 0.3.15
+
+### Patch Changes
+
+- eb00c77: fix: only allow http(s) URLs in link buttons
+
 ## 0.3.14
 
 ### Patch Changes
