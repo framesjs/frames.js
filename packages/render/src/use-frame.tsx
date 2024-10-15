@@ -125,10 +125,29 @@ function defaultComposerFormActionHandler(): Promise<never> {
   throw new Error('Please implement your own "onComposerFormAction" handler');
 }
 
+/**
+ * Validates a link button target to ensure it is a valid HTTP or HTTPS URL.
+ * @param target - The target URL to validate.
+ * @returns True if the target is a valid HTTP or HTTPS URL, otherwise throws an error.
+ */
+function validateLinkButtonTarget(target: string) {
+  // check the URL is valid
+  const locationUrl = new URL(target);
+
+  // Reject non-http(s) URLs
+  if (locationUrl.protocol !== "http:" && locationUrl.protocol !== "https:") {
+    throw new Error(
+      `Redirect location ${locationUrl.toString()} is not a valid HTTP or HTTPS URL.`
+    );
+  }
+
+  return true;
+}
+
 export function useFrame<
   TSignerStorageType = Record<string, unknown>,
   TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
-  TFrameContextType extends FrameContext = FarcasterFrameContext,
+  TFrameContextType extends FrameContext = FarcasterFrameContext
 >({
   homeframeUrl,
   frameContext,
@@ -377,6 +396,15 @@ export function useFrame<
 
       switch (frameButton.action) {
         case "link": {
+          try {
+            validateLinkButtonTarget(frameButton.target);
+          } catch (error) {
+            if (error instanceof Error) {
+              onErrorRef.current?.(error);
+            }
+            return;
+          }
+
           onLinkButtonClick(frameButton);
           break;
         }
@@ -408,7 +436,17 @@ export function useFrame<
               homeframeUrl;
 
             if (!target) {
-              throw new Error("missing target");
+              onErrorRef.current?.(new Error(`Missing target`));
+              return;
+            }
+
+            try {
+              validateLinkButtonTarget(target);
+            } catch (error) {
+              if (error instanceof Error) {
+                onErrorRef.current?.(error);
+              }
+              return;
             }
 
             await onPostButton({
