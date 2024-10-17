@@ -31,18 +31,15 @@ import type {
   UseFetchFrameSignFrameActionFunction,
 } from "./types";
 import { isParseResult } from "./use-frame-stack";
-
-class UnexpectedCastActionResponseError extends Error {
-  constructor() {
-    super("Unexpected cast action response from the server");
-  }
-}
-
-class UnexpectedComposerActionResponseError extends Error {
-  constructor() {
-    super("Unexpected composer action response from the server");
-  }
-}
+import {
+  SignatureHandlerDidNotReturnTransactionIdError,
+  TransactionDataErrorResponseError,
+  TransactionDataTargetMalformedError,
+  TransactionHandlerDidNotReturnTransactionIdError,
+  CastActionUnexpectedResponseError,
+  ComposerActionUnexpectedResponseError,
+} from "./errors";
+import { tryCall, tryCallAsync } from "./helpers";
 
 function isErrorMessageResponse(
   response: unknown
@@ -95,7 +92,7 @@ function defaultErrorHandler(error: Error): void {
 export function useFetchFrame<
   TSignerStorageType = Record<string, unknown>,
   TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
-  TFrameContextType extends FrameContext = FarcasterFrameContext
+  TFrameContextType extends FrameContext = FarcasterFrameContext,
 >({
   stackAPI,
   stackDispatch,
@@ -111,6 +108,18 @@ export function useFetchFrame<
   fetchFn,
   onRedirect,
   onComposerFormAction,
+  onTransactionDataError,
+  onTransactionDataStart,
+  onTransactionDataSuccess,
+  onTransactionError,
+  onTransactionStart,
+  onTransactionSuccess,
+  onSignatureError,
+  onSignatureStart,
+  onSignatureSuccess,
+  onTransactionProcessingError,
+  onTransactionProcessingStart,
+  onTransactionProcessingSuccess,
 }: UseFetchFrameOptions<
   TSignerStorageType,
   TFrameActionBodyType,
@@ -122,10 +131,12 @@ export function useFetchFrame<
     response,
     endTime,
     frameStackPendingItem,
+    onError: onErrorInternal,
   }: {
     endTime: Date;
     response: Response;
     frameStackPendingItem: FrameStackPending;
+    onError?: (error: Error) => void;
   }): Promise<void> {
     if (response.ok) {
       throw new TypeError(
@@ -147,7 +158,11 @@ export function useFetchFrame<
           response,
           responseData: responseBody,
         });
-        onError(new Error(responseBody.message));
+        const error = new Error(responseBody.message);
+        tryCall(() => {
+          onError(error);
+        });
+        tryCall(() => onErrorInternal?.(error));
 
         return;
       }
@@ -165,7 +180,10 @@ export function useFetchFrame<
       response,
       responseBody,
     });
-    onError(requestError);
+    tryCall(() => {
+      onError(requestError);
+    });
+    tryCall(() => onErrorInternal?.(requestError));
   }
 
   async function fetchGETRequest(
@@ -220,19 +238,28 @@ export function useFetchFrame<
       responseBody: "none",
       responseStatus: 500,
     });
-    onError(response);
+    tryCall(() => {
+      onError(response);
+    });
   }
 
   async function fetchPOSTRequest(
     request: FramePOSTRequest<
       SignerStateActionContext<TSignerStorageType, TFrameContextType>
     >,
-    options?: { pendingFrameStackItem: FrameStackPostPending; startTime: Date },
-    shouldClear?: boolean
+    options?: {
+      preflightRequest?: {
+        pendingFrameStackItem: FrameStackPostPending;
+        startTime: Date;
+      };
+      shouldClear?: boolean;
+      onError?: (error: Error) => void;
+      onSuccess?: () => void;
+    }
   ): Promise<void> {
     let pendingItem: FrameStackPostPending;
 
-    if (shouldClear) {
+    if (options?.shouldClear) {
       stackDispatch({ action: "CLEAR" });
     }
 
@@ -243,10 +270,10 @@ export function useFetchFrame<
     });
 
     if (signedDataOrError instanceof Error) {
-      if (options) {
+      if (options?.preflightRequest) {
         // mark preflight request as failed
         stackAPI.markAsFailed({
-          pendingItem: options.pendingFrameStackItem,
+          pendingItem: options.preflightRequest.pendingFrameStackItem,
           endTime: new Date(),
           requestError: signedDataOrError,
           response: null, // there is no response because didn't even got to request
@@ -254,20 +281,23 @@ export function useFetchFrame<
           responseStatus: 500,
         });
       }
-      onError(signedDataOrError);
+      tryCall(() => {
+        onError(signedDataOrError);
+      });
+      tryCall(() => options?.onError?.(signedDataOrError));
 
       return;
     }
 
-    // if there are no options passed there is no preflight happening (for example in case of transactions we first fetch transaction data and then post it to frame)
+    // if there is no preflight happening (for example in case of transactions we first fetch transaction data and then post it to frame)
     // in that case options are passed so we can manipulate the pending item
-    if (!options) {
+    if (!options?.preflightRequest) {
       pendingItem = stackAPI.createPostPendingItem({
         action: signedDataOrError,
         request,
       });
     } else {
-      pendingItem = options.pendingFrameStackItem;
+      pendingItem = options.preflightRequest.pendingFrameStackItem;
     }
 
     const response = await fetchProxied({
@@ -280,10 +310,17 @@ export function useFetchFrame<
 
     const endTime = new Date();
 
-    async function handleRedirect(
-      res: Response,
-      currentPendingItem: FrameStackPostPending
-    ): Promise<void> {
+    async function handleRedirect({
+      response: res,
+      currentPendingItem,
+      onError: onErrorInternal,
+      onSuccess: onSuccessInternal,
+    }: {
+      response: Response;
+      currentPendingItem: FrameStackPostPending;
+      onError?: (error: Error) => void;
+      onSuccess?: () => void;
+    }): Promise<void> {
       // check that location is proper fully formatted url
       try {
         let location = res.headers.get("location");
@@ -324,7 +361,10 @@ export function useFetchFrame<
           );
         }
 
-        onRedirect(locationUrl);
+        tryCall(() => {
+          onRedirect(locationUrl);
+        });
+        tryCall(() => onSuccessInternal?.());
 
         stackAPI.markAsDoneWithRedirect({
           pendingItem: currentPendingItem,
@@ -348,14 +388,22 @@ export function useFetchFrame<
           endTime,
           responseBody: await res.clone().text(),
         });
-        onError(error);
+        tryCall(() => onErrorInternal?.(error));
+        tryCall(() => {
+          onError(error);
+        });
       }
     }
 
     if (response instanceof Response) {
       // handle valid redirect
       if (response.status === 302) {
-        await handleRedirect(response, pendingItem);
+        await handleRedirect({
+          response,
+          currentPendingItem: pendingItem,
+          onError: options?.onError,
+          onSuccess: options?.onSuccess,
+        });
 
         return;
       }
@@ -365,15 +413,35 @@ export function useFetchFrame<
           response,
           endTime,
           frameStackPendingItem: pendingItem,
+          onError: options?.onError,
         });
 
         return;
       }
 
-      const responseData = (await response.clone().json()) as unknown;
+      const responseData = await tryCall(
+        () => response.clone().json() as Promise<unknown>
+      );
+
+      if (responseData instanceof Error) {
+        stackAPI.markAsFailed({
+          endTime,
+          pendingItem,
+          requestError: responseData,
+          response,
+          responseBody: "none",
+          responseStatus: 500,
+        });
+        tryCall(() => {
+          onError(responseData);
+        });
+        tryCall(() => options?.onError?.(responseData));
+
+        return;
+      }
 
       if (!isParseResult(responseData)) {
-        const error = new Error(`The server returned an unexpected response.`);
+        const error = new Error("The server returned an unexpected response.");
 
         stackAPI.markAsFailed({
           endTime,
@@ -383,7 +451,10 @@ export function useFetchFrame<
           responseBody: responseData,
           responseStatus: 500,
         });
-        onError(error);
+        tryCall(() => {
+          onError(error);
+        });
+        tryCall(() => options?.onError?.(error));
 
         return;
       }
@@ -394,6 +465,8 @@ export function useFetchFrame<
         pendingItem,
         response,
       });
+
+      tryCall(() => options?.onSuccess?.());
 
       return;
     }
@@ -409,7 +482,10 @@ export function useFetchFrame<
       responseBody: "none",
       responseStatus: 500,
     });
-    onError(response);
+    tryCall(() => {
+      onError(response);
+    });
+    tryCall(() => options?.onError?.(response));
   }
 
   async function fetchTransactionRequest(
@@ -441,9 +517,9 @@ export function useFetchFrame<
       stackDispatch({ action: "CLEAR" });
     }
 
-    const startTime = new Date();
+    tryCall(() => onTransactionDataStart?.({ button }));
 
-    const signedTransactionDataActionOrError = await tryCall(
+    const signedTransactionDataActionOrError = await tryCallAsync(() =>
       signFrameAction({
         actionContext: request.signerStateActionContext,
         // for transaction data we always use signer, so skip signing is false here
@@ -452,20 +528,21 @@ export function useFetchFrame<
     );
 
     if (signedTransactionDataActionOrError instanceof Error) {
-      onError(signedTransactionDataActionOrError);
+      tryCall(() => {
+        onError(signedTransactionDataActionOrError);
+      });
+      tryCall(() =>
+        onTransactionDataError?.(signedTransactionDataActionOrError)
+      );
       return;
     }
-
-    const pendingItem = stackAPI.createPostPendingItem({
-      action: signedTransactionDataActionOrError,
-      request,
-    });
 
     signedTransactionDataActionOrError.searchParams.set(
       "specification",
       specification
     );
 
+    const transactionDataStartTime = new Date();
     const transactionDataResponse = await fetchProxied({
       proxyUrl: frameActionProxy,
       frameAction: signedTransactionDataActionOrError,
@@ -473,28 +550,50 @@ export function useFetchFrame<
       specification,
       extraRequestPayload: extraButtonRequestPayload,
     });
-    const endTime = new Date();
+    const transactionDataEndTime = new Date();
 
     if (transactionDataResponse instanceof Error) {
+      const pendingItem = stackAPI.createPostPendingItem({
+        action: signedTransactionDataActionOrError,
+        request,
+        startTime: transactionDataStartTime,
+      });
+
       stackAPI.markAsFailed({
-        endTime,
+        endTime: transactionDataEndTime,
         pendingItem,
         requestError: transactionDataResponse,
         response: null,
         responseBody: "none",
         responseStatus: 500,
       });
-      onError(transactionDataResponse);
+      tryCall(() => onTransactionDataError?.(transactionDataResponse));
+      tryCall(() => {
+        onError(transactionDataResponse);
+      });
 
       return;
     }
 
     if (!transactionDataResponse.ok) {
+      // show as error
+      const pendingItem = stackAPI.createPostPendingItem({
+        action: signedTransactionDataActionOrError,
+        request,
+        startTime: transactionDataStartTime,
+      });
+
       await handleFailedResponse({
         response: transactionDataResponse,
-        endTime,
+        endTime: transactionDataEndTime,
         frameStackPendingItem: pendingItem,
       });
+
+      tryCall(() =>
+        onTransactionDataError?.(
+          new TransactionDataErrorResponseError(transactionDataResponse.clone())
+        )
+      );
 
       return;
     }
@@ -509,25 +608,42 @@ export function useFetchFrame<
       );
     }
 
-    const transactionData = (await transactionDataResponse.json()) as unknown;
+    // try to parse and catch the error, this is too optimistic
+
+    const transactionData = await tryCallAsync<unknown>(() =>
+      transactionDataResponse.clone().json()
+    );
 
     if (!isTransactionTargetResponse(transactionData)) {
-      const error = new Error(
-        "The server returned an unexpected response for transaction data."
+      const pendingItem = stackAPI.createPostPendingItem({
+        action: signedTransactionDataActionOrError,
+        request,
+        startTime: transactionDataStartTime,
+      });
+
+      const error = new TransactionDataTargetMalformedError(
+        transactionDataResponse.clone()
       );
 
       stackAPI.markAsFailed({
-        endTime,
+        endTime: transactionDataEndTime,
         pendingItem,
         requestError: error,
         response: transactionDataResponse,
         responseBody: transactionData,
         responseStatus: 500,
       });
-      onError(error);
+      tryCall(() => onTransactionDataError?.(error));
+      tryCall(() => {
+        onError(error);
+      });
 
       return;
     }
+
+    tryCall(() =>
+      onTransactionDataSuccess?.({ button, data: transactionData })
+    );
 
     let transactionIdOrError: `0x${string}` | Error;
 
@@ -545,48 +661,84 @@ export function useFetchFrame<
           transactionDataSuffix.slice(2)) as `0x${string}`;
       }
 
-      transactionIdOrError = await tryCall(
+      tryCall(() => onTransactionStart?.({ button, data: transactionData }));
+
+      transactionIdOrError = await tryCallAsync(() =>
         onTransaction({
           frame: sourceFrame,
           frameButton: request.frameButton,
           transactionData,
         }).then((transactionId) => {
           if (!transactionId) {
-            return new Error("onTransaction did not return transaction id");
+            return new TransactionHandlerDidNotReturnTransactionIdError();
           }
 
           return transactionId;
         })
       );
+
+      if (!(transactionIdOrError instanceof Error)) {
+        tryCall(() => onTransactionSuccess?.({ button }));
+      } else {
+        tryCall(() => onTransactionError?.(transactionIdOrError as Error));
+      }
     } else {
-      transactionIdOrError = await tryCall(
+      tryCall(() => onSignatureStart?.({ button, data: transactionData }));
+
+      transactionIdOrError = await tryCallAsync(() =>
         onSignature({
           frame: sourceFrame,
           frameButton: request.frameButton,
           signatureData: transactionData,
         }).then((signatureHash) => {
           if (!signatureHash) {
-            return new Error("onSignature did not return signature");
+            return new SignatureHandlerDidNotReturnTransactionIdError();
           }
 
           return signatureHash;
         })
       );
+
+      if (!(transactionIdOrError instanceof Error)) {
+        tryCall(() => onSignatureSuccess?.({ button }));
+      } else {
+        tryCall(() => onSignatureError?.(transactionIdOrError as Error));
+      }
     }
 
     if (transactionIdOrError instanceof Error) {
+      const pendingItem = stackAPI.createPostPendingItem({
+        action: signedTransactionDataActionOrError,
+        request,
+      });
+
       stackAPI.markAsFailed({
         pendingItem,
-        endTime,
+        endTime: new Date(),
         requestError: transactionIdOrError,
         response: null,
         responseBody: "none",
         responseStatus: 500,
       });
-      onError(transactionIdOrError);
+      tryCall(() => {
+        onError(transactionIdOrError);
+      });
 
       return;
     }
+
+    tryCall(() =>
+      onTransactionProcessingStart?.({
+        button,
+        transactionId: transactionIdOrError,
+      })
+    );
+
+    const startTime = new Date();
+    const pendingItem = stackAPI.createPostPendingItem({
+      action: signedTransactionDataActionOrError,
+      request,
+    });
 
     await fetchPOSTRequest(
       {
@@ -600,10 +752,23 @@ export function useFetchFrame<
           target: button.post_url || sourceFrame.postUrl || button.target,
         },
       },
-      // we are continuing with the same pending item
       {
-        pendingFrameStackItem: pendingItem,
-        startTime,
+        // we are continuing with the same pending item
+        preflightRequest: {
+          pendingFrameStackItem: pendingItem,
+          startTime,
+        },
+        onError(error) {
+          tryCall(() => onTransactionProcessingError?.(error));
+        },
+        onSuccess() {
+          tryCall(() =>
+            onTransactionProcessingSuccess?.({
+              button,
+              transactionId: transactionIdOrError,
+            })
+          );
+        },
       }
     );
   }
@@ -641,7 +806,9 @@ export function useFetchFrame<
     }
 
     if (signedDataOrError instanceof Error) {
-      onError(signedDataOrError);
+      tryCall(() => {
+        onError(signedDataOrError);
+      });
       throw signedDataOrError;
     }
 
@@ -667,7 +834,9 @@ export function useFetchFrame<
     });
 
     if (actionResponseOrError instanceof Error) {
-      onError(actionResponseOrError);
+      tryCall(() => {
+        onError(actionResponseOrError);
+      });
       throw actionResponseOrError;
     }
 
@@ -728,18 +897,20 @@ export function useFetchFrame<
         return;
       }
 
-      throw new UnexpectedCastActionResponseError();
+      throw new CastActionUnexpectedResponseError();
     } catch (e) {
       let error: Error;
 
-      if (!(e instanceof UnexpectedCastActionResponseError)) {
+      if (!(e instanceof CastActionUnexpectedResponseError)) {
         console.error(`Unexpected response from the server`, e);
         error = e instanceof Error ? e : new Error("Unexpected error");
       } else {
         error = e;
       }
 
-      onError(error);
+      tryCall(() => {
+        onError(error);
+      });
       throw error;
     }
   }
@@ -782,7 +953,9 @@ export function useFetchFrame<
     }
 
     if (signedDataOrError instanceof Error) {
-      onError(signedDataOrError);
+      tryCall(() => {
+        onError(signedDataOrError);
+      });
       throw signedDataOrError;
     }
 
@@ -808,7 +981,9 @@ export function useFetchFrame<
     });
 
     if (actionResponseOrError instanceof Error) {
-      onError(actionResponseOrError);
+      tryCall(() => {
+        onError(actionResponseOrError);
+      });
       throw actionResponseOrError;
     }
 
@@ -831,7 +1006,7 @@ export function useFetchFrame<
         .json()) as unknown;
 
       if (!isComposerFormActionResponse(actionResponse)) {
-        throw new UnexpectedComposerActionResponseError();
+        throw new ComposerActionUnexpectedResponseError();
       }
 
       // this is noop
@@ -847,14 +1022,16 @@ export function useFetchFrame<
     } catch (e) {
       let error: Error;
 
-      if (!(e instanceof UnexpectedComposerActionResponseError)) {
+      if (!(e instanceof ComposerActionUnexpectedResponseError)) {
         console.error(`Unexpected response from the server`, e);
         error = e instanceof Error ? e : new Error("Unexpected error");
       } else {
         error = e;
       }
 
-      onError(error);
+      tryCall(() => {
+        onError(error);
+      });
       throw error;
     }
   }
@@ -876,7 +1053,9 @@ export function useFetchFrame<
       return fetchTransactionRequest(request, shouldClear);
     }
 
-    return fetchPOSTRequest(request, undefined, shouldClear);
+    return fetchPOSTRequest(request, {
+      shouldClear,
+    });
   };
 }
 
@@ -924,7 +1103,7 @@ async function fetchProxied(
       params.frameAction.searchParams
     );
 
-    return tryCall(
+    return tryCallAsync(() =>
       params.fetchFn(proxyUrl, {
         method: "POST",
         headers: {
@@ -942,20 +1121,7 @@ async function fetchProxied(
 
   const proxyUrl = proxyUrlAndSearchParamsToUrl(params.proxyUrl, searchParams);
 
-  return tryCall(params.fetchFn(proxyUrl, { method: "GET" }));
-}
-
-async function tryCall<TResult>(
-  promise: Promise<TResult>
-): Promise<TResult | Error> {
-  return promise.catch((e) => {
-    if (e instanceof Error) {
-      return e;
-    }
-
-    console.error(e);
-    return new TypeError("Unexpected error, check the console for details");
-  });
+  return tryCallAsync(() => params.fetchFn(proxyUrl, { method: "GET" }));
 }
 
 function getResponseBody(response: Response): Promise<unknown> {
@@ -969,7 +1135,7 @@ function getResponseBody(response: Response): Promise<unknown> {
 type SignAndGetFrameActionPayloadOptions<
   TSignerStorageType,
   TFrameActionBodyType extends FrameActionBodyPayload,
-  TFrameContextType extends FrameContext
+  TFrameContextType extends FrameContext,
 > = {
   signerStateActionContext: SignerStateActionContext<
     TSignerStorageType,
@@ -987,7 +1153,7 @@ type SignAndGetFrameActionPayloadOptions<
 async function signAndGetFrameActionBodyPayload<
   TSignerStorageType,
   TFrameActionBodyType extends FrameActionBodyPayload,
-  TFrameContextType extends FrameContext
+  TFrameContextType extends FrameContext,
 >({
   signerStateActionContext,
   signFrameAction,
@@ -1000,7 +1166,7 @@ async function signAndGetFrameActionBodyPayload<
   const { address: _, ...requiredFrameContext } =
     signerStateActionContext.frameContext as unknown as FarcasterFrameContext;
 
-  return tryCall(
+  return tryCallAsync(() =>
     signFrameAction({
       actionContext: {
         ...signerStateActionContext,

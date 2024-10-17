@@ -5,6 +5,7 @@ import type {
   FrameButtonPost,
   FrameButtonTx,
   SupportedParsingSpecification,
+  TransactionTargetResponse,
   TransactionTargetResponseSendTransaction,
   TransactionTargetResponseSignTypedDataV4,
   getFrame,
@@ -140,6 +141,72 @@ export type UseFetchFrameOptions<
    * This function is called when the frame returns a redirect in response to post_redirect button click.
    */
   onRedirect: (location: URL) => void;
+  /**
+   * Called when user presses the tx button just before the action is signed and sent to the server
+   * to obtain the transaction data.
+   */
+  onTransactionDataStart?: (event: { button: FrameButtonTx }) => void;
+  /**
+   * Called when transaction data has been successfully returned from the server.
+   */
+  onTransactionDataSuccess?: (event: {
+    button: FrameButtonTx;
+    data: TransactionTargetResponse;
+  }) => void;
+  /**
+   * Called when anything failed between onTransactionDataStart and obtaining the transaction data.
+   */
+  onTransactionDataError?: (error: Error) => void;
+  /**
+   * Called before onTransaction() is called
+   * Called after onTransactionDataSuccess() is called
+   */
+  onTransactionStart?: (event: {
+    button: FrameButtonTx;
+    data: TransactionTargetResponseSendTransaction;
+  }) => void;
+  /**
+   * Called when onTransaction() returns a transaction id
+   */
+  onTransactionSuccess?: (event: { button: FrameButtonTx }) => void;
+  /**
+   * Called when onTransaction() fails to return a transaction id
+   */
+  onTransactionError?: (error: Error) => void;
+  /**
+   * Called before onSignature() is called
+   * Called after onTransactionDataSuccess() is called
+   */
+  onSignatureStart?: (event: {
+    button: FrameButtonTx;
+    data: TransactionTargetResponseSignTypedDataV4;
+  }) => void;
+  /**
+   * Called when onSignature() returns a transaction id
+   */
+  onSignatureSuccess?: (event: { button: FrameButtonTx }) => void;
+  /**
+   * Called when onSignature() fails to return a transaction id
+   */
+  onSignatureError?: (error: Error) => void;
+  /**
+   * Called after either onSignatureSuccess() or onTransactionSuccess() is called just before the transaction is sent to the server.
+   */
+  onTransactionProcessingStart?: (event: {
+    button: FrameButtonTx;
+    transactionId: `0x${string}`;
+  }) => void;
+  /**
+   * Called after the transaction has been successfully sent to the server and returned a success response.
+   */
+  onTransactionProcessingSuccess?: (event: {
+    button: FrameButtonTx;
+    transactionId: `0x${string}`;
+  }) => void;
+  /**
+   * Called when the transaction has been sent to the server but the server returned an error.
+   */
+  onTransactionProcessingError?: (error: Error) => void;
 };
 
 export type UseFrameOptions<
@@ -200,7 +267,21 @@ export type UseFrameOptions<
    */
   onLinkButtonClick?: (button: FrameButtonLink) => void;
 } & Partial<
-  Pick<UseFetchFrameOptions, "fetchFn" | "onRedirect" | "onComposerFormAction">
+  Pick<
+    UseFetchFrameOptions,
+    | "fetchFn"
+    | "onRedirect"
+    | "onComposerFormAction"
+    | "onTransactionDataError"
+    | "onTransactionDataStart"
+    | "onTransactionDataSuccess"
+    | "onTransactionError"
+    | "onTransactionStart"
+    | "onTransactionSuccess"
+    | "onTransactionProcessingError"
+    | "onTransactionProcessingStart"
+    | "onTransactionProcessingSuccess"
+  >
 >;
 
 type SignerStateActionSharedContext<

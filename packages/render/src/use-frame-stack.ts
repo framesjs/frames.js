@@ -130,6 +130,12 @@ export type FrameStackAPI = {
   >(arg: {
     action: SignedFrameAction;
     request: FramePOSTRequest<TSignerStateActionContext>;
+    /**
+     * Optional, allows to override the start time
+     *
+     * @defaultValue new Date()
+     */
+    startTime?: Date;
   }) => FrameStackPostPending;
   /**
    * Creates a pending item without dispatching it
@@ -285,7 +291,7 @@ export function useFrameStack({
             searchParams: arg.action.searchParams,
           },
           url: arg.action.searchParams.get("postUrl") ?? "missing postUrl",
-          timestamp: new Date(),
+          timestamp: arg.startTime ?? new Date(),
           status: "pending",
         };
 
