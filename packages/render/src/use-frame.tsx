@@ -130,7 +130,7 @@ function defaultComposerFormActionHandler(): Promise<never> {
  * @param target - The target URL to validate.
  * @returns True if the target is a valid HTTP or HTTPS URL, otherwise throws an error.
  */
-function validateLinkButtonTarget(target: string) {
+function validateLinkButtonTarget(target: string): boolean {
   // check the URL is valid
   const locationUrl = new URL(target);
 
@@ -147,7 +147,7 @@ function validateLinkButtonTarget(target: string) {
 export function useFrame<
   TSignerStorageType = Record<string, unknown>,
   TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
-  TFrameContextType extends FrameContext = FarcasterFrameContext
+  TFrameContextType extends FrameContext = FarcasterFrameContext,
 >({
   homeframeUrl,
   frameContext,
@@ -171,6 +171,15 @@ export function useFrame<
   onRedirect = handleRedirectFallback,
   fetchFn = (...args) => fetch(...args),
   onComposerFormAction = defaultComposerFormActionHandler,
+  onTransactionDataError,
+  onTransactionDataStart,
+  onTransactionDataSuccess,
+  onTransactionError,
+  onTransactionProcessingError,
+  onTransactionProcessingStart,
+  onTransactionProcessingSuccess,
+  onTransactionStart,
+  onTransactionSuccess,
 }: UseFrameOptions<
   TSignerStorageType,
   TFrameActionBodyType,
@@ -209,6 +218,15 @@ export function useFrame<
     fetchFn,
     onRedirect,
     onComposerFormAction,
+    onTransactionDataError,
+    onTransactionDataStart,
+    onTransactionDataSuccess,
+    onTransactionError,
+    onTransactionProcessingError,
+    onTransactionProcessingStart,
+    onTransactionProcessingSuccess,
+    onTransactionStart,
+    onTransactionSuccess,
   });
 
   const fetchFrameRef = useRef(fetchFrame);

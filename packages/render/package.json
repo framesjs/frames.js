@@ -36,6 +36,16 @@
         "default": "./dist/index.cjs"
       }
     },
+    "./errors": {
+      "import": {
+        "types": "./dist/errors.d.ts",
+        "default": "./dist/errors.js"
+      },
+      "require": {
+        "types": "./dist/errors.d.cts",
+        "default": "./dist/errors.cjs"
+      }
+    },
     "./next": {
       "import": {
         "types": "./dist/next/index.d.ts",
