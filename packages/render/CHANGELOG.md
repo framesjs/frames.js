@@ -1,5 +1,11 @@
 # @frames.js/render
 
+## 0.3.16
+
+### Patch Changes
+
+- 1ea9ddc: feat: transaction event listeners
+
 ## 0.3.15
 
 ### Patch Changes

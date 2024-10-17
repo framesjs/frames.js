@@ -1,6 +1,6 @@
 {
   "name": "@frames.js/render",
-  "version": "0.3.15",
+  "version": "0.3.16",
   "type": "module",
   "main": "./dist/index.cjs",
   "types": "index.d.cts",
