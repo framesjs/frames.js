@@ -1,0 +1,21 @@
+---
+title: "Guide: Best Practices for Apps Rendering Frames"
+description: "Best practices for apps rendering frames."
+---
+
+# Best Practices for Apps Rendering Frames
+
+## Security
+
+There are important security considerations when rendering frames in your app. Rendering images or following redirects from untrusted sources can lead to security vulnerabilities, such as [XSS (Cross-Site Scripting)](https://en.wikipedia.org/wiki/Cross-site_scripting).
+
+To mitigate these risks, you should always validate URLs of images and redirects. We recommend the following best practices:
+
+1. Proxy image requests to prevent frame servers from tracking users. See [this guide](/guides/apps/display-frames#using-nextjs-image-optimization-for-image-proxying) for an example using Next.js Image Optimization.
+2. Avoid rendering SVGs as they may contain executable code.
+3. Sanitize redirect URLs to ensure they start with http:// or https://.
+4. Only accept data URIs if they are images.
+
+Points 3 and 4 are automatically handled when using the `@frames.js/render` package.
+
+Transaction frames are also a potential source of security vulnerabilities for users. We recommend educating users about the potential dangerous of transactions and using a wallet with limited balances.
