@@ -212,6 +212,10 @@ const sidebar: SidebarItem[] = [
         text: "Display Frames in React Native",
         link: "/guides/apps/display-frames-in-react-native",
       },
+      {
+        text: "Best Practices",
+        link: "/guides/apps/best-practices",
+      },
     ],
   },
   {
