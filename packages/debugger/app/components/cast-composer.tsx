@@ -23,6 +23,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@radix-ui/react-toast";
 import Link from "next/link";
 import type { FarcasterSigner } from "@frames.js/render/identity/farcaster";
+import { getFrameParseResultFromStackItemBySpecifications } from "@frames.js/render/helpers";
 
 type CastComposerProps = {
   composerAction: Partial<ComposerActionResponse>;
@@ -139,11 +140,15 @@ function createDebugUrl(frameUrl: string, currentUrl: string) {
 }
 
 function isAtLeastPartialFrame(stackItem: FrameStackDone): boolean {
+  const result = getFrameParseResultFromStackItemBySpecifications(stackItem, [
+    "farcaster",
+  ]);
+
   return (
-    stackItem.frameResult.status === "success" ||
-    (!!stackItem.frameResult.frame &&
-      !!stackItem.frameResult.frame.buttons &&
-      stackItem.frameResult.frame.buttons.length > 0)
+    result.status === "success" ||
+    (!!result.frame &&
+      !!result.frame.buttons &&
+      result.frame.buttons.length > 0)
   );
 }
 

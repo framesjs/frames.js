@@ -10,6 +10,7 @@ import {
   type OnSignatureFunc,
   type FrameActionBodyPayload,
   type OnConnectWalletFunc,
+  FarcasterFrameContext,
 } from "@frames.js/render";
 import { attribution } from "@frames.js/render/farcaster";
 import { useFrame } from "@frames.js/render/use-frame";
@@ -38,7 +39,10 @@ import {
   ActionDebugger,
   ActionDebuggerRef,
 } from "./components/action-debugger";
-import type { ParseResult } from "frames.js/frame-parsers";
+import type {
+  ParseFramesWithReportsResult,
+  SupportedParsingSpecification,
+} from "frames.js/frame-parsers";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
@@ -120,7 +124,8 @@ export default function DebuggerPage({
       return undefined;
     }
   }, [searchParams.url]);
-  const [initialFrame, setInitialFrame] = useState<ParseResult>();
+  const [initialFrame, setInitialFrame] =
+    useState<ParseFramesWithReportsResult>();
   const [initialAction, setInitialAction] =
     useState<CastActionDefinitionResponse>();
   const [mockHubContext, setMockHubContext] = useState<
@@ -573,7 +578,8 @@ export default function DebuggerPage({
 
   const farcasterFrameConfig: UseFrameOptions<
     FarcasterSigner | null,
-    FrameActionBodyPayload
+    FrameActionBodyPayload,
+    FarcasterFrameContext
   > = useMemo(() => {
     const attributionData = process.env.NEXT_PUBLIC_FARCASTER_ATTRIBUTION_FID
       ? attribution(parseInt(process.env.NEXT_PUBLIC_FARCASTER_ATTRIBUTION_FID))
@@ -599,44 +605,82 @@ export default function DebuggerPage({
     return () => {
       const selectedProtocol = protocolConfiguration?.protocol ?? "farcaster";
 
-      switch (selectedProtocol) {
-        case "anonymous": {
-          // eslint-disable-next-line react-hooks/rules-of-hooks -- this is used as a hook in FrameDebugger
-          return useFrame({
-            ...useFrameConfig,
-            signerState: anonymousSignerState,
-            specification: "openframes",
-            frameContext: anonymousFrameContext,
-          });
-        }
-        case "lens": {
-          // eslint-disable-next-line react-hooks/rules-of-hooks -- this is used as a hook in FrameDebugger
-          return useFrame({
-            ...useFrameConfig,
-            signerState: lensSignerState,
-            specification: "openframes",
-            frameContext: lensFrameContext.frameContext,
-          });
-        }
-        case "xmtp": {
-          // eslint-disable-next-line react-hooks/rules-of-hooks -- this is used as a hook in FrameDebugger
-          return useFrame({
-            ...useFrameConfig,
-            signerState: xmtpSignerState,
-            specification: "openframes",
-            frameContext: xmtpFrameContext.frameContext,
-          });
-        }
-        default: {
-          // eslint-disable-next-line react-hooks/rules-of-hooks -- this is used as a hook in FrameDebugger
-          return useFrame(farcasterFrameConfig);
-        }
+      /**
+       * We need to send specification to server because of cast and composer actions
+       */
+      function createFetchFn(
+        specification: SupportedParsingSpecification
+      ): typeof fetch {
+        return (input, init) => {
+          if (typeof input !== "string") {
+            throw new Error(
+              "Expected first argument to fetchFn to be a string"
+            );
+          }
+
+          let url: string = input;
+
+          if (URL.canParse(input)) {
+            const parsed = new URL(input);
+
+            parsed.searchParams.set("protocol", specification);
+
+            url = parsed.toString();
+          } else {
+            const temporaryUrl = "http://temporary-for-parsing-purposes.tld";
+            const parsed = new URL(input, temporaryUrl);
+
+            parsed.searchParams.set("protocol", specification);
+
+            url = parsed.toString().replace(temporaryUrl, "");
+          }
+
+          return fetch(url, init);
+        };
       }
+
+      // eslint-disable-next-line react-hooks/rules-of-hooks -- this is used as a hook in FrameDebugger
+      return useFrame({
+        ...useFrameConfig,
+        fetchFn: createFetchFn(
+          selectedProtocol === "farcaster" ? "farcaster" : "openframes"
+        ),
+        signerState: anonymousSignerState,
+        frameContext: anonymousFrameContext,
+        // in debugger we to show only one specification at the time
+        specification:
+          selectedProtocol === "farcaster" ? "farcaster" : "openframes",
+        async resolveActionContext() {
+          switch (selectedProtocol) {
+            case "anonymous":
+              return {
+                signerState: anonymousSignerState,
+                frameContext: anonymousFrameContext,
+              };
+            case "lens":
+              return {
+                signerState: lensSignerState,
+                frameContext: lensFrameContext.frameContext,
+              };
+            case "xmtp":
+              return {
+                signerState: xmtpSignerState,
+                frameContext: xmtpFrameContext.frameContext,
+              };
+            default:
+              return {
+                signerState: farcasterSignerState,
+                frameContext: farcasterFrameContext.frameContext,
+              };
+          }
+        },
+      });
     };
   }, [
-    anonymousSignerState,
     anonymousFrameContext,
-    farcasterFrameConfig,
+    anonymousSignerState,
+    farcasterFrameContext.frameContext,
+    farcasterSignerState,
     lensFrameContext.frameContext,
     lensSignerState,
     protocolConfiguration?.protocol,
