@@ -5,41 +5,82 @@ import {
   DialogFooter,
   DialogContent,
 } from "@/components/ui/dialog";
+import { OnTransactionFunc } from "@frames.js/render";
 import type {
   ComposerActionFormResponse,
   ComposerActionState,
 } from "frames.js/types";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { z } from "zod";
 
-const composerFormCreateCastMessageSchema = z.object({
-  type: z.literal("createCast"),
-  data: z.object({
-    cast: z.object({
-      parent: z.string().optional(),
-      text: z.string(),
-      embeds: z.array(z.string().min(1).url()).min(1),
-    }),
-  }),
+const miniappMessageSchema = z.object({
+  type: z.string(),
+  data: z.record(z.unknown()),
 });
 
 type ComposerFormActionDialogProps = {
   composerActionForm: ComposerActionFormResponse;
   onClose: () => void;
   onSave: (arg: { composerState: ComposerActionState }) => void;
+  onTransaction?: OnTransactionFunc;
 };
 
 export function ComposerFormActionDialog({
   composerActionForm,
   onClose,
   onSave,
+  onTransaction,
 }: ComposerFormActionDialogProps) {
   const onSaveRef = useRef(onSave);
   onSaveRef.current = onSave;
 
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const postMessageToIframe = useCallback(
+    (message: any) => {
+      if (iframeRef.current && iframeRef.current.contentWindow) {
+        iframeRef.current.contentWindow.postMessage(
+          message,
+          new URL(composerActionForm.url).origin
+        );
+      }
+    },
+    [composerActionForm.url]
+  );
+
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      const result = composerFormCreateCastMessageSchema.safeParse(event.data);
+      const result = miniappMessageSchema.parse(event.data);
+
+      if (result?.type === "requestTransaction") {
+        onTransaction?.({
+          transactionData: result.data.tx as any,
+        }).then((txHash) => {
+          if (txHash) {
+            postMessageToIframe({
+              type: "transactionResponse",
+              data: {
+                requestId: result.data.requestId,
+                success: true,
+                receipt: {
+                  // address: farcasterFrameConfig.connectedAddress,
+                  transactionId: txHash,
+                },
+              },
+            });
+          } else {
+            postMessageToIframe({
+              type: "transactionResponse",
+              data: {
+                requestId: result.data.requestId,
+                success: false,
+                message: "User rejected the request",
+              },
+            });
+          }
+        });
+        return;
+      }
 
       // on error is not called here because there can be different messages that don't have anything to do with composer form actions
       // instead we are just waiting for the correct message
@@ -80,6 +121,7 @@ export function ComposerFormActionDialog({
         <div>
           <iframe
             className="h-[600px] w-full opacity-100 transition-opacity duration-300"
+            ref={iframeRef}
             src={composerActionForm.url}
             sandbox="allow-forms allow-scripts allow-same-origin"
           ></iframe>

@@ -447,6 +447,7 @@ export const ActionDebugger = React.forwardRef<
                     composerActionState: composerState,
                   });
                 }}
+                onTransaction={farcasterFrameConfig.onTransaction}
               />
             )}
           </TabsContent>
