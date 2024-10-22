@@ -60,3 +60,20 @@ export type ParseResult =
        */
       reports: Record<string, ParsingReport[]>;
     };
+
+export type ParsedFrameworkDetails = {
+  framesVersion?: string;
+  framesDebugInfo?: {
+    /**
+     * Image URL of debug image.
+     */
+    image?: string;
+  };
+};
+
+export type ParseResultWithFrameworkDetails = ParseResult &
+  ParsedFrameworkDetails;
+
+export type ParseFramesWithReportsResult = {
+  [K in SupportedParsingSpecification]: ParseResultWithFrameworkDetails;
+};
