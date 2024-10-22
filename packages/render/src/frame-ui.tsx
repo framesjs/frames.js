@@ -1,12 +1,12 @@
 import type { ImgHTMLAttributes } from "react";
 import React, { useState } from "react";
 import type { Frame, FrameButton } from "frames.js";
-import type {
-  FrameTheme,
-  FrameState,
-  FrameStackMessage,
-  FrameStackRequestError,
-} from "./types";
+import type { FrameTheme, FrameState } from "./types";
+import {
+  getErrorMessageFromFramesStackItem,
+  getFrameParseResultFromStackItemBySpecifications,
+  isPartialFrameParseResult,
+} from "./helpers";
 
 export const defaultTheme: Required<FrameTheme> = {
   buttonBg: "#fff",
@@ -90,22 +90,8 @@ function MessageTooltip({
   );
 }
 
-function getErrorMessageFromFramesStackItem(
-  item: FrameStackMessage | FrameStackRequestError
-): string {
-  if (item.status === "message") {
-    return item.message;
-  }
-
-  if (item.requestError instanceof Error) {
-    return item.requestError.message;
-  }
-
-  return "An error occurred";
-}
-
 export type FrameUIProps = {
-  frameState: FrameState<any, any>;
+  frameState: FrameState;
   theme?: FrameTheme;
   FrameImage?: React.FC<ImgHTMLAttributes<HTMLImageElement> & { src: string }>;
   allowPartialFrame?: boolean;
@@ -126,8 +112,9 @@ export function FrameUI({
   enableImageDebugging,
 }: FrameUIProps): React.JSX.Element | null {
   const [isImageLoading, setIsImageLoading] = useState(true);
-  const currentFrame = frameState.currentFrameStackItem;
-  const isLoading = currentFrame?.status === "pending" || isImageLoading;
+  const { currentFrameStackItem, specifications } = frameState;
+  const isLoading =
+    currentFrameStackItem?.status === "pending" || isImageLoading;
   const resolvedTheme = getThemeWithDefaults(theme ?? {});
 
   if (!frameState.homeframeUrl) {
@@ -136,40 +123,50 @@ export function FrameUI({
     );
   }
 
-  if (!currentFrame) {
+  if (!currentFrameStackItem) {
     return null;
   }
 
-  if (
-    currentFrame.status === "done" &&
-    currentFrame.frameResult.status === "failure" &&
-    !(
-      allowPartialFrame &&
-      // Need at least image and buttons to render a partial frame
-      currentFrame.frameResult.frame.image &&
-      currentFrame.frameResult.frame.buttons
-    )
-  ) {
-    return <MessageTooltip inline message="Invalid frame" variant="error" />;
+  // check if frame is partial and if partials are allowed
+  if (currentFrameStackItem.status === "done") {
+    const currentFrameParseResult =
+      getFrameParseResultFromStackItemBySpecifications(
+        currentFrameStackItem,
+        specifications
+      );
+
+    // not a proper partial frame or partial frames are disabled
+    if (
+      currentFrameParseResult.status === "failure" &&
+      (!allowPartialFrame ||
+        !isPartialFrameParseResult(currentFrameParseResult))
+    ) {
+      return <MessageTooltip inline message="Invalid frame" variant="error" />;
+    }
   }
 
   let frame: Frame | Partial<Frame> | undefined;
   let debugImage: string | undefined;
 
-  if (currentFrame.status === "done") {
-    frame = currentFrame.frameResult.frame;
+  if (currentFrameStackItem.status === "done") {
+    const parseResult = getFrameParseResultFromStackItemBySpecifications(
+      currentFrameStackItem,
+      specifications
+    );
+
+    frame = parseResult.frame;
     debugImage = enableImageDebugging
-      ? currentFrame.frameResult.framesDebugInfo?.image
+      ? parseResult.framesDebugInfo?.image
       : undefined;
   } else if (
-    currentFrame.status === "message" ||
-    currentFrame.status === "doneRedirect"
+    currentFrameStackItem.status === "message" ||
+    currentFrameStackItem.status === "doneRedirect"
   ) {
-    frame = currentFrame.request.sourceFrame;
-  } else if (currentFrame.status === "requestError") {
+    frame = currentFrameStackItem.request.sourceFrame;
+  } else if (currentFrameStackItem.status === "requestError") {
     frame =
-      "sourceFrame" in currentFrame.request
-        ? currentFrame.request.sourceFrame
+      "sourceFrame" in currentFrameStackItem.request
+        ? currentFrameStackItem.request.sourceFrame
         : undefined;
   }
 
@@ -182,11 +179,13 @@ export function FrameUI({
       <div className="relative w-full" style={{ height: "100%" }}>
         {" "}
         {/* Ensure the container fills the height */}
-        {currentFrame.status === "message" ? (
+        {currentFrameStackItem.status === "message" ? (
           <MessageTooltip
             inline={!frame || !("image" in frame) || !frame.image}
-            message={getErrorMessageFromFramesStackItem(currentFrame)}
-            variant={currentFrame.type === "error" ? "error" : "message"}
+            message={getErrorMessageFromFramesStackItem(currentFrameStackItem)}
+            variant={
+              currentFrameStackItem.type === "error" ? "error" : "message"
+            }
           />
         ) : null}
         {!!frame && !!frame.image && (

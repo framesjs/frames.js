@@ -2,6 +2,10 @@ import type { ImgHTMLAttributes } from "react";
 import React, { useState } from "react";
 import type { Frame } from "frames.js";
 import type { FrameTheme, FrameState } from "./types";
+import {
+  getFrameParseResultFromStackItemBySpecifications,
+  isPartialFrameParseResult,
+} from "./helpers";
 
 const defaultTheme: Required<FrameTheme> = {
   buttonBg: "#fff",
@@ -20,7 +24,7 @@ const getThemeWithDefaults = (theme: FrameTheme): FrameTheme => {
 };
 
 export type CollapsedFrameUIProps = {
-  frameState: FrameState<any, any>;
+  frameState: FrameState;
   theme?: FrameTheme;
   FrameImage?: React.FC<ImgHTMLAttributes<HTMLImageElement> & { src: string }>;
   allowPartialFrame?: boolean;
@@ -34,44 +38,51 @@ export function CollapsedFrameUI({
   allowPartialFrame,
 }: CollapsedFrameUIProps): React.JSX.Element | null {
   const [isImageLoading, setIsImageLoading] = useState(true);
-  const currentFrame = frameState.currentFrameStackItem;
-  const isLoading = currentFrame?.status === "pending" || isImageLoading;
+  const { currentFrameStackItem, specifications } = frameState;
+  const isLoading =
+    currentFrameStackItem?.status === "pending" || isImageLoading;
   const resolvedTheme = getThemeWithDefaults(theme ?? {});
 
   if (!frameState.homeframeUrl) {
     return null;
   }
 
-  if (!currentFrame) {
+  if (!currentFrameStackItem) {
     return null;
   }
 
-  if (
-    currentFrame.status === "done" &&
-    currentFrame.frameResult.status === "failure" &&
-    !(
-      allowPartialFrame &&
-      // Need at least image and buttons to render a partial frame
-      currentFrame.frameResult.frame.image &&
-      currentFrame.frameResult.frame.buttons
-    )
-  ) {
-    return null;
+  if (currentFrameStackItem.status === "done") {
+    const currentParseResult = getFrameParseResultFromStackItemBySpecifications(
+      currentFrameStackItem,
+      specifications
+    );
+
+    if (
+      currentParseResult.status === "failure" &&
+      (!allowPartialFrame || !isPartialFrameParseResult(currentParseResult))
+    ) {
+      return null;
+    }
   }
 
   let frame: Frame | Partial<Frame> | undefined;
 
-  if (currentFrame.status === "done") {
-    frame = currentFrame.frameResult.frame;
+  if (currentFrameStackItem.status === "done") {
+    const currentParseResult = getFrameParseResultFromStackItemBySpecifications(
+      currentFrameStackItem,
+      specifications
+    );
+
+    frame = currentParseResult.frame;
   } else if (
-    currentFrame.status === "message" ||
-    currentFrame.status === "doneRedirect"
+    currentFrameStackItem.status === "message" ||
+    currentFrameStackItem.status === "doneRedirect"
   ) {
-    frame = currentFrame.request.sourceFrame;
-  } else if (currentFrame.status === "requestError") {
+    frame = currentFrameStackItem.request.sourceFrame;
+  } else if (currentFrameStackItem.status === "requestError") {
     frame =
-      "sourceFrame" in currentFrame.request
-        ? currentFrame.request.sourceFrame
+      "sourceFrame" in currentFrameStackItem.request
+        ? currentFrameStackItem.request.sourceFrame
         : undefined;
   }
 
@@ -118,7 +129,7 @@ export function CollapsedFrameUI({
       <div className="flex flex-col flex-1 justify-center min-w-[0]">
         <span className="font-semibold block truncate">{frame?.title}</span>
         <span className="text-gray-500 text-xs block truncate">
-          {new URL(currentFrame.url).hostname}
+          {new URL(currentFrameStackItem.url).hostname}
         </span>
       </div>
       {!!frame && !!frame.buttons ? (

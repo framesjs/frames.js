@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/require-await -- we expect async functions */
 /* eslint-disable no-console -- provide feedback */
 /* eslint-disable no-alert -- provide feedback */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type {
   Frame,
-  FrameButton,
   FrameButtonLink,
   FrameButtonPost,
   FrameButtonTx,
+  SupportedParsingSpecification,
   TransactionTargetResponse,
 } from "frames.js";
 import type {
@@ -20,10 +20,16 @@ import type {
   OnSignatureArgs,
   CastActionButtonPressFunction,
   ComposerActionButtonPressFunction,
+  ResolveFrameActionContextResult,
+  ButtonPressFunction,
+  AllowedStorageTypes,
+  SignerStateInstance,
 } from "./types";
-import { unsignedFrameAction, type FarcasterFrameContext } from "./farcaster";
+import { unsignedFrameAction } from "./farcaster";
 import { useFrameStack } from "./use-frame-stack";
 import { useFetchFrame } from "./use-fetch-frame";
+import { useFreshRef } from "./hooks/use-fresh-ref";
+import type { FarcasterFrameContext } from "./farcaster/types";
 
 function onMintFallback({ target }: OnMintArgs): void {
   console.log("Please provide your own onMint function to useFrame() hook.");
@@ -144,14 +150,26 @@ function validateLinkButtonTarget(target: string): boolean {
   return true;
 }
 
+function sanitizeSpecification(
+  specification: SupportedParsingSpecification | SupportedParsingSpecification[]
+): SupportedParsingSpecification[] {
+  const value = Array.isArray(specification) ? specification : [specification];
+
+  if (value.length === 0) {
+    return ["farcaster"];
+  }
+
+  return value;
+}
+
 export function useFrame<
-  TSignerStorageType = Record<string, unknown>,
+  TSignerStorageType extends AllowedStorageTypes = Record<string, unknown>,
   TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
   TFrameContextType extends FrameContext = FarcasterFrameContext,
 >({
   homeframeUrl,
   frameContext,
-  dangerousSkipSigning,
+  dangerousSkipSigning = false,
   onMint = onMintFallback,
   onTransaction = onTransactionFallback,
   transactionDataSuffix,
@@ -166,6 +184,7 @@ export function useFrame<
   frameGetProxy,
   extraButtonRequestPayload,
   specification = "farcaster",
+  resolveActionContext,
   onError,
   onLinkButtonClick = handleLinkButtonClickFallback,
   onRedirect = handleRedirectFallback,
@@ -184,35 +203,50 @@ export function useFrame<
   TSignerStorageType,
   TFrameActionBodyType,
   TFrameContextType
->): FrameState<TSignerStorageType, TFrameContextType> {
+>): FrameState {
   const [inputText, setInputText] = useState("");
-  const [framesStack, dispatch, stackAPI] = useFrameStack({
+  const inputTextRef = useFreshRef(inputText);
+  const [framesStack, stackAPI] = useFrameStack({
     initialFrame: frame,
     initialFrameUrl: homeframeUrl,
   });
+  const [specifications, setSpecifications] = useState(() =>
+    sanitizeSpecification(specification)
+  );
+  const specificationsRef = useFreshRef(specifications);
+  const resolveActionContextRef = useFreshRef(resolveActionContext);
+  const onErrorRef = useFreshRef(onError);
+  const signerStateRef = useFreshRef(signerState);
+  const frameContextRef = useFreshRef(frameContext);
+  const dangerousSkipSigningRef = useFreshRef(dangerousSkipSigning);
+  const onConnectWalletRef = useFreshRef(onConnectWallet);
+  const onMintRef = useFreshRef(onMint);
+  const onLinkButtonClickRef = useFreshRef(onLinkButtonClick);
+  const connectedAddressRef = useFreshRef(connectedAddress);
 
-  const fetchFrame = useFetchFrame<
-    TSignerStorageType,
-    TFrameActionBodyType,
-    TFrameContextType
-  >({
+  const {
+    clear: clearFrameStack,
+    dispatch,
+    reset: resetToInitialFrame,
+  } = stackAPI;
+
+  const frameStackRef = useFreshRef(framesStack);
+  const fetchFrame = useFetchFrame({
     stackAPI,
     frameActionProxy,
     frameGetProxy,
     onTransaction,
     transactionDataSuffix,
     onSignature,
-    signFrameAction({ actionContext, forceRealSigner }) {
-      return dangerousSkipSigning && !forceRealSigner
-        ? unsignedFrameAction<
-            TSignerStorageType,
-            TFrameActionBodyType,
-            TFrameContextType
-          >(actionContext)
-        : signerState.signFrameAction(actionContext);
+    async signFrameAction({ actionContext, forceRealSigner }) {
+      if (dangerousSkipSigning && !forceRealSigner) {
+        return unsignedFrameAction(actionContext);
+      }
+
+      const resolvedActionContext = await resolveInternalActionContext();
+
+      return resolvedActionContext.signerState.signFrameAction(actionContext);
     },
-    specification,
-    stackDispatch: dispatch,
     extraButtonRequestPayload,
     onError,
     fetchFn,
@@ -228,35 +262,32 @@ export function useFrame<
     onTransactionStart,
     onTransactionSuccess,
   });
+  const fetchFrameRef = useFreshRef(fetchFrame);
 
-  const fetchFrameRef = useRef(fetchFrame);
-  fetchFrameRef.current = fetchFrame;
-  const onErrorRef = useRef(onError);
-  onErrorRef.current = onError;
+  const resolveInternalActionContext =
+    useCallback(async (): Promise<ResolveFrameActionContextResult> => {
+      if (!resolveActionContextRef.current) {
+        return {
+          frameContext: frameContextRef.current,
+          // it is a signer state just generic params don't match, but the expected type is more
+          // forgiving so we can just use defaults
+          signerState: signerStateRef.current as unknown as SignerStateInstance,
+        };
+      }
 
-  useEffect(() => {
-    if (!frame && homeframeUrl) {
-      fetchFrameRef
-        .current(
-          {
-            url: homeframeUrl,
-            method: "GET",
-          },
-          // tell the fetchFrame function to clear the stack because this is called only on initial render
-          // and there could potentially be a pending object returned from SSR
-          true
-        )
-        .catch((e) => {
-          console.error(e);
-        });
-    } else if (frame) {
-      dispatch({
-        action: "RESET_INITIAL_FRAME",
-        resultOrFrame: frame,
-        homeframeUrl,
+      return resolveActionContextRef.current({
+        dangerouslySkipSigning: dangerousSkipSigningRef.current,
+        frameStack: frameStackRef.current,
+        specifications: specificationsRef.current,
       });
-    }
-  }, [frame, homeframeUrl, dispatch]);
+    }, [
+      dangerousSkipSigningRef,
+      frameContextRef,
+      frameStackRef,
+      resolveActionContextRef,
+      signerStateRef,
+      specificationsRef,
+    ]);
 
   const onPostButton = useCallback(
     async function onPostButton({
@@ -276,13 +307,7 @@ export function useFrame<
       target: string;
       fetchFrameOverride?: typeof fetchFrame;
     }): Promise<void> {
-      if (!dangerousSkipSigning && !signerState.hasSigner) {
-        const error = new Error("Missing signer");
-        onErrorRef.current?.(error);
-
-        console.error(`@frames.js/render: ${error.message}`);
-        return;
-      }
+      // normally this shouldn't happen because not having homeframeUrl will prevent ui from being rendered
       if (!homeframeUrl) {
         const error = new Error("Missing homeframeUrl");
         onErrorRef.current?.(error);
@@ -290,16 +315,29 @@ export function useFrame<
         return;
       }
 
-      const _fetchFrame = fetchFrameOverride ?? fetchFrame;
+      const resolvedActionContext = await resolveInternalActionContext();
+
+      if (
+        !dangerousSkipSigningRef.current &&
+        !resolvedActionContext.signerState.hasSigner
+      ) {
+        const error = new Error("Missing signer");
+        onErrorRef.current?.(error);
+
+        console.error(`@frames.js/render: ${error.message}`);
+        return;
+      }
+
+      const _fetchFrame = fetchFrameOverride ?? fetchFrameRef.current;
 
       await _fetchFrame({
         frameButton,
-        isDangerousSkipSigning: dangerousSkipSigning ?? false,
+        isDangerousSkipSigning: dangerousSkipSigningRef.current,
         method: "POST",
         signerStateActionContext: {
           inputText: postInputText,
-          signer: signerState.signer ?? null,
-          frameContext,
+          signer: resolvedActionContext.signerState.signer ?? null,
+          frameContext: resolvedActionContext.frameContext,
           url: homeframeUrl,
           target,
           frameButton,
@@ -310,17 +348,13 @@ export function useFrame<
       });
     },
     [
-      dangerousSkipSigning,
-      fetchFrame,
-      frameContext,
+      dangerousSkipSigningRef,
+      fetchFrameRef,
       homeframeUrl,
-      signerState.hasSigner,
-      signerState.signer,
+      onErrorRef,
+      resolveInternalActionContext,
     ]
   );
-
-  const onConnectWalletRef = useRef(onConnectWallet);
-  onConnectWalletRef.current = onConnectWallet;
 
   const onTransactionButton = useCallback(
     async function onTransactionButton({
@@ -334,14 +368,7 @@ export function useFrame<
       buttonIndex: number;
       postInputText: string | undefined;
     }): Promise<TransactionTargetResponse | undefined> {
-      // Send post request to get calldata
-      if (!dangerousSkipSigning && !signerState.hasSigner) {
-        const error = new Error("Missing signer");
-        onErrorRef.current?.(error);
-
-        console.error(`@frames.js/render: ${error.message}`);
-        return;
-      }
+      // normally this shouldn't happen because not having homeframeUrl will prevent ui from being rendered
       if (!homeframeUrl) {
         const error = new Error("Missing homeframeUrl");
         onErrorRef.current?.(error);
@@ -349,7 +376,22 @@ export function useFrame<
         return;
       }
 
-      if (!connectedAddress) {
+      const resolvedActionContext = await resolveInternalActionContext();
+      const currentConnectedAddress = connectedAddressRef.current;
+
+      // Send post request to get calldata
+      if (
+        !dangerousSkipSigningRef.current &&
+        !resolvedActionContext.signerState.hasSigner
+      ) {
+        const error = new Error("Missing signer");
+        onErrorRef.current?.(error);
+
+        console.error(`@frames.js/render: ${error.message}`);
+        return;
+      }
+
+      if (!currentConnectedAddress) {
         try {
           onConnectWalletRef.current();
         } catch (e) {
@@ -360,16 +402,16 @@ export function useFrame<
         return;
       }
 
-      await fetchFrame({
+      await fetchFrameRef.current({
         frameButton,
-        isDangerousSkipSigning: dangerousSkipSigning ?? false,
+        isDangerousSkipSigning: dangerousSkipSigningRef.current,
         method: "POST",
         signerStateActionContext: {
           type: "tx-data",
           inputText: postInputText,
-          signer: signerState.signer ?? null,
-          frameContext,
-          address: connectedAddress,
+          signer: resolvedActionContext.signerState.signer ?? null,
+          frameContext: resolvedActionContext.frameContext,
+          address: currentConnectedAddress,
           url: homeframeUrl,
           target: frameButton.target,
           frameButton,
@@ -380,38 +422,23 @@ export function useFrame<
       });
     },
     [
-      fetchFrame,
-      dangerousSkipSigning,
-      frameContext,
-      connectedAddress,
       homeframeUrl,
-      signerState,
+      resolveInternalActionContext,
+      connectedAddressRef,
+      dangerousSkipSigningRef,
+      fetchFrameRef,
+      onErrorRef,
+      onConnectWalletRef,
     ]
   );
 
-  const onButtonPress = useCallback(
+  const onButtonPress: ButtonPressFunction = useCallback(
     async function onButtonPress(
-      currentFrame: Frame,
-      frameButton: FrameButton,
-      index: number,
-      fetchFrameOverride: typeof fetchFrame = fetchFrame
+      currentFrame,
+      frameButton,
+      index,
+      fetchFrameOverride
     ): Promise<void> {
-      // Button actions that are handled without server interaction don't require signer
-      const clientSideActions = ["mint", "link"];
-      const buttonRequiresAuth = !clientSideActions.includes(
-        frameButton.action
-      );
-
-      if (
-        !signerState.hasSigner &&
-        !dangerousSkipSigning &&
-        buttonRequiresAuth
-      ) {
-        await signerState.onSignerlessFramePress();
-        // don't continue, let the app handle
-        return;
-      }
-
       switch (frameButton.action) {
         case "link": {
           try {
@@ -423,11 +450,11 @@ export function useFrame<
             return;
           }
 
-          onLinkButtonClick(frameButton);
+          onLinkButtonClickRef.current(frameButton);
           break;
         }
         case "mint": {
-          onMint({
+          onMintRef.current({
             frameButton,
             target: frameButton.target,
             frame: currentFrame,
@@ -439,7 +466,9 @@ export function useFrame<
             frameButton,
             buttonIndex: index + 1,
             postInputText:
-              currentFrame.inputText !== undefined ? inputText : undefined,
+              currentFrame.inputText !== undefined
+                ? inputTextRef.current
+                : undefined,
             currentFrame,
           });
           break;
@@ -479,7 +508,9 @@ export function useFrame<
               target,
               buttonIndex: index + 1,
               postInputText:
-                currentFrame.inputText !== undefined ? inputText : undefined,
+                currentFrame.inputText !== undefined
+                  ? inputTextRef.current
+                  : undefined,
               state: currentFrame.state,
               fetchFrameOverride,
             });
@@ -498,38 +529,37 @@ export function useFrame<
       }
     },
     [
-      dangerousSkipSigning,
-      fetchFrame,
       homeframeUrl,
-      inputText,
-      onLinkButtonClick,
-      onMint,
+      inputTextRef,
+      onErrorRef,
+      onLinkButtonClickRef,
+      onMintRef,
       onPostButton,
       onTransactionButton,
-      signerState,
     ]
   );
 
-  const clearFrameStack = useCallback(() => {
-    dispatch({ action: "CLEAR" });
-  }, [dispatch]);
-
   const onCastActionButtonPress: CastActionButtonPressFunction = useCallback(
     async function onActionButtonPress(arg) {
-      if (!signerState.hasSigner && !dangerousSkipSigning) {
-        await signerState.onSignerlessFramePress();
+      const resolvedActionContext = await resolveInternalActionContext();
+
+      if (
+        !resolvedActionContext.signerState.hasSigner &&
+        !dangerousSkipSigningRef.current
+      ) {
+        await resolvedActionContext.signerState.onSignerlessFramePress();
         // don't continue, let the app handle
         return;
       }
 
-      return fetchFrame(
+      return fetchFrameRef.current(
         {
           method: "CAST_ACTION",
           action: arg.castAction,
-          isDangerousSkipSigning: dangerousSkipSigning ?? false,
+          isDangerousSkipSigning: dangerousSkipSigningRef.current,
           signerStateActionContext: {
-            signer: signerState.signer ?? null,
-            frameContext,
+            signer: resolvedActionContext.signerState.signer ?? null,
+            frameContext: resolvedActionContext.frameContext,
             url: arg.castAction.url,
             target: arg.castAction.url,
             buttonIndex: 1,
@@ -538,27 +568,32 @@ export function useFrame<
         arg.clearStack
       );
     },
-    [dangerousSkipSigning, fetchFrame, frameContext, signerState]
+    [dangerousSkipSigningRef, fetchFrameRef, resolveInternalActionContext]
   );
 
   const onComposerActionButtonPress: ComposerActionButtonPressFunction =
     useCallback(
       async function onActionButtonPress(arg) {
-        if (!signerState.hasSigner && !dangerousSkipSigning) {
-          await signerState.onSignerlessFramePress();
+        const resolvedActionContext = await resolveInternalActionContext();
+
+        if (
+          !resolvedActionContext.signerState.hasSigner &&
+          !dangerousSkipSigningRef.current
+        ) {
+          await resolvedActionContext.signerState.onSignerlessFramePress();
           // don't continue, let the app handle
           return;
         }
 
-        return fetchFrame(
+        return fetchFrameRef.current(
           {
             method: "COMPOSER_ACTION",
             action: arg.castAction,
-            isDangerousSkipSigning: dangerousSkipSigning ?? false,
+            isDangerousSkipSigning: dangerousSkipSigningRef.current,
             composerActionState: arg.composerActionState,
             signerStateActionContext: {
-              signer: signerState.signer ?? null,
-              frameContext,
+              signer: resolvedActionContext.signerState.signer ?? null,
+              frameContext: resolvedActionContext.frameContext,
               url: arg.castAction.url,
               target: arg.castAction.url,
               buttonIndex: 1,
@@ -567,8 +602,55 @@ export function useFrame<
           arg.clearStack
         );
       },
-      [dangerousSkipSigning, fetchFrame, frameContext, signerState]
+      [dangerousSkipSigningRef, fetchFrameRef, resolveInternalActionContext]
     );
+
+  // update specifications only if they changed
+  // this makes sure that even if the user is passing always a new array it will not trigger a re-render
+  useEffect(() => {
+    const newSpecifications = sanitizeSpecification(specification);
+
+    if (JSON.stringify(newSpecifications) !== JSON.stringify(specifications)) {
+      setSpecifications(newSpecifications);
+    }
+  }, [specification, specifications]);
+
+  useEffect(() => {
+    // if there is no homeframeUrl then we treat the useFrame as "disabled"
+    // meaning it will not fetch anything nor show anything
+    if (!homeframeUrl) {
+      // thre is no frame url or user removed the url
+      clearFrameStack();
+      return;
+    }
+
+    if (!frame) {
+      fetchFrameRef
+        .current(
+          {
+            url: homeframeUrl,
+            method: "GET",
+          },
+          // tell the fetchFrame function to clear the stack because this is called only on initial render
+          // and there could potentially be a pending object returned from SSR
+          true
+        )
+        .catch((e) => {
+          console.error(e);
+        });
+    } else {
+      resetToInitialFrame({
+        frame,
+        homeframeUrl,
+      });
+    }
+  }, [
+    frame,
+    homeframeUrl,
+    resetToInitialFrame,
+    clearFrameStack,
+    fetchFrameRef,
+  ]);
 
   return useMemo(() => {
     return {
@@ -583,6 +665,7 @@ export function useFrame<
       currentFrameStackItem: framesStack[0],
       onCastActionButtonPress,
       onComposerActionButtonPress,
+      specifications,
     };
   }, [
     inputText,
@@ -594,5 +677,6 @@ export function useFrame<
     framesStack,
     onCastActionButtonPress,
     onComposerActionButtonPress,
+    specifications,
   ]);
 }

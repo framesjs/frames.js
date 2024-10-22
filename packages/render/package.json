@@ -76,6 +76,16 @@
         "default": "./dist/farcaster/index.cjs"
       }
     },
+    "./helpers": {
+      "import": {
+        "types": "./dist/helpers.d.ts",
+        "default": "./dist/helpers.js"
+      },
+      "require": {
+        "types": "./dist/helpers.d.cts",
+        "default": "./dist/helpers.cjs"
+      }
+    },
     "./ui": {
       "react-native": {
         "types": "./dist/ui/index.native.d.cts",

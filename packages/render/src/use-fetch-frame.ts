@@ -1,9 +1,5 @@
 /* eslint-disable no-console -- provide feedback to console */
-import type {
-  FrameButtonPost,
-  SupportedParsingSpecification,
-  TransactionTargetResponse,
-} from "frames.js";
+import type { FrameButtonPost, TransactionTargetResponse } from "frames.js";
 import type { types } from "frames.js/core";
 import type {
   CastActionFrameResponse,
@@ -12,25 +8,20 @@ import type {
   ErrorMessageResponse,
 } from "frames.js/types";
 import { hexToBytes } from "viem";
-import type { FarcasterFrameContext } from "./farcaster";
 import type {
   CastActionRequest,
   ComposerActionRequest,
   FetchFrameFunction,
-  FrameActionBodyPayload,
-  FrameContext,
   FrameGETRequest,
   FramePOSTRequest,
   FrameStackPending,
   FrameStackPostPending,
-  GetFrameResult,
   SignedFrameAction,
   SignerStateActionContext,
   SignerStateDefaultActionContext,
   UseFetchFrameOptions,
   UseFetchFrameSignFrameActionFunction,
 } from "./types";
-import { isParseResult } from "./use-frame-stack";
 import {
   SignatureHandlerDidNotReturnTransactionIdError,
   TransactionDataErrorResponseError,
@@ -39,7 +30,11 @@ import {
   CastActionUnexpectedResponseError,
   ComposerActionUnexpectedResponseError,
 } from "./errors";
-import { tryCall, tryCallAsync } from "./helpers";
+import {
+  isParseFramesWithReportsResult,
+  tryCall,
+  tryCallAsync,
+} from "./helpers";
 
 function isErrorMessageResponse(
   response: unknown
@@ -89,14 +84,8 @@ function defaultErrorHandler(error: Error): void {
   console.error(error);
 }
 
-export function useFetchFrame<
-  TSignerStorageType = Record<string, unknown>,
-  TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
-  TFrameContextType extends FrameContext = FarcasterFrameContext,
->({
+export function useFetchFrame({
   stackAPI,
-  stackDispatch,
-  specification,
   frameActionProxy,
   frameGetProxy,
   extraButtonRequestPayload,
@@ -120,13 +109,7 @@ export function useFetchFrame<
   onTransactionProcessingError,
   onTransactionProcessingStart,
   onTransactionProcessingSuccess,
-}: UseFetchFrameOptions<
-  TSignerStorageType,
-  TFrameActionBodyType,
-  TFrameContextType
->): FetchFrameFunction<
-  SignerStateActionContext<TSignerStorageType, TFrameContextType>
-> {
+}: UseFetchFrameOptions): FetchFrameFunction {
   async function handleFailedResponse({
     response,
     endTime,
@@ -193,7 +176,7 @@ export function useFetchFrame<
     if (shouldClear) {
       // this clears initial frame since that is loading from SSR since we aren't able to finish it.
       // not an ideal solution
-      stackDispatch({ action: "CLEAR" });
+      stackAPI.clear();
     }
 
     const frameStackPendingItem = stackAPI.createGetPendingItem({ request });
@@ -201,7 +184,6 @@ export function useFetchFrame<
     const response = await fetchProxied({
       proxyUrl: frameGetProxy,
       fetchFn,
-      specification,
       url: request.url,
     });
 
@@ -218,12 +200,50 @@ export function useFetchFrame<
         return;
       }
 
-      const frameResult = (await response.clone().json()) as GetFrameResult;
+      const parseResult = await tryCallAsync(
+        () => response.clone().json() as Promise<unknown>
+      );
+
+      if (parseResult instanceof Error) {
+        stackAPI.markAsFailed({
+          pendingItem: frameStackPendingItem,
+          endTime,
+          requestError: parseResult,
+          response,
+          responseBody: "none",
+          responseStatus: 500,
+        });
+
+        tryCall(() => {
+          onError(parseResult);
+        });
+
+        return;
+      }
+
+      if (!isParseFramesWithReportsResult(parseResult)) {
+        const error = new Error("The server returned an unexpected response.");
+
+        stackAPI.markAsFailed({
+          pendingItem: frameStackPendingItem,
+          endTime,
+          requestError: error,
+          response,
+          responseBody: "none",
+          responseStatus: 500,
+        });
+
+        tryCall(() => {
+          onError(error);
+        });
+
+        return;
+      }
 
       stackAPI.markAsDone({
         pendingItem: frameStackPendingItem,
         endTime,
-        frameResult,
+        parseResult,
         response,
       });
 
@@ -244,9 +264,7 @@ export function useFetchFrame<
   }
 
   async function fetchPOSTRequest(
-    request: FramePOSTRequest<
-      SignerStateActionContext<TSignerStorageType, TFrameContextType>
-    >,
+    request: FramePOSTRequest,
     options?: {
       preflightRequest?: {
         pendingFrameStackItem: FrameStackPostPending;
@@ -260,7 +278,7 @@ export function useFetchFrame<
     let pendingItem: FrameStackPostPending;
 
     if (options?.shouldClear) {
-      stackDispatch({ action: "CLEAR" });
+      stackAPI.clear();
     }
 
     // get rid of address from request.signerStateActionContext.frameContext and pass that to sign frame action
@@ -302,7 +320,6 @@ export function useFetchFrame<
 
     const response = await fetchProxied({
       proxyUrl: frameActionProxy,
-      specification,
       fetchFn,
       frameAction: signedDataOrError,
       extraRequestPayload: extraButtonRequestPayload,
@@ -440,7 +457,7 @@ export function useFetchFrame<
         return;
       }
 
-      if (!isParseResult(responseData)) {
+      if (!isParseFramesWithReportsResult(responseData)) {
         const error = new Error("The server returned an unexpected response.");
 
         stackAPI.markAsFailed({
@@ -461,7 +478,7 @@ export function useFetchFrame<
 
       stackAPI.markAsDone({
         endTime,
-        frameResult: responseData,
+        parseResult: responseData,
         pendingItem,
         response,
       });
@@ -489,9 +506,7 @@ export function useFetchFrame<
   }
 
   async function fetchTransactionRequest(
-    request: FramePOSTRequest<
-      SignerStateActionContext<TSignerStorageType, TFrameContextType>
-    >,
+    request: FramePOSTRequest,
     shouldClear?: boolean
   ): Promise<void> {
     if ("source" in request) {
@@ -514,7 +529,7 @@ export function useFetchFrame<
     }
 
     if (shouldClear) {
-      stackDispatch({ action: "CLEAR" });
+      stackAPI.clear();
     }
 
     tryCall(() => onTransactionDataStart?.({ button }));
@@ -537,17 +552,11 @@ export function useFetchFrame<
       return;
     }
 
-    signedTransactionDataActionOrError.searchParams.set(
-      "specification",
-      specification
-    );
-
     const transactionDataStartTime = new Date();
     const transactionDataResponse = await fetchProxied({
       proxyUrl: frameActionProxy,
       frameAction: signedTransactionDataActionOrError,
       fetchFn,
-      specification,
       extraRequestPayload: extraButtonRequestPayload,
     });
     const transactionDataEndTime = new Date();
@@ -774,9 +783,7 @@ export function useFetchFrame<
   }
 
   async function fetchCastActionRequest(
-    request: CastActionRequest<
-      SignerStateActionContext<TSignerStorageType, TFrameContextType>
-    >,
+    request: CastActionRequest,
     shouldClear = false
   ): Promise<void> {
     const frameButton: FrameButtonPost = {
@@ -784,19 +791,12 @@ export function useFetchFrame<
       label: request.action.name,
       target: request.action.action.postUrl || request.action.url,
     };
-    const signerStateActionContext: SignerStateDefaultActionContext<
-      TSignerStorageType,
-      TFrameContextType
-    > = {
+    const signerStateActionContext: SignerStateDefaultActionContext = {
       ...request.signerStateActionContext,
       type: "default",
       frameButton,
     };
-    const signedDataOrError = await signAndGetFrameActionBodyPayload<
-      TSignerStorageType,
-      TFrameActionBodyType,
-      TFrameContextType
-    >({
+    const signedDataOrError = await signAndGetFrameActionBodyPayload({
       signerStateActionContext,
       signFrameAction,
     });
@@ -828,7 +828,6 @@ export function useFetchFrame<
     const actionResponseOrError = await fetchProxied({
       fetchFn,
       proxyUrl: frameActionProxy,
-      specification,
       frameAction: signedDataOrError,
       extraRequestPayload: extraButtonRequestPayload,
     });
@@ -916,9 +915,7 @@ export function useFetchFrame<
   }
 
   async function fetchComposerActionRequest(
-    request: ComposerActionRequest<
-      SignerStateActionContext<TSignerStorageType, TFrameContextType>
-    >,
+    request: ComposerActionRequest,
     shouldClear = false
   ): Promise<void> {
     const frameButton: FrameButtonPost = {
@@ -926,10 +923,7 @@ export function useFetchFrame<
       label: request.action.name,
       target: request.action.url,
     };
-    const signerStateActionContext: SignerStateDefaultActionContext<
-      TSignerStorageType,
-      TFrameContextType
-    > = {
+    const signerStateActionContext: SignerStateDefaultActionContext = {
       ...request.signerStateActionContext,
       type: "default",
       frameButton,
@@ -939,11 +933,7 @@ export function useFetchFrame<
         } satisfies ComposerActionStateFromMessage)
       ),
     };
-    const signedDataOrError = await signAndGetFrameActionBodyPayload<
-      TSignerStorageType,
-      TFrameActionBodyType,
-      TFrameContextType
-    >({
+    const signedDataOrError = await signAndGetFrameActionBodyPayload({
       signerStateActionContext,
       signFrameAction,
     });
@@ -975,7 +965,6 @@ export function useFetchFrame<
     const actionResponseOrError = await fetchProxied({
       fetchFn,
       proxyUrl: frameActionProxy,
-      specification,
       frameAction: signedDataOrError,
       extraRequestPayload: extraButtonRequestPayload,
     });
@@ -1079,7 +1068,6 @@ function proxyUrlAndSearchParamsToUrl(
 
 type FetchProxiedArg = {
   proxyUrl: string;
-  specification: SupportedParsingSpecification;
   fetchFn: typeof fetch;
 } & (
   | {
@@ -1092,9 +1080,7 @@ type FetchProxiedArg = {
 async function fetchProxied(
   params: FetchProxiedArg
 ): Promise<Response | Error> {
-  const searchParams = new URLSearchParams({
-    specification: params.specification,
-  });
+  const searchParams = new URLSearchParams();
 
   if ("frameAction" in params) {
     const proxyUrl = proxyUrlAndSearchParamsToUrl(
@@ -1132,45 +1118,27 @@ function getResponseBody(response: Response): Promise<unknown> {
   return response.clone().text();
 }
 
-type SignAndGetFrameActionPayloadOptions<
-  TSignerStorageType,
-  TFrameActionBodyType extends FrameActionBodyPayload,
-  TFrameContextType extends FrameContext,
-> = {
-  signerStateActionContext: SignerStateActionContext<
-    TSignerStorageType,
-    TFrameContextType
-  >;
-  signFrameAction: UseFetchFrameSignFrameActionFunction<
-    SignerStateActionContext<TSignerStorageType, TFrameContextType>,
-    TFrameActionBodyType
-  >;
+type SignAndGetFrameActionPayloadOptions = {
+  signerStateActionContext: SignerStateActionContext;
+  signFrameAction: UseFetchFrameSignFrameActionFunction;
 };
 
 /**
  * This shouldn't be used for transaction data request
  */
-async function signAndGetFrameActionBodyPayload<
-  TSignerStorageType,
-  TFrameActionBodyType extends FrameActionBodyPayload,
-  TFrameContextType extends FrameContext,
->({
+async function signAndGetFrameActionBodyPayload({
   signerStateActionContext,
   signFrameAction,
-}: SignAndGetFrameActionPayloadOptions<
-  TSignerStorageType,
-  TFrameActionBodyType,
-  TFrameContextType
->): Promise<Error | SignedFrameAction> {
+}: SignAndGetFrameActionPayloadOptions): Promise<Error | SignedFrameAction> {
   // Transacting address is not included in post action
   const { address: _, ...requiredFrameContext } =
-    signerStateActionContext.frameContext as unknown as FarcasterFrameContext;
+    signerStateActionContext.frameContext;
 
   return tryCallAsync(() =>
     signFrameAction({
       actionContext: {
         ...signerStateActionContext,
-        frameContext: requiredFrameContext as unknown as TFrameContextType,
+        frameContext: requiredFrameContext,
       },
     })
   );

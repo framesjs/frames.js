@@ -1,6 +1,9 @@
 import { useMemo, useReducer } from "react";
 import type { Frame } from "frames.js";
-import type { ParseResult } from "frames.js/frame-parsers";
+import type {
+  ParseFramesWithReportsResult,
+  ParseResult,
+} from "frames.js/frame-parsers";
 import type {
   CastActionMessageResponse,
   ErrorMessageResponse,
@@ -12,17 +15,15 @@ import type {
   FramesStack,
   FrameStackGetPending,
   FrameStackPostPending,
-  GetFrameResult,
   SignedFrameAction,
-  SignerStateActionContext,
 } from "./types";
+import {
+  createParseFramesWithReportsObject,
+  isParseFramesWithReportsResult,
+} from "./helpers";
 
 function computeDurationInSeconds(start: Date, end: Date): number {
   return Number(((end.getTime() - start.getTime()) / 1000).toFixed(2));
-}
-
-export function isParseResult(result: unknown): result is ParseResult {
-  return typeof result === "object" && result !== null && "status" in result;
 }
 
 function framesStackReducer(
@@ -64,49 +65,26 @@ function framesStackReducer(
       return state.slice();
     }
     case "RESET_INITIAL_FRAME": {
-      const originalInitialFrame = state[0];
-      const frame = isParseResult(action.resultOrFrame)
-        ? action.resultOrFrame.frame
-        : action.resultOrFrame;
-      // initial frame is always set with done state
-      const shouldReset =
-        !originalInitialFrame ||
-        (originalInitialFrame.status === "done" &&
-          originalInitialFrame.frameResult.frame !== frame);
-
-      if (shouldReset) {
-        const frameResult = isParseResult(action.resultOrFrame)
-          ? action.resultOrFrame
-          : {
-              status: "success" as const,
-              reports: {},
-              frame: action.resultOrFrame,
-            };
-
-        return [
-          {
-            request: {
-              method: "GET",
-              url: action.homeframeUrl ?? "",
-            },
-            url: action.homeframeUrl ?? "",
-            requestDetails: {},
-            response: new Response(JSON.stringify(frameResult), {
-              status: 200,
-              headers: { "Content-Type": "application/json" },
-            }),
-            responseStatus: 200,
-            timestamp: new Date(),
-            speed: 0,
-            frameResult,
-            status: "done",
-            // @todo should this be result or frame?
-            responseBody: frameResult,
+      return [
+        {
+          request: {
+            method: "GET",
+            url: action.homeframeUrl,
           },
-        ];
-      }
-
-      return state;
+          url: action.homeframeUrl,
+          requestDetails: {},
+          response: new Response(JSON.stringify(action.parseResult), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          }),
+          responseStatus: 200,
+          timestamp: new Date(),
+          speed: 0,
+          parseResult: action.parseResult,
+          status: "done",
+          responseBody: action.parseResult,
+        },
+      ];
     }
     case "CLEAR":
       return [];
@@ -116,20 +94,23 @@ function framesStackReducer(
 }
 
 type UseFrameStackOptions = {
-  initialFrame?: Frame | ParseResult;
+  /**
+   * Initial frame to be used, if the value isn't of ParseFramesWithReportsResult type then it will be converted to it
+   * using initialSpecification.
+   */
+  initialFrame?: Frame | ParseResult | ParseFramesWithReportsResult;
   initialFrameUrl?: string | null;
 };
 
 export type FrameStackAPI = {
+  dispatch: React.Dispatch<FrameReducerActions>;
   clear: () => void;
   createGetPendingItem: (arg: {
     request: FrameGETRequest;
   }) => FrameStackGetPending;
-  createPostPendingItem: <
-    TSignerStateActionContext extends SignerStateActionContext<any, any>,
-  >(arg: {
+  createPostPendingItem: (arg: {
     action: SignedFrameAction;
-    request: FramePOSTRequest<TSignerStateActionContext>;
+    request: FramePOSTRequest;
     /**
      * Optional, allows to override the start time
      *
@@ -140,11 +121,9 @@ export type FrameStackAPI = {
   /**
    * Creates a pending item without dispatching it
    */
-  createCastOrComposerActionPendingItem: <
-    TSignerStateActionContext extends SignerStateActionContext<any, any>,
-  >(arg: {
+  createCastOrComposerActionPendingItem: (arg: {
     action: SignedFrameAction;
-    request: FramePOSTRequest<TSignerStateActionContext>;
+    request: FramePOSTRequest;
   }) => FrameStackPostPending;
   markCastMessageAsDone: (arg: {
     pendingItem: FrameStackPostPending;
@@ -164,7 +143,7 @@ export type FrameStackAPI = {
     pendingItem: FrameStackGetPending | FrameStackPostPending;
     endTime: Date;
     response: Response;
-    frameResult: GetFrameResult;
+    parseResult: ParseFramesWithReportsResult;
   }) => void;
   markAsDoneWithRedirect: (arg: {
     pendingItem: FrameStackPostPending;
@@ -194,36 +173,32 @@ export type FrameStackAPI = {
     response: Response;
     responseBody: unknown;
   }) => void;
+  reset: (arg: {
+    frame: Frame | ParseResult | ParseFramesWithReportsResult;
+    homeframeUrl: string;
+  }) => void;
 };
 
 export function useFrameStack({
   initialFrame,
   initialFrameUrl,
-}: UseFrameStackOptions): [
-  FramesStack,
-  React.Dispatch<FrameReducerActions>,
-  FrameStackAPI,
-] {
+}: UseFrameStackOptions): [FramesStack, FrameStackAPI] {
   const [stack, dispatch] = useReducer(
     framesStackReducer,
     [initialFrame, initialFrameUrl] as const,
     ([frame, frameUrl]): FramesStack => {
       if (frame) {
-        const frameResult = isParseResult(frame)
+        const parseResult = isParseFramesWithReportsResult(frame)
           ? frame
-          : {
-              reports: {},
-              frame,
-              status: "success" as const,
-            };
+          : createParseFramesWithReportsObject(frame);
         return [
           {
-            response: new Response(JSON.stringify(frameResult), {
+            response: new Response(JSON.stringify(parseResult), {
               status: 200,
               headers: { "Content-Type": "application/json" },
             }),
             responseStatus: 200,
-            responseBody: frameResult,
+            responseBody: parseResult,
             timestamp: new Date(),
             requestDetails: {},
             request: {
@@ -231,7 +206,7 @@ export function useFrameStack({
               url: frameUrl ?? "",
             },
             speed: 0,
-            frameResult,
+            parseResult,
             status: "done",
             url: frameUrl ?? "",
           },
@@ -260,6 +235,7 @@ export function useFrameStack({
 
   const api: FrameStackAPI = useMemo(() => {
     return {
+      dispatch,
       clear() {
         dispatch({
           action: "CLEAR",
@@ -351,14 +327,14 @@ export function useFrameStack({
           item: {
             ...arg.pendingItem,
             status: "done",
-            frameResult: arg.frameResult,
+            parseResult: arg.parseResult,
             speed: computeDurationInSeconds(
               arg.pendingItem.timestamp,
               arg.endTime
             ),
             response: arg.response.clone(),
             responseStatus: arg.response.status,
-            responseBody: arg.frameResult,
+            responseBody: arg.parseResult,
           },
         });
       },
@@ -438,8 +414,17 @@ export function useFrameStack({
           },
         });
       },
+      reset(arg) {
+        dispatch({
+          action: "RESET_INITIAL_FRAME",
+          homeframeUrl: arg.homeframeUrl,
+          parseResult: isParseFramesWithReportsResult(arg.frame)
+            ? arg.frame
+            : createParseFramesWithReportsObject(arg.frame),
+        });
+      },
     };
   }, [dispatch]);
 
-  return [stack, dispatch, api];
+  return [stack, api];
 }
