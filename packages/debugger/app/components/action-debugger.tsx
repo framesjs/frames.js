@@ -438,6 +438,7 @@ export const ActionDebugger = React.forwardRef<
 
             {!!composeFormActionDialogSignal && (
               <ComposerFormActionDialog
+                connectedAddress={farcasterFrameConfig.connectedAddress}
                 composerActionForm={composeFormActionDialogSignal.data}
                 onClose={() => {
                   composeFormActionDialogSignal.resolve(undefined);
@@ -448,6 +449,7 @@ export const ActionDebugger = React.forwardRef<
                   });
                 }}
                 onTransaction={farcasterFrameConfig.onTransaction}
+                onSignature={farcasterFrameConfig.onSignature}
               />
             )}
           </TabsContent>

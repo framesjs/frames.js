@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 // pass state from frame message
 export default function MiniappPage({
@@ -43,7 +44,7 @@ export default function MiniappPage({
         {
           type: "requestTransaction",
           data: {
-            requestId: "01ef6570-5a51-48fa-910c-f419400a6d0d",
+            requestId: uuidv4(),
             tx: {
               chainId: "eip155:10",
               method: "eth_sendTransaction",
@@ -61,8 +62,52 @@ export default function MiniappPage({
     [window?.parent]
   );
 
+  const handleRequestSignature = useCallback(() => {
+    window.parent.postMessage(
+      {
+        type: "requestTransaction",
+        data: {
+          requestId: uuidv4(),
+          tx: {
+            chainId: "eip155:10", // OP Mainnet 10
+            method: "eth_signTypedData_v4",
+            params: {
+              domain: {
+                chainId: 10,
+              },
+              types: {
+                Person: [
+                  { name: "name", type: "string" },
+                  { name: "wallet", type: "address" },
+                ],
+                Mail: [
+                  { name: "from", type: "Person" },
+                  { name: "to", type: "Person" },
+                  { name: "contents", type: "string" },
+                ],
+              },
+              primaryType: "Mail",
+              message: {
+                from: {
+                  name: "Cow",
+                  wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+                },
+                to: {
+                  name: "Bob",
+                  wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+                },
+                contents: "Hello, Bob!",
+              },
+            },
+          },
+        },
+      },
+      "*"
+    );
+  }, [window?.parent]);
+
   return (
-    <div>
+    <div className="flex flex-col gap-2">
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         <label htmlFor="eth-amount" className="font-semibold">
           ETH Amount
@@ -96,8 +141,20 @@ export default function MiniappPage({
           Send ETH
         </button>
       </form>
+
+      <div className="flex">
+        <button
+          className="rounded bg-slate-800 text-white p-2 w-full"
+          onClick={handleRequestSignature}
+        >
+          Request Signature
+        </button>
+      </div>
       {message?.data?.success ? (
-        <div>Transaction sent successfully</div>
+        <div>
+          Transaction sent successfully: {message?.data?.receipt?.transactionId}{" "}
+          sent from {message?.data?.receipt?.address}
+        </div>
       ) : (
         <div className="text-red-500">{message?.data?.message}</div>
       )}
