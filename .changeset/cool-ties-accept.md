@@ -2,4 +2,4 @@
 "frames.js": patch
 ---
 
-fix: update message protobuf
+feat: support location user data type
