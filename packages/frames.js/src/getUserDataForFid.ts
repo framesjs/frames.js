@@ -6,7 +6,7 @@ import type { HubHttpUrlOptions, UserDataReturnType } from "./types";
  * Returns the latest user data for a given Farcaster users Fid if available.
  */
 export async function getUserDataForFid<
-  Options extends HubHttpUrlOptions | undefined,
+  Options extends HubHttpUrlOptions | undefined
 >({
   fid,
   options = {},
@@ -34,7 +34,9 @@ export async function getUserDataForFid<
     .catch(async () => {
       // body has not been
       throw new Error(
-        `Failed to parse response body as JSON because server hub returned response with status "${userDataResponse.status}" and body "${await userDataResponse.clone().text()}"`
+        `Failed to parse response body as JSON because server hub returned response with status "${
+          userDataResponse.status
+        }" and body "${await userDataResponse.clone().text()}"`
       );
     })) as { messages?: Record<string, any>[] };
 
@@ -42,24 +44,33 @@ export async function getUserDataForFid<
     const valuesByType = messages.reduce<
       Partial<Record<UserDataType, { value: string; timestamp: number }>>
     >((acc, messageJson) => {
-      const message = Message.fromJSON(messageJson);
+      try {
+        const message = Message.fromJSON(messageJson);
 
-      if (message.data?.type !== MessageType.USER_DATA_ADD) {
-        return acc;
-      }
+        if (message.data?.type !== MessageType.USER_DATA_ADD) {
+          return acc;
+        }
 
-      if (!message.data.userDataBody) {
-        return acc;
-      }
+        if (!message.data.userDataBody) {
+          return acc;
+        }
 
-      const timestamp = message.data.timestamp;
-      const { type, value } = message.data.userDataBody;
-      const foundValue = acc[type];
+        const timestamp = message.data.timestamp;
+        const { type, value } = message.data.userDataBody;
+        const foundValue = acc[type];
 
-      if (foundValue && foundValue.timestamp < timestamp) {
-        acc[type] = { value, timestamp };
-      } else {
-        acc[type] = { value, timestamp };
+        if (foundValue && foundValue.timestamp < timestamp) {
+          acc[type] = { value, timestamp };
+        } else {
+          acc[type] = { value, timestamp };
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console -- provide feedback to user
+        console.warn(
+          `Failed to parse user data message for fid ${fid}`,
+          messageJson,
+          error
+        );
       }
 
       return acc;
@@ -70,6 +81,7 @@ export async function getUserDataForFid<
       displayName: valuesByType[UserDataType.DISPLAY]?.value,
       username: valuesByType[UserDataType.USERNAME]?.value,
       bio: valuesByType[UserDataType.BIO]?.value,
+      location: valuesByType[UserDataType.LOCATION]?.value,
     };
   }
 
