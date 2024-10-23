@@ -1,6 +1,14 @@
 import type { ImgHTMLAttributes } from "react";
 import React, { useState } from "react";
-import type { Frame, FrameButton } from "frames.js";
+import type {
+  Frame,
+  FrameButton,
+  SupportedParsingSpecification,
+} from "frames.js";
+import type {
+  ParseFramesWithReportsResult,
+  ParseResult,
+} from "frames.js/frame-parsers";
 import type { FrameTheme, FrameState } from "./types";
 import {
   getErrorMessageFromFramesStackItem,
@@ -146,28 +154,35 @@ export function FrameUI({
   }
 
   let frame: Frame | Partial<Frame> | undefined;
+  let parseResult: ParseFramesWithReportsResult | undefined;
+  let specification: SupportedParsingSpecification | undefined;
   let debugImage: string | undefined;
 
   if (currentFrameStackItem.status === "done") {
-    const parseResult = getFrameParseResultFromStackItemBySpecifications(
+    const parseResultBySpec = getFrameParseResultFromStackItemBySpecifications(
       currentFrameStackItem,
       specifications
     );
 
-    frame = parseResult.frame;
+    frame = parseResultBySpec.frame;
+    parseResult = currentFrameStackItem.parseResult;
+    specification = parseResultBySpec.specification;
     debugImage = enableImageDebugging
-      ? parseResult.framesDebugInfo?.image
+      ? parseResultBySpec.framesDebugInfo?.image
       : undefined;
   } else if (
     currentFrameStackItem.status === "message" ||
     currentFrameStackItem.status === "doneRedirect"
   ) {
     frame = currentFrameStackItem.request.sourceFrame;
+    parseResult = currentFrameStackItem.request.sourceParseResult;
+    specification = currentFrameStackItem.request.specification;
   } else if (currentFrameStackItem.status === "requestError") {
-    frame =
-      "sourceFrame" in currentFrameStackItem.request
-        ? currentFrameStackItem.request.sourceFrame
-        : undefined;
+    if ("sourceFrame" in currentFrameStackItem.request) {
+      frame = currentFrameStackItem.request.sourceFrame;
+      parseResult = currentFrameStackItem.request.sourceParseResult;
+      specification = currentFrameStackItem.request.specification;
+    }
   }
 
   const ImageEl = FrameImage ? FrameImage : "img";
@@ -233,7 +248,11 @@ export function FrameUI({
           }}
         />
       ) : null}
-      {!!frame && !!frame.buttons && frame.buttons.length > 0 ? (
+      {!!parseResult &&
+      !!specification &&
+      !!frame &&
+      !!frame.buttons &&
+      frame.buttons.length > 0 ? (
         <div className="flex gap-[8px] px-2 pb-2">
           {frame.buttons.map((frameButton: FrameButton, index: number) => (
             <button
@@ -252,12 +271,12 @@ export function FrameUI({
               }}
               onClick={() => {
                 Promise.resolve(
-                  frameState.onButtonPress(
-                    // Partial frame could have enough data to handle button press
-                    frame as Frame,
+                  frameState.onButtonPress({
+                    parseResult,
                     frameButton,
-                    index
-                  )
+                    index,
+                    specification,
+                  })
                 ).catch((e: unknown) => {
                   // eslint-disable-next-line no-console -- provide feedback to the user
                   console.error(e);

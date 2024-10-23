@@ -1,5 +1,10 @@
-import type { Frame, FrameButton } from "frames.js";
+import type {
+  Frame,
+  FrameButton,
+  SupportedParsingSpecification,
+} from "frames.js";
 import type { createElement, ReactElement } from "react";
+import type { ParseFramesWithReportsResult } from "frames.js/frame-parsers";
 import type { FrameState } from "../types";
 
 /**
@@ -44,6 +49,8 @@ export type FrameUIState =
       frameState: FrameState;
       debugImage?: string;
       isImageLoading: boolean;
+      parseResult: ParseFramesWithReportsResult;
+      specification: SupportedParsingSpecification;
     }
   | {
       id: number;
@@ -53,6 +60,8 @@ export type FrameUIState =
       frameState: FrameState;
       debugImage?: string;
       isImageLoading: boolean;
+      parseResult: ParseFramesWithReportsResult;
+      specification: SupportedParsingSpecification;
     };
 
 type FrameUIStateProps = {

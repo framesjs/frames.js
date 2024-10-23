@@ -72,7 +72,12 @@ export function createParseFramesWithReportsObject(
       // this is open frame
       return {
         openframes: input,
-        farcaster: { status: "failure", frame: input.frame, reports: {} },
+        farcaster: {
+          status: "failure",
+          frame: input.frame,
+          reports: {},
+          specification: "farcaster",
+        },
       };
     }
 
@@ -81,18 +86,38 @@ export function createParseFramesWithReportsObject(
       openframes:
         "accepts" in input.frame || "accepts" in input.reports
           ? input
-          : { status: "failure", frame: input.frame, reports: {} },
+          : {
+              status: "failure",
+              frame: input.frame,
+              reports: {},
+              specification: "openframes",
+            },
     };
   }
 
   return {
     // always treat the frame as farcaster frame
-    farcaster: { status: "success", frame: input, reports: {} },
+    farcaster: {
+      status: "success",
+      frame: input,
+      reports: {},
+      specification: "farcaster",
+    },
     openframes:
       // detect if it is a valid openframe
       !input.accepts || input.accepts.length === 0
-        ? { status: "failure", frame: input, reports: {} }
-        : { status: "success", frame: input, reports: {} },
+        ? {
+            status: "failure",
+            frame: input,
+            reports: {},
+            specification: "openframes",
+          }
+        : {
+            status: "success",
+            frame: input,
+            reports: {},
+            specification: "openframes",
+          },
   };
 }
 

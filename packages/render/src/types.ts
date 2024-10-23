@@ -80,15 +80,8 @@ export type SignFrameActionFunc<
   actionContext: SignerStateActionContext<TSignerStorageType, TFrameContextType>
 ) => Promise<SignedFrameAction<TFrameActionBodyType>>;
 
-export type UseFetchFrameSignFrameActionFunction = (arg: {
-  actionContext: SignerStateActionContext;
-  /**
-   * @defaultValue false
-   */
-  forceRealSigner?: boolean;
-}) => Promise<SignedFrameAction>;
-
 export type UseFetchFrameOptions = {
+  dangerousSkipSigning: boolean;
   stackAPI: FrameStackAPI;
   /**
    * URL or path to the frame proxy handling GET requests.
@@ -102,7 +95,6 @@ export type UseFetchFrameOptions = {
    * Extra payload to be sent with the POST request.
    */
   extraButtonRequestPayload?: Record<string, unknown>;
-  signFrameAction: UseFetchFrameSignFrameActionFunction;
   /**
    * Called after transaction data has been returned from the server and user needs to approve the transaction.
    */
@@ -195,10 +187,25 @@ export type UseFetchFrameOptions = {
   onTransactionProcessingError?: (error: Error) => void;
 };
 
+export type ResolveFrameActionContextArgumentAction =
+  | { type: "composer" }
+  | { type: "cast" }
+  | {
+      type: "frame";
+      /**
+       * Current parse result that is active
+       */
+      parseResult: ParseFramesWithReportsResult;
+      /**
+       * Specification that is currently active
+       */
+      specification: SupportedParsingSpecification;
+    };
+
 export type ResolveFrameActionContextArgument = {
-  readonly dangerouslySkipSigning: boolean;
   readonly frameStack: FramesStack;
   readonly specifications: SupportedParsingSpecification[];
+  readonly action: ResolveFrameActionContextArgumentAction;
 };
 
 export type ResolveFrameActionContextResult = {
@@ -420,19 +427,25 @@ export type FramePOSTRequest =
       source?: never;
       frameButton: FrameButtonPost | FrameButtonTx;
       signerStateActionContext: SignerStateActionContext;
+      signerState: SignerStateInstance<any, any, any>;
       isDangerousSkipSigning: boolean;
       /**
        * The frame that was the source of the button press.
        */
       sourceFrame: Frame;
+      sourceParseResult: ParseFramesWithReportsResult;
+      specification: SupportedParsingSpecification;
     }
   | {
       method: "POST";
       source: "cast-action" | "composer-action";
       frameButton: FrameButtonPost | FrameButtonTx;
       signerStateActionContext: SignerStateActionContext;
+      signerState: SignerStateInstance<any, any, any>;
       isDangerousSkipSigning: boolean;
       sourceFrame: undefined;
+      sourceParseResult: undefined;
+      specification: undefined;
     };
 
 export type FrameRequest = FrameGETRequest | FramePOSTRequest;
@@ -541,12 +554,13 @@ export type FrameReducerActions =
       homeframeUrl: string;
     };
 
-export type ButtonPressFunction = (
-  frame: Frame,
-  frameButton: FrameButton,
-  index: number,
-  fetchFrameOverride?: FetchFrameFunction
-) => void | Promise<void>;
+export type ButtonPressFunction = (arg: {
+  frameButton: FrameButton;
+  parseResult: ParseFramesWithReportsResult;
+  specification: SupportedParsingSpecification;
+  index: number;
+  fetchFrameOverride?: FetchFrameFunction;
+}) => void | Promise<void>;
 
 type CastActionButtonPressFunctionArg = {
   castAction: CastActionResponse & {
@@ -581,7 +595,12 @@ export type ComposerActionButtonPressFunction = (
 
 export type CastActionRequest = Omit<
   FramePOSTRequest,
-  "method" | "frameButton" | "sourceFrame" | "signerStateActionContext"
+  | "method"
+  | "frameButton"
+  | "specification"
+  | "sourceFrame"
+  | "sourceParseResult"
+  | "signerStateActionContext"
 > & {
   method: "CAST_ACTION";
   action: CastActionResponse & {
@@ -595,7 +614,12 @@ export type CastActionRequest = Omit<
 
 export type ComposerActionRequest = Omit<
   FramePOSTRequest,
-  "method" | "frameButton" | "sourceFrame" | "signerStateActionContext"
+  | "method"
+  | "frameButton"
+  | "specification"
+  | "sourceFrame"
+  | "sourceParseResult"
+  | "signerStateActionContext"
 > & {
   method: "COMPOSER_ACTION";
   action: CastActionResponse & {

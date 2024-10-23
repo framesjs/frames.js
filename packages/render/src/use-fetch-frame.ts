@@ -19,8 +19,8 @@ import type {
   SignedFrameAction,
   SignerStateActionContext,
   SignerStateDefaultActionContext,
+  SignerStateInstance,
   UseFetchFrameOptions,
-  UseFetchFrameSignFrameActionFunction,
 } from "./types";
 import {
   SignatureHandlerDidNotReturnTransactionIdError,
@@ -35,6 +35,7 @@ import {
   tryCall,
   tryCallAsync,
 } from "./helpers";
+import { unsignedFrameAction } from "./farcaster";
 
 function isErrorMessageResponse(
   response: unknown
@@ -85,11 +86,11 @@ function defaultErrorHandler(error: Error): void {
 }
 
 export function useFetchFrame({
+  dangerousSkipSigning,
   stackAPI,
   frameActionProxy,
   frameGetProxy,
   extraButtonRequestPayload,
-  signFrameAction,
   onTransaction,
   transactionDataSuffix,
   onSignature,
@@ -283,8 +284,9 @@ export function useFetchFrame({
 
     // get rid of address from request.signerStateActionContext.frameContext and pass that to sign frame action
     const signedDataOrError = await signAndGetFrameActionBodyPayload({
+      dangerousSkipSigning,
       signerStateActionContext: request.signerStateActionContext,
-      signFrameAction,
+      signerState: request.signerState,
     });
 
     if (signedDataOrError instanceof Error) {
@@ -534,13 +536,12 @@ export function useFetchFrame({
 
     tryCall(() => onTransactionDataStart?.({ button }));
 
-    const signedTransactionDataActionOrError = await tryCallAsync(() =>
-      signFrameAction({
-        actionContext: request.signerStateActionContext,
-        // for transaction data we always use signer, so skip signing is false here
-        forceRealSigner: true,
-      })
-    );
+    const signedTransactionDataActionOrError = await tryCallAsync(() => {
+      // for transaction data we always use signer, so skip signing is false here
+      return request.signerState.signFrameAction(
+        request.signerStateActionContext
+      );
+    });
 
     if (signedTransactionDataActionOrError instanceof Error) {
       tryCall(() => {
@@ -798,7 +799,8 @@ export function useFetchFrame({
     };
     const signedDataOrError = await signAndGetFrameActionBodyPayload({
       signerStateActionContext,
-      signFrameAction,
+      signerState: request.signerState,
+      dangerousSkipSigning,
     });
 
     if (shouldClear) {
@@ -822,6 +824,8 @@ export function useFetchFrame({
         method: "POST",
         source: "cast-action",
         sourceFrame: undefined,
+        sourceParseResult: undefined,
+        specification: undefined,
       },
     });
 
@@ -873,6 +877,8 @@ export function useFetchFrame({
 
         await fetchPOSTRequest({
           sourceFrame: undefined,
+          sourceParseResult: undefined,
+          specification: undefined,
           frameButton: {
             action: "post",
             label: "action",
@@ -892,6 +898,7 @@ export function useFetchFrame({
             },
             target: actionResponse.frameUrl,
           },
+          signerState: request.signerState,
         });
         return;
       }
@@ -935,7 +942,8 @@ export function useFetchFrame({
     };
     const signedDataOrError = await signAndGetFrameActionBodyPayload({
       signerStateActionContext,
-      signFrameAction,
+      signerState: request.signerState,
+      dangerousSkipSigning,
     });
 
     if (shouldClear) {
@@ -959,6 +967,8 @@ export function useFetchFrame({
         method: "POST",
         source: "composer-action",
         sourceFrame: undefined,
+        sourceParseResult: undefined,
+        specification: undefined,
       },
     });
 
@@ -1118,28 +1128,47 @@ function getResponseBody(response: Response): Promise<unknown> {
   return response.clone().text();
 }
 
+function assertNotTxDataSignerStateActionContext(
+  value: SignerStateActionContext
+): asserts value is Exclude<SignerStateActionContext, { type: "tx-data" }> {
+  if (value.type === "tx-data") {
+    throw new Error(
+      "Invalid request, transaction data should be fetched by different method"
+    );
+  }
+}
+
 type SignAndGetFrameActionPayloadOptions = {
+  dangerousSkipSigning: boolean;
   signerStateActionContext: SignerStateActionContext;
-  signFrameAction: UseFetchFrameSignFrameActionFunction;
+  signerState: SignerStateInstance<any, any, any>;
 };
 
 /**
  * This shouldn't be used for transaction data request
  */
 async function signAndGetFrameActionBodyPayload({
+  dangerousSkipSigning,
   signerStateActionContext,
-  signFrameAction,
+  signerState,
 }: SignAndGetFrameActionPayloadOptions): Promise<Error | SignedFrameAction> {
+  assertNotTxDataSignerStateActionContext(signerStateActionContext);
+
   // Transacting address is not included in post action
   const { address: _, ...requiredFrameContext } =
     signerStateActionContext.frameContext;
 
-  return tryCallAsync(() =>
-    signFrameAction({
-      actionContext: {
+  return tryCallAsync(() => {
+    if (dangerousSkipSigning) {
+      return unsignedFrameAction({
         ...signerStateActionContext,
         frameContext: requiredFrameContext,
-      },
-    })
-  );
+      });
+    }
+
+    return signerState.signFrameAction({
+      ...signerStateActionContext,
+      frameContext: requiredFrameContext,
+    });
+  });
 }

@@ -150,7 +150,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
     case "requestError": {
       if (
         "sourceFrame" in currentFrameStackItem.request &&
-        currentFrameStackItem.request.sourceFrame
+        currentFrameStackItem.request.sourceParseResult
       ) {
         frameUiState = {
           status: "complete",
@@ -159,6 +159,8 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
           isImageLoading,
           id: currentFrameStackItem.timestamp.getTime(),
           frameState,
+          parseResult: currentFrameStackItem.request.sourceParseResult,
+          specification: currentFrameStackItem.request.specification,
         };
       } else {
         return components.Error(
@@ -192,6 +194,8 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
         isImageLoading,
         id: currentFrameStackItem.timestamp.getTime(),
         frameState,
+        parseResult: currentFrameStackItem.request.sourceParseResult,
+        specification: currentFrameStackItem.request.specification,
       };
 
       break;
@@ -211,6 +215,8 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
           isImageLoading,
           id: currentFrameStackItem.timestamp.getTime(),
           frameState,
+          parseResult: currentFrameStackItem.request.sourceParseResult,
+          specification: currentFrameStackItem.request.specification,
         };
       }
 
@@ -233,6 +239,8 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
           isImageLoading,
           id: currentFrameStackItem.timestamp.getTime(),
           frameState,
+          parseResult: currentFrameStackItem.parseResult,
+          specification: parseResult.specification,
         };
       } else if (isPartialFrameParseResult(parseResult) && allowPartialFrame) {
         frameUiState = {
@@ -245,6 +253,8 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
           isImageLoading,
           id: currentFrameStackItem.timestamp.getTime(),
           frameState,
+          parseResult: currentFrameStackItem.parseResult,
+          specification: parseResult.specification,
         };
       } else {
         return components.Error(
@@ -284,12 +294,12 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
             rootDimensionsRef.current = rootRef.current?.computeDimensions();
 
             Promise.resolve(
-              frameState.onButtonPress(
-                // @todo change the type onButtonPress to accept partial frame as well because that can happen if partial frames are enabled
-                frameUiState.frame as Frame,
+              frameState.onButtonPress({
                 frameButton,
-                index
-              )
+                index,
+                parseResult: frameUiState.parseResult,
+                specification: frameUiState.specification,
+              })
             ).catch((error) => {
               // eslint-disable-next-line no-console -- provide feedback to the user
               console.error(error);

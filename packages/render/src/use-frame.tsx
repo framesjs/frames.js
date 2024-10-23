@@ -10,6 +10,7 @@ import type {
   SupportedParsingSpecification,
   TransactionTargetResponse,
 } from "frames.js";
+import type { ParseFramesWithReportsResult } from "frames.js/frame-parsers";
 import type {
   FrameState,
   OnMintArgs,
@@ -24,8 +25,8 @@ import type {
   ButtonPressFunction,
   AllowedStorageTypes,
   SignerStateInstance,
+  ResolveFrameActionContextArgumentAction,
 } from "./types";
-import { unsignedFrameAction } from "./farcaster";
 import { useFrameStack } from "./use-frame-stack";
 import { useFetchFrame } from "./use-fetch-frame";
 import { useFreshRef } from "./hooks/use-fresh-ref";
@@ -232,21 +233,13 @@ export function useFrame<
 
   const frameStackRef = useFreshRef(framesStack);
   const fetchFrame = useFetchFrame({
+    dangerousSkipSigning,
     stackAPI,
     frameActionProxy,
     frameGetProxy,
     onTransaction,
     transactionDataSuffix,
     onSignature,
-    async signFrameAction({ actionContext, forceRealSigner }) {
-      if (dangerousSkipSigning && !forceRealSigner) {
-        return unsignedFrameAction(actionContext);
-      }
-
-      const resolvedActionContext = await resolveInternalActionContext();
-
-      return resolvedActionContext.signerState.signFrameAction(actionContext);
-    },
     extraButtonRequestPayload,
     onError,
     fetchFn,
@@ -264,34 +257,39 @@ export function useFrame<
   });
   const fetchFrameRef = useFreshRef(fetchFrame);
 
-  const resolveInternalActionContext =
-    useCallback(async (): Promise<ResolveFrameActionContextResult> => {
+  const resolveInternalActionContext = useCallback(
+    async (
+      action: ResolveFrameActionContextArgumentAction
+    ): Promise<ResolveFrameActionContextResult> => {
       if (!resolveActionContextRef.current) {
         return {
           frameContext: frameContextRef.current,
           // it is a signer state just generic params don't match, but the expected type is more
           // forgiving so we can just use defaults
-          signerState: signerStateRef.current as unknown as SignerStateInstance,
+          signerState:
+            signerStateRef.current as unknown as SignerStateInstance<AllowedStorageTypes>,
         };
       }
 
       return resolveActionContextRef.current({
-        dangerouslySkipSigning: dangerousSkipSigningRef.current,
         frameStack: frameStackRef.current,
         specifications: specificationsRef.current,
+        action,
       });
-    }, [
-      dangerousSkipSigningRef,
+    },
+    [
       frameContextRef,
       frameStackRef,
       resolveActionContextRef,
       signerStateRef,
       specificationsRef,
-    ]);
+    ]
+  );
 
   const onPostButton = useCallback(
     async function onPostButton({
-      currentFrame,
+      parseResult,
+      specification: activeSpecification,
       buttonIndex,
       postInputText,
       frameButton,
@@ -299,7 +297,8 @@ export function useFrame<
       state,
       fetchFrameOverride,
     }: {
-      currentFrame: Frame;
+      parseResult: ParseFramesWithReportsResult;
+      specification: SupportedParsingSpecification;
       frameButton: FrameButtonPost;
       buttonIndex: number;
       postInputText: string | undefined;
@@ -307,6 +306,8 @@ export function useFrame<
       target: string;
       fetchFrameOverride?: typeof fetchFrame;
     }): Promise<void> {
+      const currentFrame = parseResult[activeSpecification].frame;
+
       // normally this shouldn't happen because not having homeframeUrl will prevent ui from being rendered
       if (!homeframeUrl) {
         const error = new Error("Missing homeframeUrl");
@@ -315,7 +316,11 @@ export function useFrame<
         return;
       }
 
-      const resolvedActionContext = await resolveInternalActionContext();
+      const resolvedActionContext = await resolveInternalActionContext({
+        type: "frame",
+        parseResult,
+        specification: activeSpecification,
+      });
 
       if (
         !dangerousSkipSigningRef.current &&
@@ -336,7 +341,8 @@ export function useFrame<
         method: "POST",
         signerStateActionContext: {
           inputText: postInputText,
-          signer: resolvedActionContext.signerState.signer ?? null,
+          signer: resolvedActionContext.signerState
+            .signer as AllowedStorageTypes,
           frameContext: resolvedActionContext.frameContext,
           url: homeframeUrl,
           target,
@@ -344,7 +350,11 @@ export function useFrame<
           buttonIndex,
           state,
         },
-        sourceFrame: currentFrame,
+        signerState: resolvedActionContext.signerState,
+        // @todo change to support partial frame as well?
+        sourceFrame: currentFrame as Frame,
+        sourceParseResult: parseResult,
+        specification: activeSpecification,
       });
     },
     [
@@ -358,16 +368,20 @@ export function useFrame<
 
   const onTransactionButton = useCallback(
     async function onTransactionButton({
-      currentFrame,
+      parseResult,
+      specification: activeSpecification,
       buttonIndex,
       postInputText,
       frameButton,
     }: {
-      currentFrame: Frame;
+      parseResult: ParseFramesWithReportsResult;
+      specification: SupportedParsingSpecification;
       frameButton: FrameButtonTx;
       buttonIndex: number;
       postInputText: string | undefined;
     }): Promise<TransactionTargetResponse | undefined> {
+      const currentFrame = parseResult[activeSpecification].frame;
+
       // normally this shouldn't happen because not having homeframeUrl will prevent ui from being rendered
       if (!homeframeUrl) {
         const error = new Error("Missing homeframeUrl");
@@ -376,7 +390,11 @@ export function useFrame<
         return;
       }
 
-      const resolvedActionContext = await resolveInternalActionContext();
+      const resolvedActionContext = await resolveInternalActionContext({
+        type: "frame",
+        parseResult,
+        specification: activeSpecification,
+      });
       const currentConnectedAddress = connectedAddressRef.current;
 
       // Send post request to get calldata
@@ -409,7 +427,8 @@ export function useFrame<
         signerStateActionContext: {
           type: "tx-data",
           inputText: postInputText,
-          signer: resolvedActionContext.signerState.signer ?? null,
+          signer: resolvedActionContext.signerState
+            .signer as AllowedStorageTypes,
           frameContext: resolvedActionContext.frameContext,
           address: currentConnectedAddress,
           url: homeframeUrl,
@@ -418,7 +437,11 @@ export function useFrame<
           buttonIndex,
           state: currentFrame.state,
         },
-        sourceFrame: currentFrame,
+        signerState: resolvedActionContext.signerState,
+        // @todo change to support partial frame as well?
+        sourceFrame: currentFrame as Frame,
+        sourceParseResult: parseResult,
+        specification: activeSpecification,
       });
     },
     [
@@ -433,12 +456,15 @@ export function useFrame<
   );
 
   const onButtonPress: ButtonPressFunction = useCallback(
-    async function onButtonPress(
-      currentFrame,
+    async function onButtonPress({
+      parseResult,
+      specification: activeSpecification,
       frameButton,
       index,
-      fetchFrameOverride
-    ): Promise<void> {
+      fetchFrameOverride,
+    }) {
+      const currentFrame = parseResult[activeSpecification].frame;
+
       switch (frameButton.action) {
         case "link": {
           try {
@@ -457,7 +483,9 @@ export function useFrame<
           onMintRef.current({
             frameButton,
             target: frameButton.target,
-            frame: currentFrame,
+            // can be also partial frame if allowed
+            // @todo change type to support partial frame?
+            frame: currentFrame as Frame,
           });
           break;
         }
@@ -469,7 +497,8 @@ export function useFrame<
               currentFrame.inputText !== undefined
                 ? inputTextRef.current
                 : undefined,
-            currentFrame,
+            parseResult,
+            specification: activeSpecification,
           });
           break;
         }
@@ -497,8 +526,9 @@ export function useFrame<
             }
 
             await onPostButton({
-              currentFrame,
+              parseResult,
               frameButton,
+              specification: activeSpecification,
               /** https://docs.farcaster.xyz/reference/frames/spec#handling-clicks
     
             POST the packet to fc:frame:button:$idx:action:target if present
@@ -541,7 +571,9 @@ export function useFrame<
 
   const onCastActionButtonPress: CastActionButtonPressFunction = useCallback(
     async function onActionButtonPress(arg) {
-      const resolvedActionContext = await resolveInternalActionContext();
+      const resolvedActionContext = await resolveInternalActionContext({
+        type: "cast",
+      });
 
       if (
         !resolvedActionContext.signerState.hasSigner &&
@@ -558,12 +590,14 @@ export function useFrame<
           action: arg.castAction,
           isDangerousSkipSigning: dangerousSkipSigningRef.current,
           signerStateActionContext: {
-            signer: resolvedActionContext.signerState.signer ?? null,
+            signer: resolvedActionContext.signerState
+              .signer as AllowedStorageTypes,
             frameContext: resolvedActionContext.frameContext,
             url: arg.castAction.url,
             target: arg.castAction.url,
             buttonIndex: 1,
           },
+          signerState: resolvedActionContext.signerState,
         },
         arg.clearStack
       );
@@ -574,7 +608,9 @@ export function useFrame<
   const onComposerActionButtonPress: ComposerActionButtonPressFunction =
     useCallback(
       async function onActionButtonPress(arg) {
-        const resolvedActionContext = await resolveInternalActionContext();
+        const resolvedActionContext = await resolveInternalActionContext({
+          type: "composer",
+        });
 
         if (
           !resolvedActionContext.signerState.hasSigner &&
@@ -592,12 +628,14 @@ export function useFrame<
             isDangerousSkipSigning: dangerousSkipSigningRef.current,
             composerActionState: arg.composerActionState,
             signerStateActionContext: {
-              signer: resolvedActionContext.signerState.signer ?? null,
+              signer: resolvedActionContext.signerState
+                .signer as AllowedStorageTypes,
               frameContext: resolvedActionContext.frameContext,
               url: arg.castAction.url,
               target: arg.castAction.url,
               buttonIndex: 1,
             },
+            signerState: resolvedActionContext.signerState,
           },
           arg.clearStack
         );
