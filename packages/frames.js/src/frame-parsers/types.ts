@@ -51,6 +51,7 @@ export type ParseResult =
        * Reports contain only warnings that should not have any impact on the frame's functionality.
        */
       reports: Record<string, ParsingReport[]>;
+      specification: SupportedParsingSpecification;
     }
   | {
       status: "failure";
@@ -59,6 +60,7 @@ export type ParseResult =
        * Reports contain warnings and errors that should be addressed before the frame can be used.
        */
       reports: Record<string, ParsingReport[]>;
+      specification: SupportedParsingSpecification;
     };
 
 export type ParsedFrameworkDetails = {
