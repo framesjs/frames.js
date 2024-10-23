@@ -188,9 +188,7 @@ describe("getUserDataForFid", () => {
         ],
       });
 
-    const consoleWarnSpy = jest
-      .spyOn(console, "warn")
-      .mockImplementation(() => {});
+    const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
 
     const result = await getUserDataForFid({ fid: 1214 });
 

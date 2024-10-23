@@ -65,6 +65,7 @@ export async function getUserDataForFid<
           acc[type] = { value, timestamp };
         }
       } catch (error) {
+        // eslint-disable-next-line no-console -- provide feedback to user
         console.warn(
           `Failed to parse user data message for fid ${fid}`,
           messageJson,
