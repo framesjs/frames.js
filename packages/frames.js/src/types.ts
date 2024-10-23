@@ -44,8 +44,11 @@ type FrameOptionalStringKeys =
   | keyof OpenFramesProperties
   | "frames.js:version"
   | "frames.js:debug-info:image";
-type FrameOptionalActionButtonTypeKeys =
-  `fc:frame:button:${1 | 2 | 3 | 4}:action`;
+type FrameOptionalActionButtonTypeKeys = `fc:frame:button:${
+  | 1
+  | 2
+  | 3
+  | 4}:action`;
 type FrameOptionalButtonStringKeys =
   | `fc:frame:button:${1 | 2 | 3 | 4}`
   | `fc:frame:button:${1 | 2 | 3 | 4}:target`
@@ -59,8 +62,8 @@ type MapFrameOptionalKeyToValueType<K extends FrameKeys> =
   K extends FrameOptionalStringKeys
     ? string | undefined
     : K extends FrameOptionalActionButtonTypeKeys
-      ? ActionButtonType | undefined
-      : string | undefined;
+    ? ActionButtonType | undefined
+    : string | undefined;
 
 type FrameRequiredProperties = {
   "fc:frame": FrameVersion;
@@ -153,7 +156,7 @@ export type FrameButtonsType =
   | [FrameButton, FrameButton, FrameButton, FrameButton];
 
 export type AddressReturnType<
-  Options extends { fallbackToCustodyAddress?: boolean } | undefined,
+  Options extends { fallbackToCustodyAddress?: boolean } | undefined
 > = Options extends { fallbackToCustodyAddress: true }
   ? `0x${string}`
   : `0x${string}` | null;
@@ -214,6 +217,7 @@ export type UserDataReturnType = {
   username?: string;
   bio?: string;
   profileImage?: string;
+  location?: string;
 } | null;
 
 export type FrameActionDataParsedAndHubContext = FrameActionDataParsed &
