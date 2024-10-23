@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.19.4
+
+### Patch Changes
+
+- 970ff97: feat: support location user data type
+
 ## 0.19.3
 
 ### Patch Changes

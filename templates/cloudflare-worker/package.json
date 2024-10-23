@@ -1,11 +1,11 @@
 {
   "name": "template-cloudflare-worker",
   "description": "Simple Cloudflare Worker template with Frames.js, React and TypeScript",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "type": "module",
   "private": true,
   "dependencies": {
-    "frames.js": "^0.19.3",
+    "frames.js": "^0.19.4",
     "react": "^18.2.0"
   },
   "devDependencies": {
