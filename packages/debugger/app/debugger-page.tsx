@@ -10,7 +10,8 @@ import {
   type OnSignatureFunc,
   type FrameActionBodyPayload,
   type OnConnectWalletFunc,
-  FarcasterFrameContext,
+  type FarcasterFrameContext,
+  type SignerStateInstance,
 } from "@frames.js/render";
 import { attribution } from "@frames.js/render/farcaster";
 import { useFrame } from "@frames.js/render/use-frame";
@@ -639,41 +640,44 @@ export default function DebuggerPage({
         };
       }
 
+      function resolveSignerState(): {
+        signerState: SignerStateInstance<any, any, any>;
+        frameContext: Record<string, unknown>;
+      } {
+        switch (selectedProtocol) {
+          case "anonymous":
+            return {
+              signerState: anonymousSignerState,
+              frameContext: anonymousFrameContext,
+            };
+          case "lens":
+            return {
+              signerState: lensSignerState,
+              frameContext: lensFrameContext.frameContext,
+            };
+          case "xmtp":
+            return {
+              signerState: xmtpSignerState,
+              frameContext: xmtpFrameContext.frameContext,
+            };
+          default:
+            return {
+              signerState: farcasterSignerState,
+              frameContext: farcasterFrameContext.frameContext,
+            };
+        }
+      }
+
       // eslint-disable-next-line react-hooks/rules-of-hooks -- this is used as a hook in FrameDebugger
       return useFrame({
         ...useFrameConfig,
         fetchFn: createFetchFn(
           selectedProtocol === "farcaster" ? "farcaster" : "openframes"
         ),
-        signerState: anonymousSignerState,
-        frameContext: anonymousFrameContext,
+        ...resolveSignerState(),
         // in debugger we to show only one specification at the time
         specification:
           selectedProtocol === "farcaster" ? "farcaster" : "openframes",
-        async resolveActionContext() {
-          switch (selectedProtocol) {
-            case "anonymous":
-              return {
-                signerState: anonymousSignerState,
-                frameContext: anonymousFrameContext,
-              };
-            case "lens":
-              return {
-                signerState: lensSignerState,
-                frameContext: lensFrameContext.frameContext,
-              };
-            case "xmtp":
-              return {
-                signerState: xmtpSignerState,
-                frameContext: xmtpFrameContext.frameContext,
-              };
-            default:
-              return {
-                signerState: farcasterSignerState,
-                frameContext: farcasterFrameContext.frameContext,
-              };
-          }
-        },
       });
     };
   }, [

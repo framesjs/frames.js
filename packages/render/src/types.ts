@@ -187,36 +187,6 @@ export type UseFetchFrameOptions = {
   onTransactionProcessingError?: (error: Error) => void;
 };
 
-export type ResolveFrameActionContextArgumentAction =
-  | { type: "composer" }
-  | { type: "cast" }
-  | {
-      type: "frame";
-      /**
-       * Current parse result that is active
-       */
-      parseResult: ParseFramesWithReportsResult;
-      /**
-       * Specification that is currently active
-       */
-      specification: SupportedParsingSpecification;
-    };
-
-export type ResolveFrameActionContextArgument = {
-  readonly frameStack: FramesStack;
-  readonly specifications: SupportedParsingSpecification[];
-  readonly action: ResolveFrameActionContextArgumentAction;
-};
-
-export type ResolveFrameActionContextResult = {
-  signerState: SignerStateInstance<any, any, any>;
-  frameContext: FrameContext;
-};
-
-export type ResolveFrameActionContextFunction = (
-  arg: ResolveFrameActionContextArgument
-) => Promise<ResolveFrameActionContextResult>;
-
 export type AllowedStorageTypes = Record<string, unknown> | null;
 
 export type UseFrameOptions<
@@ -259,7 +229,8 @@ export type UseFrameOptions<
   /**
    * A signer state object used to determine what actions are possible.
    *
-   * This is a default signer that will be used unless you provide resolveActionContext function.
+   * Changing this object will not reset the frame state but will be used next time you press a button
+   * that needs a signer.
    */
   signerState: SignerStateInstance<
     TSignerStorageType,
@@ -267,16 +238,9 @@ export type UseFrameOptions<
     TFrameContextType
   >;
   /**
-   * the context of this frame, used for generating Frame Action payloads
+   * The context of this frame, used for generating Frame Action payloads
    */
   frameContext: TFrameContextType;
-  /**
-   * The function called on each button press to resolve which signer and context to use
-   * based on current state and parsed frames.
-   *
-   * If no function is provided it will use signerState and frameContext props.
-   */
-  resolveActionContext?: ResolveFrameActionContextFunction;
   /**
    * connected wallet address of the user, send to the frame for transaction requests
    */
@@ -430,7 +394,7 @@ export type FramePOSTRequest =
       signerState: SignerStateInstance<any, any, any>;
       isDangerousSkipSigning: boolean;
       /**
-       * The frame that was the source of the button press.
+       * Specification that was used to render the frame.
        */
       sourceFrame: Frame;
       sourceParseResult: ParseFramesWithReportsResult;
