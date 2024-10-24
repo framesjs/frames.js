@@ -10,6 +10,7 @@ import {
   type OnSignatureFunc,
   type FrameActionBodyPayload,
   type OnConnectWalletFunc,
+  type FarcasterFrameContext,
 } from "@frames.js/render";
 import { attribution } from "@frames.js/render/farcaster";
 import { useFrame } from "@frames.js/render/use-frame";
@@ -174,7 +175,7 @@ export default function DebuggerPage({
 
       const searchParams = new URLSearchParams({
         url: newUrl || url,
-        specification: protocolConfiguration?.specification,
+        specification: protocolConfiguration.specification,
         actions: "true",
       });
       const proxiedUrl = `/frames?${searchParams.toString()}`;
@@ -196,7 +197,7 @@ export default function DebuggerPage({
             setInitialAction(json);
             setInitialFrame(undefined);
           } else if (json.type === "frame") {
-            setInitialFrame(json);
+            setInitialFrame(json[protocolConfiguration.specification]);
             setInitialAction(undefined);
           }
         })
@@ -573,7 +574,8 @@ export default function DebuggerPage({
 
   const farcasterFrameConfig: UseFrameOptions<
     FarcasterSigner | null,
-    FrameActionBodyPayload
+    FrameActionBodyPayload,
+    FarcasterFrameContext
   > = useMemo(() => {
     const attributionData = process.env.NEXT_PUBLIC_FARCASTER_ATTRIBUTION_FID
       ? attribution(parseInt(process.env.NEXT_PUBLIC_FARCASTER_ATTRIBUTION_FID))

@@ -1,7 +1,12 @@
-import type { SignerStateInstance } from "..";
+import type { FrameActionBodyPayload, SignerStateInstance } from "../types";
+import type { FarcasterFrameContext } from "./types";
 
 export type FarcasterSignerState<TSignerType = FarcasterSigner | null> =
-  SignerStateInstance<TSignerType>;
+  SignerStateInstance<
+    TSignerType,
+    FrameActionBodyPayload,
+    FarcasterFrameContext
+  >;
 
 export type FarcasterSignerPendingApproval = {
   status: "pending_approval";

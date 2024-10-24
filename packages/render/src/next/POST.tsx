@@ -1,28 +1,53 @@
 import type { FrameActionPayload } from "frames.js";
-import { getFrame } from "frames.js";
+import type { ParseFramesWithReportsResult } from "frames.js/frame-parsers";
+import { parseFramesWithReports } from "frames.js/parseFramesWithReports";
+import type { JsonObject, JsonValue } from "frames.js/types";
 import type { NextRequest } from "next/server";
-import { isSpecificationValid } from "./validators";
+import { tryCallAsync } from "../helpers";
+
+export type POSTResponseError = { message: string };
+
+export type POSTResponseRedirect = { location: string };
+
+export type POSTTransactionResponse = JsonObject;
+
+export type POSTResponse =
+  | ParseFramesWithReportsResult
+  | POSTResponseError
+  | POSTResponseRedirect
+  | JsonObject;
+
+function isJsonErrorObject(data: JsonValue): data is { message: string } {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "message" in data &&
+    typeof data.message === "string"
+  );
+}
 
 /** Proxies frame actions to avoid CORS issues and preserve user IP privacy */
 export async function POST(req: Request | NextRequest): Promise<Response> {
-  const searchParams =
-    "nextUrl" in req ? req.nextUrl.searchParams : new URL(req.url).searchParams;
-  const body = (await req.json()) as FrameActionPayload;
-  const isPostRedirect = searchParams.get("postType") === "post_redirect";
-  const isTransactionRequest = searchParams.get("postType") === "tx";
-  const postUrl = searchParams.get("postUrl");
-  const specification = searchParams.get("specification") ?? "farcaster";
-
-  if (!postUrl) {
-    return Response.error();
-  }
-
-  if (!isSpecificationValid(specification)) {
-    return Response.json({ message: "Invalid specification" }, { status: 400 });
-  }
-
   try {
-    const r = await fetch(postUrl, {
+    const searchParams =
+      "nextUrl" in req
+        ? req.nextUrl.searchParams
+        : new URL(req.url).searchParams;
+    const body = (await req.json()) as FrameActionPayload;
+    const isPostRedirect = searchParams.get("postType") === "post_redirect";
+    const isTransactionRequest = searchParams.get("postType") === "tx";
+    const postUrl = searchParams.get("postUrl");
+
+    if (!postUrl) {
+      return Response.json(
+        { message: "postUrl parameter not found" } satisfies POSTResponseError,
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const response = await fetch(postUrl, {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -32,53 +57,130 @@ export async function POST(req: Request | NextRequest): Promise<Response> {
       body: JSON.stringify(body),
     });
 
-    if (r.status >= 500) {
-      return r;
-    }
+    if (response.status >= 500) {
+      const jsonError = await tryCallAsync(
+        () => response.clone().json() as Promise<JsonValue>
+      );
 
-    if (r.status === 302) {
+      if (jsonError instanceof Error) {
+        return Response.json(
+          { message: jsonError.message } satisfies POSTResponseError,
+          { status: response.status }
+        );
+      }
+
+      if (isJsonErrorObject(jsonError)) {
+        return Response.json(
+          { message: jsonError.message } satisfies POSTResponseError,
+          { status: response.status }
+        );
+      }
+
+      // eslint-disable-next-line no-console -- provide feedback to the user
+      console.error(jsonError);
+
       return Response.json(
         {
-          location: r.headers.get("location"),
-        },
-        { status: 302 }
+          message: `Frame server returned an unexpected error.`,
+        } satisfies POSTResponseError,
+        { status: 500 }
       );
     }
 
-    if (r.status >= 400 && r.status < 500) {
-      const json = (await r.json()) as { message?: string };
+    if (response.status === 302) {
+      const location = response.headers.get("location");
 
-      if ("message" in json) {
-        return Response.json({ message: json.message }, { status: r.status });
-      } else {
-        return r;
+      if (!location) {
+        return Response.json(
+          {
+            message:
+              "Frame server returned a redirect without a location header",
+          } satisfies POSTResponseError,
+          { status: 500 }
+        );
       }
+
+      return Response.json(
+        {
+          location,
+        } satisfies POSTResponseRedirect,
+        { status: 302 }
+      );
+    } else if (isPostRedirect) {
+      return Response.json(
+        {
+          message: "Frame server did not return a 302 redirect",
+        } satisfies POSTResponseError,
+        { status: 500 }
+      );
     }
 
-    if (isPostRedirect && r.status !== 302) {
+    if (response.status >= 400 && response.status < 500) {
+      const jsonError = await tryCallAsync(
+        () => response.clone().json() as Promise<JsonValue>
+      );
+
+      if (jsonError instanceof Error) {
+        return Response.json(
+          { message: jsonError.message } satisfies POSTResponseError,
+          { status: response.status }
+        );
+      }
+
+      if (isJsonErrorObject(jsonError)) {
+        return Response.json(
+          { message: jsonError.message } satisfies POSTResponseError,
+          { status: response.status }
+        );
+      }
+
+      // eslint-disable-next-line no-console -- provide feedback to the user
+      console.error(jsonError);
+
       return Response.json(
-        { message: "Invalid response for redirect button" },
+        {
+          message: `Frame server returned an unexpected error.`,
+        } satisfies POSTResponseError,
+        { status: response.status }
+      );
+    }
+
+    if (response.status !== 200) {
+      return Response.json(
+        {
+          message: `Frame server returned a non-200 status code: ${response.status}`,
+        } satisfies POSTResponseError,
         { status: 500 }
       );
     }
 
     if (isTransactionRequest) {
-      const transaction = (await r.json()) as JSON;
-      return Response.json(transaction);
+      const transaction = await tryCallAsync(
+        () => response.clone().json() as Promise<JsonObject>
+      );
+
+      if (transaction instanceof Error) {
+        return Response.json(
+          { message: transaction.message } satisfies POSTResponseError,
+          { status: 500 }
+        );
+      }
+
+      return Response.json(transaction satisfies JsonObject);
     }
 
-    const htmlString = await r.text();
-
-    const result = getFrame({
-      htmlString,
-      url: body.untrustedData.url,
-      specification,
+    const html = await response.text();
+    const result: ParseFramesWithReportsResult = parseFramesWithReports({
+      html,
+      fallbackPostUrl: body.untrustedData.url,
     });
 
-    return Response.json(result);
+    return Response.json(result satisfies POSTResponse);
   } catch (err) {
     // eslint-disable-next-line no-console -- provide feedback to the user
     console.error(err);
-    return Response.error();
+    return Response.json({ message: String(err) } satisfies POSTResponseError, {
+      status: 500,
+    });
   }
 }

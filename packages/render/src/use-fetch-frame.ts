@@ -23,14 +23,12 @@ import type {
   FramePOSTRequest,
   FrameStackPending,
   FrameStackPostPending,
-  GetFrameResult,
   SignedFrameAction,
   SignerStateActionContext,
   SignerStateDefaultActionContext,
   UseFetchFrameOptions,
   UseFetchFrameSignFrameActionFunction,
 } from "./types";
-import { isParseResult } from "./use-frame-stack";
 import {
   SignatureHandlerDidNotReturnTransactionIdError,
   TransactionDataErrorResponseError,
@@ -39,7 +37,11 @@ import {
   CastActionUnexpectedResponseError,
   ComposerActionUnexpectedResponseError,
 } from "./errors";
-import { tryCall, tryCallAsync } from "./helpers";
+import {
+  isParseFramesWithReportsResult,
+  tryCall,
+  tryCallAsync,
+} from "./helpers";
 
 function isErrorMessageResponse(
   response: unknown
@@ -218,12 +220,50 @@ export function useFetchFrame<
         return;
       }
 
-      const frameResult = (await response.clone().json()) as GetFrameResult;
+      const parseResult = await tryCallAsync(
+        () => response.clone().json() as Promise<unknown>
+      );
+
+      if (parseResult instanceof Error) {
+        stackAPI.markAsFailed({
+          endTime,
+          pendingItem: frameStackPendingItem,
+          requestError: parseResult,
+          response,
+          responseBody: "none",
+          responseStatus: 500,
+        });
+
+        tryCall(() => {
+          onError(parseResult);
+        });
+
+        return;
+      }
+
+      if (!isParseFramesWithReportsResult(parseResult)) {
+        const error = new Error("The server returned an unexpected response.");
+
+        stackAPI.markAsFailed({
+          endTime,
+          pendingItem: frameStackPendingItem,
+          requestError: error,
+          response,
+          responseBody: parseResult,
+          responseStatus: 500,
+        });
+
+        tryCall(() => {
+          onError(error);
+        });
+
+        return;
+      }
 
       stackAPI.markAsDone({
         pendingItem: frameStackPendingItem,
         endTime,
-        frameResult,
+        frameResult: parseResult[specification],
         response,
       });
 
@@ -440,7 +480,7 @@ export function useFetchFrame<
         return;
       }
 
-      if (!isParseResult(responseData)) {
+      if (!isParseFramesWithReportsResult(responseData)) {
         const error = new Error("The server returned an unexpected response.");
 
         stackAPI.markAsFailed({
@@ -461,7 +501,7 @@ export function useFetchFrame<
 
       stackAPI.markAsDone({
         endTime,
-        frameResult: responseData,
+        frameResult: responseData[specification],
         pendingItem,
         response,
       });

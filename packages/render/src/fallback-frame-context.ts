@@ -1,4 +1,4 @@
-import type { FarcasterFrameContext } from "./farcaster";
+import type { FarcasterFrameContext } from "./farcaster/types";
 
 export const fallbackFrameContext: FarcasterFrameContext = {
   castId: {
