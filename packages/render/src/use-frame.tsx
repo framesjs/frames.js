@@ -24,6 +24,7 @@ import type {
 import { unsignedFrameAction, type FarcasterFrameContext } from "./farcaster";
 import { useFrameStack } from "./use-frame-stack";
 import { useFetchFrame } from "./use-fetch-frame";
+import { useFreshRef } from "./hooks/use-fresh-ref";
 
 function onMintFallback({ target }: OnMintArgs): void {
   console.log("Please provide your own onMint function to useFrame() hook.");
@@ -189,6 +190,7 @@ export function useFrame<
   const [framesStack, dispatch, stackAPI] = useFrameStack({
     initialFrame: frame,
     initialFrameUrl: homeframeUrl,
+    initialSpecification: specification,
   });
 
   const fetchFrame = useFetchFrame<
@@ -229,10 +231,9 @@ export function useFrame<
     onTransactionSuccess,
   });
 
-  const fetchFrameRef = useRef(fetchFrame);
-  fetchFrameRef.current = fetchFrame;
-  const onErrorRef = useRef(onError);
-  onErrorRef.current = onError;
+  const fetchFrameRef = useFreshRef(fetchFrame);
+  const onErrorRef = useFreshRef(onError);
+  const specificationRef = useFreshRef(specification);
 
   useEffect(() => {
     if (!frame && homeframeUrl) {
@@ -254,9 +255,10 @@ export function useFrame<
         action: "RESET_INITIAL_FRAME",
         resultOrFrame: frame,
         homeframeUrl,
+        specification: specificationRef.current,
       });
     }
-  }, [frame, homeframeUrl, dispatch]);
+  }, [frame, homeframeUrl, dispatch, fetchFrameRef, specificationRef]);
 
   const onPostButton = useCallback(
     async function onPostButton({

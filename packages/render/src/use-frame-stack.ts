@@ -1,5 +1,5 @@
 import { useMemo, useReducer } from "react";
-import type { Frame } from "frames.js";
+import type { Frame, SupportedParsingSpecification } from "frames.js";
 import type { ParseResult } from "frames.js/frame-parsers";
 import type {
   CastActionMessageResponse,
@@ -81,6 +81,7 @@ function framesStackReducer(
               status: "success" as const,
               reports: {},
               frame: action.resultOrFrame,
+              specification: action.specification,
             };
 
         return [
@@ -118,6 +119,7 @@ function framesStackReducer(
 type UseFrameStackOptions = {
   initialFrame?: Frame | ParseResult;
   initialFrameUrl?: string | null;
+  initialSpecification: SupportedParsingSpecification;
 };
 
 export type FrameStackAPI = {
@@ -199,6 +201,7 @@ export type FrameStackAPI = {
 export function useFrameStack({
   initialFrame,
   initialFrameUrl,
+  initialSpecification,
 }: UseFrameStackOptions): [
   FramesStack,
   React.Dispatch<FrameReducerActions>,
@@ -206,8 +209,8 @@ export function useFrameStack({
 ] {
   const [stack, dispatch] = useReducer(
     framesStackReducer,
-    [initialFrame, initialFrameUrl] as const,
-    ([frame, frameUrl]): FramesStack => {
+    [initialFrame, initialFrameUrl, initialSpecification] as const,
+    ([frame, frameUrl, specification]): FramesStack => {
       if (frame) {
         const frameResult = isParseResult(frame)
           ? frame
@@ -215,6 +218,7 @@ export function useFrameStack({
               reports: {},
               frame,
               status: "success" as const,
+              specification,
             };
         return [
           {

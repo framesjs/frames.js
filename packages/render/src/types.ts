@@ -17,7 +17,6 @@ import type {
   ComposerActionFormResponse,
   ComposerActionState,
 } from "frames.js/types";
-import type { FarcasterFrameContext } from "./farcaster/frames";
 import type { FrameStackAPI } from "./use-frame-stack";
 
 export type OnTransactionArgs = {
@@ -78,7 +77,7 @@ export type OnConnectWalletFunc = () => void;
 export type SignFrameActionFunc<
   TSignerStorageType = Record<string, unknown>,
   TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
-  TFrameContextType extends FrameContext = FarcasterFrameContext
+  TFrameContextType extends FrameContext = FrameContext,
 > = (
   actionContext: SignerStateActionContext<TSignerStorageType, TFrameContextType>
 ) => Promise<SignedFrameAction<TFrameActionBodyType>>;
@@ -88,7 +87,7 @@ export type UseFetchFrameSignFrameActionFunction<
     unknown,
     Record<string, unknown>
   >,
-  TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload
+  TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
 > = (arg: {
   actionContext: TSignerStateActionContext;
   /**
@@ -100,7 +99,7 @@ export type UseFetchFrameSignFrameActionFunction<
 export type UseFetchFrameOptions<
   TSignerStorageType = Record<string, unknown>,
   TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
-  TFrameContextType extends FrameContext = FarcasterFrameContext
+  TFrameContextType extends FrameContext = FrameContext,
 > = {
   stackAPI: FrameStackAPI;
   stackDispatch: React.Dispatch<FrameReducerActions>;
@@ -216,7 +215,7 @@ export type UseFetchFrameOptions<
 export type UseFrameOptions<
   TSignerStorageType = Record<string, unknown>,
   TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
-  TFrameContextType extends FrameContext = FarcasterFrameContext
+  TFrameContextType extends FrameContext = FrameContext,
 > = {
   /** skip frame signing, for frames that don't verify signatures */
   dangerousSkipSigning?: boolean;
@@ -290,7 +289,7 @@ export type UseFrameOptions<
 
 type SignerStateActionSharedContext<
   TSignerStorageType = Record<string, unknown>,
-  TFrameContextType extends FrameContext = FarcasterFrameContext
+  TFrameContextType extends FrameContext = FrameContext,
 > = {
   target?: string;
   frameButton: FrameButton;
@@ -307,14 +306,14 @@ type SignerStateActionSharedContext<
 
 export type SignerStateDefaultActionContext<
   TSignerStorageType = Record<string, unknown>,
-  TFrameContextType extends FrameContext = FarcasterFrameContext
+  TFrameContextType extends FrameContext = FrameContext,
 > = {
   type?: "default";
 } & SignerStateActionSharedContext<TSignerStorageType, TFrameContextType>;
 
 export type SignerStateTransactionDataActionContext<
   TSignerStorageType = Record<string, unknown>,
-  TFrameContextType extends FrameContext = FarcasterFrameContext
+  TFrameContextType extends FrameContext = FrameContext,
 > = {
   type: "tx-data";
   /** Wallet address used to create the transaction, available only for "tx" button actions */
@@ -323,7 +322,7 @@ export type SignerStateTransactionDataActionContext<
 
 export type SignerStateTransactionPostActionContext<
   TSignerStorageType = Record<string, unknown>,
-  TFrameContextType extends FrameContext = FarcasterFrameContext
+  TFrameContextType extends FrameContext = FrameContext,
 > = {
   type: "tx-post";
   /** Wallet address used to create the transaction, available only for "tx" button actions */
@@ -333,7 +332,7 @@ export type SignerStateTransactionPostActionContext<
 
 export type SignerStateActionContext<
   TSignerStorageType = Record<string, unknown>,
-  TFrameContextType extends FrameContext = FarcasterFrameContext
+  TFrameContextType extends FrameContext = FrameContext,
 > =
   | SignerStateDefaultActionContext<TSignerStorageType, TFrameContextType>
   | SignerStateTransactionDataActionContext<
@@ -346,7 +345,7 @@ export type SignerStateActionContext<
     >;
 
 export type SignedFrameAction<
-  TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload
+  TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
 > = {
   body: TFrameActionBodyType;
   searchParams: URLSearchParams;
@@ -357,7 +356,7 @@ export type SignFrameActionFunction<
     unknown,
     Record<string, unknown>
   > = SignerStateActionContext,
-  TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload
+  TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
 > = (
   actionContext: TSignerStateActionContext
 ) => Promise<SignedFrameAction<TFrameActionBodyType>>;
@@ -365,7 +364,7 @@ export type SignFrameActionFunction<
 export interface SignerStateInstance<
   TSignerStorageType = Record<string, unknown>,
   TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
-  TFrameContextType extends FrameContext = FarcasterFrameContext
+  TFrameContextType extends FrameContext = FrameContext,
 > {
   signer: TSignerStorageType | null;
   /**
@@ -392,7 +391,7 @@ export type FramePOSTRequest<
   TSignerStateActionContext extends SignerStateActionContext<
     unknown,
     Record<string, unknown>
-  > = SignerStateActionContext
+  > = SignerStateActionContext,
 > =
   | {
       method: "POST";
@@ -418,7 +417,7 @@ export type FrameRequest<
   TSignerStateActionContext extends SignerStateActionContext<
     unknown,
     Record<string, unknown>
-  > = SignerStateActionContext
+  > = SignerStateActionContext,
 > = FrameGETRequest | FramePOSTRequest<TSignerStateActionContext>;
 
 export type FrameStackBase = {
@@ -525,13 +524,14 @@ export type FrameReducerActions =
       action: "RESET_INITIAL_FRAME";
       resultOrFrame: ParseResult | Frame;
       homeframeUrl: string | null | undefined;
+      specification: SupportedParsingSpecification;
     };
 
-type ButtonPressFunction<
+export type ButtonPressFunction<
   TSignerStateActionContext extends SignerStateActionContext<
     unknown,
     Record<string, unknown>
-  >
+  >,
 > = (
   frame: Frame,
   frameButton: FrameButton,
@@ -574,7 +574,7 @@ export type CastActionRequest<
   TSignerStateActionContext extends SignerStateActionContext<
     unknown,
     Record<string, unknown>
-  > = SignerStateActionContext
+  > = SignerStateActionContext,
 > = Omit<
   FramePOSTRequest,
   "method" | "frameButton" | "sourceFrame" | "signerStateActionContext"
@@ -593,7 +593,7 @@ export type ComposerActionRequest<
   TSignerStateActionContext extends SignerStateActionContext<
     unknown,
     Record<string, unknown>
-  > = SignerStateActionContext
+  > = SignerStateActionContext,
 > = Omit<
   FramePOSTRequest,
   "method" | "frameButton" | "sourceFrame" | "signerStateActionContext"
@@ -613,7 +613,7 @@ export type FetchFrameFunction<
   TSignerStateActionContext extends SignerStateActionContext<
     unknown,
     Record<string, unknown>
-  > = SignerStateActionContext
+  > = SignerStateActionContext,
 > = (
   request:
     | FrameRequest<TSignerStateActionContext>
@@ -629,7 +629,7 @@ export type FetchFrameFunction<
 
 export type FrameState<
   TSignerStorageType = Record<string, unknown>,
-  TFrameContextType extends FrameContext = FarcasterFrameContext
+  TFrameContextType extends FrameContext = FrameContext,
 > = {
   fetchFrame: FetchFrameFunction<
     SignerStateActionContext<TSignerStorageType, TFrameContextType>

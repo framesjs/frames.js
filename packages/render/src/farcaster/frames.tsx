@@ -16,17 +16,14 @@ import type {
   SignFrameActionFunc,
 } from "../types";
 import type { FarcasterSigner } from "./signers";
-
-export type FarcasterFrameContext = {
-  /** Connected address of user, only sent with transaction data request */
-  address?: `0x${string}`;
-  castId: { hash: `0x${string}`; fid: number };
-};
+import type { FarcasterFrameContext } from "./types";
 
 /** Creates a frame action for use with `useFrame` and a proxy */
-export const signFrameAction: SignFrameActionFunc<FarcasterSigner> = async (
-  actionContext
-) => {
+export const signFrameAction: SignFrameActionFunc<
+  FarcasterSigner,
+  FrameActionBodyPayload,
+  FarcasterFrameContext
+> = async (actionContext) => {
   const {
     frameButton,
     signer,

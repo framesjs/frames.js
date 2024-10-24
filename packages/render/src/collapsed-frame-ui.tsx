@@ -138,7 +138,7 @@ export function CollapsedFrameUI({
               cursor: isLoading ? undefined : "pointer",
             }}
           >
-            {frame.buttons.length === 1 && frame.buttons[0].label.length < 12
+            {!!frame.buttons[0] && frame.buttons[0].label.length < 12
               ? frame.buttons[0].label
               : "View"}
           </button>

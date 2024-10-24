@@ -1,11 +1,13 @@
-import { type FrameActionPayload, getFrame } from "frames.js";
+import { type FrameActionPayload } from "frames.js";
 import { type NextRequest } from "next/server";
 import { getAction } from "../actions/getAction";
 import { persistMockResponsesForDebugHubRequests } from "../utils/mock-hub-utils";
 import type { SupportedParsingSpecification } from "frames.js";
+import { parseFramesWithReports } from "frames.js/parseFramesWithReports";
 import { z } from "zod";
 import type { ParseActionResult } from "../actions/types";
-import type { ParseResult } from "frames.js/frame-parsers";
+import type { ParseFramesWithReportsResult } from "frames.js/frame-parsers";
+import type { JsonObject } from "frames.js/types";
 
 const castActionMessageParser = z.object({
   type: z.literal("message"),
@@ -43,7 +45,7 @@ export type CastActionDefinitionResponse = ParseActionResult & {
   url: string;
 };
 
-export type FrameDefinitionResponse = ParseResult & {
+export type FrameDefinitionResponse = ParseFramesWithReportsResult & {
   type: "frame";
 };
 
@@ -91,17 +93,16 @@ export async function GET(request: NextRequest): Promise<Response> {
       } satisfies CastActionDefinitionResponse);
     }
 
-    const htmlString = await urlRes.text();
+    const html = await urlRes.text();
 
-    const result = getFrame({
-      htmlString,
-      url,
-      specification,
+    const parseResult = parseFramesWithReports({
+      html,
+      fallbackPostUrl: url,
       fromRequestMethod: "GET",
     });
 
     return Response.json({
-      ...result,
+      ...parseResult,
       type: "frame",
     } satisfies FrameDefinitionResponse);
   } catch (err) {
@@ -138,7 +139,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   if (!postUrl) {
-    return Response.error();
+    return Response.json({ message: "Invalid post URL" }, { status: 400 });
   }
 
   try {
@@ -197,7 +198,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
 
     if (isTransactionRequest) {
-      const transaction = (await r.json()) as JSON;
+      const transaction = (await r.json()) as JsonObject;
       return Response.json(transaction);
     }
 
@@ -221,19 +222,26 @@ export async function POST(req: NextRequest): Promise<Response> {
       });
     }
 
-    const htmlString = await r.text();
+    const html = await r.text();
 
-    const result = getFrame({
-      htmlString,
-      url: body.untrustedData.url,
-      specification,
+    const parseResult = parseFramesWithReports({
+      html,
+      fallbackPostUrl: body.untrustedData.url,
       fromRequestMethod: "POST",
     });
 
-    return Response.json(result);
+    return Response.json({
+      type: "frame",
+      ...parseResult,
+    } satisfies FrameDefinitionResponse);
   } catch (err) {
     // eslint-disable-next-line no-console -- provide feedback to the user
     console.error(err);
-    return Response.error();
+    return Response.json(
+      {
+        message: String(err),
+      },
+      { status: 500 }
+    );
   }
 }
