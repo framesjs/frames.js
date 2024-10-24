@@ -5,10 +5,7 @@ import type {
   FrameButton,
   SupportedParsingSpecification,
 } from "frames.js";
-import type {
-  ParseFramesWithReportsResult,
-  ParseResult,
-} from "frames.js/frame-parsers";
+import type { ParseFramesWithReportsResult } from "frames.js/frame-parsers";
 import type { FrameTheme, FrameState } from "./types";
 import {
   getErrorMessageFromFramesStackItem,
