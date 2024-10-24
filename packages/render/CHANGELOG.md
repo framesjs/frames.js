@@ -1,5 +1,11 @@
 # @frames.js/render
 
+## 0.3.18
+
+### Patch Changes
+
+- ac0af6c: fix: allow onTransaction/onSignature to be called from contexts outside of frame e.g. miniapp
+
 ## 0.3.17
 
 ### Patch Changes

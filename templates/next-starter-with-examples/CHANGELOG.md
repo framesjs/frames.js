@@ -1,5 +1,11 @@
 # template-next-starter-with-examples
 
+## 0.1.8
+
+### Patch Changes
+
+- ac0af6c: feat: miniapp transaction example
+
 ## 0.1.7
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # create-frames
 
+## 0.1.42
+
+### Patch Changes
+
+- ac0af6c: feat: miniapp transaction example
+
 ## 0.1.41
 
 ### Patch Changes

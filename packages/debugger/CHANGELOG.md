@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.3.16
+
+### Patch Changes
+
+- ac0af6c: feat: composer action transaction support
+
 ## 0.3.15
 
 ### Patch Changes
