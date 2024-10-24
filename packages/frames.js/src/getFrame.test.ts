@@ -25,6 +25,8 @@ describe("getFrame", () => {
       })
     ).toEqual({
       status: "success",
+      framesVersion: undefined,
+      specification: "farcaster",
       frame: {
         version: "vNext",
         image: "http://example.com/image.png",
@@ -83,6 +85,8 @@ describe("getFrame", () => {
 
     expect(frame).toEqual({
       status: "success",
+      framesVersion: undefined,
+      specification: "farcaster",
       frame: {
         version: "vNext",
         image: "http://example.com/image.png",
@@ -113,7 +117,6 @@ describe("getFrame", () => {
         title: "test",
       },
       reports: {},
-      framesVersion: undefined,
     });
   });
 
@@ -162,6 +165,7 @@ describe("getFrame", () => {
 
     expect(parsedFrame).toEqual({
       status: "success",
+      specification: "farcaster",
       frame: { ...exampleFrame, title: "Test", accepts: undefined },
       reports: {},
       framesVersion,
@@ -192,6 +196,8 @@ describe("getFrame", () => {
     expect(frame).not.toBeNull();
     expect(frame).toEqual({
       status: "success",
+      framesVersion: undefined,
+      specification: "openframes",
       frame: {
         accepts: [{ id: "some", version: "vNext" }],
         version: "vNext",
@@ -279,6 +285,8 @@ describe("getFrame", () => {
 
     expect(parseResult).toEqual({
       status: "success",
+      framesVersion: undefined,
+      specification: "farcaster",
       frame: {
         version: "vNext",
         image: "http://example.com/image.png",
@@ -337,6 +345,8 @@ describe("getFrame", () => {
 
     expect(frame).toEqual({
       status: "success",
+      framesVersion: undefined,
+      specification: "farcaster",
       frame: {
         version: "vNext",
         image: "http://example.com/image.png",
@@ -353,7 +363,6 @@ describe("getFrame", () => {
         postUrl: "https://example.com/",
       },
       reports: {},
-      framesVersion: undefined,
     });
   });
 });

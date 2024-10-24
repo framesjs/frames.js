@@ -5,7 +5,7 @@ export type {
   SupportedParsingSpecification,
 } from "./frame-parsers/types";
 
-export type FrameVersion = "vNext" | `${number}-${number}-${number}`;
+export type FrameVersion = string;
 
 export type ImageAspectRatio = "1.91:1" | "1:1";
 
@@ -148,12 +148,7 @@ export type FrameButton =
 /** The permitted types of `buttonIndex` in a Frame POST payload response */
 export type ActionIndex = 1 | 2 | 3 | 4;
 
-export type FrameButtonsType =
-  | []
-  | [FrameButton]
-  | [FrameButton, FrameButton]
-  | [FrameButton, FrameButton, FrameButton]
-  | [FrameButton, FrameButton, FrameButton, FrameButton];
+export type FrameButtonsType = FrameButton[];
 
 export type AddressReturnType<
   Options extends { fallbackToCustodyAddress?: boolean } | undefined
