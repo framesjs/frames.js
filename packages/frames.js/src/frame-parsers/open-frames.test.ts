@@ -24,6 +24,7 @@ describe("open frames frame parser", () => {
       parseOpenFramesFrame($, { farcasterFrame: {}, reporter, fallbackPostUrl })
     ).toEqual({
       status: "success",
+      specification: "openframes",
       reports: {},
       frame: {
         accepts: [{ id: "some_protocol", version: "vNext" }],
@@ -62,6 +63,7 @@ describe("open frames frame parser", () => {
       })
     ).toEqual({
       status: "success",
+      specification: "openframes",
       reports: {},
       frame: {
         accepts: [{ id: "myproto", version: "1.0.0" }],
@@ -98,6 +100,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "failure",
+        specification: "openframes",
         reports: {
           "of:version": [
             {
@@ -133,6 +136,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "failure",
+        specification: "openframes",
         reports: {
           "of:version": [
             {
@@ -169,6 +173,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "openframes",
         reports: {},
         frame: {
           accepts: [{ id: "some_protocol", version: "vNext" }],
@@ -199,6 +204,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "failure",
+        specification: "openframes",
         frame: {
           accepts: [],
           version: "vNext",
@@ -237,6 +243,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "openframes",
         reports: {},
         frame: {
           accepts: [{ id: "farcaster", version: "vNext" }],
@@ -267,6 +274,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "openframes",
         reports: {
           title: [
             {
@@ -305,6 +313,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "openframes",
         reports: {},
         frame: {
           accepts: [{ id: "farcaster", version: "vNext" }],
@@ -334,6 +343,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "openframes",
         reports: {},
         frame: {
           accepts: [{ id: "farcaster", version: "vNext" }],
@@ -364,6 +374,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "openframes",
         reports: {
           "og:image": [
             {
@@ -400,6 +411,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "openframes",
         reports: {},
         frame: {
           accepts: [{ id: "some_protocol", version: "vNext" }],
@@ -428,6 +440,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "openframes",
         reports: {},
         frame: {
           accepts: [{ id: "some_protocol", version: "vNext" }],
@@ -458,6 +471,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "failure",
+        specification: "openframes",
         reports: {
           "of:image": [
             {
@@ -495,6 +509,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "openframes",
         reports: {},
         frame: {
           accepts: [{ id: "farcaster", version: "vNext" }],
@@ -524,6 +539,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "openframes",
         reports: {},
         frame: {
           accepts: [{ id: "some_protocol", version: "vNext" }],
@@ -557,6 +573,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "openframes",
         reports: {},
         frame: {
           accepts: [{ id: "farcaster", version: "vNext" }],
@@ -588,6 +605,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "openframes",
         reports: {},
         frame: {
           accepts: [{ id: "some_protocol", version: "vNext" }],
@@ -622,6 +640,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "openframes",
         reports: {},
         frame: {
           accepts: [{ id: "farcaster", version: "vNext" }],
@@ -653,6 +672,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "openframes",
         frame: {
           accepts: [{ id: "some_protocol", version: "vNext" }],
           version: "vNext",
@@ -687,6 +707,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "failure",
+        specification: "openframes",
         reports: {
           "of:post_url": [
             {
@@ -726,6 +747,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "openframes",
         reports: {},
         frame: {
           accepts: [{ id: "farcaster", version: "vNext" }],
@@ -756,6 +778,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "openframes",
         reports: {},
         frame: {
           accepts: [{ id: "some_protocol", version: "vNext" }],
@@ -785,6 +808,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "openframes",
         reports: {},
         frame: {
           accepts: [{ id: "farcaster", version: "vNext" }],
@@ -818,6 +842,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "openframes",
         reports: {},
         frame: {
           accepts: [{ id: "farcaster", version: "vNext" }],
@@ -849,6 +874,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "openframes",
         reports: {},
         frame: {
           accepts: [{ id: "some_protocol", version: "vNext" }],
@@ -884,6 +910,7 @@ describe("open frames frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "openframes",
         reports: {},
         frame: {
           accepts: [{ id: "some_protocol", version: "vNext" }],

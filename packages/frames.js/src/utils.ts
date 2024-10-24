@@ -6,7 +6,6 @@ import type {
   FrameButtonLink,
   FrameButtonMint,
   FrameButtonTx,
-  FrameVersion,
 } from "./types";
 
 export function isFrameButtonLink(
@@ -69,7 +68,7 @@ export function getFrameMessageFromRequestBody(
  * @param version - the version string to validate
  * @returns true if the provided version conforms to the Frames spec
  */
-export function isValidVersion(version: string): version is FrameVersion {
+export function isValidVersion(version: string): boolean {
   // Check if the input is exactly 'vNext'
   if (version === "vNext") {
     return true;
@@ -95,7 +94,7 @@ export function isValidVersion(version: string): version is FrameVersion {
 
 export function getEnumKeyByEnumValue<
   TEnumKey extends string,
-  TEnumVal extends string | number
+  TEnumVal extends string | number,
 >(
   enumDefinition: { [key in TEnumKey]: TEnumVal },
   enumValue: TEnumVal

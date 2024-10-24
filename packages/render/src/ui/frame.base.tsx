@@ -6,7 +6,13 @@ import {
   useRef,
   useState,
 } from "react";
-import type { FrameStackDone, FrameState } from "../types";
+import type { FrameState } from "../types";
+import {
+  getDoneStackItemFromStackItem,
+  getErrorMessageFromFramesStackItem,
+  getFrameParseResultFromStackItemBySpecifications,
+  isPartialFrameParseResult,
+} from "../helpers";
 import type {
   FrameMessage,
   FrameUIComponents as BaseFrameUIComponents,
@@ -14,11 +20,8 @@ import type {
   FrameUIState,
   RootContainerDimensions,
   RootContainerElement,
+  PartialFrame,
 } from "./types";
-import {
-  getErrorMessageFromFramesStackItem,
-  isPartialFrameStackItem,
-} from "./utils";
 
 export type FrameUIComponents<TStylingProps extends Record<string, unknown>> =
   Partial<BaseFrameUIComponents<TStylingProps>>;
@@ -27,7 +30,7 @@ export type FrameUITheme<TStylingProps extends Record<string, unknown>> =
   Partial<FrameUIComponentStylingProps<TStylingProps>>;
 
 export type BaseFrameUIProps<TStylingProps extends Record<string, unknown>> = {
-  frameState: FrameState<any, any>;
+  frameState: FrameState;
   /**
    * Renders also frames that contain only image and at least one button
    *
@@ -123,22 +126,41 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
   }
 
   let frameUiState: FrameUIState;
-  const previousFrame = (
-    frameState.framesStack[frameState.framesStack.length - 1] as FrameStackDone
-  )?.frameResult?.frame;
+  const previousDoneStackItem = getDoneStackItemFromStackItem(
+    // at 0 is always current frame, so we are interested in previous frame
+    frameState.framesStack[1]
+  );
+  const previousParseResult = previousDoneStackItem
+    ? getFrameParseResultFromStackItemBySpecifications(
+        previousDoneStackItem,
+        frameState.specifications
+      )
+    : undefined;
+  let previousFrame: undefined | Frame | PartialFrame;
+
+  if (
+    previousParseResult &&
+    (previousParseResult.status === "success" ||
+      (isPartialFrameParseResult(previousParseResult) && allowPartialFrame))
+  ) {
+    previousFrame = previousParseResult.frame;
+  }
 
   switch (currentFrameStackItem.status) {
     case "requestError": {
       if (
         "sourceFrame" in currentFrameStackItem.request &&
-        currentFrameStackItem.request.sourceFrame
+        currentFrameStackItem.request.sourceParseResult
       ) {
         frameUiState = {
           status: "complete",
           frame: currentFrameStackItem.request.sourceFrame,
+          previousFrame,
           isImageLoading,
           id: currentFrameStackItem.timestamp.getTime(),
           frameState,
+          parseResult: currentFrameStackItem.request.sourceParseResult,
+          specification: currentFrameStackItem.request.specification,
         };
       } else {
         return components.Error(
@@ -168,9 +190,12 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
       frameUiState = {
         status: "complete",
         frame: currentFrameStackItem.request.sourceFrame,
+        previousFrame,
         isImageLoading,
         id: currentFrameStackItem.timestamp.getTime(),
         frameState,
+        parseResult: currentFrameStackItem.request.sourceParseResult,
+        specification: currentFrameStackItem.request.specification,
       };
 
       break;
@@ -180,44 +205,56 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
           status: "loading",
           id: currentFrameStackItem.timestamp.getTime(),
           frameState,
+          previousFrame,
         };
       } else {
         frameUiState = {
           status: "complete",
           frame: currentFrameStackItem.request.sourceFrame,
+          previousFrame,
           isImageLoading,
           id: currentFrameStackItem.timestamp.getTime(),
           frameState,
+          parseResult: currentFrameStackItem.request.sourceParseResult,
+          specification: currentFrameStackItem.request.specification,
         };
       }
 
       break;
     }
     case "done": {
-      if (currentFrameStackItem.frameResult.status === "success") {
+      const parseResult = getFrameParseResultFromStackItemBySpecifications(
+        currentFrameStackItem,
+        frameState.specifications
+      );
+
+      if (parseResult.status === "success") {
         frameUiState = {
           status: "complete",
-          frame: currentFrameStackItem.frameResult.frame,
+          frame: parseResult.frame,
+          previousFrame,
           debugImage: enableImageDebugging
-            ? currentFrameStackItem.frameResult.framesDebugInfo?.image
+            ? parseResult.framesDebugInfo?.image
             : undefined,
           isImageLoading,
           id: currentFrameStackItem.timestamp.getTime(),
           frameState,
+          parseResult: currentFrameStackItem.parseResult,
+          specification: parseResult.specification,
         };
-      } else if (
-        isPartialFrameStackItem(currentFrameStackItem) &&
-        allowPartialFrame
-      ) {
+      } else if (isPartialFrameParseResult(parseResult) && allowPartialFrame) {
         frameUiState = {
           status: "partial",
-          frame: currentFrameStackItem.frameResult.frame,
+          frame: parseResult.frame,
+          previousFrame,
           debugImage: enableImageDebugging
-            ? currentFrameStackItem.frameResult.framesDebugInfo?.image
+            ? parseResult.framesDebugInfo?.image
             : undefined,
           isImageLoading,
           id: currentFrameStackItem.timestamp.getTime(),
           frameState,
+          parseResult: currentFrameStackItem.parseResult,
+          specification: parseResult.specification,
         };
       } else {
         return components.Error(
@@ -231,6 +268,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
     case "pending": {
       frameUiState = {
         status: "loading",
+        previousFrame,
         id: currentFrameStackItem.timestamp.getTime(),
         frameState,
       };
@@ -256,12 +294,12 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
             rootDimensionsRef.current = rootRef.current?.computeDimensions();
 
             Promise.resolve(
-              frameState.onButtonPress(
-                // @todo change the type onButtonPress to accept partial frame as well because that can happen if partial frames are enabled
-                frameUiState.frame as Frame,
+              frameState.onButtonPress({
                 frameButton,
-                index
-              )
+                index,
+                parseResult: frameUiState.parseResult,
+                specification: frameUiState.specification,
+              })
             ).catch((error) => {
               // eslint-disable-next-line no-console -- provide feedback to the user
               console.error(error);
@@ -351,7 +389,6 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
                 frame: frameUiState,
                 textInput: components.TextInput(
                   {
-                    // @TODO provide previous frame to pending state so we can remove loading check and render skeletons?
                     isDisabled: false,
                     frameState: frameUiState,
                     placeholder: frameUiState.frame.inputText,

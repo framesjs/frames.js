@@ -1,12 +1,17 @@
 import type { ImgHTMLAttributes } from "react";
 import React, { useState } from "react";
-import type { Frame, FrameButton } from "frames.js";
 import type {
-  FrameTheme,
-  FrameState,
-  FrameStackMessage,
-  FrameStackRequestError,
-} from "./types";
+  Frame,
+  FrameButton,
+  SupportedParsingSpecification,
+} from "frames.js";
+import type { ParseFramesWithReportsResult } from "frames.js/frame-parsers";
+import type { FrameTheme, FrameState } from "./types";
+import {
+  getErrorMessageFromFramesStackItem,
+  getFrameParseResultFromStackItemBySpecifications,
+  isPartialFrameParseResult,
+} from "./helpers";
 
 export const defaultTheme: Required<FrameTheme> = {
   buttonBg: "#fff",
@@ -90,22 +95,8 @@ function MessageTooltip({
   );
 }
 
-function getErrorMessageFromFramesStackItem(
-  item: FrameStackMessage | FrameStackRequestError
-): string {
-  if (item.status === "message") {
-    return item.message;
-  }
-
-  if (item.requestError instanceof Error) {
-    return item.requestError.message;
-  }
-
-  return "An error occurred";
-}
-
 export type FrameUIProps = {
-  frameState: FrameState<any, any>;
+  frameState: FrameState;
   theme?: FrameTheme;
   FrameImage?: React.FC<ImgHTMLAttributes<HTMLImageElement> & { src: string }>;
   allowPartialFrame?: boolean;
@@ -126,8 +117,9 @@ export function FrameUI({
   enableImageDebugging,
 }: FrameUIProps): React.JSX.Element | null {
   const [isImageLoading, setIsImageLoading] = useState(true);
-  const currentFrame = frameState.currentFrameStackItem;
-  const isLoading = currentFrame?.status === "pending" || isImageLoading;
+  const { currentFrameStackItem, specifications } = frameState;
+  const isLoading =
+    currentFrameStackItem?.status === "pending" || isImageLoading;
   const resolvedTheme = getThemeWithDefaults(theme ?? {});
 
   if (!frameState.homeframeUrl) {
@@ -136,41 +128,58 @@ export function FrameUI({
     );
   }
 
-  if (!currentFrame) {
+  if (!currentFrameStackItem) {
     return null;
   }
 
-  if (
-    currentFrame.status === "done" &&
-    currentFrame.frameResult.status === "failure" &&
-    !(
-      allowPartialFrame &&
-      // Need at least image and buttons to render a partial frame
-      currentFrame.frameResult.frame.image &&
-      currentFrame.frameResult.frame.buttons
-    )
-  ) {
-    return <MessageTooltip inline message="Invalid frame" variant="error" />;
+  // check if frame is partial and if partials are allowed
+  if (currentFrameStackItem.status === "done") {
+    const currentFrameParseResult =
+      getFrameParseResultFromStackItemBySpecifications(
+        currentFrameStackItem,
+        specifications
+      );
+
+    // not a proper partial frame or partial frames are disabled
+    if (
+      currentFrameParseResult.status === "failure" &&
+      (!allowPartialFrame ||
+        !isPartialFrameParseResult(currentFrameParseResult))
+    ) {
+      return <MessageTooltip inline message="Invalid frame" variant="error" />;
+    }
   }
 
   let frame: Frame | Partial<Frame> | undefined;
+  let parseResult: ParseFramesWithReportsResult | undefined;
+  let specification: SupportedParsingSpecification | undefined;
   let debugImage: string | undefined;
 
-  if (currentFrame.status === "done") {
-    frame = currentFrame.frameResult.frame;
+  if (currentFrameStackItem.status === "done") {
+    const parseResultBySpec = getFrameParseResultFromStackItemBySpecifications(
+      currentFrameStackItem,
+      specifications
+    );
+
+    frame = parseResultBySpec.frame;
+    parseResult = currentFrameStackItem.parseResult;
+    specification = parseResultBySpec.specification;
     debugImage = enableImageDebugging
-      ? currentFrame.frameResult.framesDebugInfo?.image
+      ? parseResultBySpec.framesDebugInfo?.image
       : undefined;
   } else if (
-    currentFrame.status === "message" ||
-    currentFrame.status === "doneRedirect"
+    currentFrameStackItem.status === "message" ||
+    currentFrameStackItem.status === "doneRedirect"
   ) {
-    frame = currentFrame.request.sourceFrame;
-  } else if (currentFrame.status === "requestError") {
-    frame =
-      "sourceFrame" in currentFrame.request
-        ? currentFrame.request.sourceFrame
-        : undefined;
+    frame = currentFrameStackItem.request.sourceFrame;
+    parseResult = currentFrameStackItem.request.sourceParseResult;
+    specification = currentFrameStackItem.request.specification;
+  } else if (currentFrameStackItem.status === "requestError") {
+    if ("sourceFrame" in currentFrameStackItem.request) {
+      frame = currentFrameStackItem.request.sourceFrame;
+      parseResult = currentFrameStackItem.request.sourceParseResult;
+      specification = currentFrameStackItem.request.specification;
+    }
   }
 
   const ImageEl = FrameImage ? FrameImage : "img";
@@ -182,11 +191,13 @@ export function FrameUI({
       <div className="relative w-full" style={{ height: "100%" }}>
         {" "}
         {/* Ensure the container fills the height */}
-        {currentFrame.status === "message" ? (
+        {currentFrameStackItem.status === "message" ? (
           <MessageTooltip
             inline={!frame || !("image" in frame) || !frame.image}
-            message={getErrorMessageFromFramesStackItem(currentFrame)}
-            variant={currentFrame.type === "error" ? "error" : "message"}
+            message={getErrorMessageFromFramesStackItem(currentFrameStackItem)}
+            variant={
+              currentFrameStackItem.type === "error" ? "error" : "message"
+            }
           />
         ) : null}
         {!!frame && !!frame.image && (
@@ -234,7 +245,11 @@ export function FrameUI({
           }}
         />
       ) : null}
-      {!!frame && !!frame.buttons && frame.buttons.length > 0 ? (
+      {!!parseResult &&
+      !!specification &&
+      !!frame &&
+      !!frame.buttons &&
+      frame.buttons.length > 0 ? (
         <div className="flex gap-[8px] px-2 pb-2">
           {frame.buttons.map((frameButton: FrameButton, index: number) => (
             <button
@@ -253,12 +268,12 @@ export function FrameUI({
               }}
               onClick={() => {
                 Promise.resolve(
-                  frameState.onButtonPress(
-                    // Partial frame could have enough data to handle button press
-                    frame as Frame,
+                  frameState.onButtonPress({
+                    parseResult,
                     frameButton,
-                    index
-                  )
+                    index,
+                    specification,
+                  })
                 ).catch((e: unknown) => {
                   // eslint-disable-next-line no-console -- provide feedback to the user
                   console.error(e);

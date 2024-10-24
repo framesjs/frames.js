@@ -22,6 +22,7 @@ import {
   CollapsedFrameUI,
   defaultTheme,
 } from "@frames.js/render";
+import { getFrameParseResultFromStackItemBySpecifications } from "@frames.js/render/helpers";
 import { FrameImageNext } from "@frames.js/render/next";
 import { Table, TableBody, TableCell, TableRow } from "@/components/table";
 import {
@@ -59,13 +60,10 @@ import { urlSearchParamsToObject } from "../utils/url-search-params-to-object";
 import { FrameUI } from "./frame-ui";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
-import type { AnonymousSigner } from "@frames.js/render/identity/anonymous";
-import type { LensSigner } from "@frames.js/render/identity/lens";
-import type { FarcasterSigner } from "@frames.js/render/identity/farcaster";
-import type { XmtpSigner } from "@frames.js/render/identity/xmtp";
 
 type FrameDiagnosticsProps = {
   stackItem: FramesStackItem;
+  specification: SupportedParsingSpecification;
 };
 
 function isPropertyExperimental([key, value]: [string, string]) {
@@ -73,7 +71,7 @@ function isPropertyExperimental([key, value]: [string, string]) {
   return false;
 }
 
-function FrameDiagnostics({ stackItem }: FrameDiagnosticsProps) {
+function FrameDiagnostics({ stackItem, specification }: FrameDiagnosticsProps) {
   const properties = useMemo(() => {
     /** tuple of key and value */
     const validProperties: [string, string][] = [];
@@ -97,7 +95,9 @@ function FrameDiagnostics({ stackItem }: FrameDiagnosticsProps) {
       return { validProperties, invalidProperties, isValid: true };
     }
 
-    const result = stackItem.frameResult;
+    const result = getFrameParseResultFromStackItemBySpecifications(stackItem, [
+      specification,
+    ]);
 
     // we need to check validation errors first because getFrame incorrectly return a value for a key even if it's invalid
     for (const [key, reports] of Object.entries(result.reports)) {
@@ -160,8 +160,8 @@ function FrameDiagnostics({ stackItem }: FrameDiagnosticsProps) {
             {stackItem.speed > 5
               ? `Request took more than 5s (${stackItem.speed} seconds). This may be normal: first request will take longer in development (as next.js builds), but in production, clients will timeout requests after 5s`
               : stackItem.speed > 4
-              ? `Warning: Request took more than 4s (${stackItem.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
-              : `${stackItem.speed} seconds`}
+                ? `Warning: Request took more than 4s (${stackItem.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
+                : `${stackItem.speed} seconds`}
           </TableCell>
         </TableRow>
         {properties.validProperties.map(([propertyKey, value]) => {
@@ -248,7 +248,8 @@ function ShortenedText({
 
 const FramesRequestCardContentIcon: React.FC<{
   stackItem: FramesStackItem;
-}> = ({ stackItem }) => {
+  specification: SupportedParsingSpecification;
+}> = ({ stackItem, specification }) => {
   if (stackItem.status === "pending") {
     return <LoaderIcon className="animate-spin" size={20} />;
   }
@@ -269,11 +270,15 @@ const FramesRequestCardContentIcon: React.FC<{
     return <ExternalLinkIcon size={20} color="green" />;
   }
 
-  if (stackItem.frameResult?.status === "failure") {
+  const result = getFrameParseResultFromStackItemBySpecifications(stackItem, [
+    specification,
+  ]);
+
+  if (result.status === "failure") {
     return <XCircle size={20} color="red" />;
   }
 
-  if (hasWarnings(stackItem.frameResult.reports)) {
+  if (hasWarnings(result.reports)) {
     return <AlertTriangle size={20} color="orange" />;
   }
 
@@ -282,10 +287,9 @@ const FramesRequestCardContentIcon: React.FC<{
 
 const FramesRequestCardContent: React.FC<{
   stack: FramesStack;
-  fetchFrame: FrameState<
-    FarcasterSigner | XmtpSigner | LensSigner | AnonymousSigner | null
-  >["fetchFrame"];
-}> = ({ fetchFrame, stack }) => {
+  fetchFrame: FrameState["fetchFrame"];
+  specification: SupportedParsingSpecification;
+}> = ({ fetchFrame, specification, stack }) => {
   return stack.map((frameStackItem, i) => {
     return (
       <button
@@ -312,7 +316,8 @@ const FramesRequestCardContent: React.FC<{
           <span className="ml-auto">
             <FramesRequestCardContentIcon
               stackItem={frameStackItem}
-            ></FramesRequestCardContentIcon>
+              specification={specification}
+            />
           </span>
         </span>
         <span className="flex flex-row w-full">
@@ -369,10 +374,10 @@ type FrameDebuggerSharedProps = {
 type FrameDebuggerProps = FrameDebuggerSharedProps &
   (
     | {
-        useFrameHook: () => FrameState<any, any>;
+        useFrameHook: () => FrameState;
       }
     | {
-        frameState: FrameState<any, any>;
+        frameState: FrameState;
       }
   );
 
@@ -478,10 +483,16 @@ export const FrameDebugger = React.forwardRef<
       [toast, showConsole]
     );
 
+    const currentParseResult =
+      currentFrameStackItem && currentFrameStackItem.status === "done"
+        ? getFrameParseResultFromStackItemBySpecifications(
+            currentFrameStackItem,
+            [specification]
+          )
+        : undefined;
+
     const isImageDebuggingAvailable =
-      currentFrameStackItem &&
-      "frameResult" in currentFrameStackItem &&
-      !!currentFrameStackItem.frameResult.framesDebugInfo?.image;
+      currentParseResult?.framesDebugInfo?.image;
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[300px_500px_1fr] p-4 gap-4 bg-slate-50 max-w-full w-full">
@@ -541,6 +552,7 @@ export const FrameDebugger = React.forwardRef<
               <FramesRequestCardContent
                 fetchFrame={frameState.fetchFrame}
                 stack={frameState.framesStack}
+                specification={specification}
               ></FramesRequestCardContent>
             </CardContent>
           </Card>
@@ -621,8 +633,11 @@ export const FrameDebugger = React.forwardRef<
                 )}
                 <div className="space-y-1">
                   {currentFrameStackItem?.status === "done" &&
-                    currentFrameStackItem.frameResult.frame.buttons
-                      ?.filter(
+                    getFrameParseResultFromStackItemBySpecifications(
+                      currentFrameStackItem,
+                      [specification]
+                    )
+                      .frame.buttons?.filter(
                         (button) =>
                           button.target?.startsWith(
                             "https://warpcast.com/~/add-cast-action"
@@ -685,7 +700,8 @@ export const FrameDebugger = React.forwardRef<
                   <TabsContent className="overflow-y-auto" value="diagnostics">
                     <FrameDiagnostics
                       stackItem={currentFrameStackItem}
-                    ></FrameDiagnostics>
+                      specification={specification}
+                    />
                   </TabsContent>
                   <TabsContent
                     className="overflow-y-auto"
@@ -719,15 +735,15 @@ export const FrameDebugger = React.forwardRef<
                         <button
                           className="underline"
                           onClick={() => {
-                            if (!currentFrameStackItem) {
-                              return;
-                            }
+                            const frame =
+                              getFrameParseResultFromStackItemBySpecifications(
+                                currentFrameStackItem,
+                                [specification]
+                              ).frame;
 
                             // Copy the text inside the text field
                             navigator.clipboard.writeText(
-                              getFrameHtmlHead(
-                                currentFrameStackItem.frameResult.frame
-                              )
+                              getFrameHtmlHead(frame)
                             );
                             setCopySuccess(true);
                           }}
@@ -748,7 +764,10 @@ export const FrameDebugger = React.forwardRef<
                             "sourceFrame" in currentFrameStackItem.request &&
                               currentFrameStackItem.request.sourceFrame
                               ? currentFrameStackItem.request.sourceFrame
-                              : currentFrameStackItem.frameResult.frame
+                              : getFrameParseResultFromStackItemBySpecifications(
+                                  currentFrameStackItem,
+                                  [specification]
+                                ).frame
                           )
                             .split("<meta")
                             .filter((t) => !!t)

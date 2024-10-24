@@ -1,18 +1,10 @@
 import type {
-  ParseResult,
   SupportedParsingSpecification,
+  ParseResultWithFrameworkDetails,
 } from "./frame-parsers/types";
 import { parseFramesWithReports } from "./parseFramesWithReports";
 
-type GetFrameResult = ParseResult & {
-  framesVersion?: string;
-  framesDebugInfo?: {
-    /**
-     * Image URL of debug image.
-     */
-    image?: string;
-  };
-};
+export type GetFrameResult = ParseResultWithFrameworkDetails;
 
 type GetFrameOptions = {
   htmlString: string;
@@ -51,11 +43,5 @@ export function getFrame({
     fromRequestMethod,
   });
 
-  return {
-    ...parsedFrames[specification],
-    framesVersion: parsedFrames.framesVersion,
-    ...(parsedFrames.framesDebugInfo
-      ? { framesDebugInfo: parsedFrames.framesDebugInfo }
-      : {}),
-  };
+  return parsedFrames[specification];
 }

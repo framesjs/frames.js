@@ -267,6 +267,16 @@
         "default": "./dist/hono/index.cjs"
       }
     },
+    "./parseFramesWithReports": {
+      "import": {
+        "types": "./dist/parseFramesWithReports.d.ts",
+        "default": "./dist/parseFramesWithReports.js"
+      },
+      "require": {
+        "types": "./dist/parseFramesWithReports.d.cts",
+        "default": "./dist/parseFramesWithReports.cjs"
+      }
+    },
     "./remix": {
       "import": {
         "types": "./dist/remix/index.d.ts",

@@ -143,6 +143,7 @@ export function parseFarcasterFrame(
       status: "failure",
       frame,
       reports: reporter.toObject(),
+      specification: "farcaster",
     };
   }
 
@@ -150,5 +151,6 @@ export function parseFarcasterFrame(
     status: "success",
     frame: frame as unknown as Frame,
     reports: reporter.toObject(),
+    specification: "farcaster",
   };
 }
