@@ -2,6 +2,7 @@ import { redirect } from "../../core/redirect";
 import type { FramesContext } from "../../core/types";
 import { neynarValidate } from ".";
 import type { ValidateFrameActionResponse } from "./types.message";
+import nock, { cleanAll } from "nock";
 
 describe("neynarValidate middleware", () => {
   let sampleFrameActionRequest: Request;
@@ -17,6 +18,7 @@ describe("neynarValidate middleware", () => {
         untrustedData: {},
       }),
     });
+    cleanAll();
   });
 
   it("moves to next middleware without parsing if request is not POST request", async () => {
@@ -72,6 +74,48 @@ describe("neynarValidate middleware", () => {
     const mw = neynarValidate();
     const next = jest.fn(() => Promise.resolve(new Response()));
 
+    nock("https://api.neynar.com")
+      .post("/v2/farcaster/frame/validate")
+      .reply(200, {
+        valid: true,
+        action: {
+          object: "validated_frame_action",
+          url: "��i���j����+i̾~��z��q�Z��",
+          interactor: {
+            object: "user",
+            fid: 18949,
+            username: "ntestn",
+            display_name: "NeynNet Tester",
+            pfp_url:
+              "https://cdn-icons-png.freepik.com/256/17028/17028049.png?semt=ais_hybrid",
+            custody_address: "0xa5b36877f62a6a07895acd72c0ca60c998a33187",
+            profile: {
+              bio: {
+                text: "from the terminal",
+              },
+            },
+            follower_count: 493,
+            following_count: 6,
+            verifications: [],
+            verified_addresses: {
+              eth_addresses: [],
+              sol_addresses: [],
+            },
+            verified_accounts: null,
+            power_badge: false,
+          },
+          tapped_button: {
+            index: 2,
+          },
+          state: {
+            serialized: "",
+          },
+          cast: {},
+          timestamp: "2024-01-29T05:36:54.000Z",
+        },
+        signature_temporary_object: {},
+      });
+
     await mw(context, next);
 
     expect(next).toHaveBeenCalledWith(
@@ -95,5 +139,4 @@ describe("neynarValidate middleware", () => {
       })
     );
   });
-
 });
