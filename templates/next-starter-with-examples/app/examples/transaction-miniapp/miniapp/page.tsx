@@ -12,21 +12,23 @@ export default function MiniappPage({
     fromAddress: string;
   };
 }) {
+  const windowObject = typeof window !== "undefined" ? window : null;
+
   const [message, setMessage] = useState<any>(null);
 
   const handleMessage = useCallback((m: MessageEvent) => {
     console.log("received", m);
 
-    if (m.source === window.parent) {
+    if (m.source === windowObject?.parent) {
       setMessage(m.data);
     }
   }, []);
 
   useEffect(() => {
-    window.addEventListener("message", handleMessage);
+    windowObject?.addEventListener("message", handleMessage);
 
     return () => {
-      window.removeEventListener("message", handleMessage);
+      windowObject?.removeEventListener("message", handleMessage);
     };
   }, []);
 
@@ -40,7 +42,7 @@ export default function MiniappPage({
       ) as `0x${string}`;
 
       // Handle form submission here
-      window.parent.postMessage(
+      windowObject?.parent.postMessage(
         {
           type: "requestTransaction",
           data: {
@@ -59,11 +61,11 @@ export default function MiniappPage({
         "*"
       );
     },
-    [window?.parent]
+    [windowObject?.parent]
   );
 
   const handleRequestSignature = useCallback(() => {
-    window.parent.postMessage(
+    windowObject?.parent.postMessage(
       {
         type: "requestTransaction",
         data: {
@@ -104,7 +106,7 @@ export default function MiniappPage({
       },
       "*"
     );
-  }, [window?.parent]);
+  }, [windowObject?.parent]);
 
   return (
     <div className="flex flex-col gap-2">
