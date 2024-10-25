@@ -16,13 +16,10 @@ import type {
   SignedFrameAction,
   SignerStateActionContext,
 } from "./types";
+import { isParseResult } from "./helpers";
 
 function computeDurationInSeconds(start: Date, end: Date): number {
   return Number(((end.getTime() - start.getTime()) / 1000).toFixed(2));
-}
-
-export function isParseResult(result: unknown): result is ParseResult {
-  return typeof result === "object" && result !== null && "status" in result;
 }
 
 function framesStackReducer(

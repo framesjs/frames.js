@@ -1,4 +1,7 @@
-import type { ParseFramesWithReportsResult } from "frames.js/frame-parsers";
+import type {
+  ParseFramesWithReportsResult,
+  ParseResult,
+} from "frames.js/frame-parsers";
 
 export async function tryCallAsync<TResult>(
   promiseFn: () => Promise<TResult>
@@ -36,5 +39,15 @@ export function isParseFramesWithReportsResult(
     value !== null &&
     "openframes" in value &&
     "farcaster" in value
+  );
+}
+
+export function isParseResult(value: unknown): value is ParseResult {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "status" in value &&
+    !("openframes" in value) &&
+    !("farcaster" in value)
   );
 }
