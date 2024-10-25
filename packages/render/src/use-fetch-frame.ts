@@ -39,6 +39,7 @@ import {
 } from "./errors";
 import {
   isParseFramesWithReportsResult,
+  isParseResult,
   tryCall,
   tryCallAsync,
 } from "./helpers";
@@ -241,30 +242,41 @@ export function useFetchFrame<
         return;
       }
 
-      if (!isParseFramesWithReportsResult(parseResult)) {
-        const error = new Error("The server returned an unexpected response.");
-
-        stackAPI.markAsFailed({
-          endTime,
+      if (isParseFramesWithReportsResult(parseResult)) {
+        stackAPI.markAsDone({
           pendingItem: frameStackPendingItem,
-          requestError: error,
+          endTime,
+          frameResult: parseResult[specification],
           response,
-          responseBody: parseResult,
-          responseStatus: 500,
-        });
-
-        tryCall(() => {
-          onError(error);
         });
 
         return;
       }
 
-      stackAPI.markAsDone({
-        pendingItem: frameStackPendingItem,
+      if (isParseResult(parseResult)) {
+        stackAPI.markAsDone({
+          pendingItem: frameStackPendingItem,
+          endTime,
+          frameResult: parseResult,
+          response,
+        });
+
+        return;
+      }
+
+      const error = new Error("The server returned an unexpected response.");
+
+      stackAPI.markAsFailed({
         endTime,
-        frameResult: parseResult[specification],
+        pendingItem: frameStackPendingItem,
+        requestError: error,
         response,
+        responseBody: parseResult,
+        responseStatus: 500,
+      });
+
+      tryCall(() => {
+        onError(error);
       });
 
       return;
@@ -480,33 +492,46 @@ export function useFetchFrame<
         return;
       }
 
-      if (!isParseFramesWithReportsResult(responseData)) {
-        const error = new Error("The server returned an unexpected response.");
-
-        stackAPI.markAsFailed({
+      if (isParseFramesWithReportsResult(responseData)) {
+        stackAPI.markAsDone({
           endTime,
+          frameResult: responseData[specification],
           pendingItem,
-          requestError: error,
           response,
-          responseBody: responseData,
-          responseStatus: 500,
         });
-        tryCall(() => {
-          onError(error);
-        });
-        tryCall(() => options?.onError?.(error));
+
+        tryCall(() => options?.onSuccess?.());
 
         return;
       }
 
-      stackAPI.markAsDone({
-        endTime,
-        frameResult: responseData[specification],
-        pendingItem,
-        response,
-      });
+      if (isParseResult(responseData)) {
+        stackAPI.markAsDone({
+          endTime,
+          frameResult: responseData,
+          pendingItem,
+          response,
+        });
 
-      tryCall(() => options?.onSuccess?.());
+        tryCall(() => options?.onSuccess?.());
+
+        return;
+      }
+
+      const error = new Error("The server returned an unexpected response.");
+
+      stackAPI.markAsFailed({
+        endTime,
+        pendingItem,
+        requestError: error,
+        response,
+        responseBody: responseData,
+        responseStatus: 500,
+      });
+      tryCall(() => {
+        onError(error);
+      });
+      tryCall(() => options?.onError?.(error));
 
       return;
     }

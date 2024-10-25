@@ -1,9 +1,14 @@
-import type { FrameActionPayload } from "frames.js";
-import type { ParseFramesWithReportsResult } from "frames.js/frame-parsers";
+import {
+  getFrame,
+  type FrameActionPayload,
+  type GetFrameResult,
+} from "frames.js";
+import { type ParseFramesWithReportsResult } from "frames.js/frame-parsers";
 import { parseFramesWithReports } from "frames.js/parseFramesWithReports";
 import type { JsonObject, JsonValue } from "frames.js/types";
 import type { NextRequest } from "next/server";
 import { tryCallAsync } from "../helpers";
+import { isSpecificationValid } from "./validators";
 
 export type POSTResponseError = { message: string };
 
@@ -12,6 +17,7 @@ export type POSTResponseRedirect = { location: string };
 export type POSTTransactionResponse = JsonObject;
 
 export type POSTResponse =
+  | GetFrameResult
   | ParseFramesWithReportsResult
   | POSTResponseError
   | POSTResponseRedirect
@@ -37,6 +43,9 @@ export async function POST(req: Request | NextRequest): Promise<Response> {
     const isPostRedirect = searchParams.get("postType") === "post_redirect";
     const isTransactionRequest = searchParams.get("postType") === "tx";
     const postUrl = searchParams.get("postUrl");
+    const multiSpecificationEnabled =
+      searchParams.get("multispecification") === "true";
+    const specification = searchParams.get("specification") ?? "farcaster";
 
     if (!postUrl) {
       return Response.json(
@@ -170,9 +179,31 @@ export async function POST(req: Request | NextRequest): Promise<Response> {
     }
 
     const html = await response.text();
-    const result: ParseFramesWithReportsResult = parseFramesWithReports({
-      html,
-      fallbackPostUrl: body.untrustedData.url,
+
+    if (multiSpecificationEnabled) {
+      const result = parseFramesWithReports({
+        html,
+        fallbackPostUrl: body.untrustedData.url,
+        fromRequestMethod: "POST",
+      });
+
+      return Response.json(result satisfies ParseFramesWithReportsResult);
+    }
+
+    if (!isSpecificationValid(specification)) {
+      return Response.json(
+        {
+          message: "Invalid specification",
+        } satisfies POSTResponseError,
+        { status: 400 }
+      );
+    }
+
+    const result = getFrame({
+      htmlString: html,
+      url: body.untrustedData.url,
+      fromRequestMethod: "POST",
+      specification,
     });
 
     return Response.json(result satisfies POSTResponse);
