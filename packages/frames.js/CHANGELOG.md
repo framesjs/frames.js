@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.19.5
+
+### Patch Changes
+
+- d13c6ca: fix: deal better with errors in neynar validator middleware
+
 ## 0.19.4
 
 ### Patch Changes

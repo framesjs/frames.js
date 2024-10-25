@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.3.17
+
+### Patch Changes
+
+- b032d00: fix: update miniapp transactions spec implementation
+
 ## 0.3.16
 
 ### Patch Changes

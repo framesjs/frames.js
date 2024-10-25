@@ -1,5 +1,13 @@
 # template-next-starter-with-examples
 
+## 0.1.9
+
+### Patch Changes
+
+- b032d00: fix: update miniapp transactions spec implementation
+- Updated dependencies [d13c6ca]
+  - frames.js@0.19.5
+
 ## 0.1.8
 
 ### Patch Changes
