@@ -46,6 +46,16 @@
         "default": "./dist/errors.cjs"
       }
     },
+    "./helpers": {
+      "import": {
+        "types": "./dist/helpers.d.ts",
+        "default": "./dist/helpers.js"
+      },
+      "require": {
+        "types": "./dist/helpers.d.cts",
+        "default": "./dist/helpers.cjs"
+      }
+    },
     "./next": {
       "import": {
         "types": "./dist/next/index.d.ts",
