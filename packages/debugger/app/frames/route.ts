@@ -23,23 +23,16 @@ const composerActionFormParser = z.object({
   title: z.string().min(1),
 });
 
-const jsonResponseParser = z.preprocess(
-  (data) => {
-    if (typeof data === "object" && data !== null && !("type" in data)) {
-      return {
-        type: "message",
-        ...data,
-      };
-    }
+const jsonResponseParser = z.preprocess((data) => {
+  if (typeof data === "object" && data !== null && !("type" in data)) {
+    return {
+      type: "message",
+      ...data,
+    };
+  }
 
-    return data;
-  },
-  z.discriminatedUnion("type", [
-    castActionFrameParser,
-    castActionMessageParser,
-    composerActionFormParser,
-  ])
-);
+  return data;
+}, z.discriminatedUnion("type", [castActionFrameParser, castActionMessageParser, composerActionFormParser]));
 
 const errorResponseParser = z.object({
   message: z.string().min(1),
@@ -184,7 +177,14 @@ export async function POST(req: NextRequest): Promise<Response> {
         );
       }
 
-      return r.clone();
+      const headers = new Headers(r.headers);
+      // Proxied requests could have content-encoding set, which breaks the response
+      headers.delete("content-encoding");
+      return new Response(r.body, {
+        headers,
+        status: r.status,
+        statusText: r.statusText,
+      });
     }
 
     if (isPostRedirect && r.status !== 302) {
@@ -211,7 +211,14 @@ export async function POST(req: NextRequest): Promise<Response> {
         throw new Error("Invalid frame response");
       }
 
-      return r.clone();
+      const headers = new Headers(r.headers);
+      // Proxied requests could have content-encoding set, which breaks the response
+      headers.delete("content-encoding");
+      return new Response(r.body, {
+        headers,
+        status: r.status,
+        statusText: r.statusText,
+      });
     }
 
     const htmlString = await r.text();
