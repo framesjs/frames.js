@@ -37,6 +37,7 @@ export type FrameState =
       frameContext: FrameContext;
       specification: SupportedParsingSpecification;
       homeframeUrl: string;
+      parseResult: ParseFramesWithReportsResult;
     }
   | {
       type: "not-initialized";
@@ -109,6 +110,7 @@ function createFramesStackReducer(
         let specification: SupportedParsingSpecification;
         let frameContext: FrameContext;
         let homeframeUrl: string;
+        let parseResult = action.parseResult;
 
         if (state.type === "not-initialized") {
           /**
@@ -125,7 +127,13 @@ function createFramesStackReducer(
             resolvedSpecification);
           homeframeUrl = action.pendingItem.url;
         } else {
-          ({ signerState, specification, frameContext, homeframeUrl } = state);
+          ({
+            signerState,
+            specification,
+            frameContext,
+            homeframeUrl,
+            parseResult,
+          } = state);
         }
 
         state.stack[index] = {
@@ -143,6 +151,7 @@ function createFramesStackReducer(
 
         return {
           ...state,
+          parseResult,
           signerState,
           frameContext,
           homeframeUrl,
@@ -167,6 +176,24 @@ function createFramesStackReducer(
           stack: state.stack.slice(),
         };
       }
+      case "RESET": {
+        if (state.type === "not-initialized") {
+          return state;
+        }
+
+        const { frameContext, signerState, specification } =
+          resolveSpecificationRef.current({ parseResult: state.parseResult });
+
+        return {
+          ...state,
+          stack:
+            !!state.stack[0] && state.stack.length > 0 ? [state.stack[0]] : [],
+          type: "initialized",
+          frameContext,
+          signerState,
+          specification,
+        };
+      }
       case "RESET_INITIAL_FRAME": {
         const { frameContext, signerState, specification } =
           resolveSpecificationRef.current({ parseResult: action.parseResult });
@@ -178,6 +205,7 @@ function createFramesStackReducer(
           frameContext,
           specification,
           homeframeUrl: action.homeframeUrl,
+          parseResult: action.parseResult,
           stack: [
             {
               request: {
@@ -292,7 +320,11 @@ export type FrameStateAPI = {
     response: Response;
     responseBody: unknown;
   }) => void;
-  reset: (arg: {
+  /**
+   * If arg is omitted it will reset the frame stack to initial frame and resolves the specification again.
+   * Otherwise it will set the frame state to provided values and resolve the specification.
+   */
+  reset: (arg?: {
     homeframeUrl: string;
     parseResult: ParseFramesWithReportsResult;
   }) => void;
@@ -322,6 +354,7 @@ export function useFrameState({
           signerState,
           specification,
           homeframeUrl: frameUrl,
+          parseResult,
           stack: [
             {
               response: new Response(JSON.stringify(frameResult), {
@@ -540,11 +573,15 @@ export function useFrameState({
         });
       },
       reset(arg) {
-        dispatch({
-          action: "RESET_INITIAL_FRAME",
-          homeframeUrl: arg.homeframeUrl,
-          parseResult: arg.parseResult,
-        });
+        if (!arg) {
+          dispatch({ action: "RESET" });
+        } else {
+          dispatch({
+            action: "RESET_INITIAL_FRAME",
+            homeframeUrl: arg.homeframeUrl,
+            parseResult: arg.parseResult,
+          });
+        }
       },
     };
   }, [dispatch]);

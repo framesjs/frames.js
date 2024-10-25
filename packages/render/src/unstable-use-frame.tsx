@@ -571,13 +571,20 @@ export function useFrame({
     );
 
   const { stack } = frameState;
+  const { signerState, specification } =
+    frameState.type === "initialized"
+      ? frameState
+      : { signerState: undefined, specification: undefined };
 
   return useMemo(() => {
     return {
+      signerState,
+      specification,
       inputText,
       setInputText,
       clearFrameStack: clearFrameState,
       dispatchFrameStack: dispatchFrameState,
+      reset: resetFrameState,
       onButtonPress,
       fetchFrame,
       homeframeUrl,
@@ -587,10 +594,13 @@ export function useFrame({
       onComposerActionButtonPress,
     };
   }, [
+    signerState,
+    specification,
     inputText,
     clearFrameState,
     dispatchFrameState,
     onButtonPress,
+    resetFrameState,
     fetchFrame,
     homeframeUrl,
     stack,

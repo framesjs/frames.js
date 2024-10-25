@@ -2,6 +2,7 @@ import type {
   ParseFramesWithReportsResult,
   ParseResult,
 } from "frames.js/frame-parsers";
+import type { PartialFrame } from "./ui/types";
 
 export async function tryCallAsync<TResult>(
   promiseFn: () => Promise<TResult>
@@ -49,5 +50,24 @@ export function isParseResult(value: unknown): value is ParseResult {
     "status" in value &&
     !("openframes" in value) &&
     !("farcaster" in value)
+  );
+}
+
+export type ParseResultWithPartialFrame = Omit<
+  Exclude<ParseResult, { status: "success" }>,
+  "frame"
+> & {
+  frame: PartialFrame;
+};
+
+// rename
+export function isPartialFrame(
+  value: ParseResult
+): value is ParseResultWithPartialFrame {
+  return (
+    value.status === "failure" &&
+    !!value.frame.image &&
+    !!value.frame.buttons &&
+    value.frame.buttons.length > 0
   );
 }

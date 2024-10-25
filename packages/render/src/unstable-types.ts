@@ -167,19 +167,31 @@ export type FramesStackItem =
   | FrameStackMessage;
 
 export type UseFrameReturnValue = {
+  /**
+   * The signer state is set once it is resolved (on initial frame render)
+   */
+  readonly signerState: SignerStateInstance | undefined;
+  /**
+   * The specification is set once it is resolved (on initial frame render)
+   */
+  readonly specification: SupportedParsingSpecification | undefined;
   fetchFrame: FetchFrameFunction;
   clearFrameStack: () => void;
   dispatchFrameStack: Dispatch<FrameReducerActions>;
   /** The frame at the top of the stack (at index 0) */
-  currentFrameStackItem: FramesStackItem | undefined;
+  readonly currentFrameStackItem: FramesStackItem | undefined;
   /** A stack of frames with additional context, with the most recent frame at index 0 */
-  framesStack: FramesStack;
-  inputText: string;
+  readonly framesStack: FramesStack;
+  readonly inputText: string;
   setInputText: (s: string) => void;
   onButtonPress: ButtonPressFunction<SignerStateActionContext<any, any>>;
-  homeframeUrl: string | null | undefined;
+  readonly homeframeUrl: string | null | undefined;
   onCastActionButtonPress: CastActionButtonPressFunction;
   onComposerActionButtonPress: ComposerActionButtonPressFunction;
+  /**
+   * Resets the frame state to initial frame and resolves specification and signer again
+   */
+  reset: () => void;
 };
 
 export type FramesStack = FramesStackItem[];
@@ -217,6 +229,9 @@ export type FrameReducerActions =
       endTime: Date;
     }
   | { action: "CLEAR" }
+  | {
+      action: "RESET";
+    }
   | {
       action: "RESET_INITIAL_FRAME";
       parseResult: ParseFramesWithReportsResult;
