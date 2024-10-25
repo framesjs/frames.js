@@ -11,7 +11,6 @@ import {
   ExternalLinkIcon,
 } from "lucide-react";
 import IconByName from "./octicons";
-import { useFrame } from "@frames.js/render/use-frame";
 import { WithTooltip } from "./with-tooltip";
 import type {
   FarcasterFrameContext,
@@ -23,17 +22,12 @@ import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@radix-ui/react-toast";
 import Link from "next/link";
 import type { FarcasterSigner } from "@frames.js/render/identity/farcaster";
+import { useFrame } from "@frames.js/render/unstable-use-frame";
 
 type CastComposerProps = {
   composerAction: Partial<ComposerActionResponse>;
   onComposerActionClick: (state: ComposerActionState) => any;
-  farcasterFrameConfig: Parameters<
-    typeof useFrame<
-      FarcasterSigner | null,
-      FrameActionBodyPayload,
-      FarcasterFrameContext
-    >
-  >[0];
+  farcasterFrameConfig: Parameters<typeof useFrame>[0];
 };
 
 export type CastComposerRef = {
@@ -119,13 +113,7 @@ export const CastComposer = React.forwardRef<
 CastComposer.displayName = "CastComposer";
 
 type CastEmbedPreviewProps = {
-  farcasterFrameConfig: Parameters<
-    typeof useFrame<
-      FarcasterSigner | null,
-      FrameActionBodyPayload,
-      FarcasterFrameContext
-    >
-  >[0];
+  farcasterFrameConfig: Parameters<typeof useFrame>[0];
   url: string;
   onRemove: () => void;
 };

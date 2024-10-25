@@ -4,16 +4,12 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  type UseFrameOptions,
   fallbackFrameContext,
   type OnTransactionFunc,
   type OnSignatureFunc,
-  type FrameActionBodyPayload,
   type OnConnectWalletFunc,
-  type FarcasterFrameContext,
 } from "@frames.js/render";
 import { attribution } from "@frames.js/render/farcaster";
-import { useFrame } from "@frames.js/render/use-frame";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import { sendTransaction, signTypedData, switchChain } from "@wagmi/core";
 import { useRouter } from "next/navigation";
@@ -39,7 +35,10 @@ import {
   ActionDebugger,
   ActionDebuggerRef,
 } from "./components/action-debugger";
-import type { ParseResult } from "frames.js/frame-parsers";
+import type {
+  ParseFramesWithReportsResult,
+  ParseResult,
+} from "frames.js/frame-parsers";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
@@ -66,6 +65,10 @@ import {
   useXmtpFrameContext,
   useXmtpIdentity,
 } from "@frames.js/render/identity/xmtp";
+import {
+  useFrame,
+  type UseFrameOptions,
+} from "@frames.js/render/unstable-use-frame";
 
 const FALLBACK_URL =
   process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
@@ -121,7 +124,8 @@ export default function DebuggerPage({
       return undefined;
     }
   }, [searchParams.url]);
-  const [initialFrame, setInitialFrame] = useState<ParseResult>();
+  const [initialFrame, setInitialFrame] =
+    useState<ParseFramesWithReportsResult>();
   const [initialAction, setInitialAction] =
     useState<CastActionDefinitionResponse>();
   const [mockHubContext, setMockHubContext] = useState<
@@ -175,7 +179,6 @@ export default function DebuggerPage({
 
       const searchParams = new URLSearchParams({
         url: newUrl || url,
-        specification: protocolConfiguration.specification,
         actions: "true",
       });
       const proxiedUrl = `/frames?${searchParams.toString()}`;
@@ -197,7 +200,7 @@ export default function DebuggerPage({
             setInitialAction(json);
             setInitialFrame(undefined);
           } else if (json.type === "frame") {
-            setInitialFrame(json[protocolConfiguration.specification]);
+            setInitialFrame(json);
             setInitialAction(undefined);
           }
         })
@@ -298,8 +301,6 @@ export default function DebuggerPage({
       pubId: "0x01-0x01",
     },
   });
-
-  const anonymousFrameContext = {};
 
   const onConnectWallet: OnConnectWalletFunc = useCallback(async () => {
     if (!openConnectModal) {
@@ -425,18 +426,65 @@ export default function DebuggerPage({
     [account.address, currentChainId, config, openConnectModal, toast]
   );
 
-  const useFrameConfig: Omit<
-    UseFrameOptions<Record<string, unknown>, FrameActionBodyPayload>,
-    "signerState" | "specification"
-  > = useMemo(
+  const useFrameConfig: UseFrameOptions = useMemo(
     () => ({
       homeframeUrl: url,
       frame: initialFrame,
       frameActionProxy: "/frames",
       frameGetProxy: "/frames",
-      frameContext: {
-        ...fallbackFrameContext,
-        address: account.address || fallbackFrameContext.address,
+      resolveCastOrComposerActionSigner() {
+        console.log("resolve cast or composer action signer");
+
+        return {
+          signerState: farcasterSignerState,
+          frameContext: {
+            ...farcasterFrameContext.frameContext,
+            address:
+              account.address || farcasterFrameContext.frameContext.address,
+          },
+        };
+      },
+      resolveSpecification() {
+        console.log("resolve spec");
+        if (
+          !protocolConfiguration?.protocol ||
+          protocolConfiguration.protocol === "farcaster"
+        ) {
+          return {
+            frameContext: {
+              ...fallbackFrameContext,
+              address: account.address || fallbackFrameContext.address,
+            },
+            signerState: farcasterSignerState,
+            specification: "farcaster",
+          };
+        }
+
+        switch (protocolConfiguration.protocol) {
+          case "anonymous": {
+            return {
+              specification: "openframes",
+              frameContext: {},
+              signerState: anonymousSignerState,
+            };
+          }
+          case "lens": {
+            return {
+              specification: "openframes",
+              frameContext: lensFrameContext.frameContext,
+              signerState: lensSignerState,
+            };
+          }
+          case "xmtp": {
+            return {
+              specification: "openframes",
+              frameContext: xmtpFrameContext.frameContext,
+              signerState: xmtpSignerState,
+            };
+          }
+          default:
+            throw new Error("Unknown protocol");
+        }
       },
       connectedAddress: account.address,
       extraButtonRequestPayload: { mockData: mockHubContext },
@@ -561,32 +609,53 @@ export default function DebuggerPage({
     }),
     [
       account.address,
+      anonymousSignerState,
+      farcasterFrameContext.frameContext,
+      farcasterSignerState,
       initialFrame,
+      lensFrameContext.frameContext,
+      lensSignerState,
       mockHubContext,
       onConnectWallet,
       onSignature,
       onTransaction,
       openConnectModal,
+      protocolConfiguration?.protocol,
       toast,
       url,
+      xmtpFrameContext.frameContext,
+      xmtpSignerState,
     ]
   );
 
-  const farcasterFrameConfig: UseFrameOptions<
-    FarcasterSigner | null,
-    FrameActionBodyPayload,
-    FarcasterFrameContext
-  > = useMemo(() => {
+  const farcasterFrameConfig: UseFrameOptions = useMemo(() => {
     const attributionData = process.env.NEXT_PUBLIC_FARCASTER_ATTRIBUTION_FID
       ? attribution(parseInt(process.env.NEXT_PUBLIC_FARCASTER_ATTRIBUTION_FID))
       : undefined;
     return {
       ...useFrameConfig,
-      signerState: farcasterSignerState,
-      specification: "farcaster",
-      frameContext: {
-        ...farcasterFrameContext.frameContext,
-        address: account.address || farcasterFrameContext.frameContext.address,
+      resolveCastOrComposerActionSigner() {
+        console.log("resolve cast or composer signer");
+        return {
+          signerState: farcasterSignerState,
+          frameContext: {
+            ...farcasterFrameContext.frameContext,
+            address:
+              account.address || farcasterFrameContext.frameContext.address,
+          },
+        };
+      },
+      resolveSpecification() {
+        console.log("resolve farcaster spec");
+        return {
+          frameContext: {
+            ...farcasterFrameContext.frameContext,
+            address:
+              account.address || farcasterFrameContext.frameContext.address,
+          },
+          signerState: farcasterSignerState,
+          specification: "farcaster",
+        };
       },
       transactionDataSuffix: attributionData,
     };
@@ -597,55 +666,10 @@ export default function DebuggerPage({
     useFrameConfig,
   ]);
 
-  const useFrameHook = useMemo(() => {
-    return () => {
-      const selectedProtocol = protocolConfiguration?.protocol ?? "farcaster";
-
-      switch (selectedProtocol) {
-        case "anonymous": {
-          // eslint-disable-next-line react-hooks/rules-of-hooks -- this is used as a hook in FrameDebugger
-          return useFrame({
-            ...useFrameConfig,
-            signerState: anonymousSignerState,
-            specification: "openframes",
-            frameContext: anonymousFrameContext,
-          });
-        }
-        case "lens": {
-          // eslint-disable-next-line react-hooks/rules-of-hooks -- this is used as a hook in FrameDebugger
-          return useFrame({
-            ...useFrameConfig,
-            signerState: lensSignerState,
-            specification: "openframes",
-            frameContext: lensFrameContext.frameContext,
-          });
-        }
-        case "xmtp": {
-          // eslint-disable-next-line react-hooks/rules-of-hooks -- this is used as a hook in FrameDebugger
-          return useFrame({
-            ...useFrameConfig,
-            signerState: xmtpSignerState,
-            specification: "openframes",
-            frameContext: xmtpFrameContext.frameContext,
-          });
-        }
-        default: {
-          // eslint-disable-next-line react-hooks/rules-of-hooks -- this is used as a hook in FrameDebugger
-          return useFrame(farcasterFrameConfig);
-        }
-      }
-    };
-  }, [
-    anonymousSignerState,
-    anonymousFrameContext,
-    farcasterFrameConfig,
-    lensFrameContext.frameContext,
-    lensSignerState,
-    protocolConfiguration?.protocol,
-    useFrameConfig,
-    xmtpFrameContext.frameContext,
-    xmtpSignerState,
-  ]);
+  const useFrameHook = useCallback(() => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks -- hook is called in component
+    return useFrame(useFrameConfig);
+  }, [useFrameConfig]);
 
   return (
     <DebuggerConsoleContextProvider value={debuggerConsole}>
