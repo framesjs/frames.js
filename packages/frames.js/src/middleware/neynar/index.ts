@@ -1,4 +1,7 @@
-import { InvalidFrameActionPayloadError, RequestBodyNotJSONError } from "../../core/errors";
+import {
+  InvalidFrameActionPayloadError,
+  RequestBodyNotJSONError,
+} from "../../core/errors";
 import type { FramesMiddleware } from "../../core/types";
 import type { ClientProtocolId, FrameActionPayload } from "../../types";
 import type { ValidateFrameActionResponse } from "./types.message";
@@ -72,32 +75,42 @@ export function neynarValidate(
     }
 
     try {
-      const message = (await fetch(
+      const response = await fetch(
         "https://api.neynar.com/v2/farcaster/frame/validate",
         {
           method: "POST",
           headers: {
-            accept: "application json",
+            accept: "application/json",
             api_key: options?.API_KEY || "NEYNAR_API_DOCS",
             "content-type": "application/json",
           },
           body: JSON.stringify({
             message_bytes_in_hex: payload.trustedData.messageBytes,
           }),
+          cache: "no-cache",
         }
-      ).then(async (res) => res.json())) as ValidateFrameActionResponse;
+      );
 
-      return next({
-        message,
-        clientProtocol: {
-          id: "farcaster",
-          version: "vNext",
-        },
-      });
+      if (response.ok) {
+        const message = (await response.json()) as ValidateFrameActionResponse;
+
+        return next({
+          message,
+          clientProtocol: {
+            id: "farcaster",
+            version: "vNext",
+          },
+        });
+      }
+
+      throw new Error(
+        `Neynar API returned an error with status code ${response.status}`
+      );
     } catch (error) {
       // eslint-disable-next-line no-console -- provide feedback to the developer
-      console.info(
-        "neynarValidate middleware: could not decode farcaster message from payload, calling next."
+      console.error(
+        "neynarValidate middleware: could not decode farcaster message from payload, calling next.",
+        error
       );
       return next();
     }
