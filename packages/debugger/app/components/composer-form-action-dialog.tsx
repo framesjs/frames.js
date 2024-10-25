@@ -14,7 +14,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { Abi, TypedDataDomain } from "viem";
 import { z } from "zod";
 
-const composerFormCreateCastMessageSchema = z.object({
+const createCastRequestSchemaLegacy = z.object({
   type: z.literal("createCast"),
   data: z.object({
     cast: z.object({
@@ -56,17 +56,35 @@ const ethSignTypedDataV4ActionSchema = z.object({
   }),
 });
 
-const transactionRequestBodySchema = z.object({
-  requestId: z.string(),
-  tx: z.union([ethSendTransactionActionSchema, ethSignTypedDataV4ActionSchema]),
+const walletActionRequestSchema = z.object({
+  jsonrpc: z.literal("2.0"),
+  id: z.string(),
+  method: z.literal("fc_requestWalletAction"),
+  params: z.object({
+    action: z.union([
+      ethSendTransactionActionSchema,
+      ethSignTypedDataV4ActionSchema,
+    ]),
+  }),
 });
 
-const composerActionMessageSchema = z.discriminatedUnion("type", [
-  composerFormCreateCastMessageSchema,
-  z.object({
-    type: z.literal("requestTransaction"),
-    data: transactionRequestBodySchema,
+const createCastRequestSchema = z.object({
+  jsonrpc: z.literal("2.0"),
+  id: z.union([z.string(), z.number(), z.null()]),
+  method: z.literal("fc_createCast"),
+  params: z.object({
+    cast: z.object({
+      parent: z.string().optional(),
+      text: z.string(),
+      embeds: z.array(z.string().min(1).url()).min(1),
+    }),
   }),
+});
+
+const composerActionMessageSchema = z.union([
+  createCastRequestSchemaLegacy,
+  walletActionRequestSchema,
+  createCastRequestSchema,
 ]);
 
 type ComposerFormActionDialogProps = {
@@ -106,6 +124,10 @@ export function ComposerFormActionDialog({
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== new URL(composerActionForm.url).origin) {
+        return;
+      }
+
       const result = composerActionMessageSchema.safeParse(event.data);
 
       // on error is not called here because there can be different messages that don't have anything to do with composer form actions
@@ -117,78 +139,77 @@ export function ComposerFormActionDialog({
 
       const message = result.data;
 
-      if (message.type === "requestTransaction") {
-        if (message.data.tx.method === "eth_sendTransaction") {
+      if ("type" in message) {
+        // Handle legacy messages
+        onSaveRef.current({
+          composerState: message.data.cast,
+        });
+      } else if (message.method === "fc_requestWalletAction") {
+        if (message.params.action.method === "eth_sendTransaction") {
           onTransaction?.({
-            transactionData: message.data.tx,
+            transactionData: message.params.action,
           }).then((txHash) => {
             if (txHash) {
               postMessageToIframe({
-                type: "transactionResponse",
-                data: {
-                  requestId: message.data.requestId,
-                  success: true,
-                  receipt: {
-                    address: connectedAddress,
-                    transactionId: txHash,
-                  },
+                jsonrpc: "2.0",
+                id: message.id,
+                result: {
+                  address: connectedAddress,
+                  transactionId: txHash,
                 },
               });
             } else {
               postMessageToIframe({
-                type: "transactionResponse",
-                data: {
-                  requestId: message.data.requestId,
-                  success: false,
+                jsonrpc: "2.0",
+                id: message.id,
+                error: {
+                  code: -32000,
                   message: "User rejected the request",
                 },
               });
             }
           });
-        } else if (message.data.tx.method === "eth_signTypedData_v4") {
+        } else if (message.params.action.method === "eth_signTypedData_v4") {
           onSignature?.({
             signatureData: {
-              chainId: message.data.tx.chainId,
-              method: "eth_signTypedData_v4",
+              chainId: message.params.action.chainId,
+              method: message.params.action.method,
               params: {
-                domain: message.data.tx.params.domain,
-                types: message.data.tx.params.types as any,
-                primaryType: message.data.tx.params.primaryType,
-                message: message.data.tx.params.message,
+                domain: message.params.action.params.domain,
+                types: message.params.action.params.types as any,
+                primaryType: message.params.action.params.primaryType,
+                message: message.params.action.params.message,
               },
             },
           }).then((signature) => {
             if (signature) {
               postMessageToIframe({
-                type: "signatureResponse",
-                data: {
-                  requestId: message.data.requestId,
-                  success: true,
-                  receipt: {
-                    address: connectedAddress,
-                    transactionId: signature,
-                  },
+                jsonrpc: "2.0",
+                id: message.id,
+                result: {
+                  address: connectedAddress,
+                  transactionId: signature,
                 },
               });
             } else {
               postMessageToIframe({
-                type: "signatureResponse",
-                data: {
-                  requestId: message.data.requestId,
-                  success: false,
+                jsonrpc: "2.0",
+                id: message.id,
+                error: {
+                  code: -32000,
                   message: "User rejected the request",
                 },
               });
             }
           });
         }
-      } else if (message.type === "createCast") {
-        if (message.data.cast.embeds.length > 2) {
+      } else if (message.method === "fc_createCast") {
+        if (message.params.cast.embeds.length > 2) {
           console.warn("Only first 2 embeds are shown in the cast");
         }
 
         onSaveRef.current({
-          composerState: message.data.cast,
+          composerState: message.params.cast,
         });
       }
     };

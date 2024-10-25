@@ -44,10 +44,11 @@ export default function MiniappPage({
       // Handle form submission here
       windowObject?.parent.postMessage(
         {
-          type: "requestTransaction",
-          data: {
-            requestId: uuidv4(),
-            tx: {
+          jsonrpc: "2.0",
+          id: uuidv4(),
+          method: "fc_requestWalletAction",
+          params: {
+            action: {
               chainId: "eip155:10",
               method: "eth_sendTransaction",
               params: {
@@ -67,10 +68,11 @@ export default function MiniappPage({
   const handleRequestSignature = useCallback(() => {
     windowObject?.parent.postMessage(
       {
-        type: "requestTransaction",
-        data: {
-          requestId: uuidv4(),
-          tx: {
+        jsonrpc: "2.0",
+        id: uuidv4(),
+        method: "fc_requestWalletAction",
+        params: {
+          action: {
             chainId: "eip155:10", // OP Mainnet 10
             method: "eth_signTypedData_v4",
             params: {
@@ -152,13 +154,10 @@ export default function MiniappPage({
           Request Signature
         </button>
       </div>
-      {message?.data?.success ? (
-        <div>
-          Transaction sent successfully: {message?.data?.receipt?.transactionId}{" "}
-          sent from {message?.data?.receipt?.address}
-        </div>
+      {message?.result ? (
+        <pre>{JSON.stringify(message?.result, null, 2)}</pre>
       ) : (
-        <div className="text-red-500">{message?.data?.message}</div>
+        <div className="text-red-500">{message?.result?.message}</div>
       )}
     </div>
   );
