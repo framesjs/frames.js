@@ -186,6 +186,8 @@ function createFramesStackReducer(
 
         return {
           ...state,
+          stack:
+            !!state.stack[0] && state.stack.length > 0 ? [state.stack[0]] : [],
           type: "initialized",
           frameContext,
           signerState,
