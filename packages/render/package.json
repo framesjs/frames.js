@@ -120,6 +120,46 @@
         "default": "./dist/use-frame.cjs"
       }
     },
+    "./unstable-use-frame-state": {
+      "import": {
+        "types": "./dist/unstable-use-frame-state.d.ts",
+        "default": "./dist/unstable-use-frame-state.js"
+      },
+      "require": {
+        "types": "./dist/unstable-use-frame-state.d.cts",
+        "default": "./dist/unstable-use-frame-state.cjs"
+      }
+    },
+    "./unstable-use-fetch-frame": {
+      "import": {
+        "types": "./dist/unstable-use-fetch-frame.d.ts",
+        "default": "./dist/unstable-use-fetch-frame.js"
+      },
+      "require": {
+        "types": "./dist/unstable-use-fetch-frame.d.cts",
+        "default": "./dist/unstable-use-fetch-frame.cjs"
+      }
+    },
+    "./unstable-use-frame": {
+      "import": {
+        "types": "./dist/unstable-use-frame.d.ts",
+        "default": "./dist/unstable-use-frame.js"
+      },
+      "require": {
+        "types": "./dist/unstable-use-frame.d.cts",
+        "default": "./dist/unstable-use-frame.cjs"
+      }
+    },
+    "./unstable-types": {
+      "import": {
+        "types": "./dist/unstable-types.d.ts",
+        "default": "./dist/unstable-types.js"
+      },
+      "require": {
+        "types": "./dist/unstable-types.d.cts",
+        "default": "./dist/unstable-types.cjs"
+      }
+    },
     "./identity/anonymous": {
       "import": {
         "types": "./dist/identity/anonymous/index.d.ts",
