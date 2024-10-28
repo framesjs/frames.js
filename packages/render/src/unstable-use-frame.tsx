@@ -10,13 +10,7 @@ import type {
   FrameButtonTx,
   TransactionTargetResponse,
 } from "frames.js";
-import type {
-  OnMintArgs,
-  OnTransactionArgs,
-  OnSignatureArgs,
-  CastActionButtonPressFunction,
-  ComposerActionButtonPressFunction,
-} from "./types";
+import type { OnMintArgs, OnTransactionArgs, OnSignatureArgs } from "./types";
 import type { UseFrameOptions, UseFrameReturnValue } from "./unstable-types";
 import { useFrameState } from "./unstable-use-frame-state";
 import { useFetchFrame } from "./unstable-use-fetch-frame";
@@ -118,10 +112,6 @@ function handleLinkButtonClickFallback(button: FrameButtonLink): void {
   }
 }
 
-function defaultComposerFormActionHandler(): Promise<never> {
-  throw new Error('Please implement your own "onComposerFormAction" handler');
-}
-
 /**
  * Validates a link button target to ensure it is a valid HTTP or HTTPS URL.
  * @param target - The target URL to validate.
@@ -158,12 +148,10 @@ export function useFrame({
   frameGetProxy,
   extraButtonRequestPayload,
   resolveSpecification,
-  resolveCastOrComposerActionSigner,
   onError,
   onLinkButtonClick = handleLinkButtonClickFallback,
   onRedirect = handleRedirectFallback,
   fetchFn = (...args) => fetch(...args),
-  onComposerFormAction = defaultComposerFormActionHandler,
   onTransactionDataError,
   onTransactionDataStart,
   onTransactionDataSuccess,
@@ -174,9 +162,6 @@ export function useFrame({
   onTransactionStart,
   onTransactionSuccess,
 }: UseFrameOptions): UseFrameReturnValue {
-  const resolveCastOrComposerActionSignerRef = useFreshRef(
-    resolveCastOrComposerActionSigner
-  );
   const [inputText, setInputText] = useState("");
   const inputTextRef = useFreshRef(inputText);
   const [frameState, frameStateAPI] = useFrameState({
@@ -204,7 +189,6 @@ export function useFrame({
     onError,
     fetchFn,
     onRedirect,
-    onComposerFormAction,
     onTransactionDataError,
     onTransactionDataStart,
     onTransactionDataSuccess,
@@ -493,83 +477,6 @@ export function useFrame({
     ]
   );
 
-  const onCastActionButtonPress: CastActionButtonPressFunction = useCallback(
-    async function onActionButtonPress(arg) {
-      const { signerState, frameContext } =
-        resolveCastOrComposerActionSignerRef.current({
-          action: {
-            type: "cast",
-            action: arg.castAction,
-          },
-        });
-
-      if (!signerState.hasSigner) {
-        await signerState.onSignerlessFramePress();
-        // don't continue, let the app handle
-        return;
-      }
-
-      return fetchFrame(
-        {
-          method: "CAST_ACTION",
-          signerState,
-          action: arg.castAction,
-          isDangerousSkipSigning: false,
-          signerStateActionContext: {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- we trust the signerState
-            signer: signerState.signer,
-            frameContext,
-            url: arg.castAction.url,
-            target: arg.castAction.url,
-            buttonIndex: 1,
-          },
-        },
-        arg.clearStack
-      );
-    },
-    [fetchFrame, resolveCastOrComposerActionSignerRef]
-  );
-
-  const onComposerActionButtonPress: ComposerActionButtonPressFunction =
-    useCallback(
-      async function onActionButtonPress(arg) {
-        const { signerState, frameContext } =
-          resolveCastOrComposerActionSignerRef.current({
-            action: {
-              type: "compose",
-              action: arg.castAction,
-              composerActionState: arg.composerActionState,
-            },
-          });
-
-        if (!signerState.hasSigner) {
-          await signerState.onSignerlessFramePress();
-          // don't continue, let the app handle
-          return;
-        }
-
-        return fetchFrame(
-          {
-            method: "COMPOSER_ACTION",
-            signerState,
-            action: arg.castAction,
-            isDangerousSkipSigning: false,
-            composerActionState: arg.composerActionState,
-            signerStateActionContext: {
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- we trust the signerState
-              signer: signerState.signer,
-              frameContext,
-              url: arg.castAction.url,
-              target: arg.castAction.url,
-              buttonIndex: 1,
-            },
-          },
-          arg.clearStack
-        );
-      },
-      [fetchFrame, resolveCastOrComposerActionSignerRef]
-    );
-
   const { stack } = frameState;
   const { signerState, specification } =
     frameState.type === "initialized"
@@ -590,8 +497,6 @@ export function useFrame({
       homeframeUrl,
       framesStack: stack,
       currentFrameStackItem: stack[0],
-      onCastActionButtonPress,
-      onComposerActionButtonPress,
     };
   }, [
     signerState,
@@ -604,7 +509,5 @@ export function useFrame({
     fetchFrame,
     homeframeUrl,
     stack,
-    onCastActionButtonPress,
-    onComposerActionButtonPress,
   ]);
 }

@@ -4,10 +4,7 @@ import type {
   ParseFramesWithReportsResult,
   SupportedParsingSpecification,
 } from "frames.js/frame-parsers";
-import type {
-  CastActionMessageResponse,
-  ErrorMessageResponse,
-} from "frames.js/types";
+import type { ErrorMessageResponse } from "frames.js/types";
 import type {
   FrameContext,
   FrameGETRequest,
@@ -77,8 +74,7 @@ function createFramesStackReducer(
           stack: state.stack.slice(),
         };
       }
-      case "DONE_WITH_ERROR_MESSAGE":
-      case "DONE_WITH_MESSAGE": {
+      case "DONE_WITH_ERROR_MESSAGE": {
         const index = state.stack.findIndex(
           (item) => item.timestamp === action.pendingItem.timestamp
         );
@@ -263,29 +259,6 @@ export type FrameStateAPI = {
      */
     startTime?: Date;
   }) => FrameStackPostPending;
-  /**
-   * Creates a pending item without dispatching it
-   */
-  createCastOrComposerActionPendingItem: <
-    TSignerStateActionContext extends SignerStateActionContext<any, any>,
-  >(arg: {
-    action: SignedFrameAction;
-    request: FramePOSTRequest<TSignerStateActionContext>;
-  }) => FrameStackPostPending;
-  markCastMessageAsDone: (arg: {
-    pendingItem: FrameStackPostPending;
-    endTime: Date;
-    response: Response;
-    responseData: CastActionMessageResponse;
-  }) => void;
-  markCastFrameAsDone: (arg: {
-    pendingItem: FrameStackPostPending;
-    endTime: Date;
-  }) => void;
-  markComposerFormActionAsDone: (arg: {
-    pendingItem: FrameStackPostPending;
-    endTime: Date;
-  }) => void;
   markAsDone: (arg: {
     pendingItem: FrameStackGetPending | FrameStackPostPending;
     endTime: Date;
@@ -444,48 +417,6 @@ export function useFrameState({
         });
 
         return item;
-      },
-      createCastOrComposerActionPendingItem(arg) {
-        return {
-          method: "POST",
-          requestDetails: {
-            body: arg.action.body,
-            searchParams: arg.action.searchParams,
-          },
-          request: arg.request,
-          status: "pending",
-          timestamp: new Date(),
-          url: arg.action.searchParams.get("postUrl") ?? "missing postUrl",
-        } satisfies FrameStackPostPending;
-      },
-      markCastFrameAsDone() {
-        // noop
-      },
-      markCastMessageAsDone(arg) {
-        dispatch({
-          action: "LOAD",
-          item: arg.pendingItem,
-        });
-        dispatch({
-          action: "DONE_WITH_MESSAGE",
-          pendingItem: arg.pendingItem,
-          item: {
-            ...arg.pendingItem,
-            status: "message",
-            message: arg.responseData.message,
-            response: arg.response.clone(),
-            responseBody: arg.responseData,
-            responseStatus: arg.response.status,
-            speed: computeDurationInSeconds(
-              arg.pendingItem.timestamp,
-              arg.endTime
-            ),
-            type: "info",
-          },
-        });
-      },
-      markComposerFormActionAsDone() {
-        // noop
       },
       markAsDone(arg) {
         dispatch({

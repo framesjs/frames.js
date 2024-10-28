@@ -11,20 +11,15 @@ import type {
   ParseResultWithFrameworkDetails,
 } from "frames.js/frame-parsers";
 import type { Dispatch } from "react";
-import type { CastActionResponse, ComposerActionState } from "frames.js/types";
 import type {
   ButtonPressFunction,
-  CastActionButtonPressFunction,
-  ComposerActionButtonPressFunction,
   FrameContext,
-  FramePOSTRequest,
   FrameRequest,
   FrameStackBase,
   FrameStackDoneRedirect,
   FrameStackMessage,
   FrameStackPending,
   FrameStackRequestError,
-  OnComposerFormActionFunc,
   OnConnectWalletFunc,
   OnMintArgs,
   OnSignatureFunc,
@@ -57,25 +52,6 @@ export type ResolveSpecificationFunction = (
   arg: ResolveSpecificationFunctionArg
 ) => ResolvedSpecification;
 
-export type ResolvedCastOrComposerActionContext = {
-  signerState: SignerStateInstance<any, any, any>;
-  frameContext: FrameContext;
-};
-
-export type ResolveCastOrComposerActionContextFunctionArg = {
-  action:
-    | { type: "cast"; action: CastActionResponse }
-    | {
-        type: "compose";
-        action: CastActionResponse;
-        composerActionState: ComposerActionState;
-      };
-};
-
-export type ResolveCastOrComposerActionContextFunction = (
-  arg: ResolveCastOrComposerActionContextFunctionArg
-) => ResolvedCastOrComposerActionContext;
-
 export type UseFrameOptions = {
   /** the route used to POST frame actions. The post_url will be added as a the `url` query parameter */
   frameActionProxy: string;
@@ -90,10 +66,6 @@ export type UseFrameOptions = {
    * 3. reset() method on FrameState is called
    */
   resolveSpecification: ResolveSpecificationFunction;
-  /**
-   * Called when cast or composer action is required.
-   */
-  resolveCastOrComposerActionSigner: ResolveCastOrComposerActionContextFunction;
   /**
    * The url of the homeframe, if null / undefined won't load a frame nor render it.
    *
@@ -139,7 +111,6 @@ export type UseFrameOptions = {
     UseFetchFrameOptions,
     | "fetchFn"
     | "onRedirect"
-    | "onComposerFormAction"
     | "onTransactionDataError"
     | "onTransactionDataStart"
     | "onTransactionDataSuccess"
@@ -186,8 +157,6 @@ export type UseFrameReturnValue = {
   setInputText: (s: string) => void;
   onButtonPress: ButtonPressFunction<SignerStateActionContext<any, any>>;
   readonly homeframeUrl: string | null | undefined;
-  onCastActionButtonPress: CastActionButtonPressFunction;
-  onComposerActionButtonPress: ComposerActionButtonPressFunction;
   /**
    * Resets the frame state to initial frame and resolves specification and signer again
    */
@@ -215,11 +184,6 @@ export type FrameReducerActions =
       action: "DONE_WITH_ERROR_MESSAGE";
       pendingItem: FrameStackPending;
       item: Exclude<FrameStackMessage, { type: "info" }>;
-    }
-  | {
-      action: "DONE_WITH_MESSAGE";
-      pendingItem: FrameStackPending;
-      item: Exclude<FrameStackMessage, { type: "error" }>;
     }
   | {
       action: "DONE";
@@ -260,7 +224,6 @@ export type UseFetchFrameOptions = {
   /** Transaction data suffix */
   transactionDataSuffix?: `0x${string}`;
   onSignature: OnSignatureFunc;
-  onComposerFormAction: OnComposerFormActionFunc;
   /**
    * This function can be used to customize how error is reported to the user.
    *
@@ -346,10 +309,7 @@ export type UseFetchFrameOptions = {
 };
 
 export type FetchFrameFunction = (
-  request:
-    | FrameRequest<SignerStateActionContext>
-    | CastActionRequest
-    | ComposerActionRequest,
+  request: FrameRequest<SignerStateActionContext>,
   /**
    * If true, the frame stack will be cleared before the new frame is loaded
    *
@@ -357,34 +317,3 @@ export type FetchFrameFunction = (
    */
   shouldClear?: boolean
 ) => Promise<void>;
-
-export type CastActionRequest = Omit<
-  FramePOSTRequest,
-  "method" | "frameButton" | "sourceFrame" | "signerStateActionContext"
-> & {
-  method: "CAST_ACTION";
-  signerState: SignerStateInstance;
-  action: CastActionResponse & {
-    url: string;
-  };
-  signerStateActionContext: Omit<
-    FramePOSTRequest["signerStateActionContext"],
-    "frameButton" | "inputText" | "state"
-  >;
-};
-
-export type ComposerActionRequest = Omit<
-  FramePOSTRequest,
-  "method" | "frameButton" | "sourceFrame" | "signerStateActionContext"
-> & {
-  method: "COMPOSER_ACTION";
-  signerState: SignerStateInstance;
-  action: CastActionResponse & {
-    url: string;
-  };
-  composerActionState: ComposerActionState;
-  signerStateActionContext: Omit<
-    FramePOSTRequest["signerStateActionContext"],
-    "frameButton" | "inputText" | "state"
-  >;
-};

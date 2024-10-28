@@ -1,12 +1,6 @@
 /* eslint-disable no-console -- provide feedback to console */
-import type { FrameButtonPost, TransactionTargetResponse } from "frames.js";
-import type { types } from "frames.js/core";
-import type {
-  CastActionFrameResponse,
-  ComposerActionFormResponse,
-  ComposerActionStateFromMessage,
-  ErrorMessageResponse,
-} from "frames.js/types";
+import type { TransactionTargetResponse } from "frames.js";
+import type { ErrorMessageResponse } from "frames.js/types";
 import { hexToBytes } from "viem";
 import type { FarcasterFrameContext } from "./farcaster";
 import {
@@ -14,8 +8,6 @@ import {
   TransactionDataErrorResponseError,
   TransactionDataTargetMalformedError,
   TransactionHandlerDidNotReturnTransactionIdError,
-  CastActionUnexpectedResponseError,
-  ComposerActionUnexpectedResponseError,
 } from "./errors";
 import {
   isParseFramesWithReportsResult,
@@ -23,8 +15,6 @@ import {
   tryCallAsync,
 } from "./helpers";
 import type {
-  CastActionRequest,
-  ComposerActionRequest,
   FetchFrameFunction,
   UseFetchFrameOptions,
 } from "./unstable-types";
@@ -35,46 +25,12 @@ import type {
   FrameStackPostPending,
   SignedFrameAction,
   SignerStateActionContext,
-  SignerStateDefaultActionContext,
   SignerStateInstance,
 } from "./types";
 
 function isErrorMessageResponse(
   response: unknown
 ): response is ErrorMessageResponse {
-  return (
-    typeof response === "object" &&
-    response !== null &&
-    "message" in response &&
-    typeof response.message === "string"
-  );
-}
-
-function isComposerFormActionResponse(
-  response: unknown
-): response is ComposerActionFormResponse {
-  return (
-    typeof response === "object" &&
-    response !== null &&
-    "type" in response &&
-    response.type === "form"
-  );
-}
-
-function isCastActionFrameResponse(
-  response: unknown
-): response is CastActionFrameResponse {
-  return (
-    typeof response === "object" &&
-    response !== null &&
-    "type" in response &&
-    response.type === "frame"
-  );
-}
-
-function isCastMessageResponse(
-  response: unknown
-): response is types.CastActionMessageResponse {
   return (
     typeof response === "object" &&
     response !== null &&
@@ -99,7 +55,6 @@ export function useFetchFrame({
   onError = defaultErrorHandler,
   fetchFn,
   onRedirect,
-  onComposerFormAction,
   onTransactionDataError,
   onTransactionDataStart,
   onTransactionDataSuccess,
@@ -795,261 +750,9 @@ export function useFetchFrame({
     );
   }
 
-  async function fetchCastActionRequest(
-    request: CastActionRequest,
-    shouldClear = false
-  ): Promise<void> {
-    const frameButton: FrameButtonPost = {
-      action: "post",
-      label: request.action.name,
-      target: request.action.action.postUrl || request.action.url,
-    };
-    const signerStateActionContext: SignerStateDefaultActionContext = {
-      ...request.signerStateActionContext,
-      type: "default",
-      frameButton,
-    };
-
-    const signedDataOrError = await signAndGetFrameActionBodyPayload({
-      signerStateActionContext,
-      signerState: request.signerState,
-    });
-
-    if (shouldClear) {
-      frameStateAPI.clear();
-    }
-
-    if (signedDataOrError instanceof Error) {
-      tryCall(() => {
-        onError(signedDataOrError);
-      });
-      throw signedDataOrError;
-    }
-
-    // create pending item but do not dispatch it
-    const pendingItem = frameStateAPI.createCastOrComposerActionPendingItem({
-      action: signedDataOrError,
-      request: {
-        ...request,
-        frameButton,
-        signerStateActionContext,
-        method: "POST",
-        source: "cast-action",
-        sourceFrame: undefined,
-      },
-    });
-
-    const actionResponseOrError = await fetchProxied({
-      fetchFn,
-      proxyUrl: frameActionProxy,
-      frameAction: signedDataOrError,
-      extraRequestPayload: extraButtonRequestPayload,
-    });
-
-    if (actionResponseOrError instanceof Error) {
-      tryCall(() => {
-        onError(actionResponseOrError);
-      });
-      throw actionResponseOrError;
-    }
-
-    // check what is the response, we expect either cast action responses or composer action responses
-    try {
-      const endTime = new Date();
-
-      if (!actionResponseOrError.ok) {
-        await handleFailedResponse({
-          response: actionResponseOrError,
-          endTime,
-          frameStackPendingItem: pendingItem,
-        });
-
-        return;
-      }
-
-      const actionResponse = (await actionResponseOrError
-        .clone()
-        .json()) as unknown;
-
-      if (isCastMessageResponse(actionResponse)) {
-        frameStateAPI.markCastMessageAsDone({
-          pendingItem,
-          endTime,
-          response: actionResponseOrError,
-          responseData: actionResponse,
-        });
-        return;
-      }
-
-      if (isCastActionFrameResponse(actionResponse)) {
-        // this is noop
-        frameStateAPI.markCastFrameAsDone({ pendingItem, endTime });
-
-        await fetchPOSTRequest({
-          sourceFrame: undefined,
-          frameButton: {
-            action: "post",
-            label: "action",
-            target: actionResponse.frameUrl,
-          },
-          isDangerousSkipSigning: request.isDangerousSkipSigning,
-          method: "POST",
-          source: "cast-action",
-          signerStateActionContext: {
-            ...request.signerStateActionContext,
-            type: "default",
-            buttonIndex: 1,
-            frameButton: {
-              action: "post",
-              label: "action",
-              target: actionResponse.frameUrl,
-            },
-            target: actionResponse.frameUrl,
-          },
-        });
-        return;
-      }
-
-      throw new CastActionUnexpectedResponseError();
-    } catch (e) {
-      let error: Error;
-
-      if (!(e instanceof CastActionUnexpectedResponseError)) {
-        console.error(`Unexpected response from the server`, e);
-        error = e instanceof Error ? e : new Error("Unexpected error");
-      } else {
-        error = e;
-      }
-
-      tryCall(() => {
-        onError(error);
-      });
-      throw error;
-    }
-  }
-
-  async function fetchComposerActionRequest(
-    request: ComposerActionRequest,
-    shouldClear = false
-  ): Promise<void> {
-    const frameButton: FrameButtonPost = {
-      action: "post",
-      label: request.action.name,
-      target: request.action.url,
-    };
-    const signerStateActionContext: SignerStateDefaultActionContext = {
-      ...request.signerStateActionContext,
-      type: "default",
-      frameButton,
-      state: encodeURIComponent(
-        JSON.stringify({
-          cast: request.composerActionState,
-        } satisfies ComposerActionStateFromMessage)
-      ),
-    };
-    const signedDataOrError = await signAndGetFrameActionBodyPayload({
-      signerStateActionContext,
-      signerState: request.signerState,
-    });
-
-    if (shouldClear) {
-      frameStateAPI.clear();
-    }
-
-    if (signedDataOrError instanceof Error) {
-      tryCall(() => {
-        onError(signedDataOrError);
-      });
-      throw signedDataOrError;
-    }
-
-    // create pending item but do not dispatch it
-    const pendingItem = frameStateAPI.createCastOrComposerActionPendingItem({
-      action: signedDataOrError,
-      request: {
-        ...request,
-        frameButton,
-        signerStateActionContext,
-        method: "POST",
-        source: "composer-action",
-        sourceFrame: undefined,
-      },
-    });
-
-    const actionResponseOrError = await fetchProxied({
-      fetchFn,
-      proxyUrl: frameActionProxy,
-      frameAction: signedDataOrError,
-      extraRequestPayload: extraButtonRequestPayload,
-    });
-
-    if (actionResponseOrError instanceof Error) {
-      tryCall(() => {
-        onError(actionResponseOrError);
-      });
-      throw actionResponseOrError;
-    }
-
-    // check what is the response, we expect either cast action responses or composer action responses
-    try {
-      const endTime = new Date();
-
-      if (!actionResponseOrError.ok) {
-        await handleFailedResponse({
-          response: actionResponseOrError,
-          endTime,
-          frameStackPendingItem: pendingItem,
-        });
-
-        return;
-      }
-
-      const actionResponse = (await actionResponseOrError
-        .clone()
-        .json()) as unknown;
-
-      if (!isComposerFormActionResponse(actionResponse)) {
-        throw new ComposerActionUnexpectedResponseError();
-      }
-
-      // this is noop
-      frameStateAPI.markComposerFormActionAsDone({ pendingItem, endTime });
-
-      await onComposerFormAction({
-        form: actionResponse,
-        cast: {
-          embeds: [],
-          text: "Cast text",
-        },
-      });
-    } catch (e) {
-      let error: Error;
-
-      if (!(e instanceof ComposerActionUnexpectedResponseError)) {
-        console.error(`Unexpected response from the server`, e);
-        error = e instanceof Error ? e : new Error("Unexpected error");
-      } else {
-        error = e;
-      }
-
-      tryCall(() => {
-        onError(error);
-      });
-      throw error;
-    }
-  }
-
   return (request, shouldClear = false) => {
     if (request.method === "GET") {
       return fetchGETRequest(request, shouldClear);
-    }
-
-    if (request.method === "CAST_ACTION") {
-      return fetchCastActionRequest(request, shouldClear);
-    }
-
-    if (request.method === "COMPOSER_ACTION") {
-      return fetchComposerActionRequest(request, shouldClear);
     }
 
     if (request.frameButton.action === "tx") {
