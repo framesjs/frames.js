@@ -131,9 +131,13 @@ function validateLinkButtonTarget(target: string): boolean {
   return true;
 }
 
-export type { UseFrameReturnValue, UseFrameOptions };
+export type {
+  UseFrameReturnValue as UnstableUseFrameReturnValue,
+  UseFrameOptions as UnstableUseFrameOptions,
+};
 
-export function useFrame({
+// eslint-disable-next-line camelcase -- this is only temporary
+export function useFrame_unstable({
   homeframeUrl,
   onMint = onMintFallback,
   onTransaction = onTransactionFallback,

@@ -26,6 +26,13 @@ import { useFrameStack } from "./use-frame-stack";
 import { useFetchFrame } from "./use-fetch-frame";
 import { useFreshRef } from "./hooks/use-fresh-ref";
 
+// eslint-disable-next-line camelcase -- this is only temporary
+export { useFrame_unstable } from "./unstable-use-frame";
+export type {
+  UnstableUseFrameOptions,
+  UnstableUseFrameReturnValue,
+} from "./unstable-use-frame";
+
 function onMintFallback({ target }: OnMintArgs): void {
   console.log("Please provide your own onMint function to useFrame() hook.");
 
