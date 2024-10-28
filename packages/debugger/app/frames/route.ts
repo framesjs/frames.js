@@ -25,16 +25,23 @@ const composerActionFormParser = z.object({
   title: z.string().min(1),
 });
 
-const jsonResponseParser = z.preprocess((data) => {
-  if (typeof data === "object" && data !== null && !("type" in data)) {
-    return {
-      type: "message",
-      ...data,
-    };
-  }
+const jsonResponseParser = z.preprocess(
+  (data) => {
+    if (typeof data === "object" && data !== null && !("type" in data)) {
+      return {
+        type: "message",
+        ...data,
+      };
+    }
 
-  return data;
-}, z.discriminatedUnion("type", [castActionFrameParser, castActionMessageParser, composerActionFormParser]));
+    return data;
+  },
+  z.discriminatedUnion("type", [
+    castActionFrameParser,
+    castActionMessageParser,
+    composerActionFormParser,
+  ])
+);
 
 const errorResponseParser = z.object({
   message: z.string().min(1),

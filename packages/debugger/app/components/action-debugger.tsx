@@ -7,6 +7,8 @@ import {
 } from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
 import {
+  type FarcasterFrameContext,
+  type FrameActionBodyPayload,
   OnComposeFormActionFuncReturnType,
   defaultTheme,
 } from "@frames.js/render";
@@ -31,6 +33,7 @@ import { Button } from "../../@/components/ui/button";
 import { FrameDebugger } from "./frame-debugger";
 import IconByName from "./octicons";
 import { MockHubActionContext } from "../utils/mock-hub-utils";
+import { useFrame } from "@frames.js/render/use-frame";
 import { WithTooltip } from "./with-tooltip";
 import { useToast } from "@/components/ui/use-toast";
 import type { CastActionDefinitionResponse } from "../frames/route";
@@ -39,7 +42,7 @@ import { AwaitableController } from "../lib/awaitable-controller";
 import type { ComposerActionFormResponse } from "frames.js/types";
 import { CastComposer, CastComposerRef } from "./cast-composer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useFrame } from "@frames.js/render/unstable-use-frame";
+import type { FarcasterSigner } from "@frames.js/render/identity/farcaster";
 
 type FrameDebuggerFramePropertiesTableRowsProps = {
   actionMetadataItem: CastActionDefinitionResponse;
@@ -174,7 +177,13 @@ function ShortenedText({
 
 type ActionDebuggerProps = {
   actionMetadataItem: CastActionDefinitionResponse;
-  farcasterFrameConfig: Parameters<typeof useFrame>[0];
+  farcasterFrameConfig: Parameters<
+    typeof useFrame<
+      FarcasterSigner | null,
+      FrameActionBodyPayload,
+      FarcasterFrameContext
+    >
+  >[0];
   refreshUrl: (arg0?: string) => void;
   mockHubContext?: Partial<MockHubActionContext>;
   setMockHubContext?: Dispatch<SetStateAction<Partial<MockHubActionContext>>>;
