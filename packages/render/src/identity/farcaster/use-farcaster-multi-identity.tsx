@@ -528,7 +528,7 @@ export function useFarcasterMultiIdentity({
 
   return useMemo(
     () => ({
-      specification: "openframes",
+      specification: "farcaster",
       signer: farcasterUser,
       hasSigner:
         farcasterUser?.status === "approved" ||
