@@ -147,7 +147,7 @@ export function useFrame({
   /** Ex: /frames */
   frameGetProxy,
   extraButtonRequestPayload,
-  resolveSpecification,
+  resolveSigner: resolveSpecification,
   onError,
   onLinkButtonClick = handleLinkButtonClickFallback,
   onRedirect = handleRedirectFallback,
@@ -342,6 +342,16 @@ export function useFrame({
         return;
       }
 
+      // transaction request always requires address
+      const frameContext = {
+        ...state.frameContext,
+        address:
+          "address" in state.frameContext &&
+          typeof state.frameContext.address === "string"
+            ? state.frameContext.address
+            : connectedAddressRef.current,
+      };
+
       await fetchFrameRef.current({
         frameButton,
         isDangerousSkipSigning: false,
@@ -350,7 +360,7 @@ export function useFrame({
           type: "tx-data",
           inputText: postInputText,
           signer: state.signerState.signer,
-          frameContext: state.frameContext,
+          frameContext,
           address: connectedAddressRef.current,
           url: state.homeframeUrl,
           target: frameButton.target,

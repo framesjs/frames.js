@@ -18,7 +18,7 @@ import type {
 import type {
   FrameReducerActions,
   FramesStack,
-  ResolveSpecificationFunction,
+  ResolveSignerFunction,
 } from "./unstable-types";
 import { useFreshRef } from "./hooks/use-fresh-ref";
 
@@ -42,7 +42,7 @@ export type FrameState =
     };
 
 function createFramesStackReducer(
-  resolveSpecificationRef: MutableRefObject<ResolveSpecificationFunction>
+  resolveSignerRef: MutableRefObject<ResolveSignerFunction>
 ) {
   return function framesStackReducer(
     state: FrameState,
@@ -115,13 +115,13 @@ function createFramesStackReducer(
            *
            * It can be POST if you have a frame cast action response. Then we load the frame by sending a POST request.
            */
-          const resolvedSpecification = resolveSpecificationRef.current({
+          const resolvedSigner = resolveSignerRef.current({
             parseResult: action.parseResult,
           });
 
-          ({ signerState, specification, frameContext } =
-            resolvedSpecification);
+          ({ signerState, frameContext = {} } = resolvedSigner);
           homeframeUrl = action.pendingItem.url;
+          specification = signerState.specification;
         } else {
           ({
             signerState,
@@ -177,8 +177,9 @@ function createFramesStackReducer(
           return state;
         }
 
-        const { frameContext, signerState, specification } =
-          resolveSpecificationRef.current({ parseResult: state.parseResult });
+        const { frameContext = {}, signerState } = resolveSignerRef.current({
+          parseResult: state.parseResult,
+        });
 
         return {
           ...state,
@@ -187,19 +188,20 @@ function createFramesStackReducer(
           type: "initialized",
           frameContext,
           signerState,
-          specification,
+          specification: signerState.specification,
         };
       }
       case "RESET_INITIAL_FRAME": {
-        const { frameContext, signerState, specification } =
-          resolveSpecificationRef.current({ parseResult: action.parseResult });
-        const frameResult = action.parseResult[specification];
+        const { frameContext = {}, signerState } = resolveSignerRef.current({
+          parseResult: action.parseResult,
+        });
+        const frameResult = action.parseResult[signerState.specification];
 
         return {
           type: "initialized",
           signerState,
           frameContext,
-          specification,
+          specification: signerState.specification,
           homeframeUrl: action.homeframeUrl,
           parseResult: action.parseResult,
           stack: [
@@ -238,7 +240,7 @@ function createFramesStackReducer(
 type UseFrameStateOptions = {
   initialParseResult?: ParseFramesWithReportsResult | null;
   initialFrameUrl?: string | null;
-  resolveSpecification: ResolveSpecificationFunction;
+  resolveSpecification: ResolveSignerFunction;
 };
 
 export type FrameStateAPI = {
@@ -315,17 +317,16 @@ export function useFrameState({
     [initialParseResult, initialFrameUrl] as const,
     ([parseResult, frameUrl]): FrameState => {
       if (parseResult && frameUrl) {
-        const { frameContext, signerState, specification } =
-          resolveSpecification({
-            parseResult,
-          });
-        const frameResult = parseResult[specification];
+        const { frameContext = {}, signerState } = resolveSpecification({
+          parseResult,
+        });
+        const frameResult = parseResult[signerState.specification];
 
         return {
           type: "initialized",
           frameContext,
           signerState,
-          specification,
+          specification: signerState.specification,
           homeframeUrl: frameUrl,
           parseResult,
           stack: [

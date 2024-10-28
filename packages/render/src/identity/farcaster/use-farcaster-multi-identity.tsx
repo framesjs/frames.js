@@ -528,6 +528,7 @@ export function useFarcasterMultiIdentity({
 
   return useMemo(
     () => ({
+      specification: "openframes",
       signer: farcasterUser,
       hasSigner:
         farcasterUser?.status === "approved" ||
@@ -542,6 +543,12 @@ export function useFarcasterMultiIdentity({
       identities: state.identities,
       selectIdentity,
       identityPoller,
+      withContext(frameContext) {
+        return {
+          signerState: this,
+          frameContext,
+        };
+      },
     }),
     [
       farcasterUser,

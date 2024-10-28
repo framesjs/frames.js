@@ -422,6 +422,7 @@ export function useFarcasterIdentity({
 
   return useMemo(
     () => ({
+      specification: "farcaster",
       signer: farcasterUser,
       hasSigner:
         farcasterUser?.status === "approved" ||
@@ -433,6 +434,12 @@ export function useFarcasterIdentity({
       createSigner,
       logout,
       identityPoller,
+      withContext(frameContext) {
+        return {
+          signerState: this,
+          frameContext,
+        };
+      },
     }),
     [
       farcasterUser,

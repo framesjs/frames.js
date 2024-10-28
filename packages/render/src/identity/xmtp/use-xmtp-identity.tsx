@@ -210,12 +210,19 @@ export function useXmtpIdentity({
 
   return useMemo(
     () => ({
+      specification: "openframes",
       signer: xmtpSigner,
       hasSigner: !!xmtpSigner?.keys,
       signFrameAction,
       isLoadingSigner: isLoading,
       onSignerlessFramePress,
       logout,
+      withContext(frameContext) {
+        return {
+          signerState: this,
+          frameContext,
+        };
+      },
     }),
     [isLoading, logout, onSignerlessFramePress, signFrameAction, xmtpSigner]
   );

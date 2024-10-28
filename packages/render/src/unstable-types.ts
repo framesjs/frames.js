@@ -29,11 +29,7 @@ import type {
 } from "./types";
 import type { FrameState, FrameStateAPI } from "./unstable-use-frame-state";
 
-type ResolvedSpecification = {
-  /**
-   * Specification that should be used to render the frame.
-   */
-  specification: SupportedParsingSpecification;
+export type ResolvedSigner = {
   /**
    * Signer that will be used to sign all actions that require signers.
    */
@@ -41,16 +37,16 @@ type ResolvedSpecification = {
   /**
    * The context of this frame, used for generating Frame Action payloads
    */
-  frameContext: FrameContext;
+  frameContext?: FrameContext;
 };
 
-export type ResolveSpecificationFunctionArg = {
+export type ResolveSignerFunctionArg = {
   parseResult: ParseFramesWithReportsResult;
 };
 
-export type ResolveSpecificationFunction = (
-  arg: ResolveSpecificationFunctionArg
-) => ResolvedSpecification;
+export type ResolveSignerFunction = (
+  arg: ResolveSignerFunctionArg
+) => ResolvedSigner;
 
 export type UseFrameOptions = {
   /** the route used to POST frame actions. The post_url will be added as a the `url` query parameter */
@@ -65,7 +61,7 @@ export type UseFrameOptions = {
    * 2. homeframeUrl changes
    * 3. reset() method on FrameState is called
    */
-  resolveSpecification: ResolveSpecificationFunction;
+  resolveSigner: ResolveSignerFunction;
   /**
    * The url of the homeframe, if null / undefined won't load a frame nor render it.
    *

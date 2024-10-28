@@ -366,6 +366,10 @@ export interface SignerStateInstance<
   TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
   TFrameContextType extends FrameContext = FrameContext,
 > {
+  /**
+   * For which specification is this signer required.
+   */
+  readonly specification: SupportedParsingSpecification;
   signer: TSignerStorageType | null;
   /**
    * True only if signer is approved or impersonating
@@ -380,6 +384,14 @@ export interface SignerStateInstance<
   /** A function called when a frame button is clicked without a signer */
   onSignerlessFramePress: () => Promise<void>;
   logout: () => Promise<void>;
+  withContext: (context: TFrameContextType) => {
+    signerState: SignerStateInstance<
+      TSignerStorageType,
+      TFrameActionBodyType,
+      TFrameContextType
+    >;
+    frameContext: TFrameContextType;
+  };
 }
 
 export type FrameGETRequest = {

@@ -249,7 +249,7 @@ export function useFetchFrame({
 
     // get rid of address from request.signerStateActionContext.frameContext and pass that to sign frame action
     const signedDataOrError = await signAndGetFrameActionBodyPayload({
-      signerStateActionContext: request.signerStateActionContext,
+      request,
       signerState: frameState.signerState,
     });
 
@@ -838,24 +838,24 @@ function getResponseBody(response: Response): Promise<unknown> {
 }
 
 type SignAndGetFrameActionPayloadOptions = {
+  request: FramePOSTRequest<SignerStateActionContext>;
   signerState: SignerStateInstance;
-  signerStateActionContext: SignerStateActionContext;
 };
 
 /**
  * This shouldn't be used for transaction data request
  */
 async function signAndGetFrameActionBodyPayload({
-  signerStateActionContext,
+  request,
   signerState,
 }: SignAndGetFrameActionPayloadOptions): Promise<Error | SignedFrameAction> {
   // Transacting address is not included in post action
-  const { address: _, ...requiredFrameContext } =
-    signerStateActionContext.frameContext as unknown as FarcasterFrameContext;
+  const { address: _, ...requiredFrameContext } = request
+    .signerStateActionContext.frameContext as unknown as FarcasterFrameContext;
 
   return tryCallAsync(() =>
     signerState.signFrameAction({
-      ...signerStateActionContext,
+      ...request.signerStateActionContext,
       frameContext: requiredFrameContext,
     })
   );

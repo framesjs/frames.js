@@ -321,6 +321,7 @@ export function useLensIdentity({
 
   return useMemo(
     () => ({
+      specification: "openframes",
       signer: lensSigner,
       hasSigner: !!lensSigner?.accessToken,
       signFrameAction,
@@ -331,6 +332,12 @@ export function useLensIdentity({
       closeProfileSelector,
       availableProfiles,
       handleSelectProfile,
+      withContext(frameContext) {
+        return {
+          signerState: this,
+          frameContext,
+        };
+      },
     }),
     [
       availableProfiles,
