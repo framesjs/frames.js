@@ -1,5 +1,13 @@
 # @frames.js/render
 
+## 0.3.20-canary.0
+
+### Patch Changes
+
+- 96dc0be: feat: multi specification support
+- Updated dependencies [96dc0be]
+  - frames.js@0.19.6-canary.0
+
 ## 0.3.19
 
 ### Patch Changes
