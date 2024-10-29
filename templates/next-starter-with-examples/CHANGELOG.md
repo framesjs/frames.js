@@ -1,5 +1,12 @@
 # template-next-starter-with-examples
 
+## 0.1.10-canary.0
+
+### Patch Changes
+
+- Updated dependencies [96dc0be]
+  - frames.js@0.19.6-canary.0
+
 ## 0.1.9
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.3.18-canary.0
+
+### Patch Changes
+
+- 96dc0be: feat: multi specification support
+
 ## 0.3.17
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.19.6-canary.0
+
+### Patch Changes
+
+- 96dc0be: feat: multi specification support
+
 ## 0.19.5
 
 ### Patch Changes
