@@ -1,6 +1,6 @@
 {
   "name": "@frames.js/render",
-  "version": "0.3.20-canary.0",
+  "version": "0.3.20-canary.1",
   "type": "module",
   "main": "./dist/index.cjs",
   "types": "index.d.cts",
@@ -285,7 +285,7 @@
   "dependencies": {
     "@farcaster/core": "^0.14.7",
     "@noble/ed25519": "^2.0.0",
-    "frames.js": "^0.19.6-canary.0",
+    "frames.js": "^0.19.6-canary.1",
     "zod": "^3.23.8"
   }
 }

@@ -19,6 +19,7 @@
     "template-remix": "0.0.33"
   },
   "changesets": [
+    "few-moose-jog",
     "twenty-pugs-roll"
   ]
 }

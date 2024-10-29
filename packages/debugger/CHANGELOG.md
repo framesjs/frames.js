@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.3.18-canary.1
+
+### Patch Changes
+
+- chore: bump version
+
 ## 0.3.18-canary.0
 
 ### Patch Changes
