@@ -1,5 +1,12 @@
 # template-next-utils-starter
 
+## 0.0.32-canary.0
+
+### Patch Changes
+
+- Updated dependencies [96dc0be]
+  - frames.js@0.19.6-canary.0
+
 ## 0.0.31
 
 ### Patch Changes
