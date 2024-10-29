@@ -1,5 +1,13 @@
 # @frames.js/render
 
+## 0.3.20-canary.1
+
+### Patch Changes
+
+- chore: bump version
+- Updated dependencies
+  - frames.js@0.19.6-canary.1
+
 ## 0.3.20-canary.0
 
 ### Patch Changes
