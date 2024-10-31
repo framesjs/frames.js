@@ -141,7 +141,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
           status: "complete",
           frame: currentFrameStackItem.request.sourceFrame,
           isImageLoading,
-          id: currentFrameStackItem.timestamp.getTime(),
+          id: currentFrameStackItem.id,
           frameState,
         };
       } else {
@@ -173,7 +173,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
         status: "complete",
         frame: currentFrameStackItem.request.sourceFrame,
         isImageLoading,
-        id: currentFrameStackItem.timestamp.getTime(),
+        id: currentFrameStackItem.id,
         frameState,
       };
 
@@ -182,7 +182,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
       if (!currentFrameStackItem.request.sourceFrame) {
         frameUiState = {
           status: "loading",
-          id: currentFrameStackItem.timestamp.getTime(),
+          id: currentFrameStackItem.id,
           frameState,
         };
       } else {
@@ -190,7 +190,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
           status: "complete",
           frame: currentFrameStackItem.request.sourceFrame,
           isImageLoading,
-          id: currentFrameStackItem.timestamp.getTime(),
+          id: currentFrameStackItem.id,
           frameState,
         };
       }
@@ -206,7 +206,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
             ? currentFrameStackItem.frameResult.framesDebugInfo?.image
             : undefined,
           isImageLoading,
-          id: currentFrameStackItem.timestamp.getTime(),
+          id: currentFrameStackItem.id,
           frameState,
         };
       } else if (
@@ -220,7 +220,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
             ? currentFrameStackItem.frameResult.framesDebugInfo?.image
             : undefined,
           isImageLoading,
-          id: currentFrameStackItem.timestamp.getTime(),
+          id: currentFrameStackItem.id,
           frameState,
         };
       } else {
@@ -235,7 +235,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
     case "pending": {
       frameUiState = {
         status: "loading",
-        id: currentFrameStackItem.timestamp.getTime(),
+        id: currentFrameStackItem.id,
         frameState,
       };
       break;

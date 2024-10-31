@@ -11,23 +11,21 @@ import type {
   ParseResultWithFrameworkDetails,
 } from "frames.js/frame-parsers";
 import type { Dispatch } from "react";
+import type { ErrorMessageResponse } from "frames.js/types";
 import type {
   ButtonPressFunction,
   FrameContext,
+  FrameGETRequest,
+  FramePOSTRequest,
   FrameRequest,
-  FrameStackBase,
-  FrameStackDoneRedirect,
-  FrameStackMessage,
-  FrameStackPending,
-  FrameStackRequestError,
   OnConnectWalletFunc,
   OnMintArgs,
   OnSignatureFunc,
   OnTransactionFunc,
+  SignedFrameAction,
   SignerStateActionContext,
   SignerStateInstance,
 } from "./types";
-import type { FrameState, FrameStateAPI } from "./unstable-use-frame-state";
 
 export type ResolvedSigner = {
   /**
@@ -48,7 +46,34 @@ export type ResolveSignerFunction = (
   arg: ResolveSignerFunctionArg
 ) => ResolvedSigner;
 
-export type UseFrameOptions = {
+export type UseFrameOptions<
+  TExtraDataPending = unknown,
+  TExtraDataDone = unknown,
+  TExtraDataoneRedirect = unknown,
+  TExtraDataRequestError = unknown,
+  TExtraDataMesssage = unknown,
+> = {
+  /**
+   * The frame state to be used for the frame. Allows to store extra data on stack items.
+   */
+  frameStateHook?: (
+    options: Pick<
+      UseFrameStateOptions<
+        TExtraDataPending,
+        TExtraDataDone,
+        TExtraDataoneRedirect,
+        TExtraDataRequestError,
+        TExtraDataMesssage
+      >,
+      "initialFrameUrl" | "initialParseResult" | "resolveSpecification"
+    >
+  ) => UseFrameStateReturn<
+    TExtraDataPending,
+    TExtraDataDone,
+    TExtraDataoneRedirect,
+    TExtraDataRequestError,
+    TExtraDataMesssage
+  >;
   /** the route used to POST frame actions. The post_url will be added as a the `url` query parameter */
   frameActionProxy: string;
   /** the route used to GET the initial frame via proxy */
@@ -119,21 +144,84 @@ export type UseFrameOptions = {
   >
 >;
 
-export type FrameStackDone = FrameStackBase & {
-  request: FrameRequest;
-  response: Response;
-  frameResult: ParseResultWithFrameworkDetails;
-  status: "done";
+export type FrameStackBase = {
+  id: number;
+  url: string;
 };
 
-export type FramesStackItem =
-  | FrameStackPending
-  | FrameStackDone
-  | FrameStackDoneRedirect
-  | FrameStackRequestError
-  | FrameStackMessage;
+export type FrameStackPostPending<TExtra = unknown> = Omit<
+  FrameStackBase,
+  "responseStatus" | "responseBody"
+> & {
+  method: "POST";
+  status: "pending";
+  request: FramePOSTRequest;
+  extra: TExtra;
+};
 
-export type UseFrameReturnValue = {
+export type FrameStackGetPending<TExtra = unknown> = Omit<
+  FrameStackBase,
+  "responseStatus" | "responseBody"
+> & {
+  method: "GET";
+  status: "pending";
+  request: FrameGETRequest;
+  extra: TExtra;
+};
+
+export type FrameStackPending<TExtra = unknown> =
+  | FrameStackGetPending<TExtra>
+  | FrameStackPostPending<TExtra>;
+
+export type FrameStackDone<TExtra = unknown> = FrameStackBase & {
+  request: FrameRequest;
+  frameResult: ParseResultWithFrameworkDetails;
+  status: "done";
+  extra: TExtra;
+};
+
+export type FrameStackDoneRedirect<TExtra = unknown> = FrameStackBase & {
+  request: FramePOSTRequest;
+  location: string;
+  status: "doneRedirect";
+  extra: TExtra;
+};
+
+export type FrameStackRequestError<TExtra = unknown> = FrameStackBase & {
+  request: FrameRequest;
+  status: "requestError";
+  requestError: Error;
+  extra: TExtra;
+};
+
+export type FrameStackMessage<TExtra = unknown> = FrameStackBase & {
+  request: FramePOSTRequest;
+  status: "message";
+  message: string;
+  type: "info" | "error";
+  extra: TExtra;
+};
+
+export type FramesStackItem<
+  TExtraPending = unknown,
+  TExtraDone = unknown,
+  TExtraDoneRedirect = unknown,
+  TExtraRequestError = unknown,
+  TExtraMesssage = unknown,
+> =
+  | FrameStackPending<TExtraPending>
+  | FrameStackDone<TExtraDone>
+  | FrameStackDoneRedirect<TExtraDoneRedirect>
+  | FrameStackRequestError<TExtraRequestError>
+  | FrameStackMessage<TExtraMesssage>;
+
+export type UseFrameReturnValue<
+  TExtraDataPending = unknown,
+  TExtraDataDone = unknown,
+  TExtraDataoneRedirect = unknown,
+  TExtraDataRequestError = unknown,
+  TExtraDataMesssage = unknown,
+> = {
   /**
    * The signer state is set once it is resolved (on initial frame render)
    */
@@ -144,11 +232,25 @@ export type UseFrameReturnValue = {
   readonly specification: SupportedParsingSpecification | undefined;
   fetchFrame: FetchFrameFunction;
   clearFrameStack: () => void;
-  dispatchFrameStack: Dispatch<FrameReducerActions>;
+  dispatchFrameStack: Dispatch<
+    FrameReducerActions<
+      TExtraDataPending,
+      TExtraDataDone,
+      TExtraDataoneRedirect,
+      TExtraDataRequestError,
+      TExtraDataMesssage
+    >
+  >;
   /** The frame at the top of the stack (at index 0) */
   readonly currentFrameStackItem: FramesStackItem | undefined;
   /** A stack of frames with additional context, with the most recent frame at index 0 */
-  readonly framesStack: FramesStack;
+  readonly framesStack: FramesStack<
+    TExtraDataPending,
+    TExtraDataDone,
+    TExtraDataoneRedirect,
+    TExtraDataRequestError,
+    TExtraDataMesssage
+  >;
   readonly inputText: string;
   setInputText: (s: string) => void;
   onButtonPress: ButtonPressFunction<SignerStateActionContext<any, any>>;
@@ -159,34 +261,51 @@ export type UseFrameReturnValue = {
   reset: () => void;
 };
 
-export type FramesStack = FramesStackItem[];
+export type FramesStack<
+  TExtraPending = unknown,
+  TExtraDone = unknown,
+  TExtraDoneRedirect = unknown,
+  TExtraRequestError = unknown,
+  TExtraMesssage = unknown,
+> = FramesStackItem<
+  TExtraPending,
+  TExtraDone,
+  TExtraDoneRedirect,
+  TExtraRequestError,
+  TExtraMesssage
+>[];
 
-export type FrameReducerActions =
+export type FrameReducerActions<
+  TExtraPending = unknown,
+  TExtraDone = unknown,
+  TExtraDoneRedirect = unknown,
+  TExtraRequestError = unknown,
+  TExtraMessage = unknown,
+> =
   | {
       action: "LOAD";
-      item: FrameStackPending;
+      item: FrameStackPending<TExtraPending>;
     }
   | {
       action: "REQUEST_ERROR";
-      pendingItem: FrameStackPending;
-      item: FrameStackRequestError;
+      pendingItem: FrameStackPending<TExtraPending>;
+      item: FrameStackRequestError<TExtraRequestError>;
     }
   | {
       action: "DONE_REDIRECT";
-      pendingItem: FrameStackPending;
-      item: FrameStackDoneRedirect;
+      pendingItem: FrameStackPending<TExtraPending>;
+      item: FrameStackDoneRedirect<TExtraDoneRedirect>;
     }
   | {
       action: "DONE_WITH_ERROR_MESSAGE";
-      pendingItem: FrameStackPending;
-      item: Exclude<FrameStackMessage, { type: "info" }>;
+      pendingItem: FrameStackPending<TExtraPending>;
+      item: Exclude<FrameStackMessage<TExtraMessage>, { type: "info" }>;
     }
   | {
       action: "DONE";
-      pendingItem: FrameStackPending;
+      pendingItem: FrameStackPending<TExtraPending>;
       parseResult: ParseFramesWithReportsResult;
-      response: Response;
-      endTime: Date;
+      extra: TExtraDone;
     }
   | { action: "CLEAR" }
   | {
@@ -196,6 +315,7 @@ export type FrameReducerActions =
       action: "RESET_INITIAL_FRAME";
       parseResult: ParseFramesWithReportsResult;
       homeframeUrl: string;
+      extra: TExtraDone;
     };
 
 export type UseFetchFrameOptions = {
@@ -313,3 +433,199 @@ export type FetchFrameFunction = (
    */
   shouldClear?: boolean
 ) => Promise<void>;
+
+type MarkAsDoneArg<TExtraPending> = {
+  pendingItem:
+    | FrameStackGetPending<TExtraPending>
+    | FrameStackPostPending<TExtraPending>;
+  endTime: Date;
+  response: Response;
+  parseResult: ParseFramesWithReportsResult;
+  responseBody: unknown;
+};
+
+type MarkAsDonwWithRedirectArg<TExtraPending> = {
+  pendingItem: FrameStackPostPending<TExtraPending>;
+  endTime: Date;
+  location: string;
+  response: Response;
+  responseBody: unknown;
+};
+
+type MarkAsDoneWithErrorMessageArg<TExtraPending> = {
+  pendingItem: FrameStackPostPending<TExtraPending>;
+  endTime: Date;
+  response: Response;
+  responseData: ErrorMessageResponse;
+};
+
+type MarkAsFailedArg<TExtraPending> = {
+  pendingItem:
+    | FrameStackGetPending<TExtraPending>
+    | FrameStackPostPending<TExtraPending>;
+  endTime: Date;
+  requestError: Error;
+  response: Response | null;
+  responseBody: unknown;
+  responseStatus: number;
+};
+
+type MarkAsFailedWithRequestErrorArg<TExtraPending> = {
+  endTime: Date;
+  pendingItem: FrameStackPostPending<TExtraPending>;
+  error: Error;
+  response: Response;
+  responseBody: unknown;
+};
+
+type CreateGetPendingItemArg = {
+  request: FrameGETRequest;
+};
+
+type CreatePOSTPendingItemArg = {
+  action: SignedFrameAction;
+  request: FramePOSTRequest<any>;
+  /**
+   * Optional, allows to override the start time
+   *
+   * @defaultValue new Date()
+   */
+  startTime?: Date;
+};
+
+export type UseFrameStateOptions<
+  TExtraPending = unknown,
+  TExtraDone = unknown,
+  TExtraDoneRedirect = unknown,
+  TExtraRequestError = unknown,
+  TExtraMesssage = unknown,
+> = {
+  initialParseResult?: ParseFramesWithReportsResult | null;
+  initialFrameUrl?: string | null;
+  initialPendingExtra?: TExtraPending;
+  resolveSpecification: ResolveSignerFunction;
+  resolveGETPendingExtra?: (arg: CreateGetPendingItemArg) => TExtraPending;
+  resolvePOSTPendingExtra?: (arg: CreatePOSTPendingItemArg) => TExtraPending;
+  resolveDoneExtra?: (arg: MarkAsDoneArg<TExtraPending>) => TExtraDone;
+  resolveDoneRedirectExtra?: (
+    arg: MarkAsDonwWithRedirectArg<TExtraPending>
+  ) => TExtraDoneRedirect;
+  resolveDoneWithErrorMessageExtra?: (
+    arg: MarkAsDoneWithErrorMessageArg<TExtraPending>
+  ) => TExtraMesssage;
+  resolveFailedExtra?: (
+    arg: MarkAsFailedArg<TExtraPending>
+  ) => TExtraRequestError;
+  resolveFailedWithRequestErrorExtra?: (
+    arg: MarkAsFailedWithRequestErrorArg<TExtraPending>
+  ) => TExtraRequestError;
+};
+
+export type FrameStateAPI<
+  TExtraPending = unknown,
+  TExtraDone = unknown,
+  TExtraDoneRedirect = unknown,
+  TExtraRequestError = unknown,
+  TExtraMesssage = unknown,
+> = {
+  dispatch: React.Dispatch<
+    FrameReducerActions<
+      TExtraPending,
+      TExtraDone,
+      TExtraDoneRedirect,
+      TExtraRequestError,
+      TExtraMesssage
+    >
+  >;
+  clear: () => void;
+  createGetPendingItem: (
+    arg: CreateGetPendingItemArg
+  ) => FrameStackGetPending<TExtraPending>;
+  createPostPendingItem: <
+    TSignerStateActionContext extends SignerStateActionContext<any, any>,
+  >(arg: {
+    action: SignedFrameAction;
+    request: FramePOSTRequest<TSignerStateActionContext>;
+    /**
+     * Optional, allows to override the start time
+     *
+     * @defaultValue new Date()
+     */
+    startTime?: Date;
+  }) => FrameStackPostPending<TExtraPending>;
+  markAsDone: (arg: MarkAsDoneArg<TExtraPending>) => void;
+  markAsDoneWithRedirect: (
+    arg: MarkAsDonwWithRedirectArg<TExtraPending>
+  ) => void;
+  markAsDoneWithErrorMessage: (
+    arg: MarkAsDoneWithErrorMessageArg<TExtraPending>
+  ) => void;
+  markAsFailed: (arg: MarkAsFailedArg<TExtraPending>) => void;
+  markAsFailedWithRequestError: (
+    arg: MarkAsFailedWithRequestErrorArg<TExtraPending>
+  ) => void;
+  /**
+   * If arg is omitted it will reset the frame stack to initial frame and resolves the specification again.
+   * Otherwise it will set the frame state to provided values and resolve the specification.
+   */
+  reset: (arg?: {
+    homeframeUrl: string;
+    parseResult: ParseFramesWithReportsResult;
+  }) => void;
+};
+
+export type UseFrameStateReturn<
+  TExtraPending = unknown,
+  TExtraDone = unknown,
+  TExtraDoneRedirect = unknown,
+  TExtraRequestError = unknown,
+  TExtraMesssage = unknown,
+> = [
+  FrameState<
+    TExtraPending,
+    TExtraDone,
+    TExtraDoneRedirect,
+    TExtraRequestError,
+    TExtraMesssage
+  >,
+  FrameStateAPI<
+    TExtraPending,
+    TExtraDone,
+    TExtraDoneRedirect,
+    TExtraRequestError,
+    TExtraMesssage
+  >,
+];
+
+export type FrameState<
+  TExtraPending = unknown,
+  TExtraDone = unknown,
+  TExtraDoneRedirect = unknown,
+  TExtraRequestError = unknown,
+  TExtraMesssage = unknown,
+> =
+  | {
+      type: "initialized";
+      stack: FramesStack<
+        TExtraPending,
+        TExtraDone,
+        TExtraDoneRedirect,
+        TExtraRequestError,
+        TExtraMesssage
+      >;
+      signerState: SignerStateInstance;
+      frameContext: FrameContext;
+      specification: SupportedParsingSpecification;
+      homeframeUrl: string;
+      parseResult: ParseFramesWithReportsResult;
+    }
+  | {
+      type: "not-initialized";
+      stack: FramesStack<
+        TExtraPending,
+        TExtraDone,
+        TExtraDoneRedirect,
+        TExtraRequestError,
+        TExtraMesssage
+      >;
+    };

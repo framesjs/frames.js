@@ -16,13 +16,13 @@ import {
 } from "./helpers";
 import type {
   FetchFrameFunction,
+  FrameStackPending,
+  FrameStackPostPending,
   UseFetchFrameOptions,
 } from "./unstable-types";
 import type {
   FrameGETRequest,
   FramePOSTRequest,
-  FrameStackPending,
-  FrameStackPostPending,
   SignedFrameAction,
   SignerStateActionContext,
   SignerStateInstance,
@@ -204,7 +204,8 @@ export function useFetchFrame({
         pendingItem: frameStackPendingItem,
         endTime,
         parseResult,
-        response,
+        responseBody: await response.clone().text(),
+        response: response.clone(),
       });
 
       return;
@@ -447,6 +448,7 @@ export function useFetchFrame({
         parseResult: responseData,
         pendingItem,
         response,
+        responseBody: await response.clone().text(),
       });
 
       tryCall(() => options?.onSuccess?.());

@@ -1,4 +1,4 @@
-import { useMemo, useReducer } from "react";
+import { type MutableRefObject, useMemo, useReducer, useRef } from "react";
 import type { Frame, SupportedParsingSpecification } from "frames.js";
 import type { ParseResult } from "frames.js/frame-parsers";
 import type {
@@ -23,6 +23,7 @@ function computeDurationInSeconds(start: Date, end: Date): number {
 }
 
 function framesStackReducer(
+  idCounterRef: MutableRefObject<number>,
   state: FramesStack,
   action: FrameReducerActions
 ): FramesStack {
@@ -83,6 +84,7 @@ function framesStackReducer(
 
         return [
           {
+            id: idCounterRef.current++,
             request: {
               method: "GET",
               url: action.homeframeUrl ?? "",
@@ -204,8 +206,9 @@ export function useFrameStack({
   React.Dispatch<FrameReducerActions>,
   FrameStackAPI,
 ] {
+  const idCounterRef = useRef(0);
   const [stack, dispatch] = useReducer(
-    framesStackReducer,
+    framesStackReducer.bind(null, idCounterRef),
     [initialFrame, initialFrameUrl, initialSpecification] as const,
     ([frame, frameUrl, specification]): FramesStack => {
       if (frame) {
@@ -219,6 +222,7 @@ export function useFrameStack({
             };
         return [
           {
+            id: idCounterRef.current++,
             response: new Response(JSON.stringify(frameResult), {
               status: 200,
               headers: { "Content-Type": "application/json" },
@@ -242,6 +246,7 @@ export function useFrameStack({
         // this is then handled by fetchFrame having second argument set to true so the stack is cleared
         return [
           {
+            id: idCounterRef.current++,
             method: "GET",
             request: {
               method: "GET",
@@ -268,6 +273,7 @@ export function useFrameStack({
       },
       createGetPendingItem(arg) {
         const item: FrameStackGetPending = {
+          id: idCounterRef.current++,
           method: "GET",
           request: arg.request,
           requestDetails: {},
@@ -285,6 +291,7 @@ export function useFrameStack({
       },
       createPostPendingItem(arg) {
         const item: FrameStackPostPending = {
+          id: idCounterRef.current++,
           method: "POST",
           request: arg.request,
           requestDetails: {
@@ -305,6 +312,7 @@ export function useFrameStack({
       },
       createCastOrComposerActionPendingItem(arg) {
         return {
+          id: idCounterRef.current++,
           method: "POST",
           requestDetails: {
             body: arg.action.body,
@@ -405,6 +413,7 @@ export function useFrameStack({
           action: "REQUEST_ERROR",
           pendingItem: arg.pendingItem,
           item: {
+            id: arg.pendingItem.id,
             request: arg.pendingItem.request,
             requestDetails: arg.pendingItem.requestDetails,
             timestamp: arg.pendingItem.timestamp,

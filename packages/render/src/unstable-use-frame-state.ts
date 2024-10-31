@@ -1,53 +1,48 @@
 import type { MutableRefObject } from "react";
 import { useMemo, useReducer, useRef } from "react";
-import type {
-  ParseFramesWithReportsResult,
-  SupportedParsingSpecification,
-} from "frames.js/frame-parsers";
-import type { ErrorMessageResponse } from "frames.js/types";
-import type {
-  FrameContext,
-  FrameGETRequest,
-  FramePOSTRequest,
-  FrameStackGetPending,
-  FrameStackPostPending,
-  SignedFrameAction,
-  SignerStateActionContext,
-  SignerStateInstance,
-} from "./types";
+import type { SupportedParsingSpecification } from "frames.js/frame-parsers";
+import type { FrameContext, SignerStateInstance } from "./types";
 import type {
   FrameReducerActions,
-  FramesStack,
+  FrameStackGetPending,
+  FrameStackPostPending,
+  FrameState,
+  FrameStateAPI,
   ResolveSignerFunction,
+  UseFrameStateOptions,
+  UseFrameStateReturn,
 } from "./unstable-types";
 import { useFreshRef } from "./hooks/use-fresh-ref";
 
-function computeDurationInSeconds(start: Date, end: Date): number {
-  return Number(((end.getTime() - start.getTime()) / 1000).toFixed(2));
-}
-
-export type FrameState =
-  | {
-      type: "initialized";
-      stack: FramesStack;
-      signerState: SignerStateInstance;
-      frameContext: FrameContext;
-      specification: SupportedParsingSpecification;
-      homeframeUrl: string;
-      parseResult: ParseFramesWithReportsResult;
-    }
-  | {
-      type: "not-initialized";
-      stack: FramesStack;
-    };
-
-function createFramesStackReducer(
-  resolveSignerRef: MutableRefObject<ResolveSignerFunction>
-) {
+function createFramesStackReducer<
+  TExtraPending = unknown,
+  TExtraDone = unknown,
+  TExtraDoneRedirect = unknown,
+  TExtraRequestError = unknown,
+  TExtraMesssage = unknown,
+>(resolveSignerRef: MutableRefObject<ResolveSignerFunction>) {
   return function framesStackReducer(
-    state: FrameState,
-    action: FrameReducerActions
-  ): FrameState {
+    state: FrameState<
+      TExtraPending,
+      TExtraDone,
+      TExtraDoneRedirect,
+      TExtraRequestError,
+      TExtraMesssage
+    >,
+    action: FrameReducerActions<
+      TExtraPending,
+      TExtraDone,
+      TExtraDoneRedirect,
+      TExtraRequestError,
+      TExtraMesssage
+    >
+  ): FrameState<
+    TExtraPending,
+    TExtraDone,
+    TExtraDoneRedirect,
+    TExtraRequestError,
+    TExtraMesssage
+  > {
     switch (action.action) {
       case "LOAD":
         return {
@@ -56,7 +51,7 @@ function createFramesStackReducer(
         };
       case "DONE_REDIRECT": {
         const index = state.stack.findIndex(
-          (item) => item.timestamp === action.pendingItem.timestamp
+          (item) => item.id === action.pendingItem.id
         );
 
         if (index === -1) {
@@ -76,7 +71,7 @@ function createFramesStackReducer(
       }
       case "DONE_WITH_ERROR_MESSAGE": {
         const index = state.stack.findIndex(
-          (item) => item.timestamp === action.pendingItem.timestamp
+          (item) => item.id === action.pendingItem.id
         );
 
         if (index === -1) {
@@ -95,7 +90,7 @@ function createFramesStackReducer(
       }
       case "DONE": {
         const index = state.stack.findIndex(
-          (item) => item.timestamp === action.pendingItem.timestamp
+          (item) => item.id === action.pendingItem.id
         );
 
         if (index === -1) {
@@ -135,14 +130,8 @@ function createFramesStackReducer(
         state.stack[index] = {
           ...action.pendingItem,
           status: "done",
-          speed: computeDurationInSeconds(
-            action.pendingItem.timestamp,
-            action.endTime
-          ),
           frameResult: action.parseResult[specification],
-          response: action.response,
-          responseStatus: action.response.status,
-          responseBody: action.parseResult,
+          extra: action.extra,
         };
 
         return {
@@ -158,7 +147,7 @@ function createFramesStackReducer(
       }
       case "REQUEST_ERROR": {
         const index = state.stack.findIndex(
-          (item) => item.timestamp === action.pendingItem.timestamp
+          (item) => item.id === action.pendingItem.id
         );
 
         if (index === -1) {
@@ -211,17 +200,10 @@ function createFramesStackReducer(
                 url: action.homeframeUrl,
               },
               url: action.homeframeUrl,
-              requestDetails: {},
-              response: new Response(JSON.stringify(frameResult), {
-                status: 200,
-                headers: { "Content-Type": "application/json" },
-              }),
-              responseStatus: 200,
-              timestamp: new Date(),
-              speed: 0,
+              id: Date.now(),
               frameResult,
               status: "done",
-              responseBody: frameResult,
+              extra: action.extra,
             },
           ],
         };
@@ -237,85 +219,69 @@ function createFramesStackReducer(
   };
 }
 
-type UseFrameStateOptions = {
-  initialParseResult?: ParseFramesWithReportsResult | null;
-  initialFrameUrl?: string | null;
-  resolveSpecification: ResolveSignerFunction;
-};
-
-export type FrameStateAPI = {
-  dispatch: React.Dispatch<FrameReducerActions>;
-  clear: () => void;
-  createGetPendingItem: (arg: {
-    request: FrameGETRequest;
-  }) => FrameStackGetPending;
-  createPostPendingItem: <
-    TSignerStateActionContext extends SignerStateActionContext<any, any>,
-  >(arg: {
-    action: SignedFrameAction;
-    request: FramePOSTRequest<TSignerStateActionContext>;
-    /**
-     * Optional, allows to override the start time
-     *
-     * @defaultValue new Date()
-     */
-    startTime?: Date;
-  }) => FrameStackPostPending;
-  markAsDone: (arg: {
-    pendingItem: FrameStackGetPending | FrameStackPostPending;
-    endTime: Date;
-    response: Response;
-    parseResult: ParseFramesWithReportsResult;
-  }) => void;
-  markAsDoneWithRedirect: (arg: {
-    pendingItem: FrameStackPostPending;
-    endTime: Date;
-    location: string;
-    response: Response;
-    responseBody: unknown;
-  }) => void;
-  markAsDoneWithErrorMessage: (arg: {
-    pendingItem: FrameStackPostPending;
-    endTime: Date;
-    response: Response;
-    responseData: ErrorMessageResponse;
-  }) => void;
-  markAsFailed: (arg: {
-    pendingItem: FrameStackGetPending | FrameStackPostPending;
-    endTime: Date;
-    requestError: Error;
-    response: Response | null;
-    responseBody: unknown;
-    responseStatus: number;
-  }) => void;
-  markAsFailedWithRequestError: (arg: {
-    endTime: Date;
-    pendingItem: FrameStackPostPending;
-    error: Error;
-    response: Response;
-    responseBody: unknown;
-  }) => void;
-  /**
-   * If arg is omitted it will reset the frame stack to initial frame and resolves the specification again.
-   * Otherwise it will set the frame state to provided values and resolve the specification.
-   */
-  reset: (arg?: {
-    homeframeUrl: string;
-    parseResult: ParseFramesWithReportsResult;
-  }) => void;
-};
-
-export function useFrameState({
+export function useFrameState<
+  TExtraPending = unknown,
+  TExtraDone = unknown,
+  TExtraDoneRedirect = unknown,
+  TExtraRequestError = unknown,
+  TExtraMesssage = unknown,
+>({
   initialParseResult,
   initialFrameUrl,
+  initialPendingExtra,
   resolveSpecification,
-}: UseFrameStateOptions): [FrameState, FrameStateAPI] {
+  resolveGETPendingExtra,
+  resolvePOSTPendingExtra,
+  resolveDoneExtra,
+  resolveDoneRedirectExtra,
+  resolveDoneWithErrorMessageExtra,
+  resolveFailedExtra,
+  resolveFailedWithRequestErrorExtra,
+}: UseFrameStateOptions<
+  TExtraPending,
+  TExtraDone,
+  TExtraDoneRedirect,
+  TExtraRequestError,
+  TExtraMesssage
+>): UseFrameStateReturn<
+  TExtraPending,
+  TExtraDone,
+  TExtraDoneRedirect,
+  TExtraRequestError,
+  TExtraMesssage
+> {
+  const idCounterRef = useRef(0);
   const resolveSpecificationRef = useFreshRef(resolveSpecification);
-  const reducerRef = useRef(createFramesStackReducer(resolveSpecificationRef));
+  const resolveGETPendingExtraRef = useFreshRef(resolveGETPendingExtra);
+  const resolvePOSTPendingExtraRef = useFreshRef(resolvePOSTPendingExtra);
+  const resolveDoneExtraRef = useFreshRef(resolveDoneExtra);
+  const resolveDoneRedirectExtraRef = useFreshRef(resolveDoneRedirectExtra);
+  const resolveDoneWithErrorMessageExtraRef = useFreshRef(
+    resolveDoneWithErrorMessageExtra
+  );
+  const resolveFailedExtraRef = useFreshRef(resolveFailedExtra);
+  const resolveFailedWithRequestErrorExtraRef = useFreshRef(
+    resolveFailedWithRequestErrorExtra
+  );
+  const reducerRef = useRef(
+    createFramesStackReducer<
+      TExtraPending,
+      TExtraDone,
+      TExtraDoneRedirect,
+      TExtraRequestError,
+      TExtraMesssage
+    >(resolveSpecificationRef)
+  );
   const [state, dispatch] = useReducer(
     reducerRef.current,
-    [initialParseResult, initialFrameUrl] as const,
-    ([parseResult, frameUrl]): FrameState => {
+    [initialParseResult, initialFrameUrl, initialPendingExtra] as const,
+    ([parseResult, frameUrl, extra]): FrameState<
+      TExtraPending,
+      TExtraDone,
+      TExtraDoneRedirect,
+      TExtraRequestError,
+      TExtraMesssage
+    > => {
       if (parseResult && frameUrl) {
         const { frameContext = {}, signerState } = resolveSpecification({
           parseResult,
@@ -331,22 +297,15 @@ export function useFrameState({
           parseResult,
           stack: [
             {
-              response: new Response(JSON.stringify(frameResult), {
-                status: 200,
-                headers: { "Content-Type": "application/json" },
-              }),
-              responseStatus: 200,
-              responseBody: frameResult,
-              timestamp: new Date(),
-              requestDetails: {},
+              id: idCounterRef.current++,
               request: {
                 method: "GET",
                 url: frameUrl,
               },
-              speed: 0,
               frameResult,
               status: "done",
               url: frameUrl,
+              extra: (extra ?? {}) as TExtraDone,
             },
           ],
         };
@@ -358,15 +317,15 @@ export function useFrameState({
           ? [
               // prevent flash of empty content by adding pending item because initial frame is being loaded
               {
+                id: idCounterRef.current++,
                 method: "GET",
                 request: {
                   method: "GET",
                   url: frameUrl,
                 },
                 url: frameUrl,
-                requestDetails: {},
-                timestamp: new Date(),
                 status: "pending",
+                extra: (extra ?? {}) as TExtraPending,
               },
             ]
           : [],
@@ -374,7 +333,13 @@ export function useFrameState({
     }
   );
 
-  const api: FrameStateAPI = useMemo(() => {
+  const api: FrameStateAPI<
+    TExtraPending,
+    TExtraDone,
+    TExtraDoneRedirect,
+    TExtraRequestError,
+    TExtraMesssage
+  > = useMemo(() => {
     return {
       dispatch,
       clear() {
@@ -383,13 +348,14 @@ export function useFrameState({
         });
       },
       createGetPendingItem(arg) {
-        const item: FrameStackGetPending = {
+        const item: FrameStackGetPending<TExtraPending> = {
+          id: idCounterRef.current++,
           method: "GET",
           request: arg.request,
-          requestDetails: {},
           url: arg.request.url,
-          timestamp: new Date(),
           status: "pending",
+          extra:
+            resolveGETPendingExtraRef.current?.(arg) ?? ({} as TExtraPending),
         };
 
         dispatch({
@@ -400,16 +366,14 @@ export function useFrameState({
         return item;
       },
       createPostPendingItem(arg) {
-        const item: FrameStackPostPending = {
+        const item: FrameStackPostPending<TExtraPending> = {
+          id: idCounterRef.current++,
           method: "POST",
           request: arg.request,
-          requestDetails: {
-            body: arg.action.body,
-            searchParams: arg.action.searchParams,
-          },
           url: arg.action.searchParams.get("postUrl") ?? "missing postUrl",
-          timestamp: arg.startTime ?? new Date(),
           status: "pending",
+          extra:
+            resolvePOSTPendingExtraRef.current?.(arg) ?? ({} as TExtraPending),
         };
 
         dispatch({
@@ -424,8 +388,7 @@ export function useFrameState({
           action: "DONE",
           pendingItem: arg.pendingItem,
           parseResult: arg.parseResult,
-          response: arg.response.clone(),
-          endTime: arg.endTime,
+          extra: resolveDoneExtraRef.current?.(arg) ?? ({} as TExtraDone),
         });
       },
       markAsDoneWithErrorMessage(arg) {
@@ -434,16 +397,12 @@ export function useFrameState({
           pendingItem: arg.pendingItem,
           item: {
             ...arg.pendingItem,
-            responseStatus: arg.response.status,
-            response: arg.response.clone(),
-            speed: computeDurationInSeconds(
-              arg.pendingItem.timestamp,
-              arg.endTime
-            ),
             status: "message",
             type: "error",
             message: arg.responseData.message,
-            responseBody: arg.responseData,
+            extra:
+              resolveDoneWithErrorMessageExtraRef.current?.(arg) ??
+              ({} as TExtraMesssage),
           },
         });
       },
@@ -454,14 +413,10 @@ export function useFrameState({
           item: {
             ...arg.pendingItem,
             location: arg.location,
-            response: arg.response.clone(),
-            responseBody: arg.responseBody,
-            responseStatus: arg.response.status,
             status: "doneRedirect",
-            speed: computeDurationInSeconds(
-              arg.pendingItem.timestamp,
-              arg.endTime
-            ),
+            extra:
+              resolveDoneRedirectExtraRef.current?.(arg) ??
+              ({} as TExtraDoneRedirect),
           },
         });
       },
@@ -471,18 +426,13 @@ export function useFrameState({
           pendingItem: arg.pendingItem,
           item: {
             request: arg.pendingItem.request,
-            requestDetails: arg.pendingItem.requestDetails,
-            timestamp: arg.pendingItem.timestamp,
+            id: arg.pendingItem.id,
             url: arg.pendingItem.url,
-            response: arg.response?.clone() ?? null,
-            responseStatus: arg.responseStatus,
             requestError: arg.requestError,
-            speed: computeDurationInSeconds(
-              arg.pendingItem.timestamp,
-              arg.endTime
-            ),
             status: "requestError",
-            responseBody: arg.responseBody,
+            extra:
+              resolveFailedExtraRef.current?.(arg) ??
+              ({} as TExtraRequestError),
           },
         });
       },
@@ -494,13 +444,9 @@ export function useFrameState({
             ...arg.pendingItem,
             status: "requestError",
             requestError: arg.error,
-            response: arg.response.clone(),
-            responseStatus: arg.response.status,
-            responseBody: arg.responseBody,
-            speed: computeDurationInSeconds(
-              arg.pendingItem.timestamp,
-              arg.endTime
-            ),
+            extra:
+              resolveFailedWithRequestErrorExtraRef.current?.(arg) ??
+              ({} as TExtraRequestError),
           },
         });
       },
@@ -512,11 +458,21 @@ export function useFrameState({
             action: "RESET_INITIAL_FRAME",
             homeframeUrl: arg.homeframeUrl,
             parseResult: arg.parseResult,
+            extra: (initialPendingExtra ?? {}) as TExtraDone,
           });
         }
       },
     };
-  }, [dispatch]);
+  }, [
+    initialPendingExtra,
+    resolveDoneExtraRef,
+    resolveDoneRedirectExtraRef,
+    resolveDoneWithErrorMessageExtraRef,
+    resolveFailedExtraRef,
+    resolveFailedWithRequestErrorExtraRef,
+    resolveGETPendingExtraRef,
+    resolvePOSTPendingExtraRef,
+  ]);
 
   return [state, api];
 }
