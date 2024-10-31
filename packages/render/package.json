@@ -130,6 +130,16 @@
         "default": "./dist/use-frame.cjs"
       }
     },
+    "./unstable-use-debugger-frame-state": {
+      "import": {
+        "types": "./dist/unstable-use-debugger-frame-state.d.ts",
+        "default": "./dist/unstable-use-debugger-frame-state.js"
+      },
+      "require": {
+        "types": "./dist/unstable-use-debugger-frame-state.d.cts",
+        "default": "./dist/unstable-use-debugger-frame-state.cjs"
+      }
+    },
     "./unstable-use-frame-state": {
       "import": {
         "types": "./dist/unstable-use-frame-state.d.ts",

@@ -433,6 +433,7 @@ export type FrameRequest<
 > = FrameGETRequest | FramePOSTRequest<TSignerStateActionContext>;
 
 export type FrameStackBase = {
+  id: number;
   timestamp: Date;
   /** speed in seconds */
   speed: number;
@@ -446,6 +447,7 @@ export type FrameStackBase = {
 };
 
 export type FrameStackPostPending = {
+  id: number;
   method: "POST";
   timestamp: Date;
   status: "pending";
@@ -458,6 +460,7 @@ export type FrameStackPostPending = {
 };
 
 export type FrameStackGetPending = {
+  id: number;
   method: "GET";
   timestamp: Date;
   status: "pending";

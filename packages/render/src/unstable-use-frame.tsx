@@ -138,6 +138,7 @@ export type {
 
 // eslint-disable-next-line camelcase -- this is only temporary
 export function useFrame_unstable({
+  frameStateHook: useFrameStateHook = useFrameState,
   homeframeUrl,
   onMint = onMintFallback,
   onTransaction = onTransactionFallback,
@@ -168,7 +169,7 @@ export function useFrame_unstable({
 }: UseFrameOptions): UseFrameReturnValue {
   const [inputText, setInputText] = useState("");
   const inputTextRef = useFreshRef(inputText);
-  const [frameState, frameStateAPI] = useFrameState({
+  const [frameState, frameStateAPI] = useFrameStateHook({
     resolveSpecification,
     initialFrameUrl: homeframeUrl,
     initialParseResult: frame,
