@@ -1,5 +1,11 @@
 # @frames.js/render
 
+## 0.3.20-canary.2
+
+### Patch Changes
+
+- fix: no signer handling
+
 ## 0.3.20-canary.1
 
 ### Patch Changes
