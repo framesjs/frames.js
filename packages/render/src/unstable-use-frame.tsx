@@ -269,11 +269,7 @@ export function useFrame_unstable({
       }
 
       if (!currentState.signerState.hasSigner) {
-        const error = new Error("Missing signer");
-
-        console.error(`@frames.js/render: ${error.message}`);
-        onErrorRef.current?.(error);
-
+        await currentState.signerState.onSignerlessFramePress();
         return;
       }
 
@@ -314,9 +310,9 @@ export function useFrame_unstable({
       buttonIndex: number;
       postInputText: string | undefined;
     }): Promise<TransactionTargetResponse | undefined> {
-      const state = frameStateRef.current;
+      const currentState = frameStateRef.current;
 
-      if (state.type === "not-initialized") {
+      if (currentState.type === "not-initialized") {
         const error = new Error("Cannot perform transaction without a frame");
 
         console.error(`@frames.js/render: ${error.message}`);
@@ -326,12 +322,8 @@ export function useFrame_unstable({
       }
 
       // Send post request to get calldata
-      if (!state.signerState.hasSigner) {
-        const error = new Error("Missing signer");
-
-        console.error(`@frames.js/render: ${error.message}`);
-        onErrorRef.current?.(error);
-
+      if (!currentState.signerState.hasSigner) {
+        await currentState.signerState.onSignerlessFramePress();
         return;
       }
 
@@ -348,11 +340,11 @@ export function useFrame_unstable({
 
       // transaction request always requires address
       const frameContext = {
-        ...state.frameContext,
+        ...currentState.frameContext,
         address:
-          "address" in state.frameContext &&
-          typeof state.frameContext.address === "string"
-            ? state.frameContext.address
+          "address" in currentState.frameContext &&
+          typeof currentState.frameContext.address === "string"
+            ? currentState.frameContext.address
             : connectedAddressRef.current,
       };
 
@@ -363,10 +355,10 @@ export function useFrame_unstable({
         signerStateActionContext: {
           type: "tx-data",
           inputText: postInputText,
-          signer: state.signerState.signer,
+          signer: currentState.signerState.signer,
           frameContext,
           address: connectedAddressRef.current,
-          url: state.homeframeUrl,
+          url: currentState.homeframeUrl,
           target: frameButton.target,
           frameButton,
           buttonIndex,
