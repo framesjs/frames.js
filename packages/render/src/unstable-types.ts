@@ -49,7 +49,7 @@ export type ResolveSignerFunction = (
 export type UseFrameOptions<
   TExtraDataPending = unknown,
   TExtraDataDone = unknown,
-  TExtraDataoneRedirect = unknown,
+  TExtraDataDoneRedirect = unknown,
   TExtraDataRequestError = unknown,
   TExtraDataMesssage = unknown,
 > = {
@@ -61,7 +61,7 @@ export type UseFrameOptions<
       UseFrameStateOptions<
         TExtraDataPending,
         TExtraDataDone,
-        TExtraDataoneRedirect,
+        TExtraDataDoneRedirect,
         TExtraDataRequestError,
         TExtraDataMesssage
       >,
@@ -70,7 +70,7 @@ export type UseFrameOptions<
   ) => UseFrameStateReturn<
     TExtraDataPending,
     TExtraDataDone,
-    TExtraDataoneRedirect,
+    TExtraDataDoneRedirect,
     TExtraDataRequestError,
     TExtraDataMesssage
   >;
@@ -218,7 +218,7 @@ export type FramesStackItem<
 export type UseFrameReturnValue<
   TExtraDataPending = unknown,
   TExtraDataDone = unknown,
-  TExtraDataoneRedirect = unknown,
+  TExtraDataDoneRedirect = unknown,
   TExtraDataRequestError = unknown,
   TExtraDataMesssage = unknown,
 > = {
@@ -236,7 +236,7 @@ export type UseFrameReturnValue<
     FrameReducerActions<
       TExtraDataPending,
       TExtraDataDone,
-      TExtraDataoneRedirect,
+      TExtraDataDoneRedirect,
       TExtraDataRequestError,
       TExtraDataMesssage
     >
@@ -247,7 +247,7 @@ export type UseFrameReturnValue<
   readonly framesStack: FramesStack<
     TExtraDataPending,
     TExtraDataDone,
-    TExtraDataoneRedirect,
+    TExtraDataDoneRedirect,
     TExtraDataRequestError,
     TExtraDataMesssage
   >;
@@ -318,9 +318,21 @@ export type FrameReducerActions<
       extra: TExtraDone;
     };
 
-export type UseFetchFrameOptions = {
+export type UseFetchFrameOptions<
+  TExtraPending = unknown,
+  TExtraDone = unknown,
+  TExtraDoneRedirect = unknown,
+  TExtraRequestError = unknown,
+  TExtraMesssage = unknown,
+> = {
   frameState: FrameState;
-  frameStateAPI: FrameStateAPI;
+  frameStateAPI: FrameStateAPI<
+    TExtraPending,
+    TExtraDone,
+    TExtraDoneRedirect,
+    TExtraRequestError,
+    TExtraMesssage
+  >;
   /**
    * URL or path to the frame proxy handling GET requests.
    */
