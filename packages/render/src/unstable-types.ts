@@ -11,7 +11,10 @@ import type {
   ParseResultWithFrameworkDetails,
 } from "frames.js/frame-parsers";
 import type { Dispatch } from "react";
-import type { ErrorMessageResponse } from "frames.js/types";
+import type {
+  ComposerActionState,
+  ErrorMessageResponse,
+} from "frames.js/types";
 import type {
   ButtonPressFunction,
   FrameContext,
@@ -641,3 +644,32 @@ export type FrameState<
         TExtraMesssage
       >;
     };
+
+export type SignerStateComposerActionContext = {
+  fid: number;
+  url: string;
+  state: ComposerActionState;
+};
+
+export type SignerComposerActionResult = {
+  untrustedData: {
+    fid: number;
+    url: string;
+    messageHash: `0x${string}`;
+    timestamp: number;
+    network: number;
+    buttonIndex: 1;
+    state: string;
+  };
+  trustedData: {
+    messageBytes: string;
+  };
+};
+
+/**
+ * Used to sign composer action
+ */
+export type SignComposerActionFunc = (
+  signerPrivateKey: string,
+  actionContext: SignerStateComposerActionContext
+) => Promise<SignerComposerActionResult>;

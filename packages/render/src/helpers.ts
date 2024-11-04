@@ -2,6 +2,7 @@ import type {
   ParseFramesWithReportsResult,
   ParseResult,
 } from "frames.js/frame-parsers";
+import type { ComposerActionFormResponse } from "frames.js/types";
 import type { PartialFrame } from "./ui/types";
 
 export async function tryCallAsync<TResult>(
@@ -70,4 +71,38 @@ export function isPartialFrame(
     !!value.frame.buttons &&
     value.frame.buttons.length > 0
   );
+}
+
+export function isComposerFormActionResponse(
+  response: unknown
+): response is ComposerActionFormResponse {
+  return (
+    typeof response === "object" &&
+    response !== null &&
+    "type" in response &&
+    response.type === "form"
+  );
+}
+
+/**
+ * Merges all search params in order from left to right into the URL.
+ *
+ * @param url - The URL to merge the search params into. Either fully qualified or path only.
+ */
+export function mergeSearchParamsToUrl(
+  url: string,
+  ...searchParams: URLSearchParams[]
+): string {
+  const temporaryDomain = "temporary-for-parsing-purposes.tld";
+  const parsedProxyUrl = new URL(url, `http://${temporaryDomain}`);
+
+  searchParams.forEach((params) => {
+    params.forEach((value, key) => {
+      parsedProxyUrl.searchParams.set(key, value);
+    });
+  });
+
+  return parsedProxyUrl.hostname === temporaryDomain
+    ? `${parsedProxyUrl.pathname}${parsedProxyUrl.search}`
+    : parsedProxyUrl.toString();
 }
