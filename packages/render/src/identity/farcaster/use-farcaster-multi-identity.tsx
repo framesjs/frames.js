@@ -8,11 +8,12 @@ import {
 } from "react";
 import { convertKeypairToHex, createKeypairEDDSA } from "../crypto";
 import type { FarcasterSignerState } from "../../farcaster";
-import { signFrameAction } from "../../farcaster";
+import { signComposerAction, signFrameAction } from "../../farcaster";
 import type { Storage } from "../types";
 import { useVisibilityDetection } from "../../hooks/use-visibility-detection";
 import { WebStorage } from "../storage";
 import { useStorage } from "../../hooks/use-storage";
+import { useFreshRef } from "../../hooks/use-fresh-ref";
 import { IdentityPoller } from "./identity-poller";
 import type {
   FarcasterCreateSignerResult,
@@ -259,20 +260,14 @@ export function useFarcasterMultiIdentity({
       identities: [],
     },
   });
-  const onImpersonateRef = useRef(onImpersonate);
-  onImpersonateRef.current = onImpersonate;
-  const onLogInRef = useRef(onLogIn);
-  onLogInRef.current = onLogIn;
-  const onLogInStartRef = useRef(onLogInStart);
-  onLogInStartRef.current = onLogInStart;
-  const onLogOutRef = useRef(onLogOut);
-  onLogOutRef.current = onLogOut;
-  const onIdentityRemoveRef = useRef(onIdentityRemove);
-  onIdentityRemoveRef.current = onIdentityRemove;
-  const onIdentitySelectRef = useRef(onIdentitySelect);
-  onIdentitySelectRef.current = onIdentitySelect;
-  const generateUserIdRef = useRef(generateUserId);
-  generateUserIdRef.current = generateUserId;
+  const onImpersonateRef = useFreshRef(onImpersonate);
+  const onLogInRef = useFreshRef(onLogIn);
+  const onLogInStartRef = useFreshRef(onLogInStart);
+  const onLogOutRef = useFreshRef(onLogOut);
+  const onIdentityRemoveRef = useFreshRef(onIdentityRemove);
+  const onIdentitySelectRef = useFreshRef(onIdentitySelect);
+  const generateUserIdRef = useFreshRef(generateUserId);
+  const onMissingIdentityRef = useFreshRef(onMissingIdentity);
 
   const createFarcasterSigner =
     useCallback(async (): Promise<FarcasterCreateSignerResult> => {
@@ -388,7 +383,7 @@ export function useFarcasterMultiIdentity({
         console.error("@frames.js/render: API Call failed", error);
         throw error;
       }
-    }, [setState, signerUrl]);
+    }, [generateUserIdRef, onLogInStartRef, setState, signerUrl]);
 
   const impersonateUser = useCallback(
     async (fid: number) => {
@@ -417,14 +412,14 @@ export function useFarcasterMultiIdentity({
         setIsLoading(false);
       }
     },
-    [setState]
+    [generateUserIdRef, onImpersonateRef, setState]
   );
 
   const onSignerlessFramePress = useCallback((): Promise<void> => {
-    onMissingIdentity();
+    onMissingIdentityRef.current();
 
     return Promise.resolve();
-  }, [onMissingIdentity]);
+  }, [onMissingIdentityRef]);
 
   const createSigner = useCallback(async () => {
     setIsLoading(true);
@@ -442,7 +437,7 @@ export function useFarcasterMultiIdentity({
 
       return identityReducer(currentState, { type: "LOGOUT" });
     });
-  }, [setState]);
+  }, [onLogOutRef, setState]);
 
   const removeIdentity = useCallback(async () => {
     await setState((currentState) => {
@@ -452,7 +447,7 @@ export function useFarcasterMultiIdentity({
 
       return identityReducer(currentState, { type: "REMOVE" });
     });
-  }, [setState]);
+  }, [onIdentityRemoveRef, setState]);
 
   const farcasterUser = state.activeIdentity;
 
@@ -534,6 +529,7 @@ export function useFarcasterMultiIdentity({
         farcasterUser?.status === "approved" ||
         farcasterUser?.status === "impersonating",
       signFrameAction,
+      signComposerAction,
       isLoadingSigner: isLoading,
       impersonateUser,
       onSignerlessFramePress,

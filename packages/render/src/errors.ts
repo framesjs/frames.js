@@ -33,3 +33,9 @@ export class ComposerActionUnexpectedResponseError extends Error {
     super("Unexpected composer action response from the server");
   }
 }
+
+export class ComposerActionUserRejectedRequestError extends Error {
+  constructor() {
+    super("User rejected the request");
+  }
+}
