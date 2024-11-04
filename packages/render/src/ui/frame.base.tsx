@@ -28,7 +28,9 @@ export type FrameUITheme<TStylingProps extends Record<string, unknown>> =
   Partial<FrameUIComponentStylingProps<TStylingProps>>;
 
 export type BaseFrameUIProps<TStylingProps extends Record<string, unknown>> = {
-  frameState: FrameState<any, any> | UseFrameReturnValue;
+  frameState:
+    | FrameState<any, any>
+    | UseFrameReturnValue<any, any, any, any, any>;
   /**
    * Renders also frames that contain only image and at least one button
    *
