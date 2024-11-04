@@ -130,6 +130,16 @@
         "default": "./dist/use-frame.cjs"
       }
     },
+    "./use-composer-action": {
+      "import": {
+        "types": "./dist/use-composer-action.d.ts",
+        "default": "./dist/use-composer-action.js"
+      },
+      "require": {
+        "types": "./dist/use-composer-action.d.cts",
+        "default": "./dist/use-composer-action.cjs"
+      }
+    },
     "./unstable-use-debugger-frame-state": {
       "import": {
         "types": "./dist/unstable-use-debugger-frame-state.d.ts",
@@ -285,6 +295,7 @@
   "dependencies": {
     "@farcaster/core": "^0.14.7",
     "@noble/ed25519": "^2.0.0",
-    "frames.js": "^0.19.5"
+    "frames.js": "^0.19.5",
+    "zod": "^3.23.8"
   }
 }

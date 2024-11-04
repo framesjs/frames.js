@@ -1,4 +1,5 @@
 import type { FrameActionBodyPayload, SignerStateInstance } from "../types";
+import type { SignComposerActionFunc } from "../unstable-types";
 import type { FarcasterFrameContext } from "./types";
 
 export type FarcasterSignerState<TSignerType = FarcasterSigner | null> =
@@ -6,7 +7,9 @@ export type FarcasterSignerState<TSignerType = FarcasterSigner | null> =
     TSignerType,
     FrameActionBodyPayload,
     FarcasterFrameContext
-  >;
+  > & {
+    signComposerAction: SignComposerActionFunc;
+  };
 
 export type FarcasterSignerPendingApproval = {
   status: "pending_approval";

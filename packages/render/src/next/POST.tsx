@@ -7,8 +7,47 @@ import { type ParseFramesWithReportsResult } from "frames.js/frame-parsers";
 import { parseFramesWithReports } from "frames.js/parseFramesWithReports";
 import type { JsonObject, JsonValue } from "frames.js/types";
 import type { NextRequest } from "next/server";
+import { z } from "zod";
 import { tryCallAsync } from "../helpers";
 import { isSpecificationValid } from "./validators";
+
+const castActionMessageParser = z.object({
+  type: z.literal("message"),
+  message: z.string().min(1),
+});
+
+const castActionFrameParser = z.object({
+  type: z.literal("frame"),
+  frameUrl: z.string().min(1).url(),
+});
+
+const composerActionFormParser = z.object({
+  type: z.literal("form"),
+  url: z.string().min(1).url(),
+  title: z.string().min(1),
+});
+
+const jsonResponseParser = z.preprocess(
+  (data) => {
+    if (typeof data === "object" && data !== null && !("type" in data)) {
+      return {
+        type: "message",
+        ...data,
+      };
+    }
+
+    return data;
+  },
+  z.discriminatedUnion("type", [
+    castActionFrameParser,
+    castActionMessageParser,
+    composerActionFormParser,
+  ])
+);
+
+const errorResponseParser = z.object({
+  message: z.string().min(1),
+});
 
 export type POSTResponseError = { message: string };
 
@@ -22,15 +61,6 @@ export type POSTResponse =
   | POSTResponseError
   | POSTResponseRedirect
   | JsonObject;
-
-function isJsonErrorObject(data: JsonValue): data is { message: string } {
-  return (
-    typeof data === "object" &&
-    data !== null &&
-    "message" in data &&
-    typeof data.message === "string"
-  );
-}
 
 /** Proxies frame actions to avoid CORS issues and preserve user IP privacy */
 export async function POST(req: Request | NextRequest): Promise<Response> {
@@ -78,9 +108,11 @@ export async function POST(req: Request | NextRequest): Promise<Response> {
         );
       }
 
-      if (isJsonErrorObject(jsonError)) {
+      const result = errorResponseParser.safeParse(jsonError);
+
+      if (result.success) {
         return Response.json(
-          { message: jsonError.message } satisfies POSTResponseError,
+          { message: result.data.message } satisfies POSTResponseError,
           { status: response.status }
         );
       }
@@ -136,9 +168,11 @@ export async function POST(req: Request | NextRequest): Promise<Response> {
         );
       }
 
-      if (isJsonErrorObject(jsonError)) {
+      const result = errorResponseParser.safeParse(jsonError);
+
+      if (result.success) {
         return Response.json(
-          { message: jsonError.message } satisfies POSTResponseError,
+          { message: result.data.message } satisfies POSTResponseError,
           { status: response.status }
         );
       }
@@ -176,6 +210,32 @@ export async function POST(req: Request | NextRequest): Promise<Response> {
       }
 
       return Response.json(transaction satisfies JsonObject);
+    }
+
+    // Content type is JSON, could be an action
+    if (
+      response.headers
+        .get("content-type")
+        ?.toLowerCase()
+        .includes("application/json")
+    ) {
+      const parseResult = await z
+        .promise(jsonResponseParser)
+        .safeParseAsync(response.clone().json());
+
+      if (!parseResult.success) {
+        throw new Error("Invalid frame response");
+      }
+
+      const headers = new Headers(response.headers);
+      // Proxied requests could have content-encoding set, which breaks the response
+      headers.delete("content-encoding");
+
+      return new Response(response.body, {
+        headers,
+        status: response.status,
+        statusText: response.statusText,
+      });
     }
 
     const html = await response.text();
