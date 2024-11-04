@@ -43,7 +43,13 @@ function defaultErrorHandler(error: Error): void {
   console.error(error);
 }
 
-export function useFetchFrame({
+export function useFetchFrame<
+  TExtraPending = unknown,
+  TExtraDone = unknown,
+  TExtraDoneRedirect = unknown,
+  TExtraRequestError = unknown,
+  TExtraMesssage = unknown,
+>({
   frameStateAPI,
   frameState,
   frameActionProxy,
@@ -67,7 +73,13 @@ export function useFetchFrame({
   onTransactionProcessingError,
   onTransactionProcessingStart,
   onTransactionProcessingSuccess,
-}: UseFetchFrameOptions): FetchFrameFunction {
+}: UseFetchFrameOptions<
+  TExtraPending,
+  TExtraDone,
+  TExtraDoneRedirect,
+  TExtraRequestError,
+  TExtraMesssage
+>): FetchFrameFunction {
   async function handleFailedResponse({
     response,
     endTime,
@@ -76,7 +88,7 @@ export function useFetchFrame({
   }: {
     endTime: Date;
     response: Response;
-    frameStackPendingItem: FrameStackPending;
+    frameStackPendingItem: FrameStackPending<TExtraPending>;
     onError?: (error: Error) => void;
   }): Promise<void> {
     if (response.ok) {
@@ -228,7 +240,7 @@ export function useFetchFrame({
     request: FramePOSTRequest<SignerStateActionContext>,
     options?: {
       preflightRequest?: {
-        pendingFrameStackItem: FrameStackPostPending;
+        pendingFrameStackItem: FrameStackPostPending<TExtraPending>;
         startTime: Date;
       };
       shouldClear?: boolean;
@@ -236,7 +248,7 @@ export function useFetchFrame({
       onSuccess?: () => void;
     }
   ): Promise<void> {
-    let pendingItem: FrameStackPostPending;
+    let pendingItem: FrameStackPostPending<TExtraPending>;
 
     if (frameState.type === "not-initialized") {
       throw new Error(
@@ -301,7 +313,7 @@ export function useFetchFrame({
       onSuccess: onSuccessInternal,
     }: {
       response: Response;
-      currentPendingItem: FrameStackPostPending;
+      currentPendingItem: FrameStackPostPending<TExtraPending>;
       onError?: (error: Error) => void;
       onSuccess?: () => void;
     }): Promise<void> {

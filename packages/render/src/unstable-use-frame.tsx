@@ -137,7 +137,13 @@ export type {
 };
 
 // eslint-disable-next-line camelcase -- this is only temporary
-export function useFrame_unstable({
+export function useFrame_unstable<
+  TExtraDataPending = unknown,
+  TExtraDataDone = unknown,
+  TExtraDataDoneRedirect = unknown,
+  TExtraDataRequestError = unknown,
+  TExtraDataMesssage = unknown,
+>({
   frameStateHook: useFrameStateHook = useFrameState,
   homeframeUrl,
   onMint = onMintFallback,
@@ -166,7 +172,19 @@ export function useFrame_unstable({
   onTransactionProcessingSuccess,
   onTransactionStart,
   onTransactionSuccess,
-}: UseFrameOptions): UseFrameReturnValue {
+}: UseFrameOptions<
+  TExtraDataPending,
+  TExtraDataDone,
+  TExtraDataDoneRedirect,
+  TExtraDataRequestError,
+  TExtraDataMesssage
+>): UseFrameReturnValue<
+  TExtraDataPending,
+  TExtraDataDone,
+  TExtraDataDoneRedirect,
+  TExtraDataRequestError,
+  TExtraDataMesssage
+> {
   const [inputText, setInputText] = useState("");
   const inputTextRef = useFreshRef(inputText);
   const [frameState, frameStateAPI] = useFrameStateHook({
