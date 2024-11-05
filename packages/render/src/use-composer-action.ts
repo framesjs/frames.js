@@ -559,7 +559,12 @@ export function useComposerAction({
   }, [state, refetch]);
 }
 
-const defaultRegisterMessageListener: RegisterMessageListener =
+export { miniAppMessageSchema };
+
+/**
+ * Default function used to register message listener. Works in browsers only.
+ */
+export const defaultRegisterMessageListener: RegisterMessageListener =
   function defaultRegisterMessageListener(formResponse, messageListener) {
     if (typeof window === "undefined") {
       // eslint-disable-next-line no-console -- provide feedback
