@@ -11,29 +11,21 @@ import {
   ExternalLinkIcon,
 } from "lucide-react";
 import IconByName from "./octicons";
-import { useFrame } from "@frames.js/render/use-frame";
+import { useFrame_unstable } from "@frames.js/render/use-frame";
 import { WithTooltip } from "./with-tooltip";
-import type {
-  FarcasterFrameContext,
-  FrameActionBodyPayload,
-  FrameStackDone,
-} from "@frames.js/render";
+import { fallbackFrameContext } from "@frames.js/render";
 import { FrameUI } from "./frame-ui";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@radix-ui/react-toast";
 import Link from "next/link";
-import type { FarcasterSigner } from "@frames.js/render/identity/farcaster";
+import { useDebuggerFrameState } from "@frames.js/render/unstable-use-debugger-frame-state";
+import { useFarcasterIdentity } from "../hooks/useFarcasterIdentity";
+import { useAccount } from "wagmi";
+import { FrameStackDone } from "@frames.js/render/unstable-types";
 
 type CastComposerProps = {
   composerAction: Partial<ComposerActionResponse>;
   onComposerActionClick: (state: ComposerActionState) => any;
-  farcasterFrameConfig: Parameters<
-    typeof useFrame<
-      FarcasterSigner | null,
-      FrameActionBodyPayload,
-      FarcasterFrameContext
-    >
-  >[0];
 };
 
 export type CastComposerRef = {
@@ -43,7 +35,7 @@ export type CastComposerRef = {
 export const CastComposer = React.forwardRef<
   CastComposerRef,
   CastComposerProps
->(({ composerAction, farcasterFrameConfig, onComposerActionClick }, ref) => {
+>(({ composerAction, onComposerActionClick }, ref) => {
   const [state, setState] = useState<ComposerActionState>({
     text: "",
     embeds: [],
@@ -79,7 +71,6 @@ export const CastComposer = React.forwardRef<
           {state.embeds.slice(0, 2).map((embed, index) => (
             <li key={`${embed}-${index}`}>
               <CastEmbedPreview
-                farcasterFrameConfig={farcasterFrameConfig}
                 onRemove={() => {
                   const filteredEmbeds = state.embeds.filter(
                     (_, i) => i !== index
@@ -119,13 +110,6 @@ export const CastComposer = React.forwardRef<
 CastComposer.displayName = "CastComposer";
 
 type CastEmbedPreviewProps = {
-  farcasterFrameConfig: Parameters<
-    typeof useFrame<
-      FarcasterSigner | null,
-      FrameActionBodyPayload,
-      FarcasterFrameContext
-    >
-  >[0];
   url: string;
   onRemove: () => void;
 };
@@ -147,15 +131,19 @@ function isAtLeastPartialFrame(stackItem: FrameStackDone): boolean {
   );
 }
 
-function CastEmbedPreview({
-  farcasterFrameConfig,
-  onRemove,
-  url,
-}: CastEmbedPreviewProps) {
+function CastEmbedPreview({ onRemove, url }: CastEmbedPreviewProps) {
+  const account = useAccount();
   const { toast } = useToast();
-  const frame = useFrame({
-    ...farcasterFrameConfig,
+  const farcasterIdentity = useFarcasterIdentity();
+  const frame = useFrame_unstable({
+    frameStateHook: useDebuggerFrameState,
+    connectedAddress: account.address,
     homeframeUrl: url,
+    frameActionProxy: "/frames",
+    frameGetProxy: "/frames",
+    resolveSigner() {
+      return farcasterIdentity.withContext(fallbackFrameContext);
+    },
   });
 
   const handleFrameError = useCallback(
