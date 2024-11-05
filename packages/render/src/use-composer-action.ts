@@ -44,21 +44,31 @@ type RegisterMessageListener = (
 
 type MiniAppMessageListener = (message: MiniAppMessage) => Promise<void>;
 
-type OnTransactionFunction = (arg: {
+export type OnTransactionFunctionResult = {
+  hash: `0x${string}`;
+  address: `0x${string}`;
+};
+
+export type OnTransactionFunction = (arg: {
   action: EthSendTransactionAction;
-}) => Promise<{
+  address: `0x${string}`;
+}) => Promise<OnTransactionFunctionResult | null>;
+
+export type OnSignatureFunctionResult = {
   hash: `0x${string}`;
   address: `0x${string}`;
-} | null>;
-type OnSignatureFunction = (arg: {
+};
+
+export type OnSignatureFunction = (arg: {
   action: EthSignTypedDataV4Action;
-}) => Promise<{
-  hash: `0x${string}`;
   address: `0x${string}`;
-} | null>;
-type OnCreateCastFunction = (arg: {
+}) => Promise<OnSignatureFunctionResult | null>;
+
+export type OnCreateCastFunction = (arg: {
   cast: ComposerActionState;
 }) => Promise<void>;
+
+export type ResolveAddressFunction = () => Promise<`0x${string}` | null>;
 
 export type UseComposerActionOptions = {
   /**
@@ -89,6 +99,12 @@ export type UseComposerActionOptions = {
    * @defaultValue true
    */
   enabled?: boolean;
+  /**
+   * Called before onTransaction/onSignature is invoked to obtain an address to use.
+   *
+   * If the function returns null onTransaction/onSignature will not be called.
+   */
+  resolveAddress: ResolveAddressFunction;
   onError?: (error: Error) => void;
   onCreateCast: OnCreateCastFunction;
   onTransaction: OnTransactionFunction;
@@ -142,6 +158,7 @@ export function useComposerAction({
   onCreateCast,
   onSignature,
   onTransaction,
+  resolveAddress,
   registerMessageListener = defaultRegisterMessageListener,
   onPostResponseToTarget,
 }: UseComposerActionOptions): UseComposerActionResult {
@@ -156,6 +173,7 @@ export function useComposerAction({
   const onPostResponseToTargetRef = useFreshRef(onPostResponseToTarget);
   const onTransactionRef = useFreshRef(onTransaction);
   const onSignatureRef = useFreshRef(onSignature);
+  const resolveAddressRef = useFreshRef(resolveAddress);
   const lastFetchActionArgRef = useRef<FetchComposerActionFunctionArg | null>(
     null
   );
@@ -192,12 +210,36 @@ export function useComposerAction({
           },
         });
       } else if (message.method === "fc_requestWalletAction") {
+        const addressOrError = await tryCallAsync(() =>
+          resolveAddressRef.current()
+        );
+
+        if (addressOrError instanceof Error) {
+          tryCall(() => onErrorRef.current?.(addressOrError));
+
+          onPostResponseToTargetRef.current({
+            jsonrpc: "2.0",
+            id: message.id,
+            error: {
+              code: -32000,
+              message: addressOrError.message,
+            },
+          });
+
+          return;
+        }
+
+        if (!addressOrError) {
+          return;
+        }
+
         if (message.params.action.method === "eth_sendTransaction") {
           const action = message.params.action;
 
           const resultOrError = await tryCallAsync(() =>
             onTransactionRef.current({
               action,
+              address: addressOrError,
             })
           );
 
@@ -246,6 +288,7 @@ export function useComposerAction({
           const resultOrError = await tryCallAsync(() =>
             onSignatureRef.current({
               action,
+              address: addressOrError,
             })
           );
 
@@ -308,6 +351,7 @@ export function useComposerAction({
       onPostResponseToTargetRef,
       onSignatureRef,
       onTransactionRef,
+      resolveAddressRef,
     ]
   );
 
