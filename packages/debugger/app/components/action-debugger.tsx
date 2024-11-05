@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 import {
   type FarcasterFrameContext,
   type FrameActionBodyPayload,
-  OnComposeFormActionFuncReturnType,
   defaultTheme,
 } from "@frames.js/render";
 import { ParsingReport } from "frames.js";
@@ -26,7 +25,6 @@ import React, {
   useEffect,
   useImperativeHandle,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import { Button } from "../../@/components/ui/button";
@@ -37,12 +35,9 @@ import { useFrame } from "@frames.js/render/use-frame";
 import { WithTooltip } from "./with-tooltip";
 import { useToast } from "@/components/ui/use-toast";
 import type { CastActionDefinitionResponse } from "../frames/route";
-import { ComposerFormActionDialog } from "./composer-form-action-dialog";
-import { AwaitableController } from "../lib/awaitable-controller";
-import type { ComposerActionFormResponse } from "frames.js/types";
-import { CastComposer, CastComposerRef } from "./cast-composer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { FarcasterSigner } from "@frames.js/render/identity/farcaster";
+import { ComposerActionDebugger } from "./composer-action-debugger";
 
 type FrameDebuggerFramePropertiesTableRowsProps = {
   actionMetadataItem: CastActionDefinitionResponse;
@@ -227,47 +222,9 @@ export const ActionDebugger = React.forwardRef<
       }
     }, [copySuccess, setCopySuccess]);
 
-    const [composeFormActionDialogSignal, setComposerFormActionDialogSignal] =
-      useState<AwaitableController<
-        OnComposeFormActionFuncReturnType,
-        ComposerActionFormResponse
-      > | null>(null);
     const actionFrameState = useFrame({
       ...farcasterFrameConfig,
-      async onComposerFormAction({ form }) {
-        try {
-          const dialogSignal = new AwaitableController<
-            OnComposeFormActionFuncReturnType,
-            ComposerActionFormResponse
-          >(form);
-
-          setComposerFormActionDialogSignal(dialogSignal);
-
-          const result = await dialogSignal;
-
-          // if result is undefined then user closed the dialog window without submitting
-          // otherwise we have updated data
-          if (result?.composerActionState) {
-            castComposerRef.current?.updateState(result.composerActionState);
-          }
-
-          return result;
-        } catch (e) {
-          console.error(e);
-          toast({
-            title: "Error occurred",
-            description:
-              e instanceof Error
-                ? e.message
-                : "Unexpected error, check the console for more info",
-            variant: "destructive",
-          });
-        } finally {
-          setComposerFormActionDialogSignal(null);
-        }
-      },
     });
-    const castComposerRef = useRef<CastComposerRef>(null);
     const [castActionDefinition, setCastActionDefinition] = useState<Exclude<
       CastActionDefinitionResponse,
       { status: "failure" }
@@ -401,57 +358,14 @@ export const ActionDebugger = React.forwardRef<
               actionMetadataItem={actionMetadataItem}
               onRefreshUrl={() => refreshUrl()}
             >
-              <CastComposer
-                farcasterFrameConfig={farcasterFrameConfig}
-                ref={castComposerRef}
-                composerAction={actionMetadataItem.action}
-                onComposerActionClick={(composerActionState) => {
-                  if (actionMetadataItem.status !== "success") {
-                    console.error(actionMetadataItem);
-
-                    toast({
-                      title: "Invalid action metadata",
-                      description:
-                        "Please check the console for more information",
-                      variant: "destructive",
-                    });
-                    return;
-                  }
-
-                  Promise.resolve(
-                    actionFrameState.onComposerActionButtonPress({
-                      castAction: {
-                        ...actionMetadataItem.action,
-                        url: actionMetadataItem.url,
-                      },
-                      composerActionState,
-                      // clear stack, this removes first item that will appear in the debugger
-                      clearStack: true,
-                    })
-                  ).catch((e: unknown) => {
-                    // eslint-disable-next-line no-console -- provide feedback to the user
-                    console.error(e);
-                  });
+              <ComposerActionDebugger
+                actionMetadata={actionMetadataItem.action}
+                url={actionMetadataItem.url}
+                onToggleToCastActionDebugger={() => {
+                  setActiveTab("cast-action");
                 }}
               />
             </ActionInfo>
-
-            {!!composeFormActionDialogSignal && (
-              <ComposerFormActionDialog
-                connectedAddress={farcasterFrameConfig.connectedAddress}
-                composerActionForm={composeFormActionDialogSignal.data}
-                onClose={() => {
-                  composeFormActionDialogSignal.resolve(undefined);
-                }}
-                onSave={({ composerState }) => {
-                  composeFormActionDialogSignal.resolve({
-                    composerActionState: composerState,
-                  });
-                }}
-                onTransaction={farcasterFrameConfig.onTransaction}
-                onSignature={farcasterFrameConfig.onSignature}
-              />
-            )}
           </TabsContent>
         </Tabs>
       </>

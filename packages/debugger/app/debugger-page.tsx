@@ -56,7 +56,6 @@ import type {
 import { useAnonymousIdentity } from "@frames.js/render/identity/anonymous";
 import {
   useFarcasterFrameContext,
-  useFarcasterMultiIdentity,
   type FarcasterSigner,
 } from "@frames.js/render/identity/farcaster";
 import {
@@ -67,24 +66,13 @@ import {
   useXmtpFrameContext,
   useXmtpIdentity,
 } from "@frames.js/render/identity/xmtp";
+import { useFarcasterIdentity } from "./hooks/useFarcasterIdentity";
+import { InvalidChainIdError, parseChainId } from "./lib/utils";
 
 const FALLBACK_URL =
   process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
 
-class InvalidChainIdError extends Error {}
 class CouldNotChangeChainError extends Error {}
-
-function isValidChainId(id: string): boolean {
-  return id.startsWith("eip155:");
-}
-
-function parseChainId(id: string): number {
-  if (!isValidChainId(id)) {
-    throw new InvalidChainIdError(`Invalid chainId ${id}`);
-  }
-
-  return parseInt(id.split("eip155:")[1]!);
-}
 
 const anonymousFrameContext = {};
 
@@ -257,26 +245,8 @@ export default function DebuggerPage({
     refreshUrl(url);
   }, [url, protocolConfiguration, refreshUrl, toast, debuggerConsole]);
 
-  const farcasterSignerState = useFarcasterMultiIdentity({
-    onMissingIdentity() {
-      toast({
-        title: "Please select an identity",
-        description:
-          "In order to test the buttons you need to select an identity first",
-        variant: "destructive",
-        action: (
-          <ToastAction
-            altText="Select identity"
-            onClick={() => {
-              selectProtocolButtonRef.current?.click();
-            }}
-            type="button"
-          >
-            Select identity
-          </ToastAction>
-        ),
-      });
-    },
+  const farcasterSignerState = useFarcasterIdentity({
+    selectProtocolButtonRef,
   });
   const xmtpSignerState = useXmtpIdentity();
   const lensSignerState = useLensIdentity();
@@ -300,8 +270,6 @@ export default function DebuggerPage({
       pubId: "0x01-0x01",
     },
   });
-
-  const anonymousFrameContext = {};
 
   const onConnectWallet: OnConnectWalletFunc = useCallback(async () => {
     if (!openConnectModal) {
@@ -640,7 +608,6 @@ export default function DebuggerPage({
     };
   }, [
     anonymousSignerState,
-    anonymousFrameContext,
     farcasterFrameConfig,
     lensFrameContext.frameContext,
     lensSignerState,
