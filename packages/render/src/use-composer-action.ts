@@ -37,7 +37,7 @@ type FetchComposerActionFunction = (
   arg: FetchComposerActionFunctionArg
 ) => Promise<void>;
 
-type RegisterMessageListener = (
+export type RegisterMessageListener = (
   formResponse: ComposerActionFormResponse,
   messageListener: MiniAppMessageListener
 ) => () => void;
@@ -69,6 +69,11 @@ export type OnCreateCastFunction = (arg: {
 }) => Promise<void>;
 
 export type ResolveAddressFunction = () => Promise<`0x${string}` | null>;
+
+export type OnPostMessageToTargetFunction = (
+  response: MiniAppResponse,
+  form: ComposerActionFormResponse
+) => unknown;
 
 export type UseComposerActionOptions = {
   /**
@@ -112,7 +117,7 @@ export type UseComposerActionOptions = {
   /**
    * Called when a response to a message is sent to target (e.g. iframe).
    */
-  onPostResponseToTarget: (response: MiniAppResponse) => unknown;
+  onPostResponseToTarget: OnPostMessageToTargetFunction;
   /**
    * Allows to override how the message listener is registered. Function must return a function that removes the listener.
    *
@@ -179,8 +184,11 @@ export function useComposerAction({
   );
   const signerRef = useFreshRef(signer);
 
-  const messageListener = useCallback<MiniAppMessageListener>(
-    async (message) => {
+  const messageListener = useCallback(
+    async (
+      successState: Extract<ComposerActionReducerState, { status: "success" }>,
+      message: MiniAppMessage
+    ) => {
       if ("type" in message || message.method === "fc_createCast") {
         const cast =
           "type" in message ? message.data.cast : message.params.cast;
@@ -192,23 +200,29 @@ export function useComposerAction({
         );
 
         if (resultOrError instanceof Error) {
-          onPostResponseToTargetRef.current({
-            jsonrpc: "2.0",
-            id: "method" in message ? message.id : null,
-            error: {
-              code: -32000,
-              message: resultOrError.message,
+          onPostResponseToTargetRef.current(
+            {
+              jsonrpc: "2.0",
+              id: "method" in message ? message.id : null,
+              error: {
+                code: -32000,
+                message: resultOrError.message,
+              },
             },
-          });
+            successState.response
+          );
         }
 
-        onPostResponseToTargetRef.current({
-          jsonrpc: "2.0",
-          id: "method" in message ? message.id : null,
-          result: {
-            success: true,
+        onPostResponseToTargetRef.current(
+          {
+            jsonrpc: "2.0",
+            id: "method" in message ? message.id : null,
+            result: {
+              success: true,
+            },
           },
-        });
+          successState.response
+        );
       } else if (message.method === "fc_requestWalletAction") {
         const addressOrError = await tryCallAsync(() =>
           resolveAddressRef.current()
@@ -217,14 +231,17 @@ export function useComposerAction({
         if (addressOrError instanceof Error) {
           tryCall(() => onErrorRef.current?.(addressOrError));
 
-          onPostResponseToTargetRef.current({
-            jsonrpc: "2.0",
-            id: message.id,
-            error: {
-              code: -32000,
-              message: addressOrError.message,
+          onPostResponseToTargetRef.current(
+            {
+              jsonrpc: "2.0",
+              id: message.id,
+              error: {
+                code: -32000,
+                message: addressOrError.message,
+              },
             },
-          });
+            successState.response
+          );
 
           return;
         }
@@ -246,14 +263,17 @@ export function useComposerAction({
           if (resultOrError instanceof Error) {
             tryCall(() => onErrorRef.current?.(resultOrError));
 
-            onPostResponseToTargetRef.current({
-              jsonrpc: "2.0",
-              id: message.id,
-              error: {
-                code: -32000,
-                message: resultOrError.message,
+            onPostResponseToTargetRef.current(
+              {
+                jsonrpc: "2.0",
+                id: message.id,
+                error: {
+                  code: -32000,
+                  message: resultOrError.message,
+                },
               },
-            });
+              successState.response
+            );
 
             return;
           }
@@ -263,25 +283,31 @@ export function useComposerAction({
 
             tryCall(() => onErrorRef.current?.(error));
 
-            onPostResponseToTargetRef.current({
-              jsonrpc: "2.0",
-              id: message.id,
-              error: {
-                code: -32000,
-                message: error.message,
+            onPostResponseToTargetRef.current(
+              {
+                jsonrpc: "2.0",
+                id: message.id,
+                error: {
+                  code: -32000,
+                  message: error.message,
+                },
               },
-            });
+              successState.response
+            );
             return;
           }
 
-          onPostResponseToTargetRef.current({
-            jsonrpc: "2.0",
-            id: message.id,
-            result: {
-              address: resultOrError.address,
-              transactionHash: resultOrError.hash,
+          onPostResponseToTargetRef.current(
+            {
+              jsonrpc: "2.0",
+              id: message.id,
+              result: {
+                address: resultOrError.address,
+                transactionHash: resultOrError.hash,
+              },
             },
-          });
+            successState.response
+          );
         } else if (message.params.action.method === "eth_signTypedData_v4") {
           const action = message.params.action;
 
@@ -295,14 +321,17 @@ export function useComposerAction({
           if (resultOrError instanceof Error) {
             tryCall(() => onErrorRef.current?.(resultOrError));
 
-            onPostResponseToTargetRef.current({
-              jsonrpc: "2.0",
-              id: message.id,
-              error: {
-                code: -32000,
-                message: resultOrError.message,
+            onPostResponseToTargetRef.current(
+              {
+                jsonrpc: "2.0",
+                id: message.id,
+                error: {
+                  code: -32000,
+                  message: resultOrError.message,
+                },
               },
-            });
+              successState.response
+            );
 
             return;
           }
@@ -312,26 +341,32 @@ export function useComposerAction({
 
             tryCall(() => onErrorRef.current?.(error));
 
-            onPostResponseToTargetRef.current({
-              jsonrpc: "2.0",
-              id: message.id,
-              error: {
-                code: -32000,
-                message: error.message,
+            onPostResponseToTargetRef.current(
+              {
+                jsonrpc: "2.0",
+                id: message.id,
+                error: {
+                  code: -32000,
+                  message: error.message,
+                },
               },
-            });
+              successState.response
+            );
 
             return;
           }
 
-          onPostResponseToTargetRef.current({
-            jsonrpc: "2.0",
-            id: message.id,
-            result: {
-              address: resultOrError.address,
-              signature: resultOrError.hash,
+          onPostResponseToTargetRef.current(
+            {
+              jsonrpc: "2.0",
+              id: message.id,
+              result: {
+                address: resultOrError.address,
+                signature: resultOrError.hash,
+              },
             },
-          });
+            successState.response
+          );
         } else {
           tryCall(() =>
             onErrorRef.current?.(
@@ -439,7 +474,7 @@ export function useComposerAction({
 
       dispatch({ type: "done", response: actionResponseDataOrError });
     },
-    [onErrorRef]
+    [onErrorRef, signerRef]
   );
 
   const stateRef = useFreshRef(state);
@@ -485,7 +520,7 @@ export function useComposerAction({
     if (state.status === "success") {
       return registerMessageListenerRef.current(
         state.response,
-        messageListener
+        messageListener.bind(null, state)
       );
     }
   }, [messageListener, registerMessageListenerRef, state]);
