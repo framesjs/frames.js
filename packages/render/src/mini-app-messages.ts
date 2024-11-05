@@ -1,4 +1,4 @@
-import type { Abi, TypedDataDomain } from "viem";
+import type { Abi, TypedData, TypedDataDomain } from "viem";
 import { z } from "zod";
 
 export type TransactionResponse =
@@ -100,7 +100,11 @@ const ethSignTypedDataV4ActionSchema = z.object({
   method: z.literal("eth_signTypedData_v4"),
   params: z.object({
     domain: z.custom<TypedDataDomain>(),
-    types: z.unknown(),
+    types: z.custom<TypedData>((value) => {
+      const result = z.record(z.unknown()).safeParse(value);
+
+      return result.success;
+    }),
     primaryType: z.string(),
     message: z.record(z.unknown()),
   }),
