@@ -105,6 +105,10 @@ export type UseComposerActionOptions = {
    */
   enabled?: boolean;
   /**
+   * Custom fetch function to fetch the composer action / mini app.
+   */
+  fetch?: (url: string, init: RequestInit) => Promise<Response>;
+  /**
    * Called before onTransaction/onSignature is invoked to obtain an address to use.
    *
    * If the function returns null onTransaction/onSignature will not be called.
@@ -159,6 +163,7 @@ export function useComposerAction({
   proxyUrl,
   signer,
   url,
+  fetch: fetchFunction,
   onError,
   onCreateCast,
   onSignature,
@@ -183,6 +188,7 @@ export function useComposerAction({
     null
   );
   const signerRef = useFreshRef(signer);
+  const fetchRef = useFreshRef(fetchFunction);
 
   const messageListener = useCallback(
     async (
@@ -425,7 +431,7 @@ export function useComposerAction({
       );
 
       const actionResponseOrError = await tryCallAsync(() =>
-        fetch(proxiedUrl, {
+        (fetchRef.current || fetch)(proxiedUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -474,7 +480,7 @@ export function useComposerAction({
 
       dispatch({ type: "done", response: actionResponseDataOrError });
     },
-    [onErrorRef, signerRef]
+    [fetchRef, onErrorRef, signerRef]
   );
 
   const stateRef = useFreshRef(state);
