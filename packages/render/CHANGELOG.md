@@ -1,5 +1,12 @@
 # @frames.js/render
 
+## 0.3.20-canary.3
+
+### Patch Changes
+
+- 5d3160a: feat: customizable frame state for useFrame hook
+- 1f0de5f: feat: useComposerAction hook
+
 ## 0.3.20-canary.2
 
 ### Patch Changes

@@ -19,7 +19,9 @@
     "template-remix": "0.0.33"
   },
   "changesets": [
+    "cuddly-rivers-hide",
     "few-moose-jog",
+    "grumpy-berries-love",
     "kind-planets-wash",
     "twenty-pugs-roll"
   ]
