@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.3.18-canary.2
+
+### Patch Changes
+
+- 1f0de5f: feat: useComposerAction hook
+
 ## 0.3.18-canary.1
 
 ### Patch Changes
