@@ -1,1 +1,1 @@
-This is a [Vocs](https://vocs.dev) project bootstrapped with the Vocs CLI.
+This is a [Vocs](https://vocs.dev) project bootstrapped with the Vocs Command Line Interface.
