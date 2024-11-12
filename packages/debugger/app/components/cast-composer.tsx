@@ -77,7 +77,7 @@ export const CastComposer = React.forwardRef<
       {state.embeds.length > 0 ? (
         <ul className="flex flex-col gap-2">
           {state.embeds.slice(0, 2).map((embed, index) => (
-            <li key={`${embed}-${index}`}>
+            <li key={`${embed}-${index}`} className="flex flex-grow">
               <CastEmbedPreview
                 farcasterFrameConfig={farcasterFrameConfig}
                 onRemove={() => {
@@ -234,20 +234,24 @@ function CastEmbedPreview({
           allowPartialFrame
           onError={handleFrameError}
         />
-        <span className="ml-auto truncate text-sm text-slate-400">{url}</span>
+        <WithTooltip tooltip={url}>
+          <span className="ml-auto truncate text-sm text-slate-400 max-w-full">
+            {url}
+          </span>
+        </WithTooltip>
       </div>
     );
   }
 
   return (
-    <span className="flex gap-2 w-full items-center">
-      <div className="flex flex-grow items-center gap-4 bg-slate-100 p-2 rounded">
-        <div className="bg-slate-200 rounded p-4">
-          <GlobeIcon className="flex-shrink-0" />
-        </div>
-        <span className="truncate text-sm text-slate-800 flex-grow">{url}</span>
-        <div className="flex gap-2 text-slate-300">{buttons}</div>
+    <div className="flex gap-2 w-full max-w-full items-center bg-slate-100 p-2 rounded">
+      <div className="bg-slate-200 rounded p-4">
+        <GlobeIcon className="flex-shrink-0" />
       </div>
-    </span>
+      <WithTooltip tooltip={url}>
+        <span className="truncate text-sm text-slate-800 flex-grow">{url}</span>
+      </WithTooltip>
+      <div className="flex gap-2 text-slate-300">{buttons}</div>
+    </div>
   );
 }
