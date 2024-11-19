@@ -18,10 +18,10 @@ import { FrameUI } from "./frame-ui";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@radix-ui/react-toast";
 import Link from "next/link";
-import { useDebuggerFrameState } from "@frames.js/render/unstable-use-debugger-frame-state";
 import { useFarcasterIdentity } from "../hooks/useFarcasterIdentity";
 import { useAccount } from "wagmi";
 import { FrameStackDone } from "@frames.js/render/unstable-types";
+import { useDebuggerFrameState } from "../hooks/useDebuggerFrameState";
 
 type CastComposerProps = {
   composerAction: Partial<ComposerActionResponse>;
