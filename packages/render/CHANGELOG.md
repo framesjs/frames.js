@@ -1,5 +1,29 @@
 # @frames.js/render
 
+## 0.4.0
+
+### Minor Changes
+
+- chore: bump package versions
+
+### Patch Changes
+
+- Updated dependencies
+  - frames.js@0.20.0
+
+## 0.3.20
+
+### Patch Changes
+
+- 7018e0c: feat: customizable frame state for useFrame hook
+- 842e336: chore: bump version
+- 7018e0c: feat: useComposerAction hook
+- da0883e: fix: no signer handling
+- 7018e0c: feat: multi specification support
+- Updated dependencies [842e336]
+- Updated dependencies [7018e0c]
+  - frames.js@0.19.6
+
 ## 0.3.20-canary.3
 
 ### Patch Changes

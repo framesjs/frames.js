@@ -1,5 +1,20 @@
 # @frames.js/debugger
 
+## 0.3.19
+
+### Patch Changes
+
+- chore: bump package versions
+
+## 0.3.18
+
+### Patch Changes
+
+- 842e336: chore: bump version
+- 7018e0c: feat: useComposerAction hook
+- 0591372: fix(debugger): prevent long urls in cast embeds from overflowing
+- 7018e0c: feat: multi specification support
+
 ## 0.3.18-canary.2
 
 ### Patch Changes

@@ -1,5 +1,18 @@
 # frames.js
 
+## 0.20.0
+
+### Minor Changes
+
+- chore: bump package versions
+
+## 0.19.6
+
+### Patch Changes
+
+- 842e336: chore: bump version
+- 7018e0c: feat: multi specification support
+
 ## 0.19.6-canary.1
 
 ### Patch Changes

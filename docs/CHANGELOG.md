@@ -1,5 +1,20 @@
 # docs
 
+## 0.3.10
+
+### Patch Changes
+
+- Updated dependencies
+  - frames.js@0.20.0
+
+## 0.3.9
+
+### Patch Changes
+
+- Updated dependencies [842e336]
+- Updated dependencies [7018e0c]
+  - frames.js@0.19.6
+
 ## 0.3.9-canary.1
 
 ### Patch Changes

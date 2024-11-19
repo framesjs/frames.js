@@ -5,7 +5,7 @@
     "frames.js",
     "farcaster"
   ],
-  "version": "0.3.18-canary.2",
+  "version": "0.3.19",
   "bin": {
     "frames": "./bin/debugger.js"
   },
@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@farcaster/core": "^0.14.7",
-    "@frames.js/render": "^0.3.20-canary.3",
+    "@frames.js/render": "^0.4.0",
     "@primer/octicons-react": "^19.9.0",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-checkbox": "^1.0.4",
@@ -62,7 +62,7 @@
     "console-feed": "^3.6.0",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.1.0",
-    "frames.js": "^0.19.6-canary.1",
+    "frames.js": "^0.20.0",
     "lucide-react": "^0.408.0",
     "postcss": "^8",
     "qrcode.react": "^3.1.0",
