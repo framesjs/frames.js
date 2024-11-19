@@ -70,7 +70,7 @@ export type OnCreateCastFunction = (arg: {
 
 export type ResolveAddressFunction = () => Promise<`0x${string}` | null>;
 
-export type OnPostMessageToTargetFunction = (
+export type OnMessageRespondFunction = (
   response: MiniAppResponse,
   form: ComposerActionFormResponse
 ) => unknown;
@@ -119,9 +119,9 @@ export type UseComposerActionOptions = {
   onTransaction: OnTransactionFunction;
   onSignature: OnSignatureFunction;
   /**
-   * Called when a response to a message is sent to target (e.g. iframe).
+   * Called with message response to be posted to child (e.g. iframe).
    */
-  onPostResponseToTarget: OnPostMessageToTargetFunction;
+  onMessageRespond: OnMessageRespondFunction;
   /**
    * Allows to override how the message listener is registered. Function must return a function that removes the listener.
    *
@@ -170,7 +170,7 @@ export function useComposerAction({
   onTransaction,
   resolveAddress,
   registerMessageListener = defaultRegisterMessageListener,
-  onPostResponseToTarget,
+  onMessageRespond,
 }: UseComposerActionOptions): UseComposerActionResult {
   const onErrorRef = useFreshRef(onError);
   const [state, dispatch] = useReducer(composerActionReducer, {
@@ -180,7 +180,7 @@ export function useComposerAction({
   const registerMessageListenerRef = useFreshRef(registerMessageListener);
   const actionStateRef = useFreshRef(actionState);
   const onCreateCastRef = useFreshRef(onCreateCast);
-  const onPostResponseToTargetRef = useFreshRef(onPostResponseToTarget);
+  const onMessageRespondRef = useFreshRef(onMessageRespond);
   const onTransactionRef = useFreshRef(onTransaction);
   const onSignatureRef = useFreshRef(onSignature);
   const resolveAddressRef = useFreshRef(resolveAddress);
@@ -206,7 +206,7 @@ export function useComposerAction({
         );
 
         if (resultOrError instanceof Error) {
-          onPostResponseToTargetRef.current(
+          onMessageRespondRef.current(
             {
               jsonrpc: "2.0",
               id: "method" in message ? message.id : null,
@@ -219,7 +219,7 @@ export function useComposerAction({
           );
         }
 
-        onPostResponseToTargetRef.current(
+        onMessageRespondRef.current(
           {
             jsonrpc: "2.0",
             id: "method" in message ? message.id : null,
@@ -237,7 +237,7 @@ export function useComposerAction({
         if (addressOrError instanceof Error) {
           tryCall(() => onErrorRef.current?.(addressOrError));
 
-          onPostResponseToTargetRef.current(
+          onMessageRespondRef.current(
             {
               jsonrpc: "2.0",
               id: message.id,
@@ -269,7 +269,7 @@ export function useComposerAction({
           if (resultOrError instanceof Error) {
             tryCall(() => onErrorRef.current?.(resultOrError));
 
-            onPostResponseToTargetRef.current(
+            onMessageRespondRef.current(
               {
                 jsonrpc: "2.0",
                 id: message.id,
@@ -289,7 +289,7 @@ export function useComposerAction({
 
             tryCall(() => onErrorRef.current?.(error));
 
-            onPostResponseToTargetRef.current(
+            onMessageRespondRef.current(
               {
                 jsonrpc: "2.0",
                 id: message.id,
@@ -303,7 +303,7 @@ export function useComposerAction({
             return;
           }
 
-          onPostResponseToTargetRef.current(
+          onMessageRespondRef.current(
             {
               jsonrpc: "2.0",
               id: message.id,
@@ -327,7 +327,7 @@ export function useComposerAction({
           if (resultOrError instanceof Error) {
             tryCall(() => onErrorRef.current?.(resultOrError));
 
-            onPostResponseToTargetRef.current(
+            onMessageRespondRef.current(
               {
                 jsonrpc: "2.0",
                 id: message.id,
@@ -347,7 +347,7 @@ export function useComposerAction({
 
             tryCall(() => onErrorRef.current?.(error));
 
-            onPostResponseToTargetRef.current(
+            onMessageRespondRef.current(
               {
                 jsonrpc: "2.0",
                 id: message.id,
@@ -362,7 +362,7 @@ export function useComposerAction({
             return;
           }
 
-          onPostResponseToTargetRef.current(
+          onMessageRespondRef.current(
             {
               jsonrpc: "2.0",
               id: message.id,
@@ -389,7 +389,7 @@ export function useComposerAction({
     [
       onCreateCastRef,
       onErrorRef,
-      onPostResponseToTargetRef,
+      onMessageRespondRef,
       onSignatureRef,
       onTransactionRef,
       resolveAddressRef,
