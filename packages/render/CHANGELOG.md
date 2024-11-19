@@ -1,5 +1,11 @@
 # @frames.js/render
 
+## 0.4.1
+
+### Patch Changes
+
+- 4983308: fix(@frames.js/render): export missing type for anonymous signer
+
 ## 0.4.0
 
 ### Minor Changes
