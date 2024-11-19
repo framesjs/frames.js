@@ -1,5 +1,5 @@
-import { useMemo, useReducer } from "react";
-import type { Frame } from "frames.js";
+import { type MutableRefObject, useMemo, useReducer, useRef } from "react";
+import type { Frame, SupportedParsingSpecification } from "frames.js";
 import type { ParseResult } from "frames.js/frame-parsers";
 import type {
   CastActionMessageResponse,
@@ -16,16 +16,14 @@ import type {
   SignedFrameAction,
   SignerStateActionContext,
 } from "./types";
+import { isParseResult } from "./helpers";
 
 function computeDurationInSeconds(start: Date, end: Date): number {
   return Number(((end.getTime() - start.getTime()) / 1000).toFixed(2));
 }
 
-export function isParseResult(result: unknown): result is ParseResult {
-  return typeof result === "object" && result !== null && "status" in result;
-}
-
 function framesStackReducer(
+  idCounterRef: MutableRefObject<number>,
   state: FramesStack,
   action: FrameReducerActions
 ): FramesStack {
@@ -81,10 +79,12 @@ function framesStackReducer(
               status: "success" as const,
               reports: {},
               frame: action.resultOrFrame,
+              specification: action.specification,
             };
 
         return [
           {
+            id: idCounterRef.current++,
             request: {
               method: "GET",
               url: action.homeframeUrl ?? "",
@@ -118,6 +118,7 @@ function framesStackReducer(
 type UseFrameStackOptions = {
   initialFrame?: Frame | ParseResult;
   initialFrameUrl?: string | null;
+  initialSpecification: SupportedParsingSpecification;
 };
 
 export type FrameStackAPI = {
@@ -199,15 +200,17 @@ export type FrameStackAPI = {
 export function useFrameStack({
   initialFrame,
   initialFrameUrl,
+  initialSpecification,
 }: UseFrameStackOptions): [
   FramesStack,
   React.Dispatch<FrameReducerActions>,
   FrameStackAPI,
 ] {
+  const idCounterRef = useRef(0);
   const [stack, dispatch] = useReducer(
-    framesStackReducer,
-    [initialFrame, initialFrameUrl] as const,
-    ([frame, frameUrl]): FramesStack => {
+    framesStackReducer.bind(null, idCounterRef),
+    [initialFrame, initialFrameUrl, initialSpecification] as const,
+    ([frame, frameUrl, specification]): FramesStack => {
       if (frame) {
         const frameResult = isParseResult(frame)
           ? frame
@@ -215,9 +218,11 @@ export function useFrameStack({
               reports: {},
               frame,
               status: "success" as const,
+              specification,
             };
         return [
           {
+            id: idCounterRef.current++,
             response: new Response(JSON.stringify(frameResult), {
               status: 200,
               headers: { "Content-Type": "application/json" },
@@ -241,6 +246,7 @@ export function useFrameStack({
         // this is then handled by fetchFrame having second argument set to true so the stack is cleared
         return [
           {
+            id: idCounterRef.current++,
             method: "GET",
             request: {
               method: "GET",
@@ -267,6 +273,7 @@ export function useFrameStack({
       },
       createGetPendingItem(arg) {
         const item: FrameStackGetPending = {
+          id: idCounterRef.current++,
           method: "GET",
           request: arg.request,
           requestDetails: {},
@@ -284,6 +291,7 @@ export function useFrameStack({
       },
       createPostPendingItem(arg) {
         const item: FrameStackPostPending = {
+          id: idCounterRef.current++,
           method: "POST",
           request: arg.request,
           requestDetails: {
@@ -304,6 +312,7 @@ export function useFrameStack({
       },
       createCastOrComposerActionPendingItem(arg) {
         return {
+          id: idCounterRef.current++,
           method: "POST",
           requestDetails: {
             body: arg.action.body,
@@ -404,6 +413,7 @@ export function useFrameStack({
           action: "REQUEST_ERROR",
           pendingItem: arg.pendingItem,
           item: {
+            id: arg.pendingItem.id,
             request: arg.pendingItem.request,
             requestDetails: arg.pendingItem.requestDetails,
             timestamp: arg.pendingItem.timestamp,

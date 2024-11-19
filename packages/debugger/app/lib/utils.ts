@@ -18,3 +18,17 @@ export function hasWarnings(reports: Record<string, ParsingReport[]>): boolean {
     report.some((r) => r.level === "warning")
   );
 }
+
+export class InvalidChainIdError extends Error {}
+
+export function isValidChainId(id: string): boolean {
+  return id.startsWith("eip155:");
+}
+
+export function parseChainId(id: string): number {
+  if (!isValidChainId(id)) {
+    throw new InvalidChainIdError(`Invalid chainId ${id}`);
+  }
+
+  return parseInt(id.split("eip155:")[1]!);
+}

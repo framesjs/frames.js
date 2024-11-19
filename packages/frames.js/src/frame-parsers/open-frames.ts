@@ -194,6 +194,7 @@ export function parseOpenFramesFrame(
       status: "failure",
       frame,
       reports: reporter.toObject(),
+      specification: "openframes",
     };
   }
 
@@ -201,5 +202,6 @@ export function parseOpenFramesFrame(
     status: "success",
     frame: frame as unknown as Frame,
     reports: reporter.toObject(),
+    specification: "openframes",
   };
 }

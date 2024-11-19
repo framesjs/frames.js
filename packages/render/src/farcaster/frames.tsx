@@ -7,7 +7,7 @@ import {
   getFarcasterTime,
   makeFrameAction,
 } from "@farcaster/core";
-import { hexToBytes } from "viem";
+import { bytesToHex, hexToBytes } from "viem";
 import type {
   FrameActionBodyPayload,
   FrameContext,
@@ -15,18 +15,51 @@ import type {
   SignerStateActionContext,
   SignFrameActionFunc,
 } from "../types";
+import type {
+  SignComposerActionFunc,
+  SignerStateComposerActionContext,
+} from "../unstable-types";
+import { tryCallAsync } from "../helpers";
 import type { FarcasterSigner } from "./signers";
+import type { FarcasterFrameContext } from "./types";
 
-export type FarcasterFrameContext = {
-  /** Connected address of user, only sent with transaction data request */
-  address?: `0x${string}`;
-  castId: { hash: `0x${string}`; fid: number };
-};
+/**
+ * Creates a singer request payload to fetch composer action url.
+ */
+export const signComposerAction: SignComposerActionFunc =
+  async function signComposerAction(signerPrivateKey, actionContext) {
+    const messageOrError = await tryCallAsync(() =>
+      createComposerActionMessageWithSignerKey(signerPrivateKey, actionContext)
+    );
+
+    if (messageOrError instanceof Error) {
+      throw messageOrError;
+    }
+
+    const { message, trustedBytes } = messageOrError;
+
+    return {
+      untrustedData: {
+        buttonIndex: 1,
+        fid: actionContext.fid,
+        messageHash: bytesToHex(message.hash),
+        network: 1,
+        state: Buffer.from(message.data.frameActionBody.state).toString(),
+        timestamp: new Date().getTime(),
+        url: actionContext.url,
+      },
+      trustedData: {
+        messageBytes: trustedBytes,
+      },
+    };
+  };
 
 /** Creates a frame action for use with `useFrame` and a proxy */
-export const signFrameAction: SignFrameActionFunc<FarcasterSigner> = async (
-  actionContext
-) => {
+export const signFrameAction: SignFrameActionFunc<
+  FarcasterSigner,
+  FrameActionBodyPayload,
+  FarcasterFrameContext
+> = async (actionContext) => {
   const {
     frameButton,
     signer,
@@ -106,6 +139,43 @@ export const signFrameAction: SignFrameActionFunc<FarcasterSigner> = async (
     },
   };
 };
+
+export async function createComposerActionMessageWithSignerKey(
+  signerKey: string,
+  { fid, state, url }: SignerStateComposerActionContext
+): Promise<{
+  message: FrameActionMessage;
+  trustedBytes: string;
+}> {
+  const signer = new NobleEd25519Signer(Buffer.from(signerKey.slice(2), "hex"));
+
+  const messageDataOptions = {
+    fid,
+    network: FarcasterNetwork.MAINNET,
+  };
+
+  const message = await makeFrameAction(
+    FrameActionBody.create({
+      url: Buffer.from(url),
+      buttonIndex: 1,
+      state: Buffer.from(encodeURIComponent(JSON.stringify({ cast: state }))),
+    }),
+    messageDataOptions,
+    signer
+  );
+
+  if (message.isErr()) {
+    throw message.error;
+  }
+
+  const messageData = message.value;
+
+  const trustedBytes = Buffer.from(
+    Message.encode(message._unsafeUnwrap()).finish()
+  ).toString("hex");
+
+  return { message: messageData, trustedBytes };
+}
 
 export async function createFrameActionMessageWithSignerKey(
   signerKey: string,

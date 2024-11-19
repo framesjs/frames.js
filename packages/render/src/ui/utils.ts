@@ -5,6 +5,11 @@ import type {
   FrameStackMessage,
   FrameStackRequestError,
 } from "../types";
+import type {
+  FramesStackItem as UnstableFramesStackItem,
+  FrameStackMessage as UnstableFrameStackMessage,
+  FrameStackRequestError as UnstableFrameStackRequestError,
+} from "../unstable-types";
 import type { PartialFrame } from "./types";
 
 type FrameResultFailure = Exclude<GetFrameResult, { status: "success" }>;
@@ -16,7 +21,7 @@ type FrameStackItemWithPartialFrame = Omit<FrameStackDone, "frameResult"> & {
 };
 
 export function isPartialFrameStackItem(
-  stackItem: FramesStackItem
+  stackItem: FramesStackItem | UnstableFramesStackItem
 ): stackItem is FrameStackItemWithPartialFrame {
   return (
     stackItem.status === "done" &&
@@ -28,7 +33,11 @@ export function isPartialFrameStackItem(
 }
 
 export function getErrorMessageFromFramesStackItem(
-  item: FrameStackMessage | FrameStackRequestError
+  item:
+    | FrameStackMessage
+    | FrameStackRequestError
+    | UnstableFrameStackMessage
+    | UnstableFrameStackRequestError
 ): string {
   if (item.status === "message") {
     return item.message;

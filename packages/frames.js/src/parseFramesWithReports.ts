@@ -1,8 +1,8 @@
 import { load as loadDocument } from "cheerio";
 import { createReporter } from "./frame-parsers/reporter";
 import type {
-  ParseResult,
-  SupportedParsingSpecification,
+  ParsedFrameworkDetails,
+  ParseFramesWithReportsResult,
 } from "./frame-parsers/types";
 import { parseFarcasterFrame } from "./frame-parsers/farcaster";
 import { parseOpenFramesFrame } from "./frame-parsers/open-frames";
@@ -22,18 +22,6 @@ type ParseFramesWithReportsOptions = {
    * @defaultValue 'GET'
    */
   fromRequestMethod?: "GET" | "POST";
-};
-
-export type ParseFramesWithReportsResult = {
-  [K in SupportedParsingSpecification]: ParseResult;
-} & {
-  framesVersion?: string;
-  framesDebugInfo?: {
-    /**
-     * Image URL of debug image.
-     */
-    image?: string;
-  };
 };
 
 /**
@@ -62,14 +50,14 @@ export function parseFramesWithReports({
     `meta[name="${FRAMESJS_DEBUG_INFO_IMAGE_KEY}"], meta[property="${FRAMESJS_DEBUG_INFO_IMAGE_KEY}"]`
   ).attr("content");
 
-  return {
-    farcaster,
-    openframes: parseOpenFramesFrame(document, {
-      farcasterFrame: farcaster.frame,
-      reporter: openFramesReporter,
-      fallbackPostUrl,
-      fromRequestMethod,
-    }),
+  const openframes = parseOpenFramesFrame(document, {
+    farcasterFrame: farcaster.frame,
+    reporter: openFramesReporter,
+    fallbackPostUrl,
+    fromRequestMethod,
+  });
+
+  const frameworkDetails: ParsedFrameworkDetails = {
     framesVersion,
     ...(debugImageUrl
       ? {
@@ -78,5 +66,16 @@ export function parseFramesWithReports({
           },
         }
       : {}),
+  };
+
+  return {
+    farcaster: {
+      ...farcaster,
+      ...frameworkDetails,
+    },
+    openframes: {
+      ...openframes,
+      ...frameworkDetails,
+    },
   };
 }

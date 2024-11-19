@@ -71,13 +71,16 @@ export async function loadMockResponseForDebugHubRequest(
 }
 
 export async function persistMockResponsesForDebugHubRequests(req: Request) {
-  const {
-    mockData,
-    untrustedData: { fid: requesterFid, castId },
-  } = (await req.clone().json()) as {
-    mockData: MockHubActionContext;
-    untrustedData: { fid: string; castId: { fid: string; hash: string } };
+  const { mockData, untrustedData } = (await req.clone().json()) as {
+    mockData?: MockHubActionContext;
+    untrustedData?: { fid: string; castId?: { fid: string; hash: string } };
   };
+
+  if (!mockData || !untrustedData?.castId) {
+    return;
+  }
+
+  const { fid: requesterFid, castId } = untrustedData;
 
   const requesterFollowsCaster = `/v1/linkById?${sortedSearchParamsString(
     new URLSearchParams({

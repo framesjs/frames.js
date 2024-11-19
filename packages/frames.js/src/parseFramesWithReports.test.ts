@@ -30,6 +30,8 @@ describe("parseFramesWithReports", () => {
         },
         reports: {},
         status: "success",
+        specification: "farcaster",
+        framesVersion: undefined,
       },
       openframes: {
         frame: {
@@ -43,6 +45,8 @@ describe("parseFramesWithReports", () => {
         },
         reports: {},
         status: "success",
+        specification: "openframes",
+        framesVersion: undefined,
       },
     });
   });
@@ -78,6 +82,8 @@ describe("parseFramesWithReports", () => {
           title: "Test",
         },
         reports: {},
+        specification: "farcaster",
+        framesVersion: undefined,
         status: "success",
       },
       openframes: {
@@ -92,6 +98,8 @@ describe("parseFramesWithReports", () => {
         },
         reports: {},
         status: "success",
+        framesVersion: undefined,
+        specification: "openframes",
       },
     });
   });

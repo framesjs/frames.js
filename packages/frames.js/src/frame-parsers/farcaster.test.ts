@@ -23,6 +23,7 @@ describe("farcaster frame parser", () => {
       parseFarcasterFrame(document, { reporter, fallbackPostUrl })
     ).toEqual({
       status: "success",
+      specification: "farcaster",
       reports: {},
       frame: {
         image: "http://example.com/image.png",
@@ -46,6 +47,7 @@ describe("farcaster frame parser", () => {
         parseFarcasterFrame(document, { reporter, fallbackPostUrl })
       ).toMatchObject({
         status: "failure",
+        specification: "farcaster",
         frame: {},
         reports: expect.objectContaining({
           "fc:frame": [
@@ -71,6 +73,7 @@ describe("farcaster frame parser", () => {
         parseFarcasterFrame(document, { reporter, fallbackPostUrl })
       ).toMatchObject({
         status: "failure",
+        specification: "farcaster",
         frame: {},
         reports: expect.objectContaining({
           "fc:frame": [
@@ -96,6 +99,7 @@ describe("farcaster frame parser", () => {
         parseFarcasterFrame(document, { reporter, fallbackPostUrl })
       ).toEqual({
         status: "success",
+        specification: "farcaster",
         frame: {
           image: "http://example.com/image.png",
           ogImage: "http://example.com/image.png",
@@ -123,6 +127,7 @@ describe("farcaster frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "farcaster",
         reports: {
           title: [
             {
@@ -153,6 +158,7 @@ describe("farcaster frame parser", () => {
 
       expect(parseFarcasterFrame($, { reporter, fallbackPostUrl })).toEqual({
         status: "success",
+        specification: "farcaster",
         reports: {},
         frame: {
           version: "vNext",
@@ -174,6 +180,7 @@ describe("farcaster frame parser", () => {
 
       expect(parseFarcasterFrame($, { reporter, fallbackPostUrl })).toEqual({
         status: "success",
+        specification: "farcaster",
         reports: {},
         frame: {
           version: "vNext",
@@ -196,6 +203,7 @@ describe("farcaster frame parser", () => {
 
       expect(parseFarcasterFrame($, { reporter, fallbackPostUrl })).toEqual({
         status: "success",
+        specification: "farcaster",
         reports: {
           "og:image": [
             {
@@ -229,6 +237,7 @@ describe("farcaster frame parser", () => {
         })
       ).toEqual({
         status: "success",
+        specification: "farcaster",
         reports: {},
         frame: {
           version: "vNext",
@@ -249,6 +258,7 @@ describe("farcaster frame parser", () => {
 
       expect(parseFarcasterFrame($, { reporter, fallbackPostUrl })).toEqual({
         status: "success",
+        specification: "farcaster",
         reports: {},
         frame: {
           version: "vNext",
@@ -273,6 +283,7 @@ describe("farcaster frame parser", () => {
         parseFarcasterFrame(document, { reporter, fallbackPostUrl })
       ).toMatchObject({
         status: "failure",
+        specification: "farcaster",
         frame: {
           version: "vNext",
           ogImage: "http://example.com/image.png",
@@ -303,6 +314,7 @@ describe("farcaster frame parser", () => {
         parseFarcasterFrame(document, { reporter, fallbackPostUrl })
       ).toEqual({
         status: "success",
+        specification: "farcaster",
         frame: {
           image: "http://example.com/image.png",
           ogImage: "http://example.com/image.png",
@@ -329,6 +341,7 @@ describe("farcaster frame parser", () => {
         parseFarcasterFrame(document, { reporter, fallbackPostUrl })
       ).toEqual({
         status: "success",
+        specification: "farcaster",
         frame: {
           image: "http://example.com/image.png",
           version: "vNext",
@@ -356,6 +369,7 @@ describe("farcaster frame parser", () => {
         parseFarcasterFrame(document, { reporter, fallbackPostUrl })
       ).toEqual({
         status: "success",
+        specification: "farcaster",
         frame: {
           image: "http://example.com/image.png",
           version: "vNext",
@@ -384,6 +398,7 @@ describe("farcaster frame parser", () => {
         parseFarcasterFrame(document, { reporter, fallbackPostUrl })
       ).toMatchObject({
         status: "failure",
+        specification: "farcaster",
         frame: {
           version: "vNext",
           image: "http://example.com/image.png",
@@ -416,6 +431,7 @@ describe("farcaster frame parser", () => {
         parseFarcasterFrame(document, { reporter, fallbackPostUrl })
       ).toEqual({
         status: "success",
+        specification: "farcaster",
         frame: {
           image: "http://example.com/image.png",
           version: "vNext",
@@ -442,6 +458,7 @@ describe("farcaster frame parser", () => {
         parseFarcasterFrame(document, { reporter, fallbackPostUrl })
       ).toEqual({
         status: "success",
+        specification: "farcaster",
         frame: {
           image: "http://example.com/image.png",
           ogImage: "http://example.com/image.png",
@@ -471,6 +488,7 @@ describe("farcaster frame parser", () => {
         parseFarcasterFrame(document, { reporter, fallbackPostUrl })
       ).toEqual({
         status: "success",
+        specification: "farcaster",
         frame: {
           image: "http://example.com/image.png",
           version: "vNext",

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/require-await -- we expect async functions */
 /* eslint-disable no-console -- provide feedback */
 /* eslint-disable no-alert -- provide feedback */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type {
   Frame,
   FrameButton,
@@ -10,28 +10,16 @@ import type {
   FrameButtonTx,
   TransactionTargetResponse,
 } from "frames.js";
-import type {
-  FrameState,
-  OnMintArgs,
-  FrameContext,
-  FrameActionBodyPayload,
-  UseFrameOptions,
-  OnTransactionArgs,
-  OnSignatureArgs,
-  CastActionButtonPressFunction,
-  ComposerActionButtonPressFunction,
-} from "./types";
-import { unsignedFrameAction, type FarcasterFrameContext } from "./farcaster";
-import { useFrameStack } from "./use-frame-stack";
-import { useFetchFrame } from "./use-fetch-frame";
+import type { OnMintArgs, OnTransactionArgs, OnSignatureArgs } from "./types";
+import type { UseFrameOptions, UseFrameReturnValue } from "./unstable-types";
+import { useFrameState } from "./unstable-use-frame-state";
+import { useFetchFrame } from "./unstable-use-fetch-frame";
 import { useFreshRef } from "./hooks/use-fresh-ref";
+import { tryCallAsync } from "./helpers";
 
-// eslint-disable-next-line camelcase -- this is only temporary
-export { useFrame_unstable } from "./unstable-use-frame";
-export type {
-  UnstableUseFrameOptions,
-  UnstableUseFrameReturnValue,
-} from "./unstable-use-frame";
+function onErrorFallback(e: Error): void {
+  console.error("@frames.js/render", e);
+}
 
 function onMintFallback({ target }: OnMintArgs): void {
   console.log("Please provide your own onMint function to useFrame() hook.");
@@ -45,7 +33,7 @@ function onMintFallback({ target }: OnMintArgs): void {
   }
 }
 
-function onConnectWalletFallback(): never {
+function resolveAddressFallback(): never {
   throw new Error(
     "Please implement this function in order to use transactions"
   );
@@ -129,10 +117,6 @@ function handleLinkButtonClickFallback(button: FrameButtonLink): void {
   }
 }
 
-function defaultComposerFormActionHandler(): Promise<never> {
-  throw new Error('Please implement your own "onComposerFormAction" handler');
-}
-
 /**
  * Validates a link button target to ensure it is a valid HTTP or HTTPS URL.
  * @param target - The target URL to validate.
@@ -152,33 +136,44 @@ function validateLinkButtonTarget(target: string): boolean {
   return true;
 }
 
-export function useFrame<
-  TSignerStorageType = Record<string, unknown>,
-  TFrameActionBodyType extends FrameActionBodyPayload = FrameActionBodyPayload,
-  TFrameContextType extends FrameContext = FarcasterFrameContext,
+function defaultFetchFunction(
+  input: RequestInfo | URL,
+  init?: RequestInit
+): Promise<Response> {
+  return fetch(input, init);
+}
+
+export type {
+  UseFrameReturnValue as UnstableUseFrameReturnValue,
+  UseFrameOptions as UnstableUseFrameOptions,
+};
+
+// eslint-disable-next-line camelcase -- this is only temporary
+export function useFrame_unstable<
+  TExtraDataPending = unknown,
+  TExtraDataDone = unknown,
+  TExtraDataDoneRedirect = unknown,
+  TExtraDataRequestError = unknown,
+  TExtraDataMesssage = unknown,
 >({
+  frameStateHook: useFrameStateHook = useFrameState,
   homeframeUrl,
-  frameContext,
-  dangerousSkipSigning,
   onMint = onMintFallback,
   onTransaction = onTransactionFallback,
   transactionDataSuffix,
-  onConnectWallet = onConnectWalletFallback,
   onSignature = onSignatureFallback,
-  connectedAddress,
-  signerState,
+  resolveAddress = resolveAddressFallback,
   frame,
   /** Ex: /frames */
   frameActionProxy,
   /** Ex: /frames */
   frameGetProxy,
   extraButtonRequestPayload,
-  specification = "farcaster",
-  onError,
+  resolveSigner: resolveSpecification,
+  onError = onErrorFallback,
   onLinkButtonClick = handleLinkButtonClickFallback,
   onRedirect = handleRedirectFallback,
-  fetchFn = (...args) => fetch(...args),
-  onComposerFormAction = defaultComposerFormActionHandler,
+  fetchFn = defaultFetchFunction,
   onTransactionDataError,
   onTransactionDataStart,
   onTransactionDataSuccess,
@@ -189,44 +184,45 @@ export function useFrame<
   onTransactionStart,
   onTransactionSuccess,
 }: UseFrameOptions<
-  TSignerStorageType,
-  TFrameActionBodyType,
-  TFrameContextType
->): FrameState<TSignerStorageType, TFrameContextType> {
+  TExtraDataPending,
+  TExtraDataDone,
+  TExtraDataDoneRedirect,
+  TExtraDataRequestError,
+  TExtraDataMesssage
+>): UseFrameReturnValue<
+  TExtraDataPending,
+  TExtraDataDone,
+  TExtraDataDoneRedirect,
+  TExtraDataRequestError,
+  TExtraDataMesssage
+> {
   const [inputText, setInputText] = useState("");
-  const [framesStack, dispatch, stackAPI] = useFrameStack({
-    initialFrame: frame,
+  const inputTextRef = useFreshRef(inputText);
+  const [frameState, frameStateAPI] = useFrameStateHook({
+    resolveSpecification,
     initialFrameUrl: homeframeUrl,
-    initialSpecification: specification,
+    initialParseResult: frame,
   });
+  const frameStateRef = useFreshRef(frameState);
 
-  const fetchFrame = useFetchFrame<
-    TSignerStorageType,
-    TFrameActionBodyType,
-    TFrameContextType
-  >({
-    stackAPI,
+  const {
+    clear: clearFrameState,
+    dispatch: dispatchFrameState,
+    reset: resetFrameState,
+  } = frameStateAPI;
+
+  const fetchFrame = useFetchFrame({
+    frameState,
+    frameStateAPI,
     frameActionProxy,
     frameGetProxy,
     onTransaction,
     transactionDataSuffix,
     onSignature,
-    signFrameAction({ actionContext, forceRealSigner }) {
-      return dangerousSkipSigning && !forceRealSigner
-        ? unsignedFrameAction<
-            TSignerStorageType,
-            TFrameActionBodyType,
-            TFrameContextType
-          >(actionContext)
-        : signerState.signFrameAction(actionContext);
-    },
-    specification,
-    stackDispatch: dispatch,
     extraButtonRequestPayload,
     onError,
     fetchFn,
     onRedirect,
-    onComposerFormAction,
     onTransactionDataError,
     onTransactionDataStart,
     onTransactionDataSuccess,
@@ -240,10 +236,16 @@ export function useFrame<
 
   const fetchFrameRef = useFreshRef(fetchFrame);
   const onErrorRef = useFreshRef(onError);
-  const specificationRef = useFreshRef(specification);
 
   useEffect(() => {
-    if (!frame && homeframeUrl) {
+    if (!homeframeUrl) {
+      // if we don't have an url we don't want to show anything
+      clearFrameState();
+
+      return;
+    }
+
+    if (!frame) {
       fetchFrameRef
         .current(
           {
@@ -255,17 +257,22 @@ export function useFrame<
           true
         )
         .catch((e) => {
-          console.error(e);
+          onErrorRef.current(e instanceof Error ? e : new Error(String(e)));
         });
-    } else if (frame) {
-      dispatch({
-        action: "RESET_INITIAL_FRAME",
-        resultOrFrame: frame,
+    } else {
+      resetFrameState({
         homeframeUrl,
-        specification: specificationRef.current,
+        parseResult: frame,
       });
     }
-  }, [frame, homeframeUrl, dispatch, fetchFrameRef, specificationRef]);
+  }, [
+    frame,
+    homeframeUrl,
+    clearFrameState,
+    fetchFrameRef,
+    resetFrameState,
+    onErrorRef,
+  ]);
 
   const onPostButton = useCallback(
     async function onPostButton({
@@ -285,31 +292,34 @@ export function useFrame<
       target: string;
       fetchFrameOverride?: typeof fetchFrame;
     }): Promise<void> {
-      if (!dangerousSkipSigning && !signerState.hasSigner) {
-        const error = new Error("Missing signer");
-        onErrorRef.current?.(error);
+      const currentState = frameStateRef.current;
 
-        console.error(`@frames.js/render: ${error.message}`);
-        return;
-      }
-      if (!homeframeUrl) {
-        const error = new Error("Missing homeframeUrl");
-        onErrorRef.current?.(error);
-        console.error(`@frames.js/render: ${error.message}`);
+      if (currentState.type === "not-initialized") {
+        const error = new Error(
+          "Cannot perform post/post_redirect without a frame"
+        );
+
+        onErrorRef.current(error);
+
         return;
       }
 
-      const _fetchFrame = fetchFrameOverride ?? fetchFrame;
+      if (!currentState.signerState.hasSigner) {
+        await currentState.signerState.onSignerlessFramePress();
+        return;
+      }
+
+      const _fetchFrame = fetchFrameOverride ?? fetchFrameRef.current;
 
       await _fetchFrame({
         frameButton,
-        isDangerousSkipSigning: dangerousSkipSigning ?? false,
+        isDangerousSkipSigning: false,
         method: "POST",
         signerStateActionContext: {
           inputText: postInputText,
-          signer: signerState.signer ?? null,
-          frameContext,
-          url: homeframeUrl,
+          signer: currentState.signerState.signer,
+          frameContext: currentState.frameContext,
+          url: currentState.homeframeUrl,
           target,
           frameButton,
           buttonIndex,
@@ -318,18 +328,10 @@ export function useFrame<
         sourceFrame: currentFrame,
       });
     },
-    [
-      dangerousSkipSigning,
-      fetchFrame,
-      frameContext,
-      homeframeUrl,
-      signerState.hasSigner,
-      signerState.signer,
-    ]
+    [fetchFrameRef, frameStateRef, onErrorRef]
   );
 
-  const onConnectWalletRef = useRef(onConnectWallet);
-  onConnectWalletRef.current = onConnectWallet;
+  const resolveAddressRef = useFreshRef(resolveAddress);
 
   const onTransactionButton = useCallback(
     async function onTransactionButton({
@@ -343,43 +345,57 @@ export function useFrame<
       buttonIndex: number;
       postInputText: string | undefined;
     }): Promise<TransactionTargetResponse | undefined> {
+      const currentState = frameStateRef.current;
+
+      if (currentState.type === "not-initialized") {
+        const error = new Error("Cannot perform transaction without a frame");
+
+        onErrorRef.current(error);
+
+        return;
+      }
+
       // Send post request to get calldata
-      if (!dangerousSkipSigning && !signerState.hasSigner) {
-        const error = new Error("Missing signer");
-        onErrorRef.current?.(error);
-
-        console.error(`@frames.js/render: ${error.message}`);
-        return;
-      }
-      if (!homeframeUrl) {
-        const error = new Error("Missing homeframeUrl");
-        onErrorRef.current?.(error);
-        console.error(`@frames.js/render: ${error.message}`);
+      if (!currentState.signerState.hasSigner) {
+        await currentState.signerState.onSignerlessFramePress();
         return;
       }
 
-      if (!connectedAddress) {
-        try {
-          onConnectWalletRef.current();
-        } catch (e) {
-          onErrorRef.current?.(e instanceof Error ? e : new Error(String(e)));
-          console.error(`@frames.js/render: ${String(e)}`);
-        }
+      const addressOrError = await tryCallAsync(() =>
+        resolveAddressRef.current()
+      );
 
+      if (addressOrError instanceof Error) {
+        onErrorRef.current(addressOrError);
         return;
       }
 
-      await fetchFrame({
+      if (!addressOrError) {
+        onErrorRef.current(
+          new Error(
+            "Wallet address missing, please check resolveAddress() function passed to useFrame_unstable() hook."
+          )
+        );
+        return;
+      }
+
+      // transaction request always requires address
+      const frameContext = {
+        ...currentState.frameContext,
+        address: addressOrError,
+      };
+
+      await fetchFrameRef.current({
         frameButton,
-        isDangerousSkipSigning: dangerousSkipSigning ?? false,
+        isDangerousSkipSigning: false,
         method: "POST",
         signerStateActionContext: {
           type: "tx-data",
           inputText: postInputText,
-          signer: signerState.signer ?? null,
+          signer: currentState.signerState.signer,
           frameContext,
-          address: connectedAddress,
-          url: homeframeUrl,
+          address: addressOrError,
+          url: currentState.homeframeUrl,
           target: frameButton.target,
           frameButton,
           buttonIndex,
@@ -388,14 +404,7 @@ export function useFrame<
         sourceFrame: currentFrame,
       });
     },
-    [
-      fetchFrame,
-      dangerousSkipSigning,
-      frameContext,
-      connectedAddress,
-      homeframeUrl,
-      signerState,
-    ]
+    [frameStateRef, fetchFrameRef, onErrorRef, resolveAddressRef]
   );
 
   const onButtonPress = useCallback(
@@ -403,31 +412,15 @@ export function useFrame<
       currentFrame: Frame,
       frameButton: FrameButton,
       index: number,
-      fetchFrameOverride: typeof fetchFrame = fetchFrame
+      fetchFrameOverride?: typeof fetchFrame
     ): Promise<void> {
-      // Button actions that are handled without server interaction don't require signer
-      const clientSideActions = ["mint", "link"];
-      const buttonRequiresAuth = !clientSideActions.includes(
-        frameButton.action
-      );
-
-      if (
-        !signerState.hasSigner &&
-        !dangerousSkipSigning &&
-        buttonRequiresAuth
-      ) {
-        await signerState.onSignerlessFramePress();
-        // don't continue, let the app handle
-        return;
-      }
-
       switch (frameButton.action) {
         case "link": {
           try {
             validateLinkButtonTarget(frameButton.target);
           } catch (error) {
             if (error instanceof Error) {
-              onErrorRef.current?.(error);
+              onErrorRef.current(error);
             }
             return;
           }
@@ -448,7 +441,9 @@ export function useFrame<
             frameButton,
             buttonIndex: index + 1,
             postInputText:
-              currentFrame.inputText !== undefined ? inputText : undefined,
+              currentFrame.inputText !== undefined
+                ? inputTextRef.current
+                : undefined,
             currentFrame,
           });
           break;
@@ -463,7 +458,7 @@ export function useFrame<
               homeframeUrl;
 
             if (!target) {
-              onErrorRef.current?.(new Error(`Missing target`));
+              onErrorRef.current(new Error(`Missing target`));
               return;
             }
 
@@ -471,7 +466,7 @@ export function useFrame<
               validateLinkButtonTarget(target);
             } catch (error) {
               if (error instanceof Error) {
-                onErrorRef.current?.(error);
+                onErrorRef.current(error);
               }
               return;
             }
@@ -488,17 +483,17 @@ export function useFrame<
               target,
               buttonIndex: index + 1,
               postInputText:
-                currentFrame.inputText !== undefined ? inputText : undefined,
+                currentFrame.inputText !== undefined
+                  ? inputTextRef.current
+                  : undefined,
               state: currentFrame.state,
               fetchFrameOverride,
             });
             setInputText("");
           } catch (err) {
-            if (err instanceof Error) {
-              onErrorRef.current?.(err);
-            }
-
-            console.error(err);
+            onErrorRef.current(
+              err instanceof Error ? err : new Error(String(err))
+            );
           }
           break;
         }
@@ -507,101 +502,47 @@ export function useFrame<
       }
     },
     [
-      dangerousSkipSigning,
-      fetchFrame,
       homeframeUrl,
-      inputText,
+      inputTextRef,
+      onErrorRef,
       onLinkButtonClick,
       onMint,
       onPostButton,
       onTransactionButton,
-      signerState,
     ]
   );
 
-  const clearFrameStack = useCallback(() => {
-    dispatch({ action: "CLEAR" });
-  }, [dispatch]);
-
-  const onCastActionButtonPress: CastActionButtonPressFunction = useCallback(
-    async function onActionButtonPress(arg) {
-      if (!signerState.hasSigner && !dangerousSkipSigning) {
-        await signerState.onSignerlessFramePress();
-        // don't continue, let the app handle
-        return;
-      }
-
-      return fetchFrame(
-        {
-          method: "CAST_ACTION",
-          action: arg.castAction,
-          isDangerousSkipSigning: dangerousSkipSigning ?? false,
-          signerStateActionContext: {
-            signer: signerState.signer ?? null,
-            frameContext,
-            url: arg.castAction.url,
-            target: arg.castAction.url,
-            buttonIndex: 1,
-          },
-        },
-        arg.clearStack
-      );
-    },
-    [dangerousSkipSigning, fetchFrame, frameContext, signerState]
-  );
-
-  const onComposerActionButtonPress: ComposerActionButtonPressFunction =
-    useCallback(
-      async function onActionButtonPress(arg) {
-        if (!signerState.hasSigner && !dangerousSkipSigning) {
-          await signerState.onSignerlessFramePress();
-          // don't continue, let the app handle
-          return;
-        }
-
-        return fetchFrame(
-          {
-            method: "COMPOSER_ACTION",
-            action: arg.castAction,
-            isDangerousSkipSigning: dangerousSkipSigning ?? false,
-            composerActionState: arg.composerActionState,
-            signerStateActionContext: {
-              signer: signerState.signer ?? null,
-              frameContext,
-              url: arg.castAction.url,
-              target: arg.castAction.url,
-              buttonIndex: 1,
-            },
-          },
-          arg.clearStack
-        );
-      },
-      [dangerousSkipSigning, fetchFrame, frameContext, signerState]
-    );
+  const { stack } = frameState;
+  const { signerState, specification } =
+    frameState.type === "initialized"
+      ? frameState
+      : { signerState: undefined, specification: undefined };
 
   return useMemo(() => {
     return {
+      signerState,
+      specification,
       inputText,
       setInputText,
-      clearFrameStack,
-      dispatchFrameStack: dispatch,
+      clearFrameStack: clearFrameState,
+      dispatchFrameStack: dispatchFrameState,
+      reset: resetFrameState,
       onButtonPress,
       fetchFrame,
       homeframeUrl,
-      framesStack,
-      currentFrameStackItem: framesStack[0],
-      onCastActionButtonPress,
-      onComposerActionButtonPress,
+      framesStack: stack,
+      currentFrameStackItem: stack[0],
     };
   }, [
+    signerState,
+    specification,
     inputText,
-    clearFrameStack,
-    dispatch,
+    clearFrameState,
+    dispatchFrameState,
     onButtonPress,
+    resetFrameState,
     fetchFrame,
     homeframeUrl,
-    framesStack,
-    onCastActionButtonPress,
-    onComposerActionButtonPress,
+    stack,
   ]);
 }

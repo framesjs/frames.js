@@ -1,12 +1,13 @@
 import type { Frame, FrameButton } from "frames.js";
 import type { createElement, ReactElement } from "react";
 import type { FrameState } from "../types";
+import type { UseFrameReturnValue } from "../unstable-types";
 
 /**
  * Allows to override styling props on all component of the Frame UI
  */
 export type FrameUIComponentStylingProps<
-  TStylingProps extends Record<string, unknown>
+  TStylingProps extends Record<string, unknown>,
 > = {
   Button: TStylingProps;
   ButtonsContainer: TStylingProps;
@@ -30,12 +31,16 @@ export type PartialFrame = Omit<Partial<Frame>, RequiredFrameProperties> &
   Required<Pick<Frame, RequiredFrameProperties>>;
 
 export type FrameUIState =
-  | { status: "loading"; id: number; frameState: FrameState }
+  | {
+      status: "loading";
+      id: number;
+      frameState: FrameState | UseFrameReturnValue;
+    }
   | {
       id: number;
       status: "partial";
       frame: PartialFrame;
-      frameState: FrameState;
+      frameState: FrameState | UseFrameReturnValue;
       debugImage?: string;
       isImageLoading: boolean;
     }
@@ -43,7 +48,7 @@ export type FrameUIState =
       id: number;
       status: "complete";
       frame: Frame;
-      frameState: FrameState;
+      frameState: FrameState | UseFrameReturnValue;
       debugImage?: string;
       isImageLoading: boolean;
     };

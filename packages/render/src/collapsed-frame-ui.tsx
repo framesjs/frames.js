@@ -2,6 +2,7 @@ import type { ImgHTMLAttributes } from "react";
 import React, { useState } from "react";
 import type { Frame } from "frames.js";
 import type { FrameTheme, FrameState } from "./types";
+import type { UseFrameReturnValue } from "./unstable-types";
 
 const defaultTheme: Required<FrameTheme> = {
   buttonBg: "#fff",
@@ -20,7 +21,7 @@ const getThemeWithDefaults = (theme: FrameTheme): FrameTheme => {
 };
 
 export type CollapsedFrameUIProps = {
-  frameState: FrameState<any, any>;
+  frameState: FrameState<any, any> | UseFrameReturnValue;
   theme?: FrameTheme;
   FrameImage?: React.FC<ImgHTMLAttributes<HTMLImageElement> & { src: string }>;
   allowPartialFrame?: boolean;
@@ -138,7 +139,7 @@ export function CollapsedFrameUI({
               cursor: isLoading ? undefined : "pointer",
             }}
           >
-            {frame.buttons.length === 1 && frame.buttons[0].label.length < 12
+            {!!frame.buttons[0] && frame.buttons[0].label.length < 12
               ? frame.buttons[0].label
               : "View"}
           </button>

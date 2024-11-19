@@ -6,7 +6,8 @@ import {
   useRef,
   useState,
 } from "react";
-import type { FrameStackDone, FrameState } from "../types";
+import type { FrameState } from "../types";
+import type { UseFrameReturnValue } from "../unstable-types";
 import type {
   FrameMessage,
   FrameUIComponents as BaseFrameUIComponents,
@@ -27,7 +28,9 @@ export type FrameUITheme<TStylingProps extends Record<string, unknown>> =
   Partial<FrameUIComponentStylingProps<TStylingProps>>;
 
 export type BaseFrameUIProps<TStylingProps extends Record<string, unknown>> = {
-  frameState: FrameState<any, any>;
+  frameState:
+    | FrameState<any, any>
+    | UseFrameReturnValue<any, any, any, any, any>;
   /**
    * Renders also frames that contain only image and at least one button
    *
@@ -123,9 +126,12 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
   }
 
   let frameUiState: FrameUIState;
-  const previousFrame = (
-    frameState.framesStack[frameState.framesStack.length - 1] as FrameStackDone
-  )?.frameResult?.frame;
+  const previousFrameStackItem =
+    frameState.framesStack[frameState.framesStack.length - 1];
+  const previousFrame =
+    previousFrameStackItem?.status === "done"
+      ? previousFrameStackItem.frameResult.frame
+      : null;
 
   switch (currentFrameStackItem.status) {
     case "requestError": {
@@ -137,7 +143,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
           status: "complete",
           frame: currentFrameStackItem.request.sourceFrame,
           isImageLoading,
-          id: currentFrameStackItem.timestamp.getTime(),
+          id: currentFrameStackItem.id,
           frameState,
         };
       } else {
@@ -169,7 +175,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
         status: "complete",
         frame: currentFrameStackItem.request.sourceFrame,
         isImageLoading,
-        id: currentFrameStackItem.timestamp.getTime(),
+        id: currentFrameStackItem.id,
         frameState,
       };
 
@@ -178,7 +184,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
       if (!currentFrameStackItem.request.sourceFrame) {
         frameUiState = {
           status: "loading",
-          id: currentFrameStackItem.timestamp.getTime(),
+          id: currentFrameStackItem.id,
           frameState,
         };
       } else {
@@ -186,7 +192,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
           status: "complete",
           frame: currentFrameStackItem.request.sourceFrame,
           isImageLoading,
-          id: currentFrameStackItem.timestamp.getTime(),
+          id: currentFrameStackItem.id,
           frameState,
         };
       }
@@ -202,7 +208,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
             ? currentFrameStackItem.frameResult.framesDebugInfo?.image
             : undefined,
           isImageLoading,
-          id: currentFrameStackItem.timestamp.getTime(),
+          id: currentFrameStackItem.id,
           frameState,
         };
       } else if (
@@ -216,7 +222,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
             ? currentFrameStackItem.frameResult.framesDebugInfo?.image
             : undefined,
           isImageLoading,
-          id: currentFrameStackItem.timestamp.getTime(),
+          id: currentFrameStackItem.id,
           frameState,
         };
       } else {
@@ -231,7 +237,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
     case "pending": {
       frameUiState = {
         status: "loading",
-        id: currentFrameStackItem.timestamp.getTime(),
+        id: currentFrameStackItem.id,
         frameState,
       };
       break;
