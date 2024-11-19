@@ -144,7 +144,7 @@ export const ComposerFormActionDialog = ({
         hash,
       };
     },
-    onPostResponseToTarget(message, form) {
+    onMessageRespond(message, form) {
       if (iframeRef.current && iframeRef.current.contentWindow) {
         iframeRef.current.contentWindow.postMessage(
           message,
