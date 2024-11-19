@@ -15,6 +15,11 @@ import type { UseFrameOptions, UseFrameReturnValue } from "./unstable-types";
 import { useFrameState } from "./unstable-use-frame-state";
 import { useFetchFrame } from "./unstable-use-fetch-frame";
 import { useFreshRef } from "./hooks/use-fresh-ref";
+import { tryCallAsync } from "./helpers";
+
+function onErrorFallback(e: Error): void {
+  console.error("@frames.js/render", e);
+}
 
 function onMintFallback({ target }: OnMintArgs): void {
   console.log("Please provide your own onMint function to useFrame() hook.");
@@ -28,7 +33,7 @@ function onMintFallback({ target }: OnMintArgs): void {
   }
 }
 
-function onConnectWalletFallback(): never {
+function resolveAddressFallback(): never {
   throw new Error(
     "Please implement this function in order to use transactions"
   );
@@ -131,6 +136,13 @@ function validateLinkButtonTarget(target: string): boolean {
   return true;
 }
 
+function defaultFetchFunction(
+  input: RequestInfo | URL,
+  init?: RequestInit
+): Promise<Response> {
+  return fetch(input, init);
+}
+
 export type {
   UseFrameReturnValue as UnstableUseFrameReturnValue,
   UseFrameOptions as UnstableUseFrameOptions,
@@ -149,9 +161,8 @@ export function useFrame_unstable<
   onMint = onMintFallback,
   onTransaction = onTransactionFallback,
   transactionDataSuffix,
-  onConnectWallet = onConnectWalletFallback,
   onSignature = onSignatureFallback,
-  connectedAddress,
+  resolveAddress = resolveAddressFallback,
   frame,
   /** Ex: /frames */
   frameActionProxy,
@@ -159,10 +170,10 @@ export function useFrame_unstable<
   frameGetProxy,
   extraButtonRequestPayload,
   resolveSigner: resolveSpecification,
-  onError,
+  onError = onErrorFallback,
   onLinkButtonClick = handleLinkButtonClickFallback,
   onRedirect = handleRedirectFallback,
-  fetchFn = (...args) => fetch(...args),
+  fetchFn = defaultFetchFunction,
   onTransactionDataError,
   onTransactionDataStart,
   onTransactionDataSuccess,
@@ -246,7 +257,7 @@ export function useFrame_unstable<
           true
         )
         .catch((e) => {
-          console.error(e);
+          onErrorRef.current(e instanceof Error ? e : new Error(String(e)));
         });
     } else {
       resetFrameState({
@@ -254,7 +265,14 @@ export function useFrame_unstable<
         parseResult: frame,
       });
     }
-  }, [frame, homeframeUrl, clearFrameState, fetchFrameRef, resetFrameState]);
+  }, [
+    frame,
+    homeframeUrl,
+    clearFrameState,
+    fetchFrameRef,
+    resetFrameState,
+    onErrorRef,
+  ]);
 
   const onPostButton = useCallback(
     async function onPostButton({
@@ -281,8 +299,7 @@ export function useFrame_unstable<
           "Cannot perform post/post_redirect without a frame"
         );
 
-        console.error(`@frames.js/render: ${error.message}`);
-        onErrorRef.current?.(error);
+        onErrorRef.current(error);
 
         return;
       }
@@ -314,8 +331,7 @@ export function useFrame_unstable<
     [fetchFrameRef, frameStateRef, onErrorRef]
   );
 
-  const onConnectWalletRef = useFreshRef(onConnectWallet);
-  const connectedAddressRef = useFreshRef(connectedAddress);
+  const resolveAddressRef = useFreshRef(resolveAddress);
 
   const onTransactionButton = useCallback(
     async function onTransactionButton({
@@ -334,8 +350,7 @@ export function useFrame_unstable<
       if (currentState.type === "not-initialized") {
         const error = new Error("Cannot perform transaction without a frame");
 
-        console.error(`@frames.js/render: ${error.message}`);
-        onErrorRef.current?.(error);
+        onErrorRef.current(error);
 
         return;
       }
@@ -346,25 +361,28 @@ export function useFrame_unstable<
         return;
       }
 
-      if (!connectedAddressRef.current) {
-        try {
-          onConnectWalletRef.current();
-        } catch (e) {
-          onErrorRef.current?.(e instanceof Error ? e : new Error(String(e)));
-          console.error(`@frames.js/render: ${String(e)}`);
-        }
+      const addressOrError = await tryCallAsync(() =>
+        resolveAddressRef.current()
+      );
 
+      if (addressOrError instanceof Error) {
+        onErrorRef.current(addressOrError);
+        return;
+      }
+
+      if (!addressOrError) {
+        onErrorRef.current(
+          new Error(
+            "Wallet address missing, please check resolveAddress() function passed to useFrame_unstable() hook."
+          )
+        );
         return;
       }
 
       // transaction request always requires address
       const frameContext = {
         ...currentState.frameContext,
-        address:
-          "address" in currentState.frameContext &&
-          typeof currentState.frameContext.address === "string"
-            ? currentState.frameContext.address
-            : connectedAddressRef.current,
+        address: addressOrError,
       };
 
       await fetchFrameRef.current({
@@ -376,7 +394,7 @@ export function useFrame_unstable<
           inputText: postInputText,
           signer: currentState.signerState.signer,
           frameContext,
-          address: connectedAddressRef.current,
+          address: addressOrError,
           url: currentState.homeframeUrl,
           target: frameButton.target,
           frameButton,
@@ -386,13 +404,7 @@ export function useFrame_unstable<
         sourceFrame: currentFrame,
       });
     },
-    [
-      frameStateRef,
-      connectedAddressRef,
-      fetchFrameRef,
-      onErrorRef,
-      onConnectWalletRef,
-    ]
+    [frameStateRef, fetchFrameRef, onErrorRef, resolveAddressRef]
   );
 
   const onButtonPress = useCallback(
@@ -408,7 +420,7 @@ export function useFrame_unstable<
             validateLinkButtonTarget(frameButton.target);
           } catch (error) {
             if (error instanceof Error) {
-              onErrorRef.current?.(error);
+              onErrorRef.current(error);
             }
             return;
           }
@@ -446,7 +458,7 @@ export function useFrame_unstable<
               homeframeUrl;
 
             if (!target) {
-              onErrorRef.current?.(new Error(`Missing target`));
+              onErrorRef.current(new Error(`Missing target`));
               return;
             }
 
@@ -454,7 +466,7 @@ export function useFrame_unstable<
               validateLinkButtonTarget(target);
             } catch (error) {
               if (error instanceof Error) {
-                onErrorRef.current?.(error);
+                onErrorRef.current(error);
               }
               return;
             }
@@ -479,11 +491,9 @@ export function useFrame_unstable<
             });
             setInputText("");
           } catch (err) {
-            if (err instanceof Error) {
-              onErrorRef.current?.(err);
-            }
-
-            console.error(err);
+            onErrorRef.current(
+              err instanceof Error ? err : new Error(String(err))
+            );
           }
           break;
         }

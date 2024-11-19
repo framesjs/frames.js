@@ -23,8 +23,9 @@ import type {
 } from "./mini-app-messages";
 import { miniAppMessageSchema } from "./mini-app-messages";
 import type { FarcasterSigner } from "./identity/farcaster";
+import type { ResolveAddressFunction } from "./unstable-types";
 
-export type { MiniAppMessage, MiniAppResponse };
+export type { MiniAppMessage, MiniAppResponse, ResolveAddressFunction };
 
 type FetchComposerActionFunctionArg = {
   actionState: ComposerActionState;
@@ -67,8 +68,6 @@ export type OnSignatureFunction = (arg: {
 export type OnCreateCastFunction = (arg: {
   cast: ComposerActionState;
 }) => Promise<void>;
-
-export type ResolveAddressFunction = () => Promise<`0x${string}` | null>;
 
 export type OnMessageRespondFunction = (
   response: MiniAppResponse,

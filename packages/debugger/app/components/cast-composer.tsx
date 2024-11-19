@@ -137,7 +137,9 @@ function CastEmbedPreview({ onRemove, url }: CastEmbedPreviewProps) {
   const farcasterIdentity = useFarcasterIdentity();
   const frame = useFrame_unstable({
     frameStateHook: useDebuggerFrameState,
-    connectedAddress: account.address,
+    async resolveAddress() {
+      return account.address ?? null;
+    },
     homeframeUrl: url,
     frameActionProxy: "/frames",
     frameGetProxy: "/frames",
