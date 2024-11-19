@@ -21,7 +21,6 @@ import type {
   FrameGETRequest,
   FramePOSTRequest,
   FrameRequest,
-  OnConnectWalletFunc,
   OnMintArgs,
   OnSignatureFunc,
   OnTransactionFunc,
@@ -48,6 +47,8 @@ export type ResolveSignerFunctionArg = {
 export type ResolveSignerFunction = (
   arg: ResolveSignerFunctionArg
 ) => ResolvedSigner;
+
+export type ResolveAddressFunction = () => Promise<`0x${string}` | null>;
 
 export type UseFrameOptions<
   TExtraDataPending = unknown,
@@ -103,9 +104,13 @@ export type UseFrameOptions<
    */
   frame?: ParseFramesWithReportsResult | null;
   /**
-   * connected wallet address of the user, send to the frame for transaction requests
+   * Called before onTransaction/onSignature is invoked to obtain an address to use.
+   *
+   * If the function returns null onTransaction/onSignature will not be called.
+   *
+   * Sent to the frame on transaction requests.
    */
-  connectedAddress: `0x${string}` | undefined;
+  resolveAddress: ResolveAddressFunction;
   /** a function to handle mint buttons */
   onMint?: (t: OnMintArgs) => void;
   /** a function to handle transaction buttons that returned transaction data from the target, returns the transaction hash or null */
@@ -114,10 +119,6 @@ export type UseFrameOptions<
   transactionDataSuffix?: `0x${string}`;
   /** A function to handle transaction buttons that returned signature data from the target, returns signature hash or null */
   onSignature?: OnSignatureFunc;
-  /**
-   * Called when user presses transaction button but there is no wallet connected.
-   */
-  onConnectWallet?: OnConnectWalletFunc;
   /**
    * Extra data appended to the frame action payload
    */
