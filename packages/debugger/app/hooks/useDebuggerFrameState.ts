@@ -2,8 +2,8 @@ import type {
   FrameState,
   FrameStateAPI,
   UseFrameStateOptions,
-} from "./unstable-types";
-import { useFrameState } from "./unstable-use-frame-state";
+} from "@frames.js/render/unstable-types";
+import { useFrameState } from "@frames.js/render/unstable-use-frame-state";
 
 function computeDurationInSeconds(start: Date, end: Date): number {
   return Number(((end.getTime() - start.getTime()) / 1000).toFixed(2));
