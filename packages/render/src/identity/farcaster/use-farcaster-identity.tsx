@@ -134,7 +134,14 @@ type UseFarcasterIdentityOptions = {
    * @defaultValue 'farcasterIdentity'
    */
   storageKey?: string;
+  /**
+   * Function used to generate a unique user id for signer._id property value
+   */
   generateUserId?: () => string | number;
+  /**
+   * Custom fetch function used to do requests
+   */
+  fetchFn?: typeof fetch;
   /**
    * Used to detect if the current context is visible, this affects the polling of the signer approval status.
    */
@@ -157,6 +164,8 @@ const defaultGenerateUserId = (): number => {
   return Date.now();
 };
 
+const defaultFetchFn: typeof fetch = (...args) => fetch(...args);
+
 export function useFarcasterIdentity({
   onMissingIdentity,
   enableIdentityPolling = true,
@@ -169,6 +178,7 @@ export function useFarcasterIdentity({
   onLogInStart,
   onLogOut,
   generateUserId = defaultGenerateUserId,
+  fetchFn = defaultFetchFn,
 }: UseFarcasterIdentityOptions): FarcasterSignerInstance {
   const storageRef = useRef(storage);
   const identityPoller = useRef(new IdentityPoller()).current;
@@ -194,13 +204,14 @@ export function useFarcasterIdentity({
   const onLogOutRef = useFreshRef(onLogOut);
   const generateUserIdRef = useFreshRef(generateUserId);
   const onMissingIdentityRef = useFreshRef(onMissingIdentity);
+  const fetchFnRef = useFreshRef(fetchFn);
 
   const createFarcasterSigner =
     useCallback(async (): Promise<FarcasterCreateSignerResult> => {
       try {
         const keypair = await createKeypairEDDSA();
         const keypairString = convertKeypairToHex(keypair);
-        const authorizationResponse = await fetch(
+        const authorizationResponse = await fetchFnRef.current(
           // real signer or local one are handled by local route so we don't need to expose anything to client side bundle
           signerUrl,
           {
@@ -231,18 +242,21 @@ export function useFarcasterIdentity({
           const {
             result: { signedKeyRequest },
           } = (await (
-            await fetch(`https://api.warpcast.com/v2/signed-key-requests`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                key: keypairString.publicKey,
-                signature,
-                requestFid,
-                deadline,
-              }),
-            })
+            await fetchFnRef.current(
+              "https://api.warpcast.com/v2/signed-key-requests",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  key: keypairString.publicKey,
+                  signature,
+                  requestFid,
+                  deadline,
+                }),
+              }
+            )
           ).json()) as {
             result: {
               signedKeyRequest: { token: string; deeplinkUrl: string };
@@ -297,7 +311,7 @@ export function useFarcasterIdentity({
         console.error("@frames.js/render: API Call failed", error);
         throw error;
       }
-    }, [generateUserIdRef, onLogInStartRef, setState, signerUrl]);
+    }, [fetchFnRef, generateUserIdRef, onLogInStartRef, setState, signerUrl]);
 
   const impersonateUser = useCallback(
     async (fid: number) => {

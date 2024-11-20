@@ -195,7 +195,14 @@ type UseFarcasterMultiIdentityOptions = {
   onLogOut?: (identity: FarcasterSigner) => void;
   onIdentityRemove?: (identity: FarcasterSigner) => void;
   onIdentitySelect?: (identity: FarcasterSigner) => void;
+  /**
+   * Function used to generate a unique user id for signer._id property value
+   */
   generateUserId?: () => string | number;
+  /**
+   * Custom fetch function used to do requests
+   */
+  fetchFn?: typeof fetch;
 };
 
 export type FarcasterMultiSignerInstance =
@@ -210,6 +217,7 @@ export type FarcasterMultiSignerInstance =
 
 const defaultStorage = new WebStorage();
 const defaultGenerateUserId = (): number => Date.now();
+const defaultFetchFn: typeof fetch = (...args) => fetch(...args);
 
 type SignedKeyRequestSponsorship = {
   sponsorFid: number;
@@ -229,6 +237,7 @@ export function useFarcasterMultiIdentity({
   onIdentityRemove,
   onIdentitySelect,
   generateUserId = defaultGenerateUserId,
+  fetchFn = defaultFetchFn,
 }: UseFarcasterMultiIdentityOptions): FarcasterMultiSignerInstance {
   const storageRef = useRef(storage);
   const identityPoller = useRef(new IdentityPoller()).current;
@@ -268,13 +277,14 @@ export function useFarcasterMultiIdentity({
   const onIdentitySelectRef = useFreshRef(onIdentitySelect);
   const generateUserIdRef = useFreshRef(generateUserId);
   const onMissingIdentityRef = useFreshRef(onMissingIdentity);
+  const fetchFnRef = useFreshRef(fetchFn);
 
   const createFarcasterSigner =
     useCallback(async (): Promise<FarcasterCreateSignerResult> => {
       try {
         const keypair = await createKeypairEDDSA();
         const keypairString = convertKeypairToHex(keypair);
-        const authorizationResponse = await fetch(
+        const authorizationResponse = await fetchFnRef.current(
           // real signer or local one are handled by local route so we don't need to expose anything to client side bundle
           signerUrl,
           {
@@ -312,19 +322,22 @@ export function useFarcasterMultiIdentity({
           const {
             result: { signedKeyRequest },
           } = (await (
-            await fetch(`https://api.warpcast.com/v2/signed-key-requests`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                key: keypairString.publicKey,
-                signature,
-                requestFid,
-                deadline,
-                sponsorship,
-              }),
-            })
+            await fetchFnRef.current(
+              "https://api.warpcast.com/v2/signed-key-requests",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  key: keypairString.publicKey,
+                  signature,
+                  requestFid,
+                  deadline,
+                  sponsorship,
+                }),
+              }
+            )
           ).json()) as {
             result: {
               signedKeyRequest: {
@@ -383,7 +396,7 @@ export function useFarcasterMultiIdentity({
         console.error("@frames.js/render: API Call failed", error);
         throw error;
       }
-    }, [generateUserIdRef, onLogInStartRef, setState, signerUrl]);
+    }, [fetchFnRef, generateUserIdRef, onLogInStartRef, setState, signerUrl]);
 
   const impersonateUser = useCallback(
     async (fid: number) => {
