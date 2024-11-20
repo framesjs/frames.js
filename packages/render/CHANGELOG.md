@@ -1,5 +1,11 @@
 # @frames.js/render
 
+## 0.4.2
+
+### Patch Changes
+
+- 52cb0c8: feat(@frames.js/render): allow to override fetch function in farcaster identity hooks
+
 ## 0.4.1
 
 ### Patch Changes
