@@ -41,6 +41,18 @@ describe("generateTargetURL", () => {
       "http://test.com/test?test=test"
     );
   });
+
+  it("generates a correct URL if target is an URL object with every compulsory property", () => {
+    // If the user passing in a URL object with all props required to 
+    // construct a full URL, that means they want to go straight to 
+    // there without modification.
+    const baseUrl = new URL("http://test.com");
+    const target = new URL("http://another.com/test");
+
+    expect(generateTargetURL({ baseUrl, target }).toString()).toBe(
+      target.toString()
+    );
+  });
 });
 
 describe("resolveBaseUrl", () => {

@@ -47,6 +47,14 @@ function isValidButtonAction(action: unknown): action is ButtonActions {
   return typeof action === "string" && action in buttonActionToCode;
 }
 
+function isUrlObjectComplete(urlObject: UrlObject): boolean {
+  return (
+    "host" in urlObject &&
+    "protocol" in urlObject &&
+    "pathname" in urlObject
+  );
+}
+
 export function generateTargetURL({
   baseUrl,
   target,
@@ -59,6 +67,9 @@ export function generateTargetURL({
   }
 
   if (typeof target === "object") {
+    if (isUrlObjectComplete(target)) {
+      return new URL(formatUrl(target));
+    }
     return new URL(
       formatUrl({
         host: baseUrl.host,
