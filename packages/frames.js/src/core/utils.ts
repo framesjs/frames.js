@@ -49,9 +49,9 @@ function isValidButtonAction(action: unknown): action is ButtonActions {
 
 function isUrlObjectComplete(urlObject: UrlObject): boolean {
   return (
-    "host" in urlObject &&
-    "protocol" in urlObject &&
-    "pathname" in urlObject
+    !!urlObject.host &&
+    !!urlObject.protocol &&
+    !!urlObject.pathname
   );
 }
 
