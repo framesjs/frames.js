@@ -7,6 +7,7 @@ import type {
 import { parseFarcasterFrame } from "./frame-parsers/farcaster";
 import { parseOpenFramesFrame } from "./frame-parsers/open-frames";
 import { FRAMESJS_DEBUG_INFO_IMAGE_KEY } from "./constants";
+import { parseFarcasterFrameV2 } from "./frame-parsers/farcasterV2";
 
 type ParseFramesWithReportsOptions = {
   html: string;
@@ -33,6 +34,7 @@ export function parseFramesWithReports({
   fromRequestMethod = "GET",
 }: ParseFramesWithReportsOptions): ParseFramesWithReportsResult {
   const farcasterReporter = createReporter("farcaster");
+  const farcasterV2Reporter = createReporter("farcaster_v2");
   const openFramesReporter = createReporter("openframes");
   const document = loadDocument(html);
 
@@ -40,6 +42,10 @@ export function parseFramesWithReports({
     reporter: farcasterReporter,
     fallbackPostUrl,
     fromRequestMethod,
+  });
+
+  const farcasterV2 = parseFarcasterFrameV2(document, {
+    reporter: farcasterV2Reporter,
   });
 
   const framesVersion = document(
@@ -71,6 +77,10 @@ export function parseFramesWithReports({
   return {
     farcaster: {
       ...farcaster,
+      ...frameworkDetails,
+    },
+    farcaster_v2: {
+      ...farcasterV2,
       ...frameworkDetails,
     },
     openframes: {

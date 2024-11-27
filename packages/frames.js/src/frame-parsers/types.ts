@@ -1,6 +1,10 @@
-import type { Frame } from "../types";
+import type { PartialDeep } from "type-fest";
+import type { Frame, FrameV2 } from "../types";
 
-export type SupportedParsingSpecification = "farcaster" | "openframes";
+export type SupportedParsingSpecification =
+  | "farcaster"
+  | "farcaster_v2"
+  | "openframes";
 
 export interface Reporter {
   error: (key: string, message: unknown, source?: ParsingReportSource) => void;
@@ -33,6 +37,8 @@ export type ParsedFrame = {
   title?: string;
 };
 
+export type ParsedFrameV2 = PartialDeep<FrameV2>;
+
 export type ParsingReportSource = SupportedParsingSpecification;
 
 export type ParsingReportLevel = "error" | "warning";
@@ -51,7 +57,7 @@ export type ParseResult =
        * Reports contain only warnings that should not have any impact on the frame's functionality.
        */
       reports: Record<string, ParsingReport[]>;
-      specification: SupportedParsingSpecification;
+      specification: "farcaster" | "openframes";
     }
   | {
       status: "failure";
@@ -60,7 +66,27 @@ export type ParseResult =
        * Reports contain warnings and errors that should be addressed before the frame can be used.
        */
       reports: Record<string, ParsingReport[]>;
-      specification: SupportedParsingSpecification;
+      specification: "farcaster" | "openframes";
+    };
+
+export type ParseResultFramesV2 =
+  | {
+      status: "success";
+      frame: FrameV2;
+      /**
+       * Reports contain only warnings that should not have any impact on the frame's functionality.
+       */
+      reports: Record<string, ParsingReport[]>;
+      specification: "farcaster_v2";
+    }
+  | {
+      status: "failure";
+      frame: PartialDeep<FrameV2>;
+      /**
+       * Reports contain warnings and errors that should be addressed before the frame can be used.
+       */
+      reports: Record<string, ParsingReport[]>;
+      specification: "farcaster_v2";
     };
 
 export type ParsedFrameworkDetails = {
@@ -73,9 +99,14 @@ export type ParsedFrameworkDetails = {
   };
 };
 
-export type ParseResultWithFrameworkDetails = ParseResult &
+export type ParseResultWithFrameworkDetails = (
+  | ParseResult
+  | ParseResultFramesV2
+) &
   ParsedFrameworkDetails;
 
 export type ParseFramesWithReportsResult = {
-  [K in SupportedParsingSpecification]: ParseResultWithFrameworkDetails;
+  farcaster: ParseResultWithFrameworkDetails;
+  farcaster_v2: ParseResultFramesV2;
+  openframes: ParseResultWithFrameworkDetails;
 };

@@ -34,7 +34,47 @@ export type Frame = {
   title?: string;
 };
 
+export type FrameV2 = {
+  /**
+   * A URL to image with 1.91:1 aspect ratio smaller than 10MB.
+   */
+  imageUrl: string;
+  button: {
+    title: string;
+    action: {
+      /**
+       * Must be 'launch'
+       */
+      type: "launch";
+      /**
+       * App name
+       */
+      name: string;
+      /**
+       * URL to App icon, must be 200x200px, less than 1MB
+       */
+      icon: string;
+      /**
+       * App launch URL
+       */
+      url: string;
+      /**
+       * URL to splash image, must 200x200px, less than 1MB
+       */
+      splashImage: string;
+      /**
+       * Hex color code for splash background
+       */
+      splashBackgroundColor: string;
+    };
+  };
+};
+
 export type ActionButtonType = "post" | "post_redirect" | "link";
+
+type FrameJSOptionalStringKeys =
+  | "frames.js:version"
+  | "frames.js:debug-info:image";
 
 type FrameOptionalStringKeys =
   | "fc:frame:image:aspect_ratio"
@@ -42,8 +82,7 @@ type FrameOptionalStringKeys =
   | "fc:frame:state"
   | "fc:frame:post_url"
   | keyof OpenFramesProperties
-  | "frames.js:version"
-  | "frames.js:debug-info:image";
+  | FrameJSOptionalStringKeys;
 type FrameOptionalActionButtonTypeKeys = `fc:frame:button:${
   | 1
   | 2
@@ -62,8 +101,8 @@ type MapFrameOptionalKeyToValueType<K extends FrameKeys> =
   K extends FrameOptionalStringKeys
     ? string | undefined
     : K extends FrameOptionalActionButtonTypeKeys
-    ? ActionButtonType | undefined
-    : string | undefined;
+      ? ActionButtonType | undefined
+      : string | undefined;
 
 type FrameRequiredProperties = {
   "fc:frame": FrameVersion;
@@ -96,6 +135,12 @@ export type FrameFlattened = FrameRequiredProperties & {
     | FrameOptionalStringKeys
     | FrameOptionalActionButtonTypeKeys
     | FrameOptionalButtonStringKeys]?: MapFrameOptionalKeyToValueType<K>;
+};
+
+export type FrameV2Flattened = {
+  "fc:frame": string;
+} & {
+  [K in FrameJSOptionalStringKeys]?: MapFrameOptionalKeyToValueType<K>;
 };
 
 export interface FrameButtonLink {
@@ -151,7 +196,7 @@ export type ActionIndex = 1 | 2 | 3 | 4;
 export type FrameButtonsType = FrameButton[];
 
 export type AddressReturnType<
-  Options extends { fallbackToCustodyAddress?: boolean } | undefined
+  Options extends { fallbackToCustodyAddress?: boolean } | undefined,
 > = Options extends { fallbackToCustodyAddress: true }
   ? `0x${string}`
   : `0x${string}` | null;
