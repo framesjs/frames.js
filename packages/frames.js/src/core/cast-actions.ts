@@ -46,6 +46,9 @@ export function composerAction(
   } satisfies ComposerActionResponse);
 }
 
+/**
+ * @see https://docs.farcaster.xyz/reference/actions/spec#frame-response-type
+ */
 export function castActionFrame(frameUrl: string): Response {
   return Response.json({
     type: "frame",
@@ -53,9 +56,14 @@ export function castActionFrame(frameUrl: string): Response {
   } satisfies CastActionFrameResponse);
 }
 
-export function castActionMessage(message: string): Response {
+/**
+ * @see https://docs.farcaster.xyz/reference/actions/spec#message-response-type
+ */
+export function castActionMessage(message: string, link?: string): Response {
   return Response.json({
+    type: "message",
     message,
+    link,
   } satisfies CastActionMessageResponse);
 }
 
