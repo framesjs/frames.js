@@ -2,7 +2,11 @@ import type {
   ParseFramesWithReportsResult,
   ParseResult,
 } from "frames.js/frame-parsers";
-import type { ComposerActionFormResponse } from "frames.js/types";
+import type {
+  CastActionFrameResponse,
+  CastActionMessageResponse,
+  ComposerActionFormResponse,
+} from "frames.js/types";
 import type { PartialFrame } from "./ui/types";
 
 export async function tryCallAsync<TResult>(
@@ -81,6 +85,32 @@ export function isComposerFormActionResponse(
     response !== null &&
     "type" in response &&
     response.type === "form"
+  );
+}
+
+export function isCastActionFrameResponse(
+  response: unknown
+): response is CastActionFrameResponse {
+  return (
+    typeof response === "object" &&
+    response !== null &&
+    "type" in response &&
+    response.type === "frame" &&
+    "frameUrl" in response &&
+    typeof response.frameUrl === "string"
+  );
+}
+
+export function isCastActionMessageResponse(
+  response: unknown
+): response is CastActionMessageResponse {
+  return (
+    typeof response === "object" &&
+    response !== null &&
+    "type" in response &&
+    response.type === "message" &&
+    "message" in response &&
+    typeof response.message === "string"
   );
 }
 

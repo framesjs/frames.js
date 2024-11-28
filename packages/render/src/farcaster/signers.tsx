@@ -1,5 +1,8 @@
 import type { FrameActionBodyPayload, SignerStateInstance } from "../types";
-import type { SignComposerActionFunc } from "../unstable-types";
+import type {
+  SignCastActionFunction,
+  SignComposerActionFunction,
+} from "../unstable-types";
 import type { FarcasterFrameContext } from "./types";
 
 export type FarcasterSignerState<TSignerType = FarcasterSigner | null> =
@@ -8,7 +11,8 @@ export type FarcasterSignerState<TSignerType = FarcasterSigner | null> =
     FrameActionBodyPayload,
     FarcasterFrameContext
   > & {
-    signComposerAction: SignComposerActionFunc;
+    signComposerAction: SignComposerActionFunction;
+    signCastAction: SignCastActionFunction;
   };
 
 export type FarcasterSignerPendingApproval = {

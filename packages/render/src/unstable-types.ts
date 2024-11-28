@@ -742,7 +742,44 @@ export type SignerComposerActionResult = {
 /**
  * Used to sign composer action
  */
-export type SignComposerActionFunc = (
+export type SignComposerActionFunction = (
   signerPrivateKey: string,
   actionContext: SignerStateComposerActionContext
 ) => Promise<SignerComposerActionResult>;
+
+export type SignerStateCastActionContext = {
+  fid: number;
+  /**
+   * The id of the cast from which the user initiated the action
+   */
+  castId: {
+    fid: number;
+    hash: `0x${string}`;
+  };
+  /**
+   * Cast action post url
+   */
+  postUrl: string;
+};
+
+export type SignerCastActionResult = {
+  untrustedData: {
+    fid: number;
+    url: string;
+    messageHash: `0x${string}`;
+    timestamp: number;
+    network: number;
+    buttonIndex: number;
+  };
+  trustedData: {
+    messageBytes: string;
+  };
+};
+
+/**
+ * Used to sign cast action
+ */
+export type SignCastActionFunction = (
+  signerPrivateKey: string,
+  actionContext: SignerStateCastActionContext
+) => Promise<SignerCastActionResult>;

@@ -3,8 +3,7 @@ import { type FramePostPayload, FramesClient } from "@xmtp/frames-client";
 import { Client, type Signer } from "@xmtp/xmtp-js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { zeroAddress } from "viem";
-import { useAccount, useConfig } from "wagmi";
-import { getAccount, signMessage } from "wagmi/actions";
+import { useAccount, useSignMessage } from "wagmi";
 import type { Storage } from "../types";
 import type {
   SignerStateActionContext,
@@ -12,6 +11,7 @@ import type {
   SignFrameActionFunction,
 } from "../../types";
 import { WebStorage } from "../storage";
+import { useFreshRef } from "../../hooks/use-fresh-ref";
 import type { XmtpFrameContext } from "./use-xmtp-context";
 
 export type XmtpSigner = {
@@ -51,9 +51,9 @@ export function useXmtpIdentity({
   const [isLoading, setIsLoading] = useState(false);
   const [xmtpSigner, setXmtpSigner] = useState<XmtpSigner | null>(null);
   const [xmtpClient, setXmtpClient] = useState<Client | null>(null);
-  const config = useConfig();
   const connect = useConnectModal();
   const { address } = useAccount();
+  const { signMessageAsync } = useSignMessage();
 
   const walletSigner: Signer | null = useMemo(
     () =>
@@ -63,7 +63,7 @@ export function useXmtpIdentity({
               return Promise.resolve(address);
             },
             signMessage(message) {
-              return signMessage(config, {
+              return signMessageAsync({
                 message: {
                   raw:
                     typeof message === "string"
@@ -74,7 +74,7 @@ export function useXmtpIdentity({
             },
           }
         : null,
-    [address, config]
+    [address, signMessageAsync]
   );
 
   useEffect(() => {
@@ -115,17 +115,27 @@ export function useXmtpIdentity({
     setXmtpSigner(null);
   }, [storageKey]);
 
+  const walletSignerRef = useFreshRef(walletSigner);
+  const xmtpSignerRef = useFreshRef(xmtpSigner);
+  const connectRef = useFreshRef(connect);
+  const xmtpClientRef = useFreshRef(xmtpClient);
+  const addressRef = useFreshRef(address);
+  const storageKeyRef = useFreshRef(storageKey);
+
   const onSignerlessFramePress = useCallback(async (): Promise<void> => {
     try {
+      const wallet = walletSignerRef.current;
+      const signer = xmtpSignerRef.current;
+
       setIsLoading(true);
 
-      if (!xmtpSigner) {
-        if (!walletSigner) {
-          connect.openConnectModal?.();
+      if (!signer) {
+        if (!wallet) {
+          connectRef.current.openConnectModal?.();
           return;
         }
 
-        const keys = await Client.getKeys(walletSigner, {
+        const keys = await Client.getKeys(wallet, {
           env: "dev",
           skipContactPublishing: true,
           persistConversations: false,
@@ -134,12 +144,15 @@ export function useXmtpIdentity({
           privateKeyOverride: keys,
         });
 
-        const walletAddress = getAccount(config).address || zeroAddress;
+        const walletAddress = addressRef.current || zeroAddress;
 
-        await storageRef.current.set<XmtpStoredSigner>(storageKey, () => ({
-          walletAddress,
-          keys: Buffer.from(keys).toString("hex"),
-        }));
+        await storageRef.current.set<XmtpStoredSigner>(
+          storageKeyRef.current,
+          () => ({
+            walletAddress,
+            keys: Buffer.from(keys).toString("hex"),
+          })
+        );
 
         setXmtpSigner({
           keys,
@@ -153,22 +166,20 @@ export function useXmtpIdentity({
     } finally {
       setIsLoading(false);
     }
-  }, [config, walletSigner, xmtpSigner, connect, storageKey]);
+  }, [walletSignerRef, xmtpSignerRef, addressRef, storageKeyRef, connectRef]);
 
   const signFrameAction: SignFrameActionFunction<
     SignerStateActionContext<XmtpSigner, XmtpFrameContext>,
     FramePostPayload
   > = useCallback(
     async (actionContext) => {
-      if (!xmtpClient) {
+      const client = xmtpClientRef.current;
+
+      if (!client) {
         throw new Error("No xmtp client");
       }
 
-      if (!address) {
-        throw new Error("No address");
-      }
-
-      const framesClient = new FramesClient(xmtpClient);
+      const framesClient = new FramesClient(client);
       const payload = await framesClient.signFrameAction({
         frameUrl: actionContext.url,
         inputText: actionContext.inputText,
@@ -205,16 +216,30 @@ export function useXmtpIdentity({
         searchParams,
       };
     },
-    [address, xmtpClient]
+    [xmtpClientRef]
   );
 
-  return useMemo(
-    () => ({
+  const isLoadingRef = useFreshRef(isLoading);
+
+  return useMemo(() => {
+    /**
+     * See the explanation in useFarcasterIdentity()
+     */
+    void xmtpSigner;
+    void isLoading;
+
+    return {
       specification: "openframes",
-      signer: xmtpSigner,
-      hasSigner: !!xmtpSigner?.keys,
+      get signer() {
+        return xmtpSignerRef.current;
+      },
+      get hasSigner() {
+        return !!xmtpSignerRef.current?.keys;
+      },
       signFrameAction,
-      isLoadingSigner: isLoading,
+      get isLoadingSigner() {
+        return isLoadingRef.current;
+      },
       onSignerlessFramePress,
       logout,
       withContext(frameContext) {
@@ -223,7 +248,14 @@ export function useXmtpIdentity({
           frameContext,
         };
       },
-    }),
-    [isLoading, logout, onSignerlessFramePress, signFrameAction, xmtpSigner]
-  );
+    };
+  }, [
+    isLoading,
+    isLoadingRef,
+    logout,
+    onSignerlessFramePress,
+    signFrameAction,
+    xmtpSigner,
+    xmtpSignerRef,
+  ]);
 }
