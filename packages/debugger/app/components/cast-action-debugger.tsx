@@ -3,12 +3,13 @@ import type { CastActionDefinitionResponse } from "../frames/route";
 import IconByName from "./octicons";
 import { useToast } from "@/components/ui/use-toast";
 import { ActionInfo } from "./action-info";
-import { defaultTheme, fallbackFrameContext } from "@frames.js/render";
+import { defaultTheme } from "@frames.js/render";
 import { useCastAction } from "@frames.js/render/use-cast-action";
 import { FrameDebugger } from "./frame-debugger";
 import { useFarcasterIdentity } from "../hooks/useFarcasterIdentity";
 import { type Dispatch, type SetStateAction, useState } from "react";
 import type { MockHubActionContext } from "../utils/mock-hub-utils";
+import { useFrameContext } from "../providers/FrameContextProvider";
 
 type CastActionDebuggerProps = {
   actionMetadataItem: CastActionDefinitionResponse;
@@ -28,6 +29,7 @@ export function CastActionDebugger({
   const { toast } = useToast();
   const farcasterIdentity = useFarcasterIdentity();
   const [postUrl, setPostUrl] = useState<string | null>(null);
+  const frameContext = useFrameContext();
   const castAction = useCastAction({
     ...(postUrl
       ? {
@@ -38,7 +40,7 @@ export function CastActionDebugger({
           enabled: false,
           postUrl: "",
         }),
-    castId: fallbackFrameContext.castId,
+    castId: frameContext.farcaster.castId,
     proxyUrl: "/frames",
     signer: farcasterIdentity,
     onInvalidResponse(response) {

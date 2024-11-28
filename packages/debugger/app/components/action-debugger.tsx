@@ -10,7 +10,6 @@ import type { CastActionDefinitionResponse } from "../frames/route";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ComposerActionDebugger } from "./composer-action-debugger";
 import { CastActionDebugger } from "./cast-action-debugger";
-import { useProtocolSelector } from "../providers/ProtocolSelectorProvider";
 
 type ActionDebuggerProps = {
   actionMetadataItem: CastActionDefinitionResponse;
@@ -40,7 +39,6 @@ export const ActionDebugger = React.forwardRef<
     },
     ref
   ) => {
-    const protocolSelector = useProtocolSelector();
     const [activeTab, setActiveTab] = useState<TabValues>(
       "type" in actionMetadataItem.action &&
         actionMetadataItem.action.type === "composer"

@@ -10,12 +10,7 @@ import {
 } from "react";
 import React from "react";
 import { useFrame_unstable as useFrame } from "@frames.js/render/unstable-use-frame";
-import {
-  attribution,
-  CollapsedFrameUI,
-  defaultTheme,
-  fallbackFrameContext,
-} from "@frames.js/render";
+import { attribution, CollapsedFrameUI, defaultTheme } from "@frames.js/render";
 import { FrameImageNext } from "@frames.js/render/next";
 import {
   BanIcon,
@@ -45,21 +40,11 @@ import { FrameDebuggerRequestCardContent } from "./frame-debugger-request-card-c
 import { useSharedFrameEventHandlers } from "../hooks/useSharedFrameEventHandlers";
 import { ProtocolConfiguration } from "./protocol-config-button";
 import { useFarcasterIdentity } from "../hooks/useFarcasterIdentity";
-import {
-  useXmtpFrameContext,
-  useXmtpIdentity,
-} from "@frames.js/render/identity/xmtp";
-import {
-  useLensFrameContext,
-  useLensIdentity,
-} from "@frames.js/render/identity/lens";
+import { useXmtpIdentity } from "@frames.js/render/identity/xmtp";
+import { useLensIdentity } from "@frames.js/render/identity/lens";
 import { useAnonymousIdentity } from "@frames.js/render/identity/anonymous";
-import { useFarcasterFrameContext } from "@frames.js/render/identity/farcaster";
-import { useAccount } from "wagmi";
-import { zeroAddress } from "viem";
 import type { ParseFramesWithReportsResult } from "frames.js/frame-parsers";
-
-const anonymousFrameContext = {};
+import { useFrameContext } from "../providers/FrameContextProvider";
 
 type FrameDebuggerProps = {
   url: string;
@@ -91,30 +76,11 @@ export const FrameDebugger = React.forwardRef<
     },
     ref
   ) => {
-    const account = useAccount();
     const farcasterSignerState = useFarcasterIdentity();
     const xmtpSignerState = useXmtpIdentity();
     const lensSignerState = useLensIdentity();
     const anonymousSignerState = useAnonymousIdentity();
-
-    const farcasterFrameContext = useFarcasterFrameContext({
-      fallbackContext: fallbackFrameContext,
-    });
-
-    const xmtpFrameContext = useXmtpFrameContext({
-      fallbackContext: {
-        conversationTopic: "test",
-        participantAccountAddresses: account.address
-          ? [account.address, zeroAddress]
-          : [zeroAddress],
-      },
-    });
-
-    const lensFrameContext = useLensFrameContext({
-      fallbackContext: {
-        pubId: "0x01-0x01",
-      },
-    });
+    const frameContext = useFrameContext();
 
     const sharedFrameEventHandlers = useSharedFrameEventHandlers({
       debuggerRef: null,
@@ -142,19 +108,15 @@ export const FrameDebugger = React.forwardRef<
             // it creates copies of the signer which is bad because if the signer is internally
             // updated, we see only old value although the signer is updated. This is true only for public properties
             // probably getters will be better in this regard?
-            return farcasterSignerState.withContext(
-              farcasterFrameContext.frameContext
-            );
+            return farcasterSignerState.withContext(frameContext.farcaster);
           case "farcaster_v2":
-            return farcasterSignerState.withContext(
-              farcasterFrameContext.frameContext
-            );
+            return farcasterSignerState.withContext(frameContext.farcaster);
           case "xmtp":
-            return xmtpSignerState.withContext(xmtpFrameContext.frameContext);
+            return xmtpSignerState.withContext(frameContext.xmtp);
           case "lens":
-            return lensSignerState.withContext(lensFrameContext.frameContext);
+            return lensSignerState.withContext(frameContext.lens);
           case "anonymous":
-            return anonymousSignerState.withContext(anonymousFrameContext);
+            return anonymousSignerState.withContext(frameContext.anonymous);
           default:
             throw new Error(`Unknown protocol`);
         }
