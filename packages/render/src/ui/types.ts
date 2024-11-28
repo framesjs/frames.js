@@ -298,7 +298,7 @@ export type FrameImageProps = FrameUIStateProps & {
   );
 
 export type FrameLaunchButton = {
-  action: "launch";
+  action: "launch_frame";
   label: string;
 };
 

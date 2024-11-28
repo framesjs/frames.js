@@ -94,7 +94,12 @@ export type BaseFrameUIProps<TStylingProps extends Record<string, unknown>> = {
 function defaultMessageHandler(): void {}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function -- this is noop
-function defaultOnAppLaunchButtonPress(): void {}
+function defaultOnAppLaunchButtonPress(): void {
+  // eslint-disable-next-line no-console -- provide at least some feedback to the user
+  console.info(
+    "@frames.js/render/ui/FrameUI.onAppLaunchButtonPress is not implemented"
+  );
+}
 
 function defaultErrorLogger(error: Error): void {
   // eslint-disable-next-line no-console -- provide at least some feedback to the user
@@ -327,7 +332,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
         {
           frameState: frameUiState,
           frameButton: {
-            action: "launch",
+            action: "launch_frame",
             label: frameUiState.frame.button.title,
           },
           index: 0,
