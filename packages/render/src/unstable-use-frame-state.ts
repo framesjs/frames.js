@@ -272,6 +272,7 @@ export function useFrameState<
       TExtraMesssage
     >(resolveSpecificationRef)
   );
+  const initialPendingExtraRef = useFreshRef(initialPendingExtra);
   const [state, dispatch] = useReducer(
     reducerRef.current,
     [initialParseResult, initialFrameUrl, initialPendingExtra] as const,
@@ -458,13 +459,13 @@ export function useFrameState<
             action: "RESET_INITIAL_FRAME",
             homeframeUrl: arg.homeframeUrl,
             parseResult: arg.parseResult,
-            extra: (initialPendingExtra ?? {}) as TExtraDone,
+            extra: (initialPendingExtraRef.current ?? {}) as TExtraDone,
           });
         }
       },
     };
   }, [
-    initialPendingExtra,
+    initialPendingExtraRef,
     resolveDoneExtraRef,
     resolveDoneRedirectExtraRef,
     resolveDoneWithErrorMessageExtraRef,
