@@ -407,6 +407,8 @@ export function useFrame_unstable<
     [frameStateRef, fetchFrameRef, onErrorRef, resolveAddressRef]
   );
 
+  const onLaunchFrameButtonPress = useCallback(() => {}, []);
+
   const onButtonPress = useCallback(
     async function onButtonPress(
       currentFrame: Frame,
@@ -532,6 +534,7 @@ export function useFrame_unstable<
       homeframeUrl,
       framesStack: stack,
       currentFrameStackItem: stack[0],
+      onLaunchFrameButtonPress,
     };
   }, [
     signerState,
@@ -544,5 +547,6 @@ export function useFrame_unstable<
     fetchFrame,
     homeframeUrl,
     stack,
+    onLaunchFrameButtonPress,
   ]);
 }

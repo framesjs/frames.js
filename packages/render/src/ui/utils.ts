@@ -6,11 +6,12 @@ import type {
   FrameStackRequestError,
 } from "../types";
 import type {
+  PartialFrameV2,
   FramesStackItem as UnstableFramesStackItem,
   FrameStackMessage as UnstableFrameStackMessage,
   FrameStackRequestError as UnstableFrameStackRequestError,
 } from "../unstable-types";
-import type { PartialFrame, PartialFrameV2 } from "./types";
+import type { PartialFrame } from "./types";
 
 type FrameResultFailure = Exclude<GetFrameResult, { status: "success" }>;
 

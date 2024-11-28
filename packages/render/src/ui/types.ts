@@ -1,8 +1,7 @@
 import type { Frame, FrameButton, FrameV2 } from "frames.js";
 import type { createElement, ReactElement } from "react";
-import type { ParsedFrameV2 } from "frames.js/frame-parsers";
 import type { FrameState } from "../types";
-import type { UseFrameReturnValue } from "../unstable-types";
+import type { PartialFrameV2, UseFrameReturnValue } from "../unstable-types";
 
 /**
  * Allows to override styling props on all component of the Frame UI
@@ -30,26 +29,6 @@ type RequiredFrameProperties = "image" | "buttons";
  */
 export type PartialFrame = Omit<Partial<Frame>, RequiredFrameProperties> &
   Required<Pick<Frame, RequiredFrameProperties>>;
-
-/**
- * If partial frame rendering is enabled this is the shape of the frame
- */
-export type PartialFrameV2 = Omit<ParsedFrameV2, "imageUrl" | "button"> & {
-  imageUrl: NonNullable<ParsedFrameV2["imageUrl"]>;
-  button: Omit<NonNullable<ParsedFrameV2["button"]>, "action" | "title"> & {
-    action: Omit<
-      NonNullable<NonNullable<ParsedFrameV2["button"]>["action"]>,
-      "url" | "title"
-    > & {
-      url: NonNullable<
-        NonNullable<NonNullable<ParsedFrameV2["button"]>["action"]>["url"]
-      >;
-    };
-    title: NonNullable<
-      NonNullable<NonNullable<ParsedFrameV2["button"]>["title"]>
-    >;
-  };
-};
 
 type FrameUIStateLoading = {
   status: "loading";

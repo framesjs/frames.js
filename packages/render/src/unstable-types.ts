@@ -1,12 +1,14 @@
 import type {
   FrameButtonLink,
   FrameButtonTx,
+  FrameV2,
   SupportedParsingSpecification,
   TransactionTargetResponse,
   TransactionTargetResponseSendTransaction,
   TransactionTargetResponseSignTypedDataV4,
 } from "frames.js";
 import type {
+  ParsedFrameV2,
   ParseFramesWithReportsResult,
   ParseResultWithFrameworkDetails,
 } from "frames.js/frame-parsers";
@@ -61,6 +63,40 @@ export type ResolveSignerFunction = (
 ) => ResolvedSigner;
 
 export type ResolveAddressFunction = () => Promise<`0x${string}` | null>;
+
+/**
+ * If partial frame rendering is enabled this is the shape of the frame
+ */
+export type PartialFrameV2 = Omit<ParsedFrameV2, "imageUrl" | "button"> & {
+  imageUrl: NonNullable<ParsedFrameV2["imageUrl"]>;
+  button: Omit<NonNullable<ParsedFrameV2["button"]>, "action" | "title"> & {
+    action: Omit<
+      NonNullable<NonNullable<ParsedFrameV2["button"]>["action"]>,
+      "url" | "title"
+    > & {
+      url: NonNullable<
+        NonNullable<NonNullable<ParsedFrameV2["button"]>["action"]>["url"]
+      >;
+    };
+    title: NonNullable<
+      NonNullable<NonNullable<ParsedFrameV2["button"]>["title"]>
+    >;
+  };
+};
+
+export type LaunchFrameButtonPressEvent =
+  | {
+      status: "complete";
+      frame: FrameV2;
+    }
+  | {
+      status: "partial";
+      frame: PartialFrameV2;
+    };
+
+export type LaunchFrameButtonPressFunction = (
+  event: LaunchFrameButtonPressEvent
+) => void;
 
 export type UseFrameOptions<
   TExtraDataPending = unknown,
@@ -143,6 +179,12 @@ export type UseFrameOptions<
    * This function can be used to customize how the link button click is handled.
    */
   onLinkButtonClick?: OnLinkButtonClickFunction;
+  /**
+   * Called when the frame button is pressed.
+   *
+   * Only valid for frames v2.
+   */
+  onLaunchFrameButtonPress?: LaunchFrameButtonPressFunction;
 } & Partial<
   Pick<
     UseFetchFrameOptions,
@@ -278,6 +320,7 @@ export type UseFrameReturnValue<
   readonly inputText: string;
   setInputText: (s: string) => void;
   onButtonPress: ButtonPressFunction<SignerStateActionContext<any, any>>;
+  onLaunchFrameButtonPress: LaunchFrameButtonPressFunction;
   readonly homeframeUrl: string | null | undefined;
   /**
    * Resets the frame state to initial frame and resolves specification and signer again
