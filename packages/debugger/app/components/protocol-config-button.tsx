@@ -30,6 +30,10 @@ export type ProtocolConfiguration =
       specification: "farcaster";
     }
   | {
+      protocol: "farcaster_v2";
+      specification: "farcaster_v2";
+    }
+  | {
       protocol: "lens";
       specification: "openframes";
     }
@@ -46,6 +50,10 @@ export const protocolConfigurationMap: Record<string, ProtocolConfiguration> = {
   farcaster: {
     protocol: "farcaster",
     specification: "farcaster",
+  },
+  farcaster_v2: {
+    protocol: "farcaster_v2",
+    specification: "farcaster_v2",
   },
   xmtp: {
     protocol: "xmtp",
