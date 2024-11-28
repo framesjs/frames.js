@@ -51,7 +51,7 @@ type LensFrameRequest = {
   };
 };
 
-type LensSignerInstance = SignerStateInstance<
+export type LensSignerInstance = SignerStateInstance<
   LensSigner,
   LensFrameRequest,
   LensFrameContext

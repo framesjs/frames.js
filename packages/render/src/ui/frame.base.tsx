@@ -165,7 +165,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
   const previousFrameStackItem =
     frameState.framesStack[frameState.framesStack.length - 1];
   /**
-   * Frames v2 don' have previous frame as they consist purely of initial frame only
+   * Frames v2 don't have previous frame as they consist purely of initial frame only
    */
   const previousFrame =
     previousFrameStackItem?.status === "done" &&

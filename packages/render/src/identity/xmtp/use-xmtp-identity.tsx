@@ -24,7 +24,7 @@ type XmtpStoredSigner = {
   keys: string;
 };
 
-type XmtpSignerInstance = SignerStateInstance<
+export type XmtpSignerInstance = SignerStateInstance<
   XmtpSigner,
   FramePostPayload,
   XmtpFrameContext
