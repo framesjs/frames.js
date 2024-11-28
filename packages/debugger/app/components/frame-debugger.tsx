@@ -105,12 +105,10 @@ export const FrameDebugger = React.forwardRef<
       resolveSigner() {
         switch (protocol.protocol) {
           case "farcaster":
-            // it creates copies of the signer which is bad because if the signer is internally
-            // updated, we see only old value although the signer is updated. This is true only for public properties
-            // probably getters will be better in this regard?
-            return farcasterSignerState.withContext(frameContext.farcaster);
           case "farcaster_v2":
-            return farcasterSignerState.withContext(frameContext.farcaster);
+            return farcasterSignerState.withContext(frameContext.farcaster, {
+              specification: protocol.specification,
+            });
           case "xmtp":
             return xmtpSignerState.withContext(frameContext.xmtp);
           case "lens":
