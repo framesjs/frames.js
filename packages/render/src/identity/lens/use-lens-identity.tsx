@@ -404,9 +404,12 @@ export function useLensIdentity({
         return availableProfilesRef.current;
       },
       handleSelectProfile,
-      withContext(frameContext) {
+      withContext(frameContext, overrides) {
         return {
-          signerState: this,
+          signerState: {
+            ...this,
+            ...overrides,
+          },
           frameContext,
         };
       },

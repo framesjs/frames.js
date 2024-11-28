@@ -464,7 +464,7 @@ export function useFarcasterIdentity({
     void isLoading;
 
     return {
-      specification: "farcaster",
+      specification: ["farcaster", "farcaster_v2"],
       get signer() {
         return farcasterUserRef.current;
       },
@@ -485,9 +485,12 @@ export function useFarcasterIdentity({
       createSigner,
       logout,
       identityPoller,
-      withContext(frameContext) {
+      withContext(frameContext, overrides) {
         return {
-          signerState: this,
+          signerState: {
+            ...this,
+            ...overrides,
+          },
           frameContext,
         };
       },

@@ -368,8 +368,13 @@ export interface SignerStateInstance<
 > {
   /**
    * For which specification is this signer required.
+   *
+   * If the value is an array it will take first valid specification if there is no valid specification
+   * it will return the first specification in array no matter the validity.
    */
-  readonly specification: SupportedParsingSpecification;
+  readonly specification:
+    | SupportedParsingSpecification
+    | SupportedParsingSpecification[];
   signer: TSignerStorageType | null;
   /**
    * True only if signer is approved or impersonating
@@ -384,7 +389,14 @@ export interface SignerStateInstance<
   /** A function called when a frame button is clicked without a signer */
   onSignerlessFramePress: () => Promise<void>;
   logout: () => Promise<void>;
-  withContext: (context: TFrameContextType) => {
+  withContext: (
+    context: TFrameContextType,
+    overrides?: {
+      specification?:
+        | SupportedParsingSpecification
+        | SupportedParsingSpecification[];
+    }
+  ) => {
     signerState: SignerStateInstance<
       TSignerStorageType,
       TFrameActionBodyType,

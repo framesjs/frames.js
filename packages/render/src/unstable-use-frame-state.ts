@@ -1,6 +1,10 @@
 import type { MutableRefObject } from "react";
 import { useMemo, useReducer, useRef } from "react";
-import type { SupportedParsingSpecification } from "frames.js/frame-parsers";
+import type {
+  ParseFramesWithReportsResult,
+  ParseResultWithFrameworkDetails,
+  SupportedParsingSpecification,
+} from "frames.js/frame-parsers";
 import type { FrameContext, SignerStateInstance } from "./types";
 import type {
   FrameReducerActions,
@@ -13,6 +17,41 @@ import type {
   UseFrameStateReturn,
 } from "./unstable-types";
 import { useFreshRef } from "./hooks/use-fresh-ref";
+
+function resolveParseResultForSpecification(
+  parseResult: ParseFramesWithReportsResult,
+  specification: SupportedParsingSpecification | SupportedParsingSpecification[]
+): ParseResultWithFrameworkDetails {
+  const specifications = Array.isArray(specification)
+    ? specification
+    : [specification];
+
+  if (specifications.length === 0) {
+    throw new Error("Signer does not have any specification defined");
+  }
+
+  // take first valid specification or return first one
+  let frameResult: ParseResultWithFrameworkDetails | undefined;
+
+  for (const currentSpecification of specifications) {
+    // take first valid specification
+    if (parseResult[currentSpecification].status === "success") {
+      frameResult = parseResult[currentSpecification];
+      break;
+    }
+
+    // or take first one
+    if (!frameResult) {
+      frameResult = parseResult[currentSpecification];
+    }
+  }
+
+  if (!frameResult) {
+    throw new Error("No frame for the given specification");
+  }
+
+  return frameResult;
+}
 
 function createFramesStackReducer<
   TExtraPending = unknown,
@@ -98,7 +137,9 @@ function createFramesStackReducer<
         }
 
         let signerState: SignerStateInstance<any, any, any>;
-        let specification: SupportedParsingSpecification;
+        let specification:
+          | SupportedParsingSpecification
+          | SupportedParsingSpecification[];
         let frameContext: FrameContext;
         let homeframeUrl: string;
         let parseResult = action.parseResult;
@@ -127,10 +168,15 @@ function createFramesStackReducer<
           } = state);
         }
 
+        const frameResult = resolveParseResultForSpecification(
+          action.parseResult,
+          specification
+        );
+
         state.stack[index] = {
           ...action.pendingItem,
           status: "done",
-          frameResult: action.parseResult[specification],
+          frameResult,
           extra: action.extra,
         };
 
@@ -140,7 +186,7 @@ function createFramesStackReducer<
           signerState,
           frameContext,
           homeframeUrl,
-          specification,
+          specification: frameResult.specification,
           type: "initialized",
           stack: state.stack.slice(),
         };
@@ -170,27 +216,40 @@ function createFramesStackReducer<
           parseResult: state.parseResult,
         });
 
+        const frameResult = resolveParseResultForSpecification(
+          state.parseResult,
+          signerState.specification
+        );
+
+        const stackItem = state.stack[0];
+
+        if (stackItem?.status === "done") {
+          stackItem.frameResult = frameResult;
+        }
+
         return {
           ...state,
-          stack:
-            !!state.stack[0] && state.stack.length > 0 ? [state.stack[0]] : [],
+          stack: stackItem ? [{ ...stackItem }] : [],
           type: "initialized",
           frameContext,
           signerState,
-          specification: signerState.specification,
+          specification: frameResult.specification,
         };
       }
       case "RESET_INITIAL_FRAME": {
         const { frameContext = {}, signerState } = resolveSignerRef.current({
           parseResult: action.parseResult,
         });
-        const frameResult = action.parseResult[signerState.specification];
+        const frameResult = resolveParseResultForSpecification(
+          action.parseResult,
+          signerState.specification
+        );
 
         return {
           type: "initialized",
           signerState,
           frameContext,
-          specification: signerState.specification,
+          specification: frameResult.specification,
           homeframeUrl: action.homeframeUrl,
           parseResult: action.parseResult,
           stack: [
@@ -287,13 +346,17 @@ export function useFrameState<
         const { frameContext = {}, signerState } = resolveSpecification({
           parseResult,
         });
-        const frameResult = parseResult[signerState.specification];
+
+        const frameResult = resolveParseResultForSpecification(
+          parseResult,
+          signerState.specification
+        );
 
         return {
           type: "initialized",
           frameContext,
           signerState,
-          specification: signerState.specification,
+          specification: frameResult.specification,
           homeframeUrl: frameUrl,
           parseResult,
           stack: [

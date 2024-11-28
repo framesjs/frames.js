@@ -242,9 +242,12 @@ export function useXmtpIdentity({
       },
       onSignerlessFramePress,
       logout,
-      withContext(frameContext) {
+      withContext(frameContext, overrides) {
         return {
-          signerState: this,
+          signerState: {
+            ...this,
+            ...overrides,
+          },
           frameContext,
         };
       },

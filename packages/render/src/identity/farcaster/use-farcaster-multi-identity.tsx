@@ -558,7 +558,7 @@ export function useFarcasterMultiIdentity({
     void state.identities;
 
     return {
-      specification: "farcaster",
+      specification: ["farcaster", "farcaster_v2"],
       get signer() {
         return farcasterUserRef.current;
       },
@@ -584,9 +584,12 @@ export function useFarcasterMultiIdentity({
       },
       selectIdentity,
       identityPoller,
-      withContext(frameContext) {
+      withContext(frameContext, overrides) {
         return {
-          signerState: this,
+          signerState: {
+            ...this,
+            ...overrides,
+          },
           frameContext,
         };
       },
