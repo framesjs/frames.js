@@ -197,10 +197,10 @@ function validateFrameButtonAction(
       "fc:frame",
       'Key "type" in FrameEmbed.button.action must be a string'
     );
-  } else if (parsedValue.type !== "launch") {
+  } else if (parsedValue.type !== "launch_frame") {
     reporter.error(
       "fc:frame",
-      'Key "type" in FrameEmbed.button.action must be "launch"'
+      'Key "type" in FrameEmbed.button.action must be "launch_frame"'
     );
   } else {
     action.type = parsedValue.type;
@@ -226,23 +226,23 @@ function validateFrameButtonAction(
   }
 
   // @todo optionaly validate splashImage dimensions and file size
-  if (!("splashImage" in parsedValue)) {
+  if (!("splashImageUrl" in parsedValue)) {
     reporter.error(
       "fc:frame",
-      'Missing required key "splashImage" in FrameEmbed.button.action'
+      'Missing required key "splashImageUrl" in FrameEmbed.button.action'
     );
-  } else if (typeof parsedValue.splashImage !== "string") {
+  } else if (typeof parsedValue.splashImageUrl !== "string") {
     reporter.error(
       "fc:frame",
-      'Key "splashImage" in FrameEmbed.button.action must be a string'
+      'Key "splashImageUrl" in FrameEmbed.button.action must be a string'
     );
-  } else if (!URL.canParse(parsedValue.splashImage)) {
+  } else if (!URL.canParse(parsedValue.splashImageUrl)) {
     reporter.error(
       "fc:frame",
-      'Key "splashImage" in FrameEmbed.button.action must be a valid URL'
+      'Key "splashImageUrl" in FrameEmbed.button.action must be a valid URL'
     );
   } else {
-    action.splashImage = parsedValue.splashImage;
+    action.splashImageUrl = parsedValue.splashImageUrl;
   }
 
   if (!("splashBackgroundColor" in parsedValue)) {

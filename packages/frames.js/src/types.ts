@@ -43,17 +43,13 @@ export type FrameV2 = {
     title: string;
     action: {
       /**
-       * Must be 'launch'
+       * Must be 'launch_frame'
        */
-      type: "launch";
+      type: "launch_frame";
       /**
        * App name
        */
       name: string;
-      /**
-       * URL to App icon, must be 200x200px, less than 1MB
-       */
-      icon: string;
       /**
        * App launch URL
        */
@@ -61,7 +57,7 @@ export type FrameV2 = {
       /**
        * URL to splash image, must 200x200px, less than 1MB
        */
-      splashImage: string;
+      splashImageUrl: string;
       /**
        * Hex color code for splash background
        */
