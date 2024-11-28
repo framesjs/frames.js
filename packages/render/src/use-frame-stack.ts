@@ -118,7 +118,7 @@ function framesStackReducer(
 type UseFrameStackOptions = {
   initialFrame?: Frame | ParseResult;
   initialFrameUrl?: string | null;
-  initialSpecification: SupportedParsingSpecification;
+  initialSpecification: Exclude<SupportedParsingSpecification, "farcaster_v2">;
 };
 
 export type FrameStackAPI = {

@@ -100,6 +100,26 @@
         "default": "./dist/ui/index.cjs"
       }
     },
+    "./ui/utils": {
+      "import": {
+        "types": "./dist/ui/utils.d.ts",
+        "default": "./dist/ui/utils.js"
+      },
+      "require": {
+        "types": "./dist/ui/utils.d.cts",
+        "default": "./dist/ui/utils.cjs"
+      }
+    },
+    "./ui/types": {
+      "import": {
+        "types": "./dist/ui/types.d.ts",
+        "default": "./dist/ui/types.js"
+      },
+      "require": {
+        "types": "./dist/ui/types.d.cts",
+        "default": "./dist/ui/types.cjs"
+      }
+    },
     "./use-fetch-frame": {
       "import": {
         "types": "./dist/use-fetch-frame.d.ts",
@@ -128,6 +148,16 @@
       "require": {
         "types": "./dist/use-frame.d.cts",
         "default": "./dist/use-frame.cjs"
+      }
+    },
+    "./use-cast-action": {
+      "import": {
+        "types": "./dist/use-cast-action.d.ts",
+        "default": "./dist/use-cast-action.js"
+      },
+      "require": {
+        "types": "./dist/use-cast-action.d.cts",
+        "default": "./dist/use-cast-action.cjs"
       }
     },
     "./use-composer-action": {

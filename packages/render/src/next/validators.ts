@@ -5,6 +5,6 @@ export function isSpecificationValid(
 ): specification is SupportedParsingSpecification {
   return (
     typeof specification === "string" &&
-    ["farcaster", "openframes"].includes(specification)
+    ["farcaster", "farcaster_v2", "openframes"].includes(specification)
   );
 }

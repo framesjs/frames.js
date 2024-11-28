@@ -260,7 +260,7 @@ export type UseFrameOptions<
    *
    * @defaultValue 'farcaster'
    */
-  specification?: SupportedParsingSpecification;
+  specification?: Exclude<SupportedParsingSpecification, "farcaster_v2">;
   /**
    * This function can be used to customize how error is reported to the user.
    */
@@ -539,7 +539,7 @@ export type FrameReducerActions =
       action: "RESET_INITIAL_FRAME";
       resultOrFrame: ParseResult | Frame;
       homeframeUrl: string | null | undefined;
-      specification: SupportedParsingSpecification;
+      specification: Exclude<SupportedParsingSpecification, "farcaster_v2">;
     };
 
 export type ButtonPressFunction<

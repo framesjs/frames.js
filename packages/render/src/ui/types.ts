@@ -1,5 +1,6 @@
-import type { Frame, FrameButton } from "frames.js";
+import type { Frame, FrameButton, FrameV2 } from "frames.js";
 import type { createElement, ReactElement } from "react";
+import type { ParsedFrameV2 } from "frames.js/frame-parsers";
 import type { FrameState } from "../types";
 import type { UseFrameReturnValue } from "../unstable-types";
 
@@ -30,28 +31,82 @@ type RequiredFrameProperties = "image" | "buttons";
 export type PartialFrame = Omit<Partial<Frame>, RequiredFrameProperties> &
   Required<Pick<Frame, RequiredFrameProperties>>;
 
-export type FrameUIState =
-  | {
-      status: "loading";
-      id: number;
-      frameState: FrameState | UseFrameReturnValue;
-    }
-  | {
-      id: number;
-      status: "partial";
-      frame: PartialFrame;
-      frameState: FrameState | UseFrameReturnValue;
-      debugImage?: string;
-      isImageLoading: boolean;
-    }
-  | {
-      id: number;
-      status: "complete";
-      frame: Frame;
-      frameState: FrameState | UseFrameReturnValue;
-      debugImage?: string;
-      isImageLoading: boolean;
+/**
+ * If partial frame rendering is enabled this is the shape of the frame
+ */
+export type PartialFrameV2 = Omit<ParsedFrameV2, "imageUrl" | "button"> & {
+  imageUrl: NonNullable<ParsedFrameV2["imageUrl"]>;
+  button: Omit<NonNullable<ParsedFrameV2["button"]>, "action" | "title"> & {
+    action: Omit<
+      NonNullable<NonNullable<ParsedFrameV2["button"]>["action"]>,
+      "url" | "title"
+    > & {
+      url: NonNullable<
+        NonNullable<NonNullable<ParsedFrameV2["button"]>["action"]>["url"]
+      >;
     };
+    title: NonNullable<
+      NonNullable<NonNullable<ParsedFrameV2["button"]>["title"]>
+    >;
+  };
+};
+
+type FrameUIStateLoading = {
+  status: "loading";
+  id: number;
+  frameState: FrameState | UseFrameReturnValue;
+};
+
+/**
+ * Frame is partial. Available only if allowPartialFrame prop is enabled.
+ */
+export type FrameUIStatePartialFramesV1 = {
+  id: number;
+  status: "partial";
+  frame: PartialFrame;
+  frameState: FrameState | UseFrameReturnValue;
+  debugImage?: string;
+  isImageLoading: boolean;
+};
+
+/**
+ * Frame is partial. Available only if allowPartialFrame prop is enabled.
+ */
+export type FrameUIStatePartialFramesV2 = {
+  id: number;
+  status: "partial";
+  frame: PartialFrameV2;
+  specification: "farcaster_v2";
+  frameState: FrameState | UseFrameReturnValue;
+  debugImage?: string;
+  isImageLoading: boolean;
+};
+
+export type FrameUIStateCompleteFramesV1 = {
+  id: number;
+  status: "complete";
+  frame: Frame;
+  frameState: FrameState | UseFrameReturnValue;
+  debugImage?: string;
+  isImageLoading: boolean;
+};
+
+export type FrameUIStateCompleteFramesV2 = {
+  id: number;
+  status: "complete";
+  specification: "farcaster_v2";
+  frame: FrameV2;
+  frameState: FrameState | UseFrameReturnValue;
+  debugImage?: string;
+  isImageLoading: boolean;
+};
+
+export type FrameUIState =
+  | FrameUIStateLoading
+  | FrameUIStatePartialFramesV1
+  | FrameUIStatePartialFramesV2
+  | FrameUIStateCompleteFramesV1
+  | FrameUIStateCompleteFramesV2;
 
 type FrameUIStateProps = {
   frameState: FrameUIState;
@@ -242,9 +297,14 @@ export type FrameImageProps = FrameUIStateProps & {
       }
   );
 
+export type FrameLaunchButton = {
+  action: "launch";
+  label: string;
+};
+
 export type FrameButtonProps = {
   isDisabled: boolean;
-  frameButton: FrameButton;
+  frameButton: FrameButton | FrameLaunchButton;
   onPress: () => void;
   index: number;
 } & FrameUIStateProps;
