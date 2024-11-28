@@ -85,7 +85,7 @@ export function parseFarcasterFrameV2(
   if (!("button" in parsedJSON)) {
     reporter.error("fc:frame", 'Missing required key "button" in FrameEmbed');
   } else {
-    validateFrameButton(parsedJSON.button, reporter);
+    parsedFrame.button = parseFrameButton(parsedJSON.button, reporter);
   }
 
   if (reporter.hasErrors()) {
@@ -105,7 +105,7 @@ export function parseFarcasterFrameV2(
   };
 }
 
-function validateFrameButton(
+function parseFrameButton(
   parsedValue: unknown,
   reporter: Reporter
 ): ParsedFrameV2["button"] {
@@ -143,13 +143,13 @@ function validateFrameButton(
       'Missing required key "action" in FrameEmbed.button'
     );
   } else {
-    validateFrameButtonAction(parsedValue.action, reporter);
+    parseFrameButtonAction(parsedValue.action, reporter);
   }
 
   return button;
 }
 
-function validateFrameButtonAction(
+function parseFrameButtonAction(
   parsedValue: unknown,
   reporter: Reporter
 ): NonNullable<ParsedFrameV2["button"]>["action"] {
