@@ -246,7 +246,15 @@ export type UseFrameReturnValue<
     >
   >;
   /** The frame at the top of the stack (at index 0) */
-  readonly currentFrameStackItem: FramesStackItem | undefined;
+  readonly currentFrameStackItem:
+    | FramesStackItem<
+        TExtraDataPending,
+        TExtraDataDone,
+        TExtraDataDoneRedirect,
+        TExtraDataRequestError,
+        TExtraDataMesssage
+      >
+    | undefined;
   /** A stack of frames with additional context, with the most recent frame at index 0 */
   readonly framesStack: FramesStack<
     TExtraDataPending,
