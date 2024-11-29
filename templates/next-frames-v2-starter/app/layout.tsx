@@ -1,21 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-
-// @todo refactor to frames.js or @frames.js/render?
-type FrameEmbed = {
-  imageUrl: string;
-  button: {
-    title: string;
-    action: {
-      type: "launch";
-      icon: string;
-      name: string;
-      url: string;
-      splashImageUrl: string;
-      splashBackgroundColor: string;
-    };
-  };
-};
+import type { FrameV2 } from "frames.js";
 
 export const metadata: Metadata = {
   // without a title, warpcast won't validate your frame
@@ -23,13 +8,13 @@ export const metadata: Metadata = {
   description: "...",
   other: {
     "fc:frame": JSON.stringify({
-      imageUrl: "https://example.com/image.png",
+      version: "next",
+      imageUrl: new URL("/frame.png", process.env.APP_URL!).toString(),
       button: {
         title: "Open App",
         action: {
-          type: "launch",
-          icon: new URL("/icon.png", process.env.APP_URL).toString(),
-          name: "Fremes v2 Demo",
+          type: "launch_frame",
+          name: "Frames v2 Demo",
           url: process.env.APP_URL!,
           splashImageUrl: new URL(
             "/splash.png",
@@ -38,7 +23,7 @@ export const metadata: Metadata = {
           splashBackgroundColor: "#f7f7f7",
         },
       },
-    } satisfies FrameEmbed),
+    } satisfies FrameV2),
   },
 };
 

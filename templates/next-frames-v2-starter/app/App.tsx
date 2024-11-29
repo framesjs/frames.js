@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useCallback, useState } from "react";
 import sdk, { type FrameContext } from "@farcaster/frame-sdk";
 import {
@@ -14,7 +16,7 @@ import { config } from "./WagmiProvider";
 import { Button } from "./ui/Button";
 import { truncateAddress } from "./lib/truncateAddress";
 
-export default function Demo() {
+export function App() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [context, setContext] = useState<FrameContext>();
   const [isContextOpen, setIsContextOpen] = useState(false);
@@ -65,6 +67,15 @@ export default function Demo() {
     sdk.actions.openUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
   }, []);
 
+  const setPrimaryButton = useCallback(() => {
+    sdk.actions.setPrimaryButton({
+      text: "Primary Button",
+      loading: false,
+      disabled: false,
+      hidden: false,
+    });
+  }, []);
+
   const close = useCallback(() => {
     sdk.actions.close();
   }, []);
@@ -72,8 +83,7 @@ export default function Demo() {
   const sendTx = useCallback(() => {
     sendTransaction(
       {
-        to: "0x4bBFD120d9f352A0BEd7a014bd67913a2007a878",
-        data: "0x9846cd9efc000023c0",
+        to: address,
       },
       {
         onSuccess: (hash) => {
@@ -81,7 +91,7 @@ export default function Demo() {
         },
       }
     );
-  }, [sendTransaction]);
+  }, [address, sendTransaction]);
 
   const sign = useCallback(() => {
     signMessage({ message: "Hello from Frames v2!" });
@@ -106,6 +116,16 @@ export default function Demo() {
 
   const toggleContext = useCallback(() => {
     setIsContextOpen((prev) => !prev);
+  }, []);
+
+  useEffect(() => {
+    const listener = () => console.log("Primary button clicked!");
+
+    sdk.on("primaryButtonClicked", listener);
+
+    return () => {
+      sdk.off("primaryButtonClicked", listener);
+    };
   }, []);
 
   const renderError = (error: Error | null) => {
@@ -148,6 +168,15 @@ export default function Demo() {
 
       <div>
         <h2 className="font-2xl font-bold">Actions</h2>
+
+        <div className="mb-4">
+          <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
+            <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
+              sdk.actions.setPrimaryButton
+            </pre>
+          </div>
+          <Button onClick={setPrimaryButton}>Set primary button</Button>
+        </div>
 
         <div className="mb-4">
           <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
