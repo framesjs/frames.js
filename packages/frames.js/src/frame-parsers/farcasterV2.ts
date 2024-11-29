@@ -34,7 +34,7 @@ export function parseFarcasterFrameV2(
   } catch (error) {
     reporter.error(
       "fc:frame",
-      "Failed to parse FrameEmbed it is not a valid JSON value"
+      "Failed to parse Frame, it is not a valid JSON value"
     );
 
     return {
@@ -46,7 +46,7 @@ export function parseFarcasterFrameV2(
   }
 
   if (typeof parsedJSON !== "object") {
-    reporter.error("fc:frame", "FrameEmbed must be an object");
+    reporter.error("fc:frame", "Frame must be an object");
 
     return {
       status: "failure",
@@ -57,7 +57,7 @@ export function parseFarcasterFrameV2(
   }
 
   if (parsedJSON === null) {
-    reporter.error("fc:frame", "FrameEmbed must not be null");
+    reporter.error("fc:frame", "Frame must not be null");
 
     return {
       status: "failure",
@@ -68,22 +68,19 @@ export function parseFarcasterFrameV2(
   }
 
   if (!("version" in parsedJSON)) {
-    reporter.error("fc:frame", 'Missing required key "version" in FrameEmbed');
+    reporter.error("fc:frame", 'Missing required key "version" in Frame');
   } else if (typeof parsedJSON.version !== "string") {
-    reporter.error("fc:frame", 'Key "version" in FrameEmbed must be a string');
+    reporter.error("fc:frame", 'Key "version" in Frame must be a string');
   } else {
     parsedFrame.version = parsedJSON.version;
   }
 
   if (!("imageUrl" in parsedJSON)) {
-    reporter.error("fc:frame", 'Missing required key "imageUrl" in FrameEmbed');
+    reporter.error("fc:frame", 'Missing required key "imageUrl" in Frame');
   } else if (typeof parsedJSON.imageUrl !== "string") {
-    reporter.error("fc:frame", 'Key "imageUrl" in FrameEmbed must be a string');
+    reporter.error("fc:frame", 'Key "imageUrl" in Frame must be a string');
   } else if (!URL.canParse(parsedJSON.imageUrl)) {
-    reporter.error(
-      "fc:frame",
-      'Key "imageUrl" in FrameEmbed must be a valid URL'
-    );
+    reporter.error("fc:frame", 'Key "imageUrl" in Frame must be a valid URL');
   } else {
     parsedFrame.imageUrl = parsedJSON.imageUrl;
   }
@@ -91,7 +88,7 @@ export function parseFarcasterFrameV2(
   // @todo add optional validation for frame image size
 
   if (!("button" in parsedJSON)) {
-    reporter.error("fc:frame", 'Missing required key "button" in FrameEmbed');
+    reporter.error("fc:frame", 'Missing required key "button" in Frame');
   } else {
     parsedFrame.button = parseFrameButton(parsedJSON.button, reporter);
   }
@@ -118,13 +115,13 @@ function parseFrameButton(
   reporter: Reporter
 ): ParsedFrameV2["button"] {
   if (typeof parsedValue !== "object") {
-    reporter.error("fc:frame", 'Key "button" in FrameEmbed must be an object');
+    reporter.error("fc:frame", 'Key "button" in Frame must be an object');
 
     return {};
   }
 
   if (parsedValue === null) {
-    reporter.error("fc:frame", 'Key "button" in FrameEmbed must not be null');
+    reporter.error("fc:frame", 'Key "button" in Frame must not be null');
 
     return {};
   }
@@ -132,24 +129,15 @@ function parseFrameButton(
   const button: ParsedFrameV2["button"] = {};
 
   if (!("title" in parsedValue)) {
-    reporter.error(
-      "fc:frame",
-      'Missing required key "title" in FrameEmbed.button'
-    );
+    reporter.error("fc:frame", 'Missing required key "title" in Frame.button');
   } else if (typeof parsedValue.title !== "string") {
-    reporter.error(
-      "fc:frame",
-      'Key "title" in FrameEmbed.button must be a string'
-    );
+    reporter.error("fc:frame", 'Key "title" in Frame.button must be a string');
   } else {
     button.title = parsedValue.title;
   }
 
   if (!("action" in parsedValue)) {
-    reporter.error(
-      "fc:frame",
-      'Missing required key "action" in FrameEmbed.button'
-    );
+    reporter.error("fc:frame", 'Missing required key "action" in Frame.button');
   } else {
     button.action = parseFrameButtonAction(parsedValue.action, reporter);
   }
@@ -164,17 +152,14 @@ function parseFrameButtonAction(
   if (typeof parsedValue !== "object") {
     reporter.error(
       "fc:frame",
-      'Key "action" in FrameEmbed.button must be an object'
+      'Key "action" in Frame.button must be an object'
     );
 
     return {};
   }
 
   if (parsedValue === null) {
-    reporter.error(
-      "fc:frame",
-      'Key "action" in FrameEmbed.button must not be null'
-    );
+    reporter.error("fc:frame", 'Key "action" in Frame.button must not be null');
 
     return {};
   }
@@ -184,12 +169,12 @@ function parseFrameButtonAction(
   if (!("name" in parsedValue)) {
     reporter.error(
       "fc:frame",
-      'Missing required key "name" in FrameEmbed.button.action'
+      'Missing required key "name" in Frame.button.action'
     );
   } else if (typeof parsedValue.name !== "string") {
     reporter.error(
       "fc:frame",
-      'Key "name" in FrameEmbed.button.action must be a string'
+      'Key "name" in Frame.button.action must be a string'
     );
   } else {
     action.name = parsedValue.name;
@@ -198,17 +183,17 @@ function parseFrameButtonAction(
   if (!("type" in parsedValue)) {
     reporter.error(
       "fc:frame",
-      'Missing required key "type" in FrameEmbed.button.action'
+      'Missing required key "type" in Frame.button.action'
     );
   } else if (typeof parsedValue.type !== "string") {
     reporter.error(
       "fc:frame",
-      'Key "type" in FrameEmbed.button.action must be a string'
+      'Key "type" in Frame.button.action must be a string'
     );
   } else if (parsedValue.type !== "launch_frame") {
     reporter.error(
       "fc:frame",
-      'Key "type" in FrameEmbed.button.action must be "launch_frame"'
+      'Key "type" in Frame.button.action must be "launch_frame"'
     );
   } else {
     action.type = parsedValue.type;
@@ -217,17 +202,17 @@ function parseFrameButtonAction(
   if (!("url" in parsedValue)) {
     reporter.error(
       "fc:frame",
-      'Missing required key "url" in FrameEmbed.button.action'
+      'Missing required key "url" in Frame.button.action'
     );
   } else if (typeof parsedValue.url !== "string") {
     reporter.error(
       "fc:frame",
-      'Key "url" in FrameEmbed.button.action must be a string'
+      'Key "url" in Frame.button.action must be a string'
     );
   } else if (!URL.canParse(parsedValue.url)) {
     reporter.error(
       "fc:frame",
-      'Key "url" in FrameEmbed.button.action must be a valid URL'
+      'Key "url" in Frame.button.action must be a valid URL'
     );
   } else {
     action.url = parsedValue.url;
@@ -237,17 +222,17 @@ function parseFrameButtonAction(
   if (!("splashImageUrl" in parsedValue)) {
     reporter.error(
       "fc:frame",
-      'Missing required key "splashImageUrl" in FrameEmbed.button.action'
+      'Missing required key "splashImageUrl" in Frame.button.action'
     );
   } else if (typeof parsedValue.splashImageUrl !== "string") {
     reporter.error(
       "fc:frame",
-      'Key "splashImageUrl" in FrameEmbed.button.action must be a string'
+      'Key "splashImageUrl" in Frame.button.action must be a string'
     );
   } else if (!URL.canParse(parsedValue.splashImageUrl)) {
     reporter.error(
       "fc:frame",
-      'Key "splashImageUrl" in FrameEmbed.button.action must be a valid URL'
+      'Key "splashImageUrl" in Frame.button.action must be a valid URL'
     );
   } else {
     action.splashImageUrl = parsedValue.splashImageUrl;
@@ -256,17 +241,17 @@ function parseFrameButtonAction(
   if (!("splashBackgroundColor" in parsedValue)) {
     reporter.error(
       "fc:frame",
-      'Missing required key "splashBackgroundColor" in FrameEmbed.button.action'
+      'Missing required key "splashBackgroundColor" in Frame.button.action'
     );
   } else if (typeof parsedValue.splashBackgroundColor !== "string") {
     reporter.error(
       "fc:frame",
-      'Key "splashBackgroundColor" in FrameEmbed.button.action must be a string'
+      'Key "splashBackgroundColor" in Frame.button.action must be a string'
     );
   } else if (!/^#[0-9a-fA-F]{6,8}$/.test(parsedValue.splashBackgroundColor)) {
     reporter.error(
       "fc:frame",
-      'Key "splashBackgroundColor" in FrameEmbed.button.action must be a valid hex color'
+      'Key "splashBackgroundColor" in Frame.button.action must be a valid hex color'
     );
   } else {
     action.splashBackgroundColor = parsedValue.splashBackgroundColor;
