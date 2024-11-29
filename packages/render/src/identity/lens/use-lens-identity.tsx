@@ -2,7 +2,7 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAccount, useConfig, useConnections } from "wagmi";
 import { signMessage, signTypedData, switchChain } from "wagmi/actions";
-import { LensClient, production } from "@lens-protocol/client";
+import { LensClient, development, production } from "@lens-protocol/client";
 import type {
   SignerStateActionContext,
   SignerStateInstance,
@@ -65,6 +65,10 @@ type LensIdentityOptions = {
    * @defaultValue "lensProfile"
    */
   storageKey?: string;
+  /**
+   * @defaultValue "production"
+   */
+  environment?: "production" | "development";
 };
 
 const defaultStorage = new WebStorage();
@@ -72,6 +76,7 @@ const defaultStorage = new WebStorage();
 export function useLensIdentity({
   storage = defaultStorage,
   storageKey = "lensProfile",
+  environment = "production",
 }: LensIdentityOptions = {}): LensSignerInstance {
   const storageRef = useRef(storage);
   const [isLoading, setIsLoading] = useState(false);
@@ -85,7 +90,7 @@ export function useLensIdentity({
 
   const lensClient = useRef(
     new LensClient({
-      environment: production,
+      environment: environment === "development" ? development : production,
     })
   ).current;
 
