@@ -98,6 +98,18 @@ export type LaunchFrameButtonPressFunction = (
   event: LaunchFrameButtonPressEvent
 ) => void;
 
+export type LaunchFrameOpenedEvent =
+  | {
+      status: "complete";
+      frame: FrameV2;
+    }
+  | {
+      status: "partial";
+      frame: PartialFrameV2;
+    };
+
+export type FrameCloseFunction = () => void;
+
 export type UseFrameOptions<
   TExtraDataPending = unknown,
   TExtraDataDone = unknown,
@@ -180,11 +192,17 @@ export type UseFrameOptions<
    */
   onLinkButtonClick?: OnLinkButtonClickFunction;
   /**
-   * Called when the frame button is pressed.
+   * This function is called when opening a Frames v2 app is requested
    *
-   * Only valid for frames v2.
+   * Only for frames v2
    */
-  onLaunchFrameButtonPress?: LaunchFrameButtonPressFunction;
+  onLaunchFrameButtonPressed?: LaunchFrameButtonPressFunction;
+  /**
+   * This function is called when lauched frame is closed.
+   *
+   * Only for frames v2
+   */
+  onLaunchedFrameClosed?: FrameCloseFunction;
 } & Partial<
   Pick<
     UseFetchFrameOptions,
@@ -320,7 +338,18 @@ export type UseFrameReturnValue<
   readonly inputText: string;
   setInputText: (s: string) => void;
   onButtonPress: ButtonPressFunction<SignerStateActionContext<any, any>>;
+  /**
+   * Called by UI when the launch frame button is pressed.
+   *
+   * Only for frames v2
+   */
   onLaunchFrameButtonPress: LaunchFrameButtonPressFunction;
+  /**
+   * Called by UI when the launched frame is closed.
+   *
+   * Only for frames v2
+   */
+  onLaunchedFrameClose: FrameCloseFunction;
   readonly homeframeUrl: string | null | undefined;
   /**
    * Resets the frame state to initial frame and resolves specification and signer again

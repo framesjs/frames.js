@@ -1,4 +1,4 @@
-import type { Frame, FrameV2 } from "frames.js";
+import type { Frame } from "frames.js";
 import {
   createElement as reactCreateElement,
   useCallback,
@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import type { FrameState } from "../types";
-import type { PartialFrameV2, UseFrameReturnValue } from "../unstable-types";
+import type { UseFrameReturnValue } from "../unstable-types";
 import { useFreshRef } from "../hooks/use-fresh-ref";
 import type {
   FrameMessage,
@@ -28,22 +28,6 @@ export type FrameUIComponents<TStylingProps extends Record<string, unknown>> =
 
 export type FrameUITheme<TStylingProps extends Record<string, unknown>> =
   Partial<FrameUIComponentStylingProps<TStylingProps>>;
-
-export type FrameUILaunchFrameButtonPressEvent =
-  | {
-      status: "complete";
-      frame: FrameV2;
-      frameUIState: FrameUIState;
-    }
-  | {
-      status: "partial";
-      frame: PartialFrameV2;
-      frameUIState: FrameUIState;
-    };
-
-export type FrameUILaunchFrameButtonPressHandler = (
-  event: FrameUILaunchFrameButtonPressEvent
-) => void;
 
 export type BaseFrameUIProps<TStylingProps extends Record<string, unknown>> = {
   frameState:
@@ -79,30 +63,10 @@ export type BaseFrameUIProps<TStylingProps extends Record<string, unknown>> = {
    * @defaultValue React.createElement
    */
   createElement?: typeof reactCreateElement;
-  /**
-   * Called when user presses launch button on v2 frame.
-   *
-   * Only Frames v2 support this feature.
-   */
-  onLaunchFrameButtonPress?: FrameUILaunchFrameButtonPressHandler;
-  /**
-   * Called when an error occurs in onAppLaunchButtonPress
-   *
-   * @defaultValue console.error()
-   */
-  onLaunchFrameButtonPressError?: (error: Error) => void;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function -- this is noop
 function defaultMessageHandler(): void {}
-
-// eslint-disable-next-line @typescript-eslint/no-empty-function -- this is noop
-function defaultOnAppLaunchButtonPress(): void {
-  // eslint-disable-next-line no-console -- provide at least some feedback to the user
-  console.info(
-    "@frames.js/render/ui/FrameUI.onAppLaunchButtonPress is not implemented"
-  );
-}
 
 function defaultErrorLogger(error: Error): void {
   // eslint-disable-next-line no-console -- provide at least some feedback to the user
@@ -116,20 +80,14 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
   allowPartialFrame = false,
   enableImageDebugging = false,
   onError = defaultErrorLogger,
-  onLaunchFrameButtonPressError = defaultErrorLogger,
   onMessage = defaultMessageHandler,
   createElement = reactCreateElement,
-  onLaunchFrameButtonPress = defaultOnAppLaunchButtonPress,
 }: BaseFrameUIProps<TStylingProps>): JSX.Element | null {
   const [isImageLoading, setIsImageLoading] = useState(true);
   const { currentFrameStackItem } = frameState;
   const rootRef = useRef<RootContainerElement>(null);
   const rootDimensionsRef = useRef<RootContainerDimensions | undefined>();
   const onErrorRef = useFreshRef(onError);
-  const onLaunchFrameButtonPressErrorRef = useFreshRef(
-    onLaunchFrameButtonPressError
-  );
-  const onLaunchFrameButtonPressRef = useFreshRef(onLaunchFrameButtonPress);
 
   const onImageLoadEnd = useCallback(() => {
     setIsImageLoading(false);
@@ -350,8 +308,6 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
                 );
               }
 
-              // call onLaunchFrameButtonPress on useFrame() hook
-              // because that's where the core of the frame v2 message handling is implemented
               frameState.onLaunchFrameButtonPress(
                 frameUiState.status === "complete"
                   ? {
@@ -363,24 +319,8 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
                       frame: frameUiState.frame,
                     }
               );
-
-              onLaunchFrameButtonPressRef.current(
-                frameUiState.status === "complete"
-                  ? {
-                      status: "complete",
-                      frame: frameUiState.frame,
-                      frameUIState: frameUiState,
-                    }
-                  : {
-                      status: "partial",
-                      frame: frameUiState.frame,
-                      frameUIState: frameUiState,
-                    }
-              );
             } catch (e) {
-              onLaunchFrameButtonPressErrorRef.current(
-                e instanceof Error ? e : new Error(String(e))
-              );
+              onErrorRef.current(e instanceof Error ? e : new Error(String(e)));
             }
           },
         },

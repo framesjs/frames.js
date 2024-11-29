@@ -67,6 +67,14 @@ export function parseFarcasterFrameV2(
     };
   }
 
+  if (!("version" in parsedJSON)) {
+    reporter.error("fc:frame", 'Missing required key "version" in FrameEmbed');
+  } else if (typeof parsedJSON.version !== "string") {
+    reporter.error("fc:frame", 'Key "version" in FrameEmbed must be a string');
+  } else {
+    parsedFrame.version = parsedJSON.version;
+  }
+
   if (!("imageUrl" in parsedJSON)) {
     reporter.error("fc:frame", 'Missing required key "imageUrl" in FrameEmbed');
   } else if (typeof parsedJSON.imageUrl !== "string") {
@@ -143,7 +151,7 @@ function parseFrameButton(
       'Missing required key "action" in FrameEmbed.button'
     );
   } else {
-    parseFrameButtonAction(parsedValue.action, reporter);
+    button.action = parseFrameButtonAction(parsedValue.action, reporter);
   }
 
   return button;

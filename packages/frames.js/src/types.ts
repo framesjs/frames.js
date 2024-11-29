@@ -36,6 +36,10 @@ export type Frame = {
 
 export type FrameV2 = {
   /**
+   * Version of frame v2 spec?
+   */
+  version: string;
+  /**
    * A URL to image with 1.91:1 aspect ratio smaller than 10MB.
    */
   imageUrl: string;

@@ -170,16 +170,6 @@
         "default": "./dist/use-composer-action.cjs"
       }
     },
-    "./unstable-use-frame-state": {
-      "import": {
-        "types": "./dist/unstable-use-frame-state.d.ts",
-        "default": "./dist/unstable-use-frame-state.js"
-      },
-      "require": {
-        "types": "./dist/unstable-use-frame-state.d.cts",
-        "default": "./dist/unstable-use-frame-state.cjs"
-      }
-    },
     "./unstable-use-fetch-frame": {
       "import": {
         "types": "./dist/unstable-use-fetch-frame.d.ts",
@@ -188,6 +178,26 @@
       "require": {
         "types": "./dist/unstable-use-fetch-frame.d.cts",
         "default": "./dist/unstable-use-fetch-frame.cjs"
+      }
+    },
+    "./unstable-use-frame-app": {
+      "import": {
+        "types": "./dist/unstable-use-frame-app.d.ts",
+        "default": "./dist/unstable-use-frame-app.js"
+      },
+      "require": {
+        "types": "./dist/unstable-use-frame-app.d.cts",
+        "default": "./dist/unstable-use-frame-app.cjs"
+      }
+    },
+    "./unstable-use-frame-state": {
+      "import": {
+        "types": "./dist/unstable-use-frame-state.d.ts",
+        "default": "./dist/unstable-use-frame-state.js"
+      },
+      "require": {
+        "types": "./dist/unstable-use-frame-state.d.cts",
+        "default": "./dist/unstable-use-frame-state.cjs"
       }
     },
     "./unstable-use-frame": {
@@ -313,8 +323,10 @@
     "wagmi": "^2.9.10"
   },
   "dependencies": {
+    "@farcaster/frame-sdk": "^0.0.3",
     "@farcaster/core": "^0.14.7",
     "@noble/ed25519": "^2.0.0",
+    "comlink": "^4.4.2",
     "frames.js": "^0.20.0",
     "zod": "^3.23.8"
   }

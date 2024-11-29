@@ -2419,10 +2419,10 @@
   dependencies:
     ox "^0.1.6"
 
-"@farcaster/frame-sdk@^0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@farcaster/frame-sdk/-/frame-sdk-0.0.2.tgz#a052898d058cb3410bdbf02491727cca59dc6449"
-  integrity sha512-d+7w662rfBvbTFpaRHtP8U3zjc7GNVEqsu1/2jrci/JGwWCSFwFUmH0V/kINzsYBcrn1hT57c5is8cshrYy83A==
+"@farcaster/frame-sdk@^0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@farcaster/frame-sdk/-/frame-sdk-0.0.3.tgz#72159b447736ea0842c3bd08d0506f36eb787cd8"
+  integrity sha512-p9S7SSbIhOL/o9VIkbdlGqG7ooTopECm1PzxsZx/5CF+rC7xaqQQcwG4YgqIOg030tq1GprXFSChKCe7VJP3OA==
   dependencies:
     "@farcaster/frame-core" "^0.0.4"
     comlink "^4.4.2"
@@ -4019,6 +4019,11 @@
   dependencies:
     "@babel/runtime" "^7.13.10"
 
+"@radix-ui/react-compose-refs@1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-compose-refs/-/react-compose-refs-1.1.0.tgz#656432461fc8283d7b591dcf0d79152fae9ecc74"
+  integrity sha512-b4inOtiaOnYf9KWyO3jAeeCG6FeyfY6ldiEPanbUjWd+xIk5wZeHa8yVwmrJ2vderhu/BQvzCrJI0lHd+wIiqw==
+
 "@radix-ui/react-context@1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-context/-/react-context-1.0.0.tgz#f38e30c5859a9fb5e9aa9a9da452ee3ed9e0aee0"
@@ -4326,6 +4331,13 @@
   dependencies:
     "@babel/runtime" "^7.13.10"
     "@radix-ui/react-compose-refs" "1.0.1"
+
+"@radix-ui/react-slot@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-slot/-/react-slot-1.1.0.tgz#7c5e48c36ef5496d97b08f1357bb26ed7c714b84"
+  integrity sha512-FUCf5XMfmW4dtYl69pdS4DbxKy8nj4M7SafBgPllysxmdachynNflAdp/gCsnYWNDnge6tI9onzMp5ARYc1KNw==
+  dependencies:
+    "@radix-ui/react-compose-refs" "1.1.0"
 
 "@radix-ui/react-switch@^1.0.3":
   version "1.0.3"
