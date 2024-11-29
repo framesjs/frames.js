@@ -244,6 +244,10 @@ describe("getFrame", () => {
 
     const result = getFrame({ htmlString: html, url: "https://example.com" });
 
+    if (result.specification !== "farcaster") {
+      throw new Error("Specification should be farcaster");
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- this is test
     expect(JSON.parse(result.frame.state!)).toEqual({
       test: "'><&",

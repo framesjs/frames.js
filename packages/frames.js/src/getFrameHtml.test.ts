@@ -19,6 +19,12 @@ describe("getFrameHtmlHead", () => {
 
     const result = getFrame({ htmlString: html, url: "http://framesjs.org" });
 
+    if (result.specification !== "farcaster") {
+      throw new Error(
+        `Expected result to be a Farcaster frame but got ${result.specification}`
+      );
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- this is test
     expect(JSON.parse(result.frame.state!)).toEqual(json);
   });
@@ -38,6 +44,12 @@ describe("getFrameHtmlHead", () => {
     );
 
     const result = getFrame({ htmlString: html, url: "http://framesjs.org" });
+
+    if (result.specification !== "farcaster") {
+      throw new Error(
+        `Expected result to be a Farcaster frame but got ${result.specification}`
+      );
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- this is test
     expect(JSON.parse(result.frame.state!)).toEqual(json);
