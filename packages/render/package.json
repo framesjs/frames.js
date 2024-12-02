@@ -303,6 +303,7 @@
     "@types/react": "^18.2.0",
     "@xmtp/xmtp-js": "^12.0.0",
     "@xmtp/frames-client": "^0.5.3",
+    "react-native-webview": "^13.12.4",
     "tsup": "^8.0.1",
     "typescript": "^5.4.5",
     "viem": "^2.13.7",
@@ -319,11 +320,12 @@
     "next": "^14.1.0",
     "react": "^18.2.0",
     "react-native": "^0.74.3",
+    "react-native-webview": "^13.12.4",
     "viem": "^2.7.8",
     "wagmi": "^2.9.10"
   },
   "dependencies": {
-    "@farcaster/frame-sdk": "^0.0.3",
+    "@farcaster/frame-sdk": "^0.0.5",
     "@farcaster/core": "^0.14.7",
     "@noble/ed25519": "^2.0.0",
     "comlink": "^4.4.2",
