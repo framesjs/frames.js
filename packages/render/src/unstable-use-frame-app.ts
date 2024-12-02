@@ -1,6 +1,10 @@
 import type { FrameV2 } from "frames.js";
-import { expose, windowEndpoint, type Endpoint } from "comlink";
-import { useCallback, useMemo } from "react";
+import {
+  expose,
+  windowEndpoint,
+  type Endpoint,
+} from "@michalkvasnicak/comlink";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { FrameHost, SetPrimaryButton } from "@farcaster/frame-sdk";
 import type { UseWalletClientReturnType } from "wagmi";
 import { useFreshRef } from "./hooks/use-fresh-ref";
@@ -53,7 +57,11 @@ type UseFrameAppOptions = {
   onPrimaryButtonSet?: SetPrimaryButton;
 };
 
-type RegisterEndpointFunction = (endpoint: Endpoint) => void;
+type UnregisterEndpointFunction = () => void;
+
+type RegisterEndpointFunction = (
+  endpoint: Endpoint
+) => UnregisterEndpointFunction;
 
 type UseFrameAppReturn = {
   /**
@@ -82,20 +90,29 @@ export function useFrameApp({
   const onSignerNotApprovedRef = useFreshRef(onSignerNotApproved);
   const onPrimaryButtonSetRef = useFreshRef(onPrimaryButtonSet);
   const farcasterSignerRef = useFreshRef(farcasterSigner);
+  /**
+   * Used to unregister message listener of previously exposed endpoint.
+   */
+  const unregisterPreviouslyExposedEndpointListenerRef =
+    useRef<UnregisterEndpointFunction>(() => {
+      // no-op
+    });
 
-  // @todo solve expose isolation per endpoint because it's not possible to clean up the exposed API at the moment unless the target releases its proxy
-  // @see https://github.com/GoogleChromeLabs/comlink/issues/674
-  // Perhaps this hook should be global and only once per whole app for now?
   const registerEndpoint = useCallback<RegisterEndpointFunction>(
     (endpoint) => {
+      unregisterPreviouslyExposedEndpointListenerRef.current();
+
       const signer = farcasterSignerRef.current.signer;
 
       if (signer?.status !== "approved") {
         onSignerNotApprovedRef.current();
-        return;
+
+        return () => {
+          // no-op
+        };
       }
 
-      expose(
+      unregisterPreviouslyExposedEndpointListenerRef.current = expose(
         {
           close() {
             const handler = closeRef.current;
@@ -157,6 +174,8 @@ export function useFrameApp({
         endpoint,
         [new URL(frame.button.action.url).origin]
       );
+
+      return unregisterPreviouslyExposedEndpointListenerRef.current;
     },
     [
       clientRef,
@@ -179,21 +198,66 @@ type UseFrameAppInIframeReturn = {
   onLoad: (event: React.SyntheticEvent<HTMLIFrameElement>) => void;
 };
 
+/**
+ * Handles frame app in iframe.
+ *
+ * On unmount it automatically unregisters the endpoint listener.
+ *
+ * @example
+ * ```
+ * import { useFrameAppInIframe } from '@frames.js/render/unstable-use-frame-app';
+ * import { useWalletClient } from 'wagmi';
+ * import { useFarcasterSigner } from '@frames.js/render/identity/farcaster';
+ *
+ * function MyAppDialog() {
+ *  const walletClient = useWalletClient();
+ *  const farcasterSigner = useFarcasterSigner({
+ *    // ...
+ *  });
+ *  const frameApp = useFrameAppInIframe({
+ *    walletClient,
+ *    farcasterSigner,
+ *    // frame returned by useFrame() hook
+ *    frame: frameState.frame,
+ *    // ... handlers for frame app actions
+ *  });
+ *
+ *  return <iframe ref={frameApp.ref} />;
+ * }
+ * ```
+ */
 export function useFrameAppInIframe(
   options: UseFrameAppOptions
 ): UseFrameAppInIframeReturn {
   const frameApp = useFrameApp(options);
+  const unregisterEndpointRef = useRef<UnregisterEndpointFunction>(() => {
+    // no-op
+  });
+
+  useEffect(() => {
+    return () => {
+      unregisterEndpointRef.current();
+    };
+  }, []);
 
   return useMemo(() => {
     return {
       onLoad(event) {
+        if (!(event.currentTarget instanceof HTMLIFrameElement)) {
+          // eslint-disable-next-line no-console -- provide feedback to the developer
+          console.error(
+            '@frames.js/render/unstable-use-frame-app: "onLoad" called but event target is not an iframe'
+          );
+
+          return;
+        }
         if (!event.currentTarget.contentWindow) {
           return;
         }
 
-        frameApp.registerEndpoint(
-          windowEndpoint(event.currentTarget.contentWindow)
-        );
+        const endpoint = windowEndpoint(event.currentTarget.contentWindow);
+
+        unregisterEndpointRef.current = frameApp.registerEndpoint(endpoint);
       },
     };
   }, [frameApp]);

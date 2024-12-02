@@ -17,6 +17,7 @@ import type { FarcasterMultiSignerInstance } from "@frames.js/render/identity/fa
 import { Loader2Icon } from "lucide-react";
 import { useWalletClient } from "wagmi";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 
 type FrameAppDialogProps = {
   farcasterSigner: FarcasterMultiSignerInstance;
@@ -32,6 +33,7 @@ export function FrameAppDialog({
   frameState,
   onClose,
 }: FrameAppDialogProps) {
+  const { toast } = useToast();
   const walletClient = useWalletClient();
   const [isReady, setIsReady] = useState(false);
   const [primaryButton, setPrimaryButton] = useState<FramePrimaryButton | null>(
@@ -50,7 +52,6 @@ export function FrameAppDialog({
     },
     onPrimaryButtonSet: setPrimaryButton,
   });
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const { name, url, splashImageUrl, splashBackgroundColor } =
     frameState.frame.button.action;
 
@@ -93,7 +94,6 @@ export function FrameAppDialog({
           )}
           <iframe
             className="h-[600px] w-full opacity-100 transition-opacity duration-300"
-            ref={iframeRef}
             onLoad={frameApp.onLoad}
             src={url}
             sandbox="allow-forms allow-scripts allow-same-origin"
@@ -105,13 +105,11 @@ export function FrameAppDialog({
               className="w-full m-1"
               disabled={primaryButton.disabled || primaryButton.loading}
               onClick={() => {
-                iframeRef.current?.contentWindow?.dispatchEvent(
-                  new MessageEvent("FarcasterFrameEvent", {
-                    data: {
-                      type: "primaryButtonClicked",
-                    },
-                  })
-                );
+                toast({
+                  title: "Feature not implemented",
+                  description: "This feature is not implemented yet.",
+                  variant: "destructive",
+                });
               }}
               size="lg"
               type="button"
