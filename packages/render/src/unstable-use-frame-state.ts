@@ -3,6 +3,7 @@ import { useMemo, useReducer, useRef } from "react";
 import type {
   ParseFramesWithReportsResult,
   ParseResultWithFrameworkDetails,
+  ParseFramesV2ResultWithFrameworkDetails,
   SupportedParsingSpecification,
 } from "frames.js/frame-parsers";
 import type { FrameContext, SignerStateInstance } from "./types";
@@ -21,7 +22,7 @@ import { useFreshRef } from "./hooks/use-fresh-ref";
 function resolveParseResultForSpecification(
   parseResult: ParseFramesWithReportsResult,
   specification: SupportedParsingSpecification | SupportedParsingSpecification[]
-): ParseResultWithFrameworkDetails {
+): ParseResultWithFrameworkDetails | ParseFramesV2ResultWithFrameworkDetails {
   const specifications = Array.isArray(specification)
     ? specification
     : [specification];
@@ -31,7 +32,10 @@ function resolveParseResultForSpecification(
   }
 
   // take first valid specification or return first one
-  let frameResult: ParseResultWithFrameworkDetails | undefined;
+  let frameResult:
+    | ParseResultWithFrameworkDetails
+    | ParseFramesV2ResultWithFrameworkDetails
+    | undefined;
 
   for (const currentSpecification of specifications) {
     // take first valid specification

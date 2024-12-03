@@ -11,6 +11,7 @@ import type {
   ParsedFrameV2,
   ParseFramesWithReportsResult,
   ParseResultWithFrameworkDetails,
+  ParseFramesV2ResultWithFrameworkDetails,
 } from "frames.js/frame-parsers";
 import type { Dispatch } from "react";
 import type {
@@ -251,7 +252,9 @@ export type FrameStackPending<TExtra = unknown> =
 
 export type FrameStackDone<TExtra = unknown> = FrameStackBase & {
   request: FrameRequest;
-  frameResult: ParseResultWithFrameworkDetails;
+  frameResult:
+    | ParseResultWithFrameworkDetails
+    | ParseFramesV2ResultWithFrameworkDetails;
   status: "done";
   extra: TExtra;
 };

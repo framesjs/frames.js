@@ -99,14 +99,14 @@ export type ParsedFrameworkDetails = {
   };
 };
 
-export type ParseResultWithFrameworkDetails = (
-  | ParseResult
-  | ParseResultFramesV2
-) &
+export type ParseResultWithFrameworkDetails = ParseResult &
+  ParsedFrameworkDetails;
+
+export type ParseFramesV2ResultWithFrameworkDetails = ParseResultFramesV2 &
   ParsedFrameworkDetails;
 
 export type ParseFramesWithReportsResult = {
   farcaster: ParseResultWithFrameworkDetails;
-  farcaster_v2: ParseResultFramesV2;
+  farcaster_v2: ParseFramesV2ResultWithFrameworkDetails;
   openframes: ParseResultWithFrameworkDetails;
 };

@@ -1,10 +1,13 @@
 import type {
   SupportedParsingSpecification,
   ParseResultWithFrameworkDetails,
+  ParseFramesV2ResultWithFrameworkDetails,
 } from "./frame-parsers/types";
 import { parseFramesWithReports } from "./parseFramesWithReports";
 
-export type GetFrameResult = ParseResultWithFrameworkDetails;
+export type GetFrameResult =
+  | ParseResultWithFrameworkDetails
+  | ParseFramesV2ResultWithFrameworkDetails;
 
 type GetFrameOptions = {
   htmlString: string;
