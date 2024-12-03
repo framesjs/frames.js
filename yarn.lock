@@ -3393,10 +3393,10 @@
     superstruct "^1.0.3"
     uuid "^9.0.1"
 
-"@michalkvasnicak/comlink@^4.5.0":
-  version "4.5.0"
-  resolved "https://registry.yarnpkg.com/@michalkvasnicak/comlink/-/comlink-4.5.0.tgz#6fd32a5383c6f925015851523d9757498281eb06"
-  integrity sha512-Vi81JHsOG/y8KCpscKnwlVuSt2Vu+xo6J3d59H6geFfj1sJ/BGyg6iosQDGmzPNNZmsXH2tVEkgYlHkAtA5Y9w==
+"@michalkvasnicak/comlink@^4.5.1":
+  version "4.5.1"
+  resolved "https://registry.yarnpkg.com/@michalkvasnicak/comlink/-/comlink-4.5.1.tgz#a6d35b1066c4b93d264c284cb94bda89a660d569"
+  integrity sha512-KPbz5g6pufKrth1OKKJtRsm+GY6H/zsqqu0j4o250b6pptZjFPp+SvWOlcCZuKE6IQDbJHEU0j9znIv7cgZ8Bw==
 
 "@microsoft/tsdoc-config@0.16.2":
   version "0.16.2"
