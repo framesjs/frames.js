@@ -14,6 +14,12 @@ import type {
 import type { PartialFrame } from "./types";
 
 type FrameResultFailure = Exclude<GetFrameResult, { status: "success" }>;
+type FrameResultSuccess = Extract<GetFrameResult, { status: "success" }>;
+
+type FrameResultSuccessFrameV1 = Extract<
+  FrameResultSuccess,
+  { specification: "farcaster" | "openframes" }
+>;
 
 type FrameResultFailureFrameV1 = Extract<
   FrameResultFailure,
@@ -26,6 +32,11 @@ type FrameV1FailureResult = Omit<FrameResultFailureFrameV1, "frame"> & {
 
 type FrameResultFailureFrameV2 = Extract<
   FrameResultFailure,
+  { specification: "farcaster_v2" }
+>;
+
+type FrameResultSuccessFrameV2 = Extract<
+  FrameResultSuccess,
   { specification: "farcaster_v2" }
 >;
 
@@ -106,4 +117,24 @@ export function isValidPartialFrame(frameResult: GetFrameResult): boolean {
   return (
     isValidPartialFrameV1(frameResult) || isValidPartialFrameV2(frameResult)
   );
+}
+
+export function isValidFrameV1(
+  value: GetFrameResult
+): value is FrameResultSuccessFrameV1 {
+  return (
+    value.status === "success" &&
+    (value.specification === "farcaster" ||
+      value.specification === "openframes")
+  );
+}
+
+export function isValidFrameV2(
+  value: GetFrameResult
+): value is FrameResultSuccessFrameV2 {
+  return value.status === "success" && value.specification === "farcaster_v2";
+}
+
+export function isValidFrame(value: GetFrameResult): boolean {
+  return isValidFrameV1(value) || isValidFrameV2(value);
 }
