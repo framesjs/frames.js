@@ -486,7 +486,7 @@ export type FrameStackGetPending = {
 
 export type FrameStackPending = FrameStackGetPending | FrameStackPostPending;
 
-export type GetFrameResult = ReturnType<typeof getFrame>;
+export type GetFrameResult = Awaited<ReturnType<typeof getFrame>>;
 
 export type FrameStackDone = FrameStackBase & {
   request: FrameRequest;

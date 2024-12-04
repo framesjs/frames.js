@@ -62,10 +62,16 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     const html = await urlRes.text();
 
-    const parseResult = parseFramesWithReports({
+    const parseResult = await parseFramesWithReports({
       html,
+      frameUrl: url,
       fallbackPostUrl: url,
       fromRequestMethod: "GET",
+      parseSettings: {
+        farcaster_v2: {
+          parseManifest: true,
+        },
+      },
     });
 
     return Response.json({
