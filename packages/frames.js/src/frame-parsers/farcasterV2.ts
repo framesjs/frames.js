@@ -1,18 +1,49 @@
 import type { CheerioAPI } from "cheerio";
-import type { FrameV2 } from "../types";
+import type { PartialDeep } from "type-fest";
+import type {
+  FarcasterManifest,
+  Frame,
+  PartialFarcasterManifest,
+} from "../farcaster-v2/types";
+import { decodePayload, verify } from "../farcaster-v2/json-signature";
 import { getMetaTag } from "./utils";
-import type { ParseResultFramesV2, ParsedFrameV2, Reporter } from "./types";
+import type {
+  ParseResultFramesV2,
+  ParseResultFramesV2FrameManifest,
+  ParsedFrameV2,
+  Reporter,
+} from "./types";
+import { createReporter } from "./reporter";
 
-type Options = {
-  reporter: Reporter;
+export type ParseFarcasterFrameV2ValidationSettings = {
+  /**
+   * Enable/disable frame manifest parsing.
+   *
+   * @see https://docs.farcaster.xyz/developers/frames/v2/spec#frame-manifest
+   *
+   * @defaultValue false
+   */
+  parseManifest?: boolean;
 };
 
-// @todo add optional frame manifest validation?
-// @todo add a way to turn on only some validations, for example manifest on, all the rest like image size off
-export function parseFarcasterFrameV2(
+type ParseFarcasterFrameV2Options = {
+  /**
+   * URL of the frame
+   *
+   * This is used for manifest validation.
+   */
+  frameUrl: string;
+  reporter: Reporter;
+} & ParseFarcasterFrameV2ValidationSettings;
+
+export async function parseFarcasterFrameV2(
   $: CheerioAPI,
-  { reporter }: Options
-): ParseResultFramesV2 {
+  {
+    frameUrl,
+    reporter,
+    parseManifest: parseManifestEnabled = false,
+  }: ParseFarcasterFrameV2Options
+): Promise<ParseResultFramesV2> {
   const embed = getMetaTag($, "fc:frame");
 
   if (!embed) {
@@ -104,9 +135,10 @@ export function parseFarcasterFrameV2(
 
   return {
     status: "success",
-    frame: parsedFrame as unknown as FrameV2,
+    frame: parsedFrame as unknown as Frame,
     reports: reporter.toObject(),
     specification: "farcaster_v2",
+    manifest: parseManifestEnabled ? await parseManifest(frameUrl) : undefined,
   };
 }
 
@@ -258,4 +290,454 @@ function parseFrameButtonAction(
   }
 
   return action;
+}
+
+async function parseManifest(
+  frameUrl: string
+): Promise<ParseResultFramesV2FrameManifest> {
+  const reporter = createReporter("farcaster_v2");
+  // load manifest from well known URI
+  try {
+    const manifestResponse = await fetch(
+      new URL("/.well-known/farcaster.json", frameUrl),
+      {
+        method: "GET",
+        cache: "no-cache",
+        headers: {
+          Accept: "application/json",
+        },
+      }
+    );
+
+    if (!manifestResponse.ok) {
+      reporter.error(
+        "fc:manifest",
+        `Failed to fetch frame manifest, status code: ${manifestResponse.status}`
+      );
+
+      return {
+        status: "failure",
+        manifest: {},
+        reports: reporter.toObject(),
+      };
+    }
+
+    const body: unknown = await manifestResponse.json();
+    const manifest = parseManifestData(body, reporter);
+
+    if (!reporter.hasErrors()) {
+      await verifyManifestAccountAssociation(
+        manifest as unknown as FarcasterManifest,
+        frameUrl,
+        reporter
+      );
+    }
+
+    if (reporter.hasErrors()) {
+      return {
+        status: "failure",
+        manifest,
+        reports: reporter.toObject(),
+      };
+    }
+
+    return {
+      status: "success",
+      manifest: manifest as unknown as FarcasterManifest,
+      reports: reporter.toObject(),
+    };
+  } catch (e) {
+    if (e instanceof Error) {
+      reporter.error(
+        "fc:manifest",
+        `Failed to parse frame manifest: ${String(e)}`
+      );
+    } else {
+      const message = String(e);
+
+      if (message.startsWith("SyntaxError")) {
+        reporter.error(
+          "fc:manifest",
+          "Failed to parse frame manifest, it is not a valid JSON value"
+        );
+      } else {
+        reporter.error(
+          "fc:manifest",
+          `Failed to fetch frame manifest: ${message}`
+        );
+      }
+    }
+
+    return {
+      status: "failure",
+      manifest: {},
+      reports: reporter.toObject(),
+    };
+  }
+}
+
+async function verifyManifestAccountAssociation(
+  manifest: FarcasterManifest,
+  frameUrl: string,
+  reporter: Reporter
+): Promise<void> {
+  const domain = new URL(frameUrl).hostname;
+
+  const isValid = await verify(manifest.accountAssociation);
+
+  if (!isValid) {
+    reporter.error(
+      "fc:manifest",
+      "Failed to verify account association signature"
+    );
+    return;
+  }
+
+  const parsedPayload = decodePayload(manifest.accountAssociation.payload);
+
+  if (typeof parsedPayload !== "object" || parsedPayload === null) {
+    reporter.error(
+      "fc:manifest",
+      "Failed to parse account association payload"
+    );
+    return;
+  }
+
+  if (!("domain" in parsedPayload)) {
+    reporter.error(
+      "fc:manifest",
+      "Missing required property 'domain' in account association payload"
+    );
+  } else if (typeof parsedPayload.domain !== "string") {
+    reporter.error(
+      "fc:manifest",
+      "Account association payload domain must be a string"
+    );
+  } else if (parsedPayload.domain !== domain) {
+    reporter.error(
+      "fc:manifest",
+      "Account association payload domain must match the frame URL"
+    );
+  }
+}
+
+function parseManifestData(
+  data: unknown,
+  reporter: Reporter
+): PartialFarcasterManifest {
+  if (typeof data !== "object" || data === null) {
+    reporter.error("fc:manifest", "Manifest must be an object");
+
+    return {};
+  }
+
+  const parsedManifest: PartialFarcasterManifest = {};
+
+  parseManifestDataAccountAssociation(parsedManifest, data, reporter);
+  parseManifestDataFrameConfig(parsedManifest, data, reporter);
+  parseManifestDataTriggers(parsedManifest, data, reporter);
+
+  return parsedManifest;
+}
+
+/**
+ * This function mutates the manifest object
+ */
+function parseManifestDataAccountAssociation(
+  parsedManifest: PartialFarcasterManifest,
+  data: object,
+  reporter: Reporter
+): void {
+  if (!("accountAssociation" in data)) {
+    reporter.error(
+      "fc:manifest",
+      'Missing required property "accountAssociation" in manifest'
+    );
+
+    return;
+  } else if (
+    typeof data.accountAssociation !== "object" ||
+    data.accountAssociation === null
+  ) {
+    reporter.error(
+      "fc:manifest.accountAssociation",
+      "Account association must be an object"
+    );
+
+    return;
+  }
+
+  const accountAssociation = data.accountAssociation;
+  const parsedAccountAssociation: PartialDeep<
+    FarcasterManifest["accountAssociation"]
+  > = {};
+
+  for (const property of [
+    "header",
+    "payload",
+    "signature",
+  ] as (keyof FarcasterManifest["accountAssociation"])[]) {
+    if (!(property in accountAssociation)) {
+      reporter.error(
+        `fc:manifest.accountAssociation.${property}`,
+        `Missing required property "${property}" in account association`
+      );
+
+      continue;
+    }
+
+    const value = (accountAssociation as Record<string, unknown>)[property];
+
+    if (typeof value !== "string") {
+      reporter.error(
+        `fc:manifest.accountAssociation.${property}`,
+        `${property} must be a string`
+      );
+    } else if (value.length === 0) {
+      reporter.error(
+        `fc:manifest.accountAssociation.${property}`,
+        `${property} must not be empty`
+      );
+    } else {
+      parsedAccountAssociation[property] = value;
+
+      parsedManifest.accountAssociation = parsedAccountAssociation;
+    }
+  }
+}
+
+/**
+ * This function mutates the manifest object
+ */
+function parseManifestDataFrameConfig(
+  parsedManifest: PartialFarcasterManifest,
+  data: object,
+  reporter: Reporter
+): void {
+  if (!("frame" in data)) {
+    reporter.error(
+      "fc:manifest",
+      'Missing required property "frame" in manifest'
+    );
+
+    return;
+  }
+
+  if (typeof data.frame !== "object" || data.frame === null) {
+    reporter.error("fc:manifest.frame", "Frame config must be an object");
+
+    return;
+  }
+
+  const parsedFrame: PartialDeep<FarcasterManifest["frame"]> = {};
+
+  if (!("version" in data.frame)) {
+    reporter.error(
+      "fc:manifest.frame",
+      'Missing required property "version" in frame config'
+    );
+  } else if (typeof data.frame.version !== "string") {
+    reporter.error(
+      "fc:manifest.frame.version",
+      "Frame version must be a string"
+    );
+  } else if (data.frame.version.length === 0) {
+    reporter.error(
+      "fc:manifest.frame.version",
+      "Frame version must not be empty"
+    );
+  } else {
+    parsedFrame.version = data.frame.version;
+    parsedManifest.frame = parsedFrame;
+  }
+
+  if (!("name" in data.frame)) {
+    reporter.error(
+      "fc:manifest.frame",
+      'Missing required property "name" in frame config'
+    );
+  } else if (typeof data.frame.name !== "string") {
+    reporter.error("fc:manifest.frame.name", "Frame name must be a string");
+  } else if (data.frame.name.length === 0) {
+    reporter.error("fc:manifest.frame.name", "Frame name must not be empty");
+  } else {
+    parsedFrame.name = data.frame.name;
+    parsedManifest.frame = parsedFrame;
+  }
+
+  if (!("homeUrl" in data.frame)) {
+    reporter.error(
+      "fc:manifest.frame",
+      'Missing required property "homeUrl" in frame config'
+    );
+  } else if (typeof data.frame.homeUrl !== "string") {
+    reporter.error(
+      "fc:manifest.frame.homeUrl",
+      "Frame home URL must be a string"
+    );
+  } else if (!URL.canParse(data.frame.homeUrl)) {
+    reporter.error(
+      "fc:manifest.frame.homeUrl",
+      "Frame home URL must be a valid URL"
+    );
+  } else {
+    parsedFrame.homeUrl = data.frame.homeUrl;
+    parsedManifest.frame = parsedFrame;
+  }
+
+  if (!("iconUrl" in data.frame)) {
+    reporter.error(
+      "fc:manifest.frame",
+      'Missing required property "iconUrl" in frame config'
+    );
+  } else if (typeof data.frame.iconUrl !== "string") {
+    reporter.error(
+      "fc:manifest.frame.iconUrl",
+      "Frame icon URL must be a string"
+    );
+  } else if (!URL.canParse(data.frame.iconUrl)) {
+    reporter.error(
+      "fc:manifest.frame.iconUrl",
+      "Frame icon URL must be a valid URL"
+    );
+  } else {
+    parsedFrame.iconUrl = data.frame.iconUrl;
+    parsedManifest.frame = parsedFrame;
+  }
+
+  if ("splashImageUrl" in data.frame) {
+    if (typeof data.frame.splashImageUrl !== "string") {
+      reporter.error(
+        "fc:manifest.frame.splashImageUrl",
+        "Frame splash image URL must be a string"
+      );
+    } else if (!URL.canParse(data.frame.splashImageUrl)) {
+      reporter.error(
+        "fc:manifest.frame.splashImageUrl",
+        "Frame splash image URL must be a valid URL"
+      );
+    } else {
+      parsedFrame.splashImageUrl = data.frame.splashImageUrl;
+      parsedManifest.frame = parsedFrame;
+    }
+  }
+
+  if ("splashBackgroundColor" in data.frame) {
+    if (typeof data.frame.splashBackgroundColor !== "string") {
+      reporter.error(
+        "fc:manifest.frame.splashBackgroundColor",
+        "Frame splash background color must be a string"
+      );
+    } else if (
+      !/^(?:#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6}|#[0-9a-fA-F]{8})$/.test(
+        data.frame.splashBackgroundColor
+      )
+    ) {
+      reporter.error(
+        "fc:manifest.frame.splashBackgroundColor",
+        "Frame splash background color must be a valid hex color"
+      );
+    } else {
+      parsedFrame.splashBackgroundColor = data.frame.splashBackgroundColor;
+      parsedManifest.frame = parsedFrame;
+    }
+  }
+
+  if ("webhookUrl" in data.frame) {
+    if (typeof data.frame.webhookUrl !== "string") {
+      reporter.error(
+        "fc:manifest.frame.webhookUrl",
+        "Frame webhook URL must be a string"
+      );
+    } else if (!URL.canParse(data.frame.webhookUrl)) {
+      reporter.error(
+        "fc:manifest.frame.webhookUrl",
+        "Frame webhook URL must be a valid URL"
+      );
+    } else {
+      parsedFrame.webhookUrl = data.frame.webhookUrl;
+      parsedManifest.frame = parsedFrame;
+    }
+  }
+}
+
+function parseManifestDataTriggers(
+  parsedManifest: PartialFarcasterManifest,
+  data: object,
+  reporter: Reporter
+): void {
+  if (!("triggers" in data)) {
+    return;
+  }
+
+  if (!Array.isArray(data.triggers)) {
+    reporter.error("fc:manifest.triggers", "Triggers must be an array");
+    return;
+  }
+
+  const parsedTriggers: PartialFarcasterManifest["triggers"] = [];
+
+  for (const [index, trgr] of data.triggers.entries()) {
+    const trigger: unknown = trgr;
+    const reporterKey = `fc:manifest.triggers[${index}]`;
+
+    if (typeof trigger !== "object" || trigger === null) {
+      reporter.error(reporterKey, "Trigger must be an object");
+      continue;
+    }
+
+    const parsedTrigger: PartialDeep<
+      NonNullable<PartialFarcasterManifest["triggers"]>[number]
+    > = {};
+
+    if ("name" in trigger) {
+      if (typeof trigger.name !== "string") {
+        reporter.error(`${reporterKey}.name`, "Trigger name must be a string");
+      } else if (trigger.name.length === 0) {
+        reporter.error(`${reporterKey}.name`, "Trigger name must not be empty");
+      } else {
+        parsedTrigger.name = trigger.name;
+      }
+    }
+
+    if (!("type" in trigger)) {
+      reporter.error(
+        reporterKey,
+        'Missing required property "type" in trigger'
+      );
+    } else if (typeof trigger.type !== "string") {
+      reporter.error(`${reporterKey}.type`, "Trigger type must be a string");
+    } else if (!["cast", "composer"].includes(trigger.type)) {
+      reporter.error(
+        `${reporterKey}.type`,
+        "Trigger type must be either 'cast' or 'composer'"
+      );
+    } else {
+      parsedTrigger.type = trigger.type as "cast" | "composer";
+    }
+
+    if (!("id" in trigger)) {
+      reporter.error(reporterKey, 'Missing required property "id" in trigger');
+    } else if (typeof trigger.id !== "string") {
+      reporter.error(`${reporterKey}.id`, "Trigger id must be a string");
+    } else if (trigger.id.length === 0) {
+      reporter.error(`${reporterKey}.id`, "Trigger id must not be empty");
+    } else {
+      parsedTrigger.id = trigger.id;
+    }
+
+    if (!("url" in trigger)) {
+      reporter.error(reporterKey, 'Missing required property "url" in trigger');
+    } else if (typeof trigger.url !== "string") {
+      reporter.error(`${reporterKey}.url`, "Trigger url must be a string");
+    } else if (!URL.canParse(trigger.url)) {
+      reporter.error(`${reporterKey}.url`, "Trigger url must be a valid URL");
+    } else {
+      parsedTrigger.url = trigger.url;
+    }
+
+    parsedTriggers.push(parsedTrigger);
+  }
+
+  parsedManifest.triggers = parsedTriggers;
 }

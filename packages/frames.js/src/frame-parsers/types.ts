@@ -1,5 +1,9 @@
 import type { PartialDeep } from "type-fest";
 import type { Frame, FrameV2 } from "../types";
+import type {
+  FarcasterManifest,
+  PartialFarcasterManifest,
+} from "../farcaster-v2/types";
 
 export type SupportedParsingSpecification =
   | "farcaster"
@@ -69,6 +73,18 @@ export type ParseResult =
       specification: "farcaster" | "openframes";
     };
 
+export type ParseResultFramesV2FrameManifest =
+  | {
+      status: "success";
+      manifest: FarcasterManifest;
+      reports: Record<string, ParsingReport[]>;
+    }
+  | {
+      status: "failure";
+      manifest: PartialFarcasterManifest;
+      reports: Record<string, ParsingReport[]>;
+    };
+
 export type ParseResultFramesV2 =
   | {
       status: "success";
@@ -78,6 +94,10 @@ export type ParseResultFramesV2 =
        */
       reports: Record<string, ParsingReport[]>;
       specification: "farcaster_v2";
+      /**
+       * Manifest parsing result, available only if parseManifest option is enabled.
+       */
+      manifest?: ParseResultFramesV2FrameManifest;
     }
   | {
       status: "failure";
@@ -87,6 +107,10 @@ export type ParseResultFramesV2 =
        */
       reports: Record<string, ParsingReport[]>;
       specification: "farcaster_v2";
+      /**
+       * Manifest parsing result, available only if parseManifest option is enabled.
+       */
+      manifest?: ParseResultFramesV2FrameManifest;
     };
 
 export type ParsedFrameworkDetails = {

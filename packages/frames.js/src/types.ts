@@ -1,4 +1,5 @@
 import type { Abi, Hex, Address, TypedData } from "viem";
+import type { Frame as FrameV2 } from "./farcaster-v2/types";
 
 export type {
   ParsingReport,
@@ -34,49 +35,7 @@ export type Frame = {
   title?: string;
 };
 
-export type FrameV2 = {
-  /**
-   * Frame spec version
-   */
-  version: string;
-  /**
-   * Frame image. Must be 3:2 aspect ratio. Must be less than 10 MB.
-   */
-  imageUrl: string;
-  button: {
-    /**
-     * Button text.
-     */
-    title: string;
-    /**
-     * Action attributes
-     */
-    action: {
-      /**
-       * Must be 'launch_frame'
-       */
-      type: "launch_frame";
-      /**
-       * App name
-       */
-      name: string;
-      /**
-       * Frame launch URL
-       */
-      url: string;
-      /**
-       * URL to splash image, must 200x200px, less than 1MB
-       */
-      splashImageUrl: string;
-      /**
-       * Hex color code for splash background
-       *
-       * @example "#000000"
-       */
-      splashBackgroundColor: string;
-    };
-  };
-};
+export { type FrameV2 };
 
 export type ActionButtonType = "post" | "post_redirect" | "link";
 

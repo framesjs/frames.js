@@ -12,6 +12,10 @@ export type GetFrameResult =
 type GetFrameOptions = {
   htmlString: string;
   /**
+   * URL to the frame.
+   */
+  frameUrl: string;
+  /**
    * Fallback url used if post_url is missing.
    */
   url: string;
@@ -34,13 +38,15 @@ type GetFrameOptions = {
  *
  * @returns an object representing the parsing result
  */
-export function getFrame({
+export async function getFrame({
   htmlString,
+  frameUrl,
   specification = "farcaster",
   url,
   fromRequestMethod = "GET",
-}: GetFrameOptions): GetFrameResult {
-  const parsedFrames = parseFramesWithReports({
+}: GetFrameOptions): Promise<GetFrameResult> {
+  const parsedFrames = await parseFramesWithReports({
+    frameUrl,
     fallbackPostUrl: url,
     html: htmlString,
     fromRequestMethod,
