@@ -61,11 +61,11 @@ describe("sign", () => {
         type: "custody",
         custodyAddress: "0x1234567890abcdef1234567890abcdef12345678",
       },
-      signMessage: async (message) => {
+      signMessage: (message) => {
         expect(typeof message === "string").toBe(true);
         expect(message.length).toBeGreaterThan(0);
 
-        return "0x0000000";
+        return Promise.resolve("0x0000000");
       },
     });
 
