@@ -8,7 +8,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { isAddress } from "viem";
 import FarcasterSignerWindow from "./farcaster-signer-config";
-import { forwardRef, useMemo } from "react";
+import { forwardRef, useMemo, useState } from "react";
 import { WithTooltip } from "./with-tooltip";
 import { type AnonymousSignerInstance } from "@frames.js/render/identity/anonymous";
 import {
@@ -23,6 +23,7 @@ import {
   useXmtpFrameContext,
   type XmtpSignerInstance,
 } from "@frames.js/render/identity/xmtp";
+import { FarcasterDomainAccountAssociationDialog } from "./farcaster-domain-account-association-dialog";
 
 export type ProtocolConfiguration =
   | {
@@ -273,6 +274,7 @@ export const ProtocolConfigurationButton = forwardRef<
                 storedUsers={farcasterSignerState.identities}
                 onIdentitySelect={farcasterSignerState.selectIdentity}
               />
+              <FarcasterDomainAccountAssociation />
             </TabsContent>
             <TabsContent value="xmtp">
               <div>
@@ -441,4 +443,22 @@ function protocolToConfigurationToButtonLabel(
     default:
       return protocol.protocol;
   }
+}
+
+function FarcasterDomainAccountAssociation() {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  return (
+    <>
+      <div className="flex flex-col border-t mt-4 pt-4 gap-2">
+        <h3 className="font-bold">Domain Account Association</h3>
+        <Button onClick={() => setIsDialogOpen(true)}>Generate</Button>
+      </div>
+      {isDialogOpen && (
+        <FarcasterDomainAccountAssociationDialog
+          onClose={() => setIsDialogOpen(false)}
+        />
+      )}
+    </>
+  );
 }
