@@ -1,6 +1,7 @@
 import { createPublicClient, http, parseAbi } from "viem";
 import { optimism } from "viem/chains";
 import type { JsonObject } from "../core/types";
+import { base64urlDecode, base64urlEncode } from "../lib/base64url";
 
 export class InvalidJFSHeaderError extends Error {}
 
@@ -60,6 +61,11 @@ type GenerateJSONFarcasterSignatureInput = {
   signMessage: (message: string) => Promise<`0x${string}`>;
 };
 
+export type SignResult = {
+  compact: string;
+  json: JSONFarcasterSignatureEncoded;
+};
+
 /**
  * Encodes JSON Farcaster signature
  *
@@ -82,10 +88,7 @@ type GenerateJSONFarcasterSignatureInput = {
  */
 export async function sign(
   input: GenerateJSONFarcasterSignatureInput
-): Promise<{
-  compact: string;
-  json: JSONFarcasterSignatureEncoded;
-}> {
+): Promise<SignResult> {
   const encodedHeader = encodeHeader(input.fid, input.signer);
   const encodedPayload = encodePayload(input.payload);
   const signature = await input.signMessage(
@@ -191,23 +194,20 @@ export function encodeHeader(
   fid: number,
   signer: JSONFarcasterSignatureSigner
 ): string {
-  return Buffer.from(
+  return base64urlEncode(
     JSON.stringify({
       fid,
       type: signer.type,
       key: signer.type === "custody" ? signer.custodyAddress : signer.appKey,
-    }),
-    "utf-8"
-  ).toString("base64url");
+    })
+  );
 }
 
 export function decodeHeader(
   encodedHeader: string
 ): JSONFarcasterSignatureHeader {
   try {
-    const decodedHeader = Buffer.from(encodedHeader, "base64url").toString(
-      "utf-8"
-    );
+    const decodedHeader = base64urlDecode(encodedHeader);
     const value: unknown = JSON.parse(decodedHeader);
     const header: JSONFarcasterSignatureHeader = {
       fid: 0,
@@ -261,14 +261,12 @@ export function decodeHeader(
 }
 
 export function encodePayload(data: JsonObject): string {
-  return Buffer.from(JSON.stringify(data), "utf-8").toString("base64url");
+  return base64urlEncode(JSON.stringify(data));
 }
 
 export function decodePayload(encodedPayload: string): JsonObject {
   try {
-    const decodedPayload = Buffer.from(encodedPayload, "base64url").toString(
-      "utf-8"
-    );
+    const decodedPayload = base64urlDecode(encodedPayload);
     const value: unknown = JSON.parse(decodedPayload);
 
     if (typeof value !== "object") {
@@ -290,12 +288,12 @@ export function decodePayload(encodedPayload: string): JsonObject {
 }
 
 export function encodeSignature(signature: `0x${string}`): string {
-  return Buffer.from(signature, "utf-8").toString("base64url");
+  return base64urlEncode(signature);
 }
 
 export function decodeSignature(signature: string): `0x${string}` {
   try {
-    const signatureHash = Buffer.from(signature, "base64url").toString("utf-8");
+    const signatureHash = base64urlDecode(signature);
 
     if (!signatureHash.startsWith("0x")) {
       throw new InvalidJFSSignatureError();
