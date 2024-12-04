@@ -36,15 +36,21 @@ export type Frame = {
 
 export type FrameV2 = {
   /**
-   * Version of frame v2 spec?
+   * Frame spec version
    */
   version: string;
   /**
-   * A URL to image with 1.91:1 aspect ratio smaller than 10MB.
+   * Frame image. Must be 3:2 aspect ratio. Must be less than 10 MB.
    */
   imageUrl: string;
   button: {
+    /**
+     * Button text.
+     */
     title: string;
+    /**
+     * Action attributes
+     */
     action: {
       /**
        * Must be 'launch_frame'
@@ -55,7 +61,7 @@ export type FrameV2 = {
        */
       name: string;
       /**
-       * App launch URL
+       * Frame launch URL
        */
       url: string;
       /**
@@ -64,6 +70,8 @@ export type FrameV2 = {
       splashImageUrl: string;
       /**
        * Hex color code for splash background
+       *
+       * @example "#000000"
        */
       splashBackgroundColor: string;
     };

@@ -157,6 +157,26 @@
         "default": "./dist/anonymous/index.cjs"
       }
     },
+    "./farcaster-v2/json-signature": {
+      "import": {
+        "types": "./dist/farcaster-v2/json-signature.d.ts",
+        "default": "./dist/farcaster-v2/json-signature.js"
+      },
+      "require": {
+        "types": "./dist/farcaster-v2/json-signature.d.cts",
+        "default": "./dist/farcaster-v2/json-signature.cjs"
+      }
+    },
+    "./farcaster-v2/types": {
+      "import": {
+        "types": "./dist/farcaster-v2/types.d.ts",
+        "default": "./dist/farcaster-v2/types.js"
+      },
+      "require": {
+        "types": "./dist/farcaster-v2/types.d.cts",
+        "default": "./dist/farcaster-v2/types.cjs"
+      }
+    },
     "./core": {
       "import": {
         "types": "./dist/core/index.d.ts",
