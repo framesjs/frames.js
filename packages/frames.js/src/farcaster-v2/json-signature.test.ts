@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment -- for expect.any() */
 import {
+  sign,
   verify,
   verifyCompact,
   encodeHeader,
@@ -47,6 +49,42 @@ describe("verifyCompact", () => {
 describe("verify", () => {
   it.each(signatures)("verifies valid message", async (signature) => {
     await expect(verify(signature)).resolves.toBe(true);
+  });
+});
+
+describe("sign", () => {
+  it("signs any payload", async () => {
+    const signature = await sign({
+      fid: 1,
+      payload: { test: true },
+      signer: {
+        type: "custody",
+        custodyAddress: "0x1234567890abcdef1234567890abcdef12345678",
+      },
+      signMessage: async (message) => {
+        expect(typeof message === "string").toBe(true);
+        expect(message.length).toBeGreaterThan(0);
+
+        return "0x0000000";
+      },
+    });
+
+    expect(signature).toMatchObject({
+      compact: expect.any(String),
+      json: {
+        header: expect.any(String),
+        payload: expect.any(String),
+        signature: expect.any(String),
+      },
+    });
+
+    expect(decodePayload(signature.json.payload)).toEqual({ test: true });
+    expect(decodeHeader(signature.json.header)).toEqual({
+      fid: 1,
+      type: "custody",
+      key: "0x1234567890abcdef1234567890abcdef12345678",
+    });
+    expect(decodeSignature(signature.json.signature)).toEqual("0x0000000");
   });
 });
 
