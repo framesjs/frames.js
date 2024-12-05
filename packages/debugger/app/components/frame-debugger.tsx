@@ -47,6 +47,8 @@ import type { ParseFramesWithReportsResult } from "frames.js/frame-parsers";
 import { useFrameContext } from "../providers/FrameContextProvider";
 import type { LaunchFrameButtonPressEvent } from "@frames.js/render/unstable-types";
 import { FrameAppDialog } from "./frame-app-dialog";
+import { cn } from "@/lib/utils";
+import { FrameDebuggerFarcasterManifestDetails } from "./frame-debugger-farcaster-manifest-details";
 
 type FrameDebuggerProps = {
   url: string;
@@ -446,10 +448,18 @@ export const FrameDebugger = React.forwardRef<
                     onValueChange={(value) => setActiveTab(value as TabValues)}
                     className="grid grid-rows-[auto_1fr] w-full h-full"
                   >
-                    <TabsList className="grid w-full grid-cols-4">
+                    <TabsList
+                      className={cn(
+                        "grid w-full grid-cols-4",
+                        protocol.protocol === "farcaster_v2" && "grid-cols-5"
+                      )}
+                    >
                       <TabsTrigger value="diagnostics">Diagnostics</TabsTrigger>
                       <TabsTrigger value="console">Console</TabsTrigger>
                       <TabsTrigger value="request">Request</TabsTrigger>
+                      {protocol.protocol === "farcaster_v2" && (
+                        <TabsTrigger value="manifest">Manifest</TabsTrigger>
+                      )}
                       <TabsTrigger value="meta">Meta Tags</TabsTrigger>
                     </TabsList>
                     <TabsContent
@@ -486,6 +496,13 @@ export const FrameDebugger = React.forwardRef<
                         frameStackItem={currentFrameStackItem}
                       />
                     </TabsContent>
+                    {protocol.protocol === "farcaster_v2" && (
+                      <TabsContent className="overflow-y-auto" value="manifest">
+                        <FrameDebuggerFarcasterManifestDetails
+                          frameStackItem={currentFrameStackItem}
+                        />
+                      </TabsContent>
+                    )}
                     <TabsContent className="overflow-y-auto" value="meta">
                       {currentFrameStackItem.status === "done" ? (
                         <div className="py-4 flex-1">
