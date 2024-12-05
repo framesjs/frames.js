@@ -2412,22 +2412,23 @@
     neverthrow "^6.0.0"
     viem "^1.12.2"
 
-"@farcaster/frame-core@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@farcaster/frame-core/-/frame-core-0.0.4.tgz#651398056526abd361d342aa5c22f28403ec791f"
-  integrity sha512-5g2aGjpS2D2amNppRD01nWlxvV0PwN0zV8fJuwJT0vcD0c72W6c8zWOMidXAhzJ/BXf9hNekLxxMpWrZoqDNsw==
+"@farcaster/frame-core@^0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@farcaster/frame-core/-/frame-core-0.0.7.tgz#e113291525898df21c183935d145d95123e0f4e1"
+  integrity sha512-hN5YVoFKVy2erc8HeYmKfsJM+7yCvNU9HjTWlf9BLf9bQ1aGAIYSk5ozjsk62ob3qeQrgAyaXBPKTGarOt1Qew==
   dependencies:
-    ox "^0.1.6"
+    ox "^0.4.0"
+    zod "^3.23.8"
 
-"@farcaster/frame-sdk@^0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@farcaster/frame-sdk/-/frame-sdk-0.0.5.tgz#f4ec1381233dfc9b15adc01ef8c0adf42ea4d1b4"
-  integrity sha512-oSsfnkvHVMHMEcXru7XMX7u6H3SaHTqiGdxUq/lChLR7PqwqgNAHfmjA+HW6TV2GUjOqmr94/82atO3+pa9UUw==
+"@farcaster/frame-sdk@^0.0.8":
+  version "0.0.8"
+  resolved "https://registry.yarnpkg.com/@farcaster/frame-sdk/-/frame-sdk-0.0.8.tgz#854f7ea55b30f5cff54fc6dc9992caf2c4bc052e"
+  integrity sha512-KSEGbXAbmv03pkNARHiChSHr/NSaZUIr2P5kB6+x6Qlr38Oufyj1cULfXOQHDAuQTXKQGK3E2T+wupvx1FvRnA==
   dependencies:
-    "@farcaster/frame-core" "^0.0.4"
+    "@farcaster/frame-core" "^0.0.7"
     comlink "^4.4.2"
     eventemitter3 "^5.0.1"
-    ox "^0.2.2"
+    ox "^0.4.0"
 
 "@fastify/busboy@^2.0.0":
   version "2.1.1"
@@ -15110,23 +15111,10 @@ ox@0.1.2:
     abitype "^1.0.6"
     eventemitter3 "5.0.1"
 
-ox@^0.1.6:
-  version "0.1.8"
-  resolved "https://registry.yarnpkg.com/ox/-/ox-0.1.8.tgz#0ba58eb6f2471c607959c40fa39b2fa5c4f4f7e5"
-  integrity sha512-GJl6uKXxhPq/XgyvAnIokGuGU/pt9CU8reRJjzi4a02HOpLc2CEXXD4bRCITFFAzdRqHj3DQ6GDS7PlCytPM/A==
-  dependencies:
-    "@adraffy/ens-normalize" "^1.10.1"
-    "@noble/curves" "^1.6.0"
-    "@noble/hashes" "^1.5.0"
-    "@scure/bip32" "^1.5.0"
-    "@scure/bip39" "^1.4.0"
-    abitype "^1.0.6"
-    eventemitter3 "5.0.1"
-
-ox@^0.2.2:
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/ox/-/ox-0.2.2.tgz#b177912d2fd9853e52c2db8570ac29c09330cec1"
-  integrity sha512-QWCyFfVk5hFOhg13SGqRKih5B7EBucrf+Z1dfmN9jJQ8MZdrRx9mbD78JQL5ogSzDT7fcHgyMCaXd/3AWn6xHQ==
+ox@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/ox/-/ox-0.4.0.tgz#6c73b27a9f45912888917304d7a81c894856a980"
+  integrity sha512-F+Q8R/7SZ8AvBcejIV6QUcACLjRuFtSShCkwTuCFWLAN5DoS8dSwiFsDBltvQplEXXNGmAEZCV4HDe7orEDSxA==
   dependencies:
     "@adraffy/ens-normalize" "^1.10.1"
     "@noble/curves" "^1.6.0"

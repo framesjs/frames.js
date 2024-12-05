@@ -296,6 +296,7 @@
     "src"
   ],
   "devDependencies": {
+    "@farcaster/frame-sdk": "^0.0.8",
     "@lens-protocol/client": "^2.3.2",
     "@rainbow-me/rainbowkit": "^2.1.2",
     "@remix-run/node": "^2.8.1",
@@ -311,6 +312,7 @@
   },
   "license": "MIT",
   "peerDependencies": {
+    "@farcaster/frame-sdk": "^0.0.8",
     "@lens-protocol/client": "^2.0.0",
     "@rainbow-me/rainbowkit": "^2.1.2",
     "@types/react": "^18.2.0",
@@ -325,7 +327,6 @@
     "wagmi": "^2.9.10"
   },
   "dependencies": {
-    "@farcaster/frame-sdk": "^0.0.5",
     "@farcaster/core": "^0.14.7",
     "@michalkvasnicak/comlink": "^4.5.1",
     "@noble/ed25519": "^2.0.0",

@@ -1,25 +1,53 @@
-import type { FrameV2 } from "frames.js";
 import {
   expose,
   windowEndpoint,
   type Endpoint,
 } from "@michalkvasnicak/comlink";
-import { useCallback, useEffect, useMemo, useRef } from "react";
-import type { FrameHost, SetPrimaryButton } from "@farcaster/frame-sdk";
+import { type LegacyRef, useCallback, useEffect, useMemo, useRef } from "react";
+import type {
+  AddFrameResult,
+  FrameHost,
+  SetPrimaryButton,
+} from "@farcaster/frame-sdk";
 import type { UseWalletClientReturnType } from "wagmi";
+import type { WebView, WebViewProps } from "react-native-webview";
+import { z } from "zod";
+import type { ParseFramesV2ResultWithFrameworkDetails } from "frames.js/frame-parsers";
 import { useFreshRef } from "./hooks/use-fresh-ref";
 import type { FarcasterSignerState } from "./farcaster";
 import type { FarcasterSigner } from "./identity/farcaster";
+
+const defaultFrameRequestCache = new Set<string>();
 
 function defaultOnSignerNotApproved(): void {
   // eslint-disable-next-line no-console -- provide feedback to the developer
   console.error(
     "@frames.js/render/unstable-use-frame-app",
-    "Signer not approved"
+    "onSignerNotApproved not implemented"
   );
 }
 
+const defaultOnAddFrameRequested: OnAddFrameRequestedFunction =
+  function defaultOnAddFrameRequested() {
+    // eslint-disable-next-line no-console -- provide feedback to the developer
+    console.error(
+      "@frames.js/render/unstable-use-frame-app",
+      "onAddFrameRequested not implemented"
+    );
+
+    return Promise.reject(new Error("onAddFrameRequested not implemented"));
+  };
+
 export type FramePrimaryButton = Parameters<SetPrimaryButton>[0];
+
+export type OnPrimaryButtonSetFunction = (
+  options: FramePrimaryButton,
+  pressedCallback: () => void
+) => void;
+
+export type OnAddFrameRequestedFunction = (
+  frame: ParseFramesV2ResultWithFrameworkDetails
+) => Promise<false | Extract<AddFrameResult, { added: true }>>;
 
 type UseFrameAppOptions = {
   /**
@@ -29,7 +57,7 @@ type UseFrameAppOptions = {
   /**
    * Obtained from useFrame() onLaunchFrameButtonPressed() callback
    */
-  frame: FrameV2;
+  frame: ParseFramesV2ResultWithFrameworkDetails;
   /**
    * Farcaster signer state. Must be already approved otherwise it will call onError
    * and getting context in app will be rejected
@@ -54,7 +82,24 @@ type UseFrameAppOptions = {
   /**
    * Called when app calls `setPrimaryButton` method.
    */
-  onPrimaryButtonSet?: SetPrimaryButton;
+  onPrimaryButtonSet?: OnPrimaryButtonSetFunction;
+  /**
+   * Called when app calls `addFrame` method.
+   *
+   * If the frame manifest is invalid it is automatically rejected.
+   * If the method has been called during the session more than once it immediatelly rejects
+   */
+  onAddFrameRequested?: OnAddFrameRequestedFunction;
+  /**
+   * Enabled debugging
+   *
+   * @defaultValue false
+   */
+  debug?: boolean;
+  /**
+   * Cache of frame app requests (calls to `addFrame` method).
+   */
+  addFrameRequestsCache?: Set<string>;
 };
 
 type UnregisterEndpointFunction = () => void;
@@ -82,6 +127,9 @@ export function useFrameApp({
   onPrimaryButtonSet,
   onReady,
   onSignerNotApproved = defaultOnSignerNotApproved,
+  debug = false,
+  addFrameRequestsCache = defaultFrameRequestCache,
+  onAddFrameRequested = defaultOnAddFrameRequested,
 }: UseFrameAppOptions): UseFrameAppReturn {
   const clientRef = useFreshRef(client);
   const readyRef = useFreshRef(onReady);
@@ -90,6 +138,8 @@ export function useFrameApp({
   const onSignerNotApprovedRef = useFreshRef(onSignerNotApproved);
   const onPrimaryButtonSetRef = useFreshRef(onPrimaryButtonSet);
   const farcasterSignerRef = useFreshRef(farcasterSigner);
+  const onAddFrameRequestedRef = useFreshRef(onAddFrameRequested);
+  const addFrameRequestsCacheRef = useFreshRef(addFrameRequestsCache);
   /**
    * Used to unregister message listener of previously exposed endpoint.
    */
@@ -98,8 +148,20 @@ export function useFrameApp({
       // no-op
     });
 
+  const logDebugRef = useFreshRef(
+    debug
+      ? // eslint-disable-next-line no-console -- provide feedback to the developer
+        console.debug
+      : () => {
+          // no-op
+        }
+  );
+
   const registerEndpoint = useCallback<RegisterEndpointFunction>(
     (endpoint) => {
+      logDebugRef.current(
+        "@frames.js/render/unstable-use-frame-app: registering endpoint"
+      );
       unregisterPreviouslyExposedEndpointListenerRef.current();
 
       const signer = farcasterSignerRef.current.signer;
@@ -112,76 +174,157 @@ export function useFrameApp({
         };
       }
 
+      const frameUrl = frame.frame.button?.action?.url;
+
+      if (!frameUrl) {
+        // eslint-disable-next-line no-console -- provide feedback to the developer
+        console.error(
+          '@frames.js/render/unstable-use-frame-app: provided "frame" does not have an action url'
+        );
+        return () => {
+          // no-op
+        };
+      }
+
+      // omit ethProviderRequestV2 from the API because otherwise the @farcaster/frame-sdk will not work properly
+      // they handle the missing function so no worries leaving it out
+      const apiToExpose: Omit<FrameHost, "ethProviderRequestV2"> = {
+        close() {
+          logDebugRef.current(
+            '@frames.js/render/unstable-use-frame-app: "close" called'
+          );
+          const handler = closeRef.current;
+
+          if (!handler) {
+            // eslint-disable-next-line no-console -- provide feedback to the developer
+            console.warn(
+              '@frames.js/render/unstable-use-frame-app: "close" called but no handler provided'
+            );
+          } else {
+            handler();
+          }
+        },
+        get context() {
+          logDebugRef.current(
+            '@frames.js/render/unstable-use-frame-app: "context" getter called'
+          );
+          return { user: { fid: signer.fid } };
+        },
+        openUrl(url) {
+          logDebugRef.current(
+            '@frames.js/render/unstable-use-frame-app: "openUrl" called',
+            url
+          );
+          const handler = onOpenUrlRef.current;
+
+          if (!handler) {
+            // eslint-disable-next-line no-console -- provide feedback to the developer
+            console.warn(
+              '@frames.js/render/unstable-use-frame-app: "openUrl" called but no handler provided'
+            );
+          } else {
+            handler(url);
+          }
+        },
+        ready() {
+          logDebugRef.current(
+            '@frames.js/render/unstable-use-frame-app: "ready" called'
+          );
+          const handler = readyRef.current;
+
+          if (!handler) {
+            // eslint-disable-next-line no-console -- provide feedback to the developer
+            console.warn(
+              '@frames.js/render/unstable-use-frame-app: "ready" called but no handler provided'
+            );
+          } else {
+            handler();
+          }
+        },
+        setPrimaryButton(options) {
+          logDebugRef.current(
+            '@frames.js/render/unstable-use-frame-app: "setPrimaryButton" called',
+            options
+          );
+          const handler = onPrimaryButtonSetRef.current;
+
+          if (!handler) {
+            // eslint-disable-next-line no-console -- provide feedback to the developer
+            console.warn(
+              '@frames.js/render/unstable-use-frame-app: "setPrimaryButton" called but no handler provided'
+            );
+          } else {
+            handler(options, () => {
+              logDebugRef.current(
+                '@frames.js/render/unstable-use-frame-app: "primaryButtonClicked" called'
+              );
+              endpoint.postMessage({ type: "primaryButtonClicked" });
+            });
+          }
+        },
+        ethProviderRequest(...args) {
+          if (!clientRef.current.data) {
+            throw new Error("client is not ready");
+          }
+
+          // @ts-expect-error -- type mismatch
+          return clientRef.current.data.request(...args);
+        },
+        async addFrame() {
+          if (
+            frame.status !== "success" ||
+            frame.manifest?.status !== "success"
+          ) {
+            return {
+              added: false,
+              reason: "invalid-domain-manifest",
+            };
+          }
+
+          if (
+            addFrameRequestsCacheRef.current.has(frame.frame.button.action.url)
+          ) {
+            return {
+              added: false,
+              reason: "rejected-by-user",
+            };
+          }
+
+          const added = await onAddFrameRequestedRef.current(frame);
+
+          addFrameRequestsCacheRef.current.add(frame.frame.button.action.url);
+
+          if (!added) {
+            return {
+              added: false,
+              reason: "rejected-by-user",
+            };
+          }
+
+          return added;
+        },
+      };
+
       unregisterPreviouslyExposedEndpointListenerRef.current = expose(
-        {
-          close() {
-            const handler = closeRef.current;
-
-            if (!handler) {
-              // eslint-disable-next-line no-console -- provide feedback to the developer
-              console.warn(
-                '@frames.js/render/unstable-use-frame-app: "close" called but no handler provided'
-              );
-            } else {
-              handler();
-            }
-          },
-          get context() {
-            return { user: { fid: signer.fid } };
-          },
-          openUrl(url) {
-            const handler = onOpenUrlRef.current;
-
-            if (!handler) {
-              // eslint-disable-next-line no-console -- provide feedback to the developer
-              console.warn(
-                '@frames.js/render/unstable-use-frame-app: "openUrl" called but no handler provided'
-              );
-            } else {
-              handler(url);
-            }
-          },
-          ready() {
-            const handler = readyRef.current;
-
-            if (!handler) {
-              // eslint-disable-next-line no-console -- provide feedback to the developer
-              console.warn(
-                '@frames.js/render/unstable-use-frame-app: "ready" called but no handler provided'
-              );
-            } else {
-              handler();
-            }
-          },
-          setPrimaryButton(options) {
-            const handler = onPrimaryButtonSetRef.current;
-
-            if (!handler) {
-              // eslint-disable-next-line no-console -- provide feedback to the developer
-              console.warn(
-                '@frames.js/render/unstable-use-frame-app: "setPrimaryButton" called but no handler provided'
-              );
-            } else {
-              handler(options);
-            }
-          },
-          // @ts-expect-error -- types are mismatched
-          async ethProviderRequest(...args) {
-            // @ts-expect-error -- types are mismatched
-            return clientRef.current.data?.request(...args);
-          },
-        } satisfies FrameHost,
+        apiToExpose,
         endpoint,
-        [new URL(frame.button.action.url).origin]
+        [new URL(frameUrl).origin]
+      );
+
+      logDebugRef.current(
+        "@frames.js/render/unstable-use-frame-app: endpoint registered"
       );
 
       return unregisterPreviouslyExposedEndpointListenerRef.current;
     },
     [
+      addFrameRequestsCacheRef,
       clientRef,
       closeRef,
       farcasterSignerRef,
-      frame.button.action.url,
+      frame,
+      logDebugRef,
+      onAddFrameRequestedRef,
       onOpenUrlRef,
       onPrimaryButtonSetRef,
       onSignerNotApprovedRef,
@@ -196,6 +339,7 @@ export function useFrameApp({
 
 type UseFrameAppInIframeReturn = {
   onLoad: (event: React.SyntheticEvent<HTMLIFrameElement>) => void;
+  src: string | undefined;
 };
 
 /**
@@ -214,7 +358,7 @@ type UseFrameAppInIframeReturn = {
  *  const farcasterSigner = useFarcasterSigner({
  *    // ...
  *  });
- *  const frameApp = useFrameAppInIframe({
+ *  const frameAppProps = useFrameAppInIframe({
  *    walletClient,
  *    farcasterSigner,
  *    // frame returned by useFrame() hook
@@ -222,7 +366,7 @@ type UseFrameAppInIframeReturn = {
  *    // ... handlers for frame app actions
  *  });
  *
- *  return <iframe ref={frameApp.ref} />;
+ *  return <iframe {...frameAppProps} />;
  * }
  * ```
  */
@@ -234,15 +378,31 @@ export function useFrameAppInIframe(
     // no-op
   });
 
+  const logDebugRef = useFreshRef(
+    options.debug
+      ? // eslint-disable-next-line no-console -- provide feedback to the developer
+        console.debug
+      : () => {
+          // no-op
+        }
+  );
+
   useEffect(() => {
+    const logDebug = logDebugRef.current;
+
     return () => {
+      logDebug("@frames.js/render/unstable-use-frame-app: unmounted");
       unregisterEndpointRef.current();
     };
-  }, []);
+  }, [logDebugRef]);
 
   return useMemo(() => {
     return {
       onLoad(event) {
+        logDebugRef.current(
+          "@frames.js/render/unstable-use-frame-app: iframe loaded"
+        );
+
         if (!(event.currentTarget instanceof HTMLIFrameElement)) {
           // eslint-disable-next-line no-console -- provide feedback to the developer
           console.error(
@@ -259,6 +419,247 @@ export function useFrameAppInIframe(
 
         unregisterEndpointRef.current = frameApp.registerEndpoint(endpoint);
       },
+      src: options.frame.frame.button?.action?.url,
     };
-  }, [frameApp]);
+  }, [frameApp, logDebugRef, options.frame]);
+}
+
+type ReactNativeMessageEvent = {
+  origin: string;
+  data: Record<string, any>;
+};
+
+type MessageEventListener = (event: ReactNativeMessageEvent) => void;
+
+type UseFrameAppInWebViewReturn = {
+  source: WebViewProps["source"];
+  onMessage: NonNullable<WebViewProps["onMessage"]>;
+  injectedJavaScriptBeforeContentLoaded: NonNullable<
+    WebViewProps["injectedJavaScriptBeforeContentLoaded"]
+  >;
+  ref: LegacyRef<WebView>;
+};
+
+const webViewEventParser = z.record(z.any());
+
+/**
+ * useFrameApp() hook for react-native-webview handling
+ *
+ * On unmount it automatically unregisters the endpoint listener.
+ *
+ * @example
+ * ```
+ * import { useFrameAppInWebView } from '@frames.js/render/unstable-use-frame-app';
+ * import { useWalletClient } from 'wagmi';
+ * import { useFarcasterSigner } from '@frames.js/render/identity/farcaster';
+ *
+ * function MyAppDialog() {
+ *   const frameAppProps = useFrameAppInWebView({
+ *    walletClient,
+ *   farcasterSigner,
+ *   // frame returned by useFrame() hook
+ *   frame: frameState.frame,
+ *   // ... handlers for frame app actions
+ *  });
+ *
+ *  return <WebView {...frameAppProps }/>;
+ * }
+ * ```
+ */
+export function useFrameAppInWebView(
+  options: UseFrameAppOptions
+): UseFrameAppInWebViewReturn {
+  const ref = useRef<WebView | null>(null);
+  const frameApp = useFrameApp(options);
+  const unregisterEndpointRef = useRef<UnregisterEndpointFunction>(() => {
+    // no-op
+  });
+  const messageListenersRef = useRef<Set<MessageEventListener> | null>(null);
+
+  if (messageListenersRef.current === null) {
+    messageListenersRef.current = new Set();
+  }
+
+  const logDebugRef = useFreshRef(
+    options.debug
+      ? // eslint-disable-next-line no-console -- provide feedback to the developer
+        console.debug
+      : () => {
+          // noop
+        }
+  );
+
+  useEffect(() => {
+    const logDebug = logDebugRef.current;
+
+    return () => {
+      logDebug("@frames.js/render/unstable-use-frame-app: unmounted");
+
+      unregisterEndpointRef.current();
+      messageListenersRef.current?.clear();
+    };
+  }, [logDebugRef]);
+
+  const frameUrl = options.frame.frame.button?.action?.url;
+
+  return {
+    source: frameUrl ? { uri: frameUrl } : undefined,
+    onMessage(event) {
+      logDebugRef.current(
+        "@frames.js/render/unstable-use-frame-app: received an event",
+        event.nativeEvent.data
+      );
+
+      try {
+        const result = z
+          .preprocess((value) => {
+            return typeof value === "string" ? JSON.parse(value) : value;
+          }, webViewEventParser)
+          .safeParse(event.nativeEvent.data);
+
+        if (!result.success) {
+          logDebugRef.current(
+            "@frames.js/render/unstable-use-frame-app: received event parsing error",
+            result.error
+          );
+          return;
+        }
+
+        const messageEvent = {
+          origin: new URL(event.nativeEvent.url).origin,
+          data: result.data,
+        };
+
+        logDebugRef.current(
+          "@frames.js/render/unstable-use-frame-app: received message from web view",
+          messageEvent
+        );
+
+        messageListenersRef.current?.forEach((listener) => {
+          listener(messageEvent);
+        });
+      } catch (error) {
+        logDebugRef.current(
+          "@frames.js/render/unstable-use-frame-app: event receiving error",
+          error
+        );
+      }
+    },
+    // inject js code which handles message parsing between the frame app and the application.
+    // react native web view is able to send only string messages so we need to serialize/deserialize them
+    injectedJavaScriptBeforeContentLoaded: createMessageBridgeScript(
+      options.debug ?? false
+    ),
+    ref(webView) {
+      ref.current = webView;
+
+      if (!webView) {
+        return;
+      }
+
+      unregisterEndpointRef.current = frameApp.registerEndpoint({
+        postMessage(message) {
+          logDebugRef.current(
+            "@frames.js/render/unstable-use-frame-app: sent message to web view",
+            message
+          );
+
+          webView.postMessage(JSON.stringify(message));
+        },
+        addEventListener(type, listener) {
+          if (type !== "message") {
+            throw new Error("Invalid event");
+          }
+
+          if (typeof listener === "function") {
+            messageListenersRef.current?.add(
+              listener as unknown as MessageEventListener
+            );
+
+            logDebugRef.current(
+              "@frames.js/render/unstable-use-frame-app: registered an event listener",
+              listener
+            );
+          } else {
+            throw new Error('Invalid listener, expected "function"');
+          }
+        },
+        removeEventListener(type, listener) {
+          if (type !== "message") {
+            throw new Error("Invalid event");
+          }
+
+          if (typeof listener === "function") {
+            messageListenersRef.current?.delete(
+              listener as unknown as MessageEventListener
+            );
+
+            logDebugRef.current(
+              "@frames.js/render/unstable-use-frame-app: removed an event listener",
+              listener
+            );
+          } else {
+            throw new Error('Invalid listener, expected "function"');
+          }
+        },
+      });
+
+      logDebugRef.current(
+        "@frames.js/render/unstable-use-frame-app: registered web view endpoint"
+      );
+    },
+  };
+}
+
+function createMessageBridgeScript(enableDebug: boolean): string {
+  return /* javascript */ `
+window.addEventListener("message", function $$handleMessageFromParentApplication(event) {
+  // if event doesn't have a source then it means that it is coming from the parent application
+  if (event.source !== window.parent) {
+    try {
+      if (${enableDebug.toString()}) {
+        console.debug('@frames.js/render/unstable-use-frame-app: received message from parent application', event.data);
+      }
+      const data = JSON.parse(event.data);
+
+      if (typeof data !== 'object' || data === null) {
+        if (${enableDebug.toString()}) {
+          console.debug('@frames.js/render/unstable-use-frame-app: received message parsing error: malformed data');
+        }
+        return;
+      }
+
+      if ('type' in data && data.type === 'primaryButtonClicked') {
+        // dispatch the event to document so it can be picked up by @farcaster/frame-sdk
+        document.dispatchEvent(new MessageEvent('FarcasterFrameEvent', {
+          data: data,
+          origin: window.location.origin,
+          source: window.parent,
+        }));
+
+        if (${enableDebug.toString()}) {
+          console.debug('@frames.js/render/unstable-use-frame-app: dispatched FarcasterFrameEvent message to window', data);
+        }
+      } else {
+        // dispatch the event to document so it can be picked up by @farcaster/frame-sdk
+        document.dispatchEvent(new MessageEvent('FarcasterFrameCallback', {
+          data: data,
+          origin: window.location.origin,
+          source: window.parent,
+        }));
+
+        if (${enableDebug.toString()}) {
+          console.debug('@frames.js/render/unstable-use-frame-app: dispatched FarcasterFrameCallback message to window', data);
+        }
+      }
+    } catch (error) {
+      if (${enableDebug.toString()}) {
+        console.debug('@frames.js/render/unstable-use-frame-app: received message error', error);
+      }
+    }
+  }
+});
+
+true;
+`.trim();
 }
