@@ -1,5 +1,9 @@
 import type { Frame, FrameButton, FrameV2 } from "frames.js";
 import type { createElement, ReactElement } from "react";
+import type {
+  ParseFramesV2SuccessResultWithFrameworkDetails,
+  ParseFramesV2FailureResultWithFrameworkDetails,
+} from "frames.js/frame-parsers";
 import type { FrameState } from "../types";
 import type { PartialFrameV2, UseFrameReturnValue } from "../unstable-types";
 
@@ -57,6 +61,7 @@ export type FrameUIStatePartialFramesV2 = {
   frame: PartialFrameV2;
   specification: "farcaster_v2";
   frameState: FrameState | UseFrameReturnValue;
+  parseResult: ParseFramesV2FailureResultWithFrameworkDetails;
   debugImage?: string;
   isImageLoading: boolean;
 };
@@ -76,6 +81,7 @@ export type FrameUIStateCompleteFramesV2 = {
   specification: "farcaster_v2";
   frame: FrameV2;
   frameState: FrameState | UseFrameReturnValue;
+  parseResult: ParseFramesV2SuccessResultWithFrameworkDetails;
   debugImage?: string;
   isImageLoading: boolean;
 };

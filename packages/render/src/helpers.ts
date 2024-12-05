@@ -1,6 +1,7 @@
 import type {
   ParseFramesWithReportsResult,
   ParseResult,
+  ParseResultFramesV1Failure,
 } from "frames.js/frame-parsers";
 import type {
   CastActionFrameResponse,
@@ -59,7 +60,7 @@ export function isParseResult(value: unknown): value is ParseResult {
 }
 
 export type ParseResultWithPartialFrame = Omit<
-  Exclude<ParseResult, { status: "success" }>,
+  ParseResultFramesV1Failure,
   "frame"
 > & {
   frame: PartialFrame;

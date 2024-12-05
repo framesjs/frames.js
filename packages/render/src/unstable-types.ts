@@ -12,6 +12,8 @@ import type {
   ParseFramesWithReportsResult,
   ParseResultWithFrameworkDetails,
   ParseFramesV2ResultWithFrameworkDetails,
+  ParseResultFramesV2Success,
+  ParseResultFramesV2Failure,
 } from "frames.js/frame-parsers";
 import type { Dispatch } from "react";
 import type {
@@ -89,25 +91,17 @@ export type LaunchFrameButtonPressEvent =
   | {
       status: "complete";
       frame: FrameV2;
+      parseResult: ParseResultFramesV2Success;
     }
   | {
       status: "partial";
       frame: PartialFrameV2;
+      parseResult: ParseResultFramesV2Failure;
     };
 
 export type LaunchFrameButtonPressFunction = (
   event: LaunchFrameButtonPressEvent
 ) => void;
-
-export type LaunchFrameOpenedEvent =
-  | {
-      status: "complete";
-      frame: FrameV2;
-    }
-  | {
-      status: "partial";
-      frame: PartialFrameV2;
-    };
 
 export type FrameCloseFunction = () => void;
 

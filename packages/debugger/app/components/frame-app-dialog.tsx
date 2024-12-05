@@ -5,12 +5,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import {
   useFrameAppInIframe,
   type FramePrimaryButton,
 } from "@frames.js/render/unstable-use-frame-app";
-import type { LaunchFrameOpenedEvent } from "@frames.js/render/unstable-types";
+import type { LaunchFrameButtonPressEvent } from "@frames.js/render/unstable-types";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import type { FarcasterMultiSignerInstance } from "@frames.js/render/identity/farcaster";
@@ -21,7 +21,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 type FrameAppDialogProps = {
   farcasterSigner: FarcasterMultiSignerInstance;
-  frameState: Extract<LaunchFrameOpenedEvent, { status: "complete" }>;
+  frameState: Extract<LaunchFrameButtonPressEvent, { status: "complete" }>;
   onClose: () => void;
 };
 
@@ -42,7 +42,7 @@ export function FrameAppDialog({
   const frameApp = useFrameAppInIframe({
     walletClient,
     farcasterSigner,
-    frame: frameState.frame,
+    frame: frameState.parseResult,
     onReady() {
       setIsReady(true);
     },

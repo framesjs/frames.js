@@ -53,65 +53,77 @@ export type ParsingReport = {
   level: ParsingReportLevel;
 };
 
+export type ParseResultFramesV1Success = {
+  status: "success";
+  frame: Frame;
+  /**
+   * Reports contain only warnings that should not have any impact on the frame's functionality.
+   */
+  reports: Record<string, ParsingReport[]>;
+  specification: "farcaster" | "openframes";
+};
+
+export type ParseResultFramesV1Failure = {
+  status: "failure";
+  frame: Partial<Frame>;
+  /**
+   * Reports contain warnings and errors that should be addressed before the frame can be used.
+   */
+  reports: Record<string, ParsingReport[]>;
+  specification: "farcaster" | "openframes";
+};
+
 export type ParseResult =
-  | {
-      status: "success";
-      frame: Frame;
-      /**
-       * Reports contain only warnings that should not have any impact on the frame's functionality.
-       */
-      reports: Record<string, ParsingReport[]>;
-      specification: "farcaster" | "openframes";
-    }
-  | {
-      status: "failure";
-      frame: Partial<Frame>;
-      /**
-       * Reports contain warnings and errors that should be addressed before the frame can be used.
-       */
-      reports: Record<string, ParsingReport[]>;
-      specification: "farcaster" | "openframes";
-    };
+  | ParseResultFramesV1Success
+  | ParseResultFramesV1Failure;
+
+export type ParseResultFramesV2FrameManifestSuccess = {
+  status: "success";
+  manifest: FarcasterManifest;
+  reports: Record<string, ParsingReport[]>;
+};
+
+export type ParseResultFramesV2FrameManifestFailure = {
+  status: "failure";
+  manifest: PartialFarcasterManifest;
+  reports: Record<string, ParsingReport[]>;
+};
 
 export type ParseResultFramesV2FrameManifest =
-  | {
-      status: "success";
-      manifest: FarcasterManifest;
-      reports: Record<string, ParsingReport[]>;
-    }
-  | {
-      status: "failure";
-      manifest: PartialFarcasterManifest;
-      reports: Record<string, ParsingReport[]>;
-    };
+  | ParseResultFramesV2FrameManifestSuccess
+  | ParseResultFramesV2FrameManifestFailure;
+
+export type ParseResultFramesV2Success = {
+  status: "success";
+  frame: FrameV2;
+  /**
+   * Reports contain only warnings that should not have any impact on the frame's functionality.
+   */
+  reports: Record<string, ParsingReport[]>;
+  specification: "farcaster_v2";
+  /**
+   * Manifest parsing result, available only if parseManifest option is enabled.
+   */
+  manifest?: ParseResultFramesV2FrameManifest;
+};
+
+export type ParseResultFramesV2Failure = {
+  status: "failure";
+  frame: PartialDeep<FrameV2>;
+  /**
+   * Reports contain warnings and errors that should be addressed before the frame can be used.
+   */
+  reports: Record<string, ParsingReport[]>;
+  specification: "farcaster_v2";
+  /**
+   * Manifest parsing result, available only if parseManifest option is enabled.
+   */
+  manifest?: ParseResultFramesV2FrameManifest;
+};
 
 export type ParseResultFramesV2 =
-  | {
-      status: "success";
-      frame: FrameV2;
-      /**
-       * Reports contain only warnings that should not have any impact on the frame's functionality.
-       */
-      reports: Record<string, ParsingReport[]>;
-      specification: "farcaster_v2";
-      /**
-       * Manifest parsing result, available only if parseManifest option is enabled.
-       */
-      manifest?: ParseResultFramesV2FrameManifest;
-    }
-  | {
-      status: "failure";
-      frame: PartialDeep<FrameV2>;
-      /**
-       * Reports contain warnings and errors that should be addressed before the frame can be used.
-       */
-      reports: Record<string, ParsingReport[]>;
-      specification: "farcaster_v2";
-      /**
-       * Manifest parsing result, available only if parseManifest option is enabled.
-       */
-      manifest?: ParseResultFramesV2FrameManifest;
-    };
+  | ParseResultFramesV2Success
+  | ParseResultFramesV2Failure;
 
 export type ParsedFrameworkDetails = {
   framesVersion?: string;
@@ -123,11 +135,23 @@ export type ParsedFrameworkDetails = {
   };
 };
 
-export type ParseResultWithFrameworkDetails = ParseResult &
-  ParsedFrameworkDetails;
+export type ParseFramesV1SuccessResultWithFrameworkDetails =
+  ParseResultFramesV1Success & ParsedFrameworkDetails;
+export type ParseFramesV1FailureResultWithFrameworkDetails =
+  ParseResultFramesV1Failure & ParsedFrameworkDetails;
 
-export type ParseFramesV2ResultWithFrameworkDetails = ParseResultFramesV2 &
-  ParsedFrameworkDetails;
+export type ParseResultWithFrameworkDetails =
+  | ParseFramesV1SuccessResultWithFrameworkDetails
+  | ParseFramesV1FailureResultWithFrameworkDetails;
+
+export type ParseFramesV2SuccessResultWithFrameworkDetails =
+  ParseResultFramesV2Success & ParsedFrameworkDetails;
+export type ParseFramesV2FailureResultWithFrameworkDetails =
+  ParseResultFramesV2Failure & ParsedFrameworkDetails;
+
+export type ParseFramesV2ResultWithFrameworkDetails =
+  | ParseFramesV2SuccessResultWithFrameworkDetails
+  | ParseFramesV2FailureResultWithFrameworkDetails;
 
 export type ParseFramesWithReportsResult = {
   farcaster: ParseResultWithFrameworkDetails;

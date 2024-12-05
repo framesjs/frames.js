@@ -221,6 +221,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
             isImageLoading,
             id: currentFrameStackItem.id,
             frameState,
+            parseResult: currentFrameStackItem.frameResult,
           };
         } else {
           frameUiState = {
@@ -251,6 +252,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
             isImageLoading,
             id: currentFrameStackItem.id,
             frameState,
+            parseResult: currentFrameStackItem.frameResult,
           };
         } else {
           frameUiState = {
@@ -313,10 +315,12 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
                   ? {
                       status: "complete",
                       frame: frameUiState.frame,
+                      parseResult: frameUiState.parseResult,
                     }
                   : {
                       status: "partial",
                       frame: frameUiState.frame,
+                      parseResult: frameUiState.parseResult,
                     }
               );
             } catch (e) {

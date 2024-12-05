@@ -45,7 +45,7 @@ import { useLensIdentity } from "@frames.js/render/identity/lens";
 import { useAnonymousIdentity } from "@frames.js/render/identity/anonymous";
 import type { ParseFramesWithReportsResult } from "frames.js/frame-parsers";
 import { useFrameContext } from "../providers/FrameContextProvider";
-import { LaunchFrameOpenedEvent } from "@frames.js/render/unstable-types";
+import type { LaunchFrameButtonPressEvent } from "@frames.js/render/unstable-types";
 import { FrameAppDialog } from "./frame-app-dialog";
 
 type FrameDebuggerProps = {
@@ -86,7 +86,7 @@ export const FrameDebugger = React.forwardRef<
     const frameContext = useFrameContext();
 
     const [launchedFrame, setLaunchedFrame] = useState<Extract<
-      LaunchFrameOpenedEvent,
+      LaunchFrameButtonPressEvent,
       { status: "complete" }
     > | null>(null);
 
