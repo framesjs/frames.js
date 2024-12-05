@@ -112,7 +112,7 @@ export type FrameImageContainerProps = {
   /**
    * Aspect ratio of current image or previous frame image if frame is loading
    */
-  aspectRatio: "1:1" | "1.91:1";
+  aspectRatio: "1:1" | "1.91:1" | "3:2";
 } & FrameUIStateProps;
 
 export type FrameLoadingScreenProps = FrameUIStateProps & {
@@ -267,12 +267,12 @@ export type FrameImageProps = FrameUIStateProps & {
         /**
          * Default value or aspect ratio from previous frame
          */
-        aspectRatio: "1:1" | "1.91:1";
+        aspectRatio: "1:1" | "1.91:1" | "3:2";
       }
     | {
         status: "frame-loading-complete";
         src: string;
-        aspectRatio: "1:1" | "1.91:1";
+        aspectRatio: "1:1" | "1.91:1" | "3:2";
       }
   );
 

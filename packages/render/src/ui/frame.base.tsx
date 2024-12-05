@@ -391,7 +391,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
             (frameUiState.status === "loading"
               ? previousFrame?.imageAspectRatio
               : "specification" in frameUiState
-                ? "1.91:1"
+                ? "3:2" // frames v2
                 : frameUiState.frame.imageAspectRatio) ?? "1.91:1",
           image: components.Image(
             frameUiState.status === "loading"
@@ -399,7 +399,10 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
                   status: "frame-loading",
                   frameState: frameUiState,
                   onImageLoadEnd,
-                  aspectRatio: previousFrame?.imageAspectRatio ?? "1.91:1",
+                  aspectRatio:
+                    previousFrame?.imageAspectRatio ??
+                    ("specification" in frameUiState ? "3:2" : undefined) ??
+                    "1.91:1",
                 }
               : {
                   status: "frame-loading-complete",
@@ -411,7 +414,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
                       : frameUiState.frame.image),
                   aspectRatio:
                     ("specification" in frameUiState
-                      ? undefined
+                      ? "3:2" // frames v2
                       : frameUiState.frame.imageAspectRatio) ?? "1.91:1",
                   onImageLoadEnd,
                 },
