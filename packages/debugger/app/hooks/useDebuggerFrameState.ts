@@ -6,6 +6,7 @@ import type {
   UseFrameStateOptions,
 } from "@frames.js/render/unstable-types";
 import { useFrameState } from "@frames.js/render/unstable-use-frame-state";
+import type { ParseFramesWithReportsResult } from "frames.js/frame-parsers";
 
 function computeDurationInSeconds(start: Date, end: Date): number {
   return Number(((end.getTime() - start.getTime()) / 1000).toFixed(2));
@@ -34,7 +35,9 @@ export type DebuggerExtraPending = Pick<
   startTime: Date;
 };
 
-export type DebuggerExtraDone = DebuggerSharedResponseExtra;
+export type DebuggerExtraDone = DebuggerSharedResponseExtra & {
+  parseResult: ParseFramesWithReportsResult;
+};
 
 export type DebuggerExtraDoneRedirect = DebuggerSharedResponseExtra;
 
@@ -126,6 +129,7 @@ export function useDebuggerFrameState(
     },
     resolveDoneExtra(arg) {
       return {
+        parseResult: arg.parseResult,
         timestamp: arg.pendingItem.extra.timestamp,
         requestDetails: arg.pendingItem.extra.requestDetails,
         response: arg.response.clone(),

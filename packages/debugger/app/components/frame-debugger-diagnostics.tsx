@@ -4,14 +4,22 @@ import {
   getFrameV2Flattened,
   type ParsingReport,
 } from "frames.js";
-import { AlertTriangleIcon, CheckCircle2Icon, XCircleIcon } from "lucide-react";
+import {
+  AlertTriangleIcon,
+  CheckCircle2Icon,
+  XCircleIcon,
+  AlertTriangle,
+} from "lucide-react";
 import { useMemo } from "react";
 import { ShortenedText } from "./shortened-text";
 import type { DebuggerFrameStackItem } from "../hooks/useDebuggerFrameState";
 import { cn } from "@/lib/utils";
+import type { ProtocolConfiguration } from "./protocol-config-button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 type FrameDebuggerDiagnosticsProps = {
   stackItem: DebuggerFrameStackItem;
+  protocol: ProtocolConfiguration;
 };
 
 function isPropertyExperimental([key, value]: [string, string]) {
@@ -21,6 +29,7 @@ function isPropertyExperimental([key, value]: [string, string]) {
 
 export function FrameDebuggerDiagnostics({
   stackItem,
+  protocol,
 }: FrameDebuggerDiagnosticsProps) {
   const properties = useMemo(() => {
     /** tuple of key and value */
@@ -100,88 +109,156 @@ export function FrameDebuggerDiagnostics({
   }
 
   return (
-    <Table>
-      <TableBody>
-        <TableRow>
-          <TableCell>
-            {stackItem.extra.speed > 5 ? (
-              <XCircleIcon size={20} color="red" />
-            ) : stackItem.extra.speed > 4 ? (
-              <AlertTriangleIcon size={20} color="orange" />
-            ) : (
-              <CheckCircle2Icon size={20} color="green" />
-            )}
-          </TableCell>
-          <TableCell>frame speed</TableCell>
-          <TableCell className="text-slate-500">
-            {stackItem.extra.speed > 5
-              ? `Request took more than 5s (${stackItem.extra.speed} seconds). This may be normal: first request will take longer in development (as next.js builds), but in production, clients will timeout requests after 5s`
-              : stackItem.extra.speed > 4
-                ? `Warning: Request took more than 4s (${stackItem.extra.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
-                : `${stackItem.extra.speed} seconds`}
-          </TableCell>
-        </TableRow>
-        {properties.validProperties.map(([propertyKey, value]) => {
-          return (
-            <TableRow key={`${propertyKey}-valid`}>
-              <TableCell>
-                {isPropertyExperimental([propertyKey, value]) ? (
-                  <span className="whitespace-nowrap flex">
-                    <div className="inline">
-                      <CheckCircle2Icon size={20} color="orange" />
-                    </div>
-                    <div className="inline text-slate-500">*</div>
-                  </span>
-                ) : (
-                  <CheckCircle2Icon size={20} color="green" />
-                )}
-              </TableCell>
-              <TableCell>{propertyKey}</TableCell>
-              <TableCell className="text-slate-500">
-                <ShortenedText text={value} maxLength={30} />
-              </TableCell>
-            </TableRow>
-          );
-        })}
-        {properties.invalidProperties.flatMap(
-          ([propertyKey, errorMessages]) => {
-            return errorMessages.map((errorMessage, i) => {
-              return (
-                <TableRow key={`${propertyKey}-${i}-invalid`}>
-                  <TableCell>
-                    {errorMessage.level === "error" ? (
-                      <XCircleIcon size={20} color="red" />
-                    ) : (
-                      <AlertTriangleIcon size={20} color="orange" />
-                    )}
-                  </TableCell>
-                  <TableCell>{propertyKey}</TableCell>
-                  <TableCell className="text-slate-500">
-                    <p
-                      className={cn(
-                        "font-bold",
-                        errorMessage.level === "error"
-                          ? "text-red-500"
-                          : "text-orange-500"
-                      )}
-                    >
-                      {errorMessage.message}
-                    </p>
-                  </TableCell>
-                </TableRow>
-              );
-            });
-          }
-        )}
-        {properties.hasExperimentalProperties && (
+    <>
+      <TryDifferentFarcasterSpecificationAlert
+        stackItem={stackItem}
+        protocol={protocol}
+      />
+      <Table>
+        <TableBody>
           <TableRow>
-            <TableCell colSpan={3} className="text-slate-500">
-              *This property is experimental and may not have been adopted in
-              clients yet
+            <TableCell>
+              {stackItem.extra.speed > 5 ? (
+                <XCircleIcon size={20} color="red" />
+              ) : stackItem.extra.speed > 4 ? (
+                <AlertTriangleIcon size={20} color="orange" />
+              ) : (
+                <CheckCircle2Icon size={20} color="green" />
+              )}
+            </TableCell>
+            <TableCell>frame speed</TableCell>
+            <TableCell className="text-slate-500">
+              {stackItem.extra.speed > 5
+                ? `Request took more than 5s (${stackItem.extra.speed} seconds). This may be normal: first request will take longer in development (as next.js builds), but in production, clients will timeout requests after 5s`
+                : stackItem.extra.speed > 4
+                  ? `Warning: Request took more than 4s (${stackItem.extra.speed} seconds). Requests will fail at 5s. This may be normal: first request will take longer in development (as next.js builds), but in production, if there's variance here, requests could fail in production if over 5s`
+                  : `${stackItem.extra.speed} seconds`}
             </TableCell>
           </TableRow>
-        )}
-      </TableBody>
-    </Table>
+          {properties.validProperties.map(([propertyKey, value]) => {
+            return (
+              <TableRow key={`${propertyKey}-valid`}>
+                <TableCell>
+                  {isPropertyExperimental([propertyKey, value]) ? (
+                    <span className="whitespace-nowrap flex">
+                      <div className="inline">
+                        <CheckCircle2Icon size={20} color="orange" />
+                      </div>
+                      <div className="inline text-slate-500">*</div>
+                    </span>
+                  ) : (
+                    <CheckCircle2Icon size={20} color="green" />
+                  )}
+                </TableCell>
+                <TableCell>{propertyKey}</TableCell>
+                <TableCell className="text-slate-500">
+                  <ShortenedText text={value} maxLength={30} />
+                </TableCell>
+              </TableRow>
+            );
+          })}
+          {properties.invalidProperties.flatMap(
+            ([propertyKey, errorMessages]) => {
+              return errorMessages.map((errorMessage, i) => {
+                return (
+                  <TableRow key={`${propertyKey}-${i}-invalid`}>
+                    <TableCell>
+                      {errorMessage.level === "error" ? (
+                        <XCircleIcon size={20} color="red" />
+                      ) : (
+                        <AlertTriangleIcon size={20} color="orange" />
+                      )}
+                    </TableCell>
+                    <TableCell>{propertyKey}</TableCell>
+                    <TableCell className="text-slate-500">
+                      <p
+                        className={cn(
+                          "font-bold",
+                          errorMessage.level === "error"
+                            ? "text-red-500"
+                            : "text-orange-500"
+                        )}
+                      >
+                        {errorMessage.message}
+                      </p>
+                    </TableCell>
+                  </TableRow>
+                );
+              });
+            }
+          )}
+          {properties.hasExperimentalProperties && (
+            <TableRow>
+              <TableCell colSpan={3} className="text-slate-500">
+                *This property is experimental and may not have been adopted in
+                clients yet
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </>
   );
+}
+
+type TryDifferentFarcasterSpecificationAlertProps = {
+  stackItem: DebuggerFrameStackItem;
+  protocol: ProtocolConfiguration;
+};
+
+function TryDifferentFarcasterSpecificationAlert({
+  protocol,
+  stackItem,
+}: TryDifferentFarcasterSpecificationAlertProps) {
+  if (protocol.specification === "openframes") {
+    return null;
+  }
+
+  if (stackItem.status !== "done") {
+    return null;
+  }
+
+  if (stackItem.frameResult.specification === "openframes") {
+    return null;
+  }
+
+  if (stackItem.frameResult.specification === "farcaster_v2") {
+    if (
+      stackItem.frameResult.status === "failure" &&
+      stackItem.frameResult.reports["fc:frame"] &&
+      stackItem.extra.parseResult.farcaster.status === "success"
+    ) {
+      return (
+        <Alert className="mb-4" variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Warning!</AlertTitle>
+          <AlertDescription>
+            This frame appears to be Farcaster v1 compatible only. Try parsing
+            it with Farcaster v1 instead.
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    return null;
+  }
+
+  if (
+    stackItem.frameResult.status === "failure" &&
+    stackItem.frameResult.reports["fc:frame"] &&
+    stackItem.extra.parseResult.farcaster_v2.status === "success"
+  ) {
+    return (
+      <Alert className="mb-4" variant="destructive">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle>Warning!</AlertTitle>
+        <AlertDescription>
+          This frame appears to be Farcaster v2 compatible only. Try parsing it
+          with Farcaster v2 instead.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  return null;
 }

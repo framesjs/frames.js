@@ -458,6 +458,7 @@ export const FrameDebugger = React.forwardRef<
                     >
                       <FrameDebuggerDiagnostics
                         stackItem={currentFrameStackItem}
+                        protocol={protocol}
                       />
                     </TabsContent>
                     <TabsContent
