@@ -1,7 +1,7 @@
 import { parseFramesWithReports } from "./parseFramesWithReports";
 
 describe("parseFramesWithReports", () => {
-  it("parses available frames from html string (fallback to farcaster)", () => {
+  it("parses available frames from html string (fallback to farcaster)", async () => {
     const html = `
       <meta name="fc:frame" content="vNext"/>
       <meta name="fc:frame:image" content="http://example.com/image.png"/>
@@ -13,12 +13,13 @@ describe("parseFramesWithReports", () => {
       <title>Test</title>
     `;
 
-    const result = parseFramesWithReports({
+    const result = await parseFramesWithReports({
       html,
       fallbackPostUrl: "https://example.com",
+      frameUrl: "https://example.com/",
     });
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       farcaster: {
         frame: {
           image: "http://example.com/image.png",
@@ -32,6 +33,9 @@ describe("parseFramesWithReports", () => {
         status: "success",
         specification: "farcaster",
         framesVersion: undefined,
+      },
+      farcaster_v2: {
+        status: "failure",
       },
       openframes: {
         frame: {
@@ -51,7 +55,7 @@ describe("parseFramesWithReports", () => {
     });
   });
 
-  it("parses available frames from html string", () => {
+  it("parses available frames from html string", async () => {
     const html = `
       <meta name="fc:frame" content="vNext"/>
       <meta name="fc:frame:image" content="http://example.com/image.png"/>
@@ -66,12 +70,13 @@ describe("parseFramesWithReports", () => {
       <title>Test</title>
     `;
 
-    const result = parseFramesWithReports({
+    const result = await parseFramesWithReports({
       html,
       fallbackPostUrl: "https://example.com",
+      frameUrl: "https://example.com/",
     });
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       farcaster: {
         frame: {
           image: "http://example.com/image.png",
@@ -85,6 +90,9 @@ describe("parseFramesWithReports", () => {
         specification: "farcaster",
         framesVersion: undefined,
         status: "success",
+      },
+      farcaster_v2: {
+        status: "failure",
       },
       openframes: {
         frame: {

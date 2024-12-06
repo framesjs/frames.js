@@ -1,6 +1,8 @@
 import type { FarcasterFrameContext } from "../../farcaster/types";
 import { createFrameContextHook } from "../create-frame-context-hook";
 
+export type { FarcasterFrameContext };
+
 export const useFarcasterFrameContext =
   createFrameContextHook<FarcasterFrameContext>({
     storageKey: "farcasterFrameContext",

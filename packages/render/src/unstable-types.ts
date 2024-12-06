@@ -1,14 +1,19 @@
 import type {
   FrameButtonLink,
   FrameButtonTx,
+  FrameV2,
   SupportedParsingSpecification,
   TransactionTargetResponse,
   TransactionTargetResponseSendTransaction,
   TransactionTargetResponseSignTypedDataV4,
 } from "frames.js";
 import type {
+  ParsedFrameV2,
   ParseFramesWithReportsResult,
   ParseResultWithFrameworkDetails,
+  ParseFramesV2ResultWithFrameworkDetails,
+  ParseResultFramesV2Success,
+  ParseResultFramesV2Failure,
 } from "frames.js/frame-parsers";
 import type { Dispatch } from "react";
 import type {
@@ -40,6 +45,18 @@ export type ResolvedSigner = {
   frameContext?: FrameContext;
 };
 
+export type OnTransactionFunction = OnTransactionFunc;
+
+export type OnSignatureFunction = OnSignatureFunc;
+
+export type OnMintFunction = (t: OnMintArgs) => void;
+
+export type OnErrorFunction = (error: Error) => void;
+
+export type OnLinkButtonClickFunction = (button: FrameButtonLink) => void;
+
+export type OnRedirectFunction = (location: URL) => void;
+
 export type ResolveSignerFunctionArg = {
   parseResult: ParseFramesWithReportsResult;
 };
@@ -49,6 +66,44 @@ export type ResolveSignerFunction = (
 ) => ResolvedSigner;
 
 export type ResolveAddressFunction = () => Promise<`0x${string}` | null>;
+
+/**
+ * If partial frame rendering is enabled this is the shape of the frame
+ */
+export type PartialFrameV2 = Omit<ParsedFrameV2, "imageUrl" | "button"> & {
+  imageUrl: NonNullable<ParsedFrameV2["imageUrl"]>;
+  button: Omit<NonNullable<ParsedFrameV2["button"]>, "action" | "title"> & {
+    action: Omit<
+      NonNullable<NonNullable<ParsedFrameV2["button"]>["action"]>,
+      "url" | "title"
+    > & {
+      url: NonNullable<
+        NonNullable<NonNullable<ParsedFrameV2["button"]>["action"]>["url"]
+      >;
+    };
+    title: NonNullable<
+      NonNullable<NonNullable<ParsedFrameV2["button"]>["title"]>
+    >;
+  };
+};
+
+export type LaunchFrameButtonPressEvent =
+  | {
+      status: "complete";
+      frame: FrameV2;
+      parseResult: ParseResultFramesV2Success;
+    }
+  | {
+      status: "partial";
+      frame: PartialFrameV2;
+      parseResult: ParseResultFramesV2Failure;
+    };
+
+export type LaunchFrameButtonPressFunction = (
+  event: LaunchFrameButtonPressEvent
+) => void;
+
+export type FrameCloseFunction = () => void;
 
 export type UseFrameOptions<
   TExtraDataPending = unknown,
@@ -112,13 +167,13 @@ export type UseFrameOptions<
    */
   resolveAddress: ResolveAddressFunction;
   /** a function to handle mint buttons */
-  onMint?: (t: OnMintArgs) => void;
+  onMint?: OnMintFunction;
   /** a function to handle transaction buttons that returned transaction data from the target, returns the transaction hash or null */
-  onTransaction?: OnTransactionFunc;
+  onTransaction?: OnTransactionFunction;
   /** Transaction data suffix */
   transactionDataSuffix?: `0x${string}`;
   /** A function to handle transaction buttons that returned signature data from the target, returns signature hash or null */
-  onSignature?: OnSignatureFunc;
+  onSignature?: OnSignatureFunction;
   /**
    * Extra data appended to the frame action payload
    */
@@ -126,11 +181,23 @@ export type UseFrameOptions<
   /**
    * This function can be used to customize how error is reported to the user.
    */
-  onError?: (error: Error) => void;
+  onError?: OnErrorFunction;
   /**
    * This function can be used to customize how the link button click is handled.
    */
-  onLinkButtonClick?: (button: FrameButtonLink) => void;
+  onLinkButtonClick?: OnLinkButtonClickFunction;
+  /**
+   * This function is called when opening a Frames v2 app is requested
+   *
+   * Only for frames v2
+   */
+  onLaunchFrameButtonPressed?: LaunchFrameButtonPressFunction;
+  /**
+   * This function is called when lauched frame is closed.
+   *
+   * Only for frames v2
+   */
+  onLaunchedFrameClosed?: FrameCloseFunction;
 } & Partial<
   Pick<
     UseFetchFrameOptions,
@@ -179,7 +246,9 @@ export type FrameStackPending<TExtra = unknown> =
 
 export type FrameStackDone<TExtra = unknown> = FrameStackBase & {
   request: FrameRequest;
-  frameResult: ParseResultWithFrameworkDetails;
+  frameResult:
+    | ParseResultWithFrameworkDetails
+    | ParseFramesV2ResultWithFrameworkDetails;
   status: "done";
   extra: TExtra;
 };
@@ -246,7 +315,15 @@ export type UseFrameReturnValue<
     >
   >;
   /** The frame at the top of the stack (at index 0) */
-  readonly currentFrameStackItem: FramesStackItem | undefined;
+  readonly currentFrameStackItem:
+    | FramesStackItem<
+        TExtraDataPending,
+        TExtraDataDone,
+        TExtraDataDoneRedirect,
+        TExtraDataRequestError,
+        TExtraDataMesssage
+      >
+    | undefined;
   /** A stack of frames with additional context, with the most recent frame at index 0 */
   readonly framesStack: FramesStack<
     TExtraDataPending,
@@ -258,6 +335,18 @@ export type UseFrameReturnValue<
   readonly inputText: string;
   setInputText: (s: string) => void;
   onButtonPress: ButtonPressFunction<SignerStateActionContext<any, any>>;
+  /**
+   * Called by UI when the launch frame button is pressed.
+   *
+   * Only for frames v2
+   */
+  onLaunchFrameButtonPress: LaunchFrameButtonPressFunction;
+  /**
+   * Called by UI when the launched frame is closed.
+   *
+   * Only for frames v2
+   */
+  onLaunchedFrameClose: FrameCloseFunction;
   readonly homeframeUrl: string | null | undefined;
   /**
    * Resets the frame state to initial frame and resolves specification and signer again
@@ -322,6 +411,73 @@ export type FrameReducerActions<
       extra: TExtraDone;
     };
 
+export type OnTransactionDataStartEvent = {
+  button: FrameButtonTx;
+};
+
+export type OnTransactionDataStartFunction = (
+  event: OnTransactionDataStartEvent
+) => void;
+
+type OnTransactionDataSuccessEvent = {
+  button: FrameButtonTx;
+  data: TransactionTargetResponse;
+};
+
+export type OnTransactionDataSuccessFunction = (
+  event: OnTransactionDataSuccessEvent
+) => void;
+
+export type OnTransactionStartEvent = {
+  button: FrameButtonTx;
+  data: TransactionTargetResponseSendTransaction;
+};
+
+export type OnTransactionStartFunction = (
+  event: OnTransactionStartEvent
+) => void;
+
+export type OnTransactionSuccessEvent = {
+  button: FrameButtonTx;
+};
+
+export type OnTransactionSuccessFunction = (
+  event: OnTransactionSuccessEvent
+) => void;
+
+export type OnSignatureStartEvent = {
+  button: FrameButtonTx;
+  data: TransactionTargetResponseSignTypedDataV4;
+};
+
+export type OnSignatureStartFunction = (event: OnSignatureStartEvent) => void;
+
+export type OnSignatureSuccessEvent = {
+  button: FrameButtonTx;
+};
+
+export type OnSignatureSuccessFunction = (
+  event: OnSignatureSuccessEvent
+) => void;
+
+type OnTransactionProcessingStartEvent = {
+  button: FrameButtonTx;
+  transactionId: `0x${string}`;
+};
+
+export type OnTransactionProcessingStartFunction = (
+  event: OnTransactionProcessingStartEvent
+) => void;
+
+type OnTransactionProcessingSuccessEvent = {
+  button: FrameButtonTx;
+  transactionId: `0x${string}`;
+};
+
+export type OnTransactionProcessingSuccessFunction = (
+  event: OnTransactionProcessingSuccessEvent
+) => void;
+
 export type UseFetchFrameOptions<
   TExtraPending = unknown,
   TExtraDone = unknown,
@@ -352,16 +508,16 @@ export type UseFetchFrameOptions<
   /**
    * Called after transaction data has been returned from the server and user needs to approve the transaction.
    */
-  onTransaction: OnTransactionFunc;
+  onTransaction: OnTransactionFunction;
   /** Transaction data suffix */
   transactionDataSuffix?: `0x${string}`;
-  onSignature: OnSignatureFunc;
+  onSignature: OnSignatureFunction;
   /**
    * This function can be used to customize how error is reported to the user.
    *
    * Should be memoized
    */
-  onError?: (error: Error) => void;
+  onError?: OnErrorFunction;
   /**
    * Custom fetch compatible function used to make requests.
    *
@@ -371,73 +527,58 @@ export type UseFetchFrameOptions<
   /**
    * This function is called when the frame returns a redirect in response to post_redirect button click.
    */
-  onRedirect: (location: URL) => void;
+  onRedirect: OnRedirectFunction;
   /**
    * Called when user presses the tx button just before the action is signed and sent to the server
    * to obtain the transaction data.
    */
-  onTransactionDataStart?: (event: { button: FrameButtonTx }) => void;
+  onTransactionDataStart?: OnTransactionDataStartFunction;
   /**
    * Called when transaction data has been successfully returned from the server.
    */
-  onTransactionDataSuccess?: (event: {
-    button: FrameButtonTx;
-    data: TransactionTargetResponse;
-  }) => void;
+  onTransactionDataSuccess?: OnTransactionDataSuccessFunction;
   /**
    * Called when anything failed between onTransactionDataStart and obtaining the transaction data.
    */
-  onTransactionDataError?: (error: Error) => void;
+  onTransactionDataError?: OnErrorFunction;
   /**
    * Called before onTransaction() is called
    * Called after onTransactionDataSuccess() is called
    */
-  onTransactionStart?: (event: {
-    button: FrameButtonTx;
-    data: TransactionTargetResponseSendTransaction;
-  }) => void;
+  onTransactionStart?: OnTransactionStartFunction;
   /**
    * Called when onTransaction() returns a transaction id
    */
-  onTransactionSuccess?: (event: { button: FrameButtonTx }) => void;
+  onTransactionSuccess?: OnTransactionSuccessFunction;
   /**
    * Called when onTransaction() fails to return a transaction id
    */
-  onTransactionError?: (error: Error) => void;
+  onTransactionError?: OnErrorFunction;
   /**
    * Called before onSignature() is called
    * Called after onTransactionDataSuccess() is called
    */
-  onSignatureStart?: (event: {
-    button: FrameButtonTx;
-    data: TransactionTargetResponseSignTypedDataV4;
-  }) => void;
+  onSignatureStart?: OnSignatureStartFunction;
   /**
    * Called when onSignature() returns a transaction id
    */
-  onSignatureSuccess?: (event: { button: FrameButtonTx }) => void;
+  onSignatureSuccess?: OnSignatureSuccessFunction;
   /**
    * Called when onSignature() fails to return a transaction id
    */
-  onSignatureError?: (error: Error) => void;
+  onSignatureError?: OnErrorFunction;
   /**
    * Called after either onSignatureSuccess() or onTransactionSuccess() is called just before the transaction is sent to the server.
    */
-  onTransactionProcessingStart?: (event: {
-    button: FrameButtonTx;
-    transactionId: `0x${string}`;
-  }) => void;
+  onTransactionProcessingStart?: OnTransactionProcessingStartFunction;
   /**
    * Called after the transaction has been successfully sent to the server and returned a success response.
    */
-  onTransactionProcessingSuccess?: (event: {
-    button: FrameButtonTx;
-    transactionId: `0x${string}`;
-  }) => void;
+  onTransactionProcessingSuccess?: OnTransactionProcessingSuccessFunction;
   /**
    * Called when the transaction has been sent to the server but the server returned an error.
    */
-  onTransactionProcessingError?: (error: Error) => void;
+  onTransactionProcessingError?: OnErrorFunction;
 };
 
 export type FetchFrameFunction = (
@@ -659,7 +800,7 @@ export type SignerComposerActionResult = {
     messageHash: `0x${string}`;
     timestamp: number;
     network: number;
-    buttonIndex: 1;
+    buttonIndex: number;
     state: string;
   };
   trustedData: {
@@ -670,7 +811,44 @@ export type SignerComposerActionResult = {
 /**
  * Used to sign composer action
  */
-export type SignComposerActionFunc = (
+export type SignComposerActionFunction = (
   signerPrivateKey: string,
   actionContext: SignerStateComposerActionContext
 ) => Promise<SignerComposerActionResult>;
+
+export type SignerStateCastActionContext = {
+  fid: number;
+  /**
+   * The id of the cast from which the user initiated the action
+   */
+  castId: {
+    fid: number;
+    hash: `0x${string}`;
+  };
+  /**
+   * Cast action post url
+   */
+  postUrl: string;
+};
+
+export type SignerCastActionResult = {
+  untrustedData: {
+    fid: number;
+    url: string;
+    messageHash: `0x${string}`;
+    timestamp: number;
+    network: number;
+    buttonIndex: number;
+  };
+  trustedData: {
+    messageBytes: string;
+  };
+};
+
+/**
+ * Used to sign cast action
+ */
+export type SignCastActionFunction = (
+  signerPrivateKey: string,
+  actionContext: SignerStateCastActionContext
+) => Promise<SignerCastActionResult>;

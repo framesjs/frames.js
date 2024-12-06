@@ -260,7 +260,7 @@ export type UseFrameOptions<
    *
    * @defaultValue 'farcaster'
    */
-  specification?: SupportedParsingSpecification;
+  specification?: Exclude<SupportedParsingSpecification, "farcaster_v2">;
   /**
    * This function can be used to customize how error is reported to the user.
    */
@@ -368,8 +368,13 @@ export interface SignerStateInstance<
 > {
   /**
    * For which specification is this signer required.
+   *
+   * If the value is an array it will take first valid specification if there is no valid specification
+   * it will return the first specification in array no matter the validity.
    */
-  readonly specification: SupportedParsingSpecification;
+  readonly specification:
+    | SupportedParsingSpecification
+    | SupportedParsingSpecification[];
   signer: TSignerStorageType | null;
   /**
    * True only if signer is approved or impersonating
@@ -384,7 +389,14 @@ export interface SignerStateInstance<
   /** A function called when a frame button is clicked without a signer */
   onSignerlessFramePress: () => Promise<void>;
   logout: () => Promise<void>;
-  withContext: (context: TFrameContextType) => {
+  withContext: (
+    context: TFrameContextType,
+    overrides?: {
+      specification?:
+        | SupportedParsingSpecification
+        | SupportedParsingSpecification[];
+    }
+  ) => {
     signerState: SignerStateInstance<
       TSignerStorageType,
       TFrameActionBodyType,
@@ -474,7 +486,7 @@ export type FrameStackGetPending = {
 
 export type FrameStackPending = FrameStackGetPending | FrameStackPostPending;
 
-export type GetFrameResult = ReturnType<typeof getFrame>;
+export type GetFrameResult = Awaited<ReturnType<typeof getFrame>>;
 
 export type FrameStackDone = FrameStackBase & {
   request: FrameRequest;
@@ -539,7 +551,7 @@ export type FrameReducerActions =
       action: "RESET_INITIAL_FRAME";
       resultOrFrame: ParseResult | Frame;
       homeframeUrl: string | null | undefined;
-      specification: SupportedParsingSpecification;
+      specification: Exclude<SupportedParsingSpecification, "farcaster_v2">;
     };
 
 export type ButtonPressFunction<

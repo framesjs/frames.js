@@ -11,7 +11,11 @@ import type {
   TransactionTargetResponse,
 } from "frames.js";
 import type { OnMintArgs, OnTransactionArgs, OnSignatureArgs } from "./types";
-import type { UseFrameOptions, UseFrameReturnValue } from "./unstable-types";
+import type {
+  LaunchFrameButtonPressEvent,
+  UseFrameOptions,
+  UseFrameReturnValue,
+} from "./unstable-types";
 import { useFrameState } from "./unstable-use-frame-state";
 import { useFetchFrame } from "./unstable-use-fetch-frame";
 import { useFreshRef } from "./hooks/use-fresh-ref";
@@ -174,6 +178,8 @@ export function useFrame_unstable<
   onLinkButtonClick = handleLinkButtonClickFallback,
   onRedirect = handleRedirectFallback,
   fetchFn = defaultFetchFunction,
+  onLaunchFrameButtonPressed,
+  onLaunchedFrameClosed,
   onTransactionDataError,
   onTransactionDataStart,
   onTransactionDataSuccess,
@@ -407,6 +413,20 @@ export function useFrame_unstable<
     [frameStateRef, fetchFrameRef, onErrorRef, resolveAddressRef]
   );
 
+  const onLaunchFrameButtonPressRef = useFreshRef(onLaunchFrameButtonPressed);
+  const onLaunchedFrameCloseRef = useFreshRef(onLaunchedFrameClosed);
+
+  const onLaunchFrameButtonPress = useCallback(
+    (event: LaunchFrameButtonPressEvent) => {
+      onLaunchFrameButtonPressRef.current?.(event);
+    },
+    [onLaunchFrameButtonPressRef]
+  );
+
+  const onLaunchedFrameClose = useCallback(() => {
+    onLaunchedFrameCloseRef.current?.();
+  }, [onLaunchedFrameCloseRef]);
+
   const onButtonPress = useCallback(
     async function onButtonPress(
       currentFrame: Frame,
@@ -532,6 +552,8 @@ export function useFrame_unstable<
       homeframeUrl,
       framesStack: stack,
       currentFrameStackItem: stack[0],
+      onLaunchFrameButtonPress,
+      onLaunchedFrameClose,
     };
   }, [
     signerState,
@@ -544,5 +566,7 @@ export function useFrame_unstable<
     fetchFrame,
     homeframeUrl,
     stack,
+    onLaunchFrameButtonPress,
+    onLaunchedFrameClose,
   ]);
 }

@@ -1,7 +1,12 @@
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useAccount, useConfig, useConnections } from "wagmi";
-import { signMessage, signTypedData, switchChain } from "wagmi/actions";
+import {
+  useAccount,
+  useConnections,
+  useSignTypedData,
+  useSignMessage,
+  useSwitchChain,
+} from "wagmi";
 import { LensClient, development, production } from "@lens-protocol/client";
 import type {
   SignerStateActionContext,
@@ -10,6 +15,7 @@ import type {
 } from "../../types";
 import type { Storage } from "../types";
 import { WebStorage } from "../storage";
+import { useFreshRef } from "../../hooks/use-fresh-ref";
 import type { LensFrameContext } from "./use-lens-context";
 
 export type LensProfile = {
@@ -45,7 +51,7 @@ type LensFrameRequest = {
   };
 };
 
-type LensSignerInstance = SignerStateInstance<
+export type LensSignerInstance = SignerStateInstance<
   LensSigner,
   LensFrameRequest,
   LensFrameContext
@@ -84,15 +90,22 @@ export function useLensIdentity({
   const [showProfileSelector, setShowProfileSelector] = useState(false);
   const [availableProfiles, setAvailableProfiles] = useState<LensProfile[]>([]);
   const connect = useConnectModal();
-  const config = useConfig();
   const { address } = useAccount();
   const activeConnection = useConnections();
+  const lensSignerRef = useFreshRef(lensSigner);
+  const { switchChainAsync } = useSwitchChain();
+  const { signMessageAsync } = useSignMessage();
+  const { signTypedDataAsync } = useSignTypedData();
+  const storageKeyRef = useFreshRef(storageKey);
+  const addressRef = useFreshRef(address);
 
   const lensClient = useRef(
     new LensClient({
       environment: environment === "development" ? development : production,
     })
   ).current;
+
+  const connectRef = useFreshRef(connect);
 
   useEffect(() => {
     storageRef.current
@@ -109,22 +122,26 @@ export function useLensIdentity({
   }, [storageKey]);
 
   const logout = useCallback(async () => {
-    await storageRef.current.delete(storageKey);
+    await storageRef.current.delete(storageKeyRef.current);
     setLensSigner(null);
-  }, [storageKey]);
+  }, [storageKeyRef]);
 
   const handleSelectProfile = useCallback(
     async (profile: LensProfile) => {
       try {
-        if (!address) {
+        const walletAddress = addressRef.current;
+
+        if (!walletAddress) {
           throw new Error("No wallet connected");
         }
+
         setShowProfileSelector(false);
+
         const { id, text } = await lensClient.authentication.generateChallenge({
-          signedBy: address,
+          signedBy: walletAddress,
           for: profile.id,
         });
-        const signature = await signMessage(config, {
+        const signature = await signMessageAsync({
           message: {
             raw:
               typeof text === "string"
@@ -132,7 +149,9 @@ export function useLensIdentity({
                 : Buffer.from(text as Uint8Array),
           },
         });
+
         await lensClient.authentication.authenticate({ id, signature });
+
         const accessTokenResult =
           await lensClient.authentication.getAccessToken();
         const identityTokenResult =
@@ -151,12 +170,15 @@ export function useLensIdentity({
           const signer: LensSigner = {
             accessToken,
             profileId,
-            address,
+            address: walletAddress,
             identityToken,
             handle,
           };
 
-          await storageRef.current.set<LensSigner>(storageKey, () => signer);
+          await storageRef.current.set<LensSigner>(
+            storageKeyRef.current,
+            () => signer
+          );
 
           setLensSigner(signer);
         }
@@ -165,36 +187,48 @@ export function useLensIdentity({
         console.error("@frames.js/render: Create Lens signer failed", error);
       }
     },
-    [address, config, lensClient.authentication, lensClient.profile, storageKey]
+    [
+      addressRef,
+      lensClient.authentication,
+      lensClient.profile,
+      signMessageAsync,
+      storageKeyRef,
+    ]
   );
 
   const onSignerlessFramePress = useCallback(async () => {
     try {
       setIsLoading(true);
 
-      if (!lensSigner) {
-        if (!address) {
-          connect.openConnectModal?.();
-          return;
-        }
-        const managedProfiles = await lensClient.wallet.profilesManaged({
-          for: address,
-        });
-        const profiles: LensProfile[] = managedProfiles.items.map((p) => ({
-          id: p.id,
-          handle: p.handle ? `${p.handle.localName}.lens` : undefined,
-        }));
+      const signer = lensSignerRef.current;
+      const currentAddress = addressRef.current;
 
-        if (!profiles[0]) {
-          throw new Error("No Lens profiles managed by connected address");
-        }
+      if (signer) {
+        return;
+      }
 
-        if (managedProfiles.items.length > 1) {
-          setAvailableProfiles(profiles);
-          setShowProfileSelector(true);
-        } else {
-          await handleSelectProfile(profiles[0]);
-        }
+      if (!currentAddress) {
+        connectRef.current.openConnectModal?.();
+        return;
+      }
+
+      const managedProfiles = await lensClient.wallet.profilesManaged({
+        for: currentAddress,
+      });
+      const profiles: LensProfile[] = managedProfiles.items.map((p) => ({
+        id: p.id,
+        handle: p.handle ? `${p.handle.localName}.lens` : undefined,
+      }));
+
+      if (!profiles[0]) {
+        throw new Error("No Lens profiles managed by connected address");
+      }
+
+      if (managedProfiles.items.length > 1) {
+        setAvailableProfiles(profiles);
+        setShowProfileSelector(true);
+      } else {
+        await handleSelectProfile(profiles[0]);
       }
     } catch (error) {
       // eslint-disable-next-line no-console -- provide feedback
@@ -202,22 +236,34 @@ export function useLensIdentity({
     } finally {
       setIsLoading(false);
     }
-  }, [address, connect, handleSelectProfile, lensClient.wallet, lensSigner]);
+  }, [
+    addressRef,
+    connectRef,
+    handleSelectProfile,
+    lensClient.wallet,
+    lensSignerRef,
+  ]);
+
+  const activeConnectionRef = useFreshRef(activeConnection);
 
   const signFrameAction: SignFrameActionFunction<
     SignerStateActionContext<LensSigner, LensFrameContext>,
     LensFrameRequest
   > = useCallback(
     async (actionContext) => {
-      if (!lensSigner) {
+      const signer = lensSignerRef.current;
+
+      if (!signer) {
         throw new Error("No lens signer active");
       }
+
       const profileManagers = await lensClient.profile.managers({
-        for: lensSigner.profileId,
+        for: signer.profileId,
       });
       const lensManagerEnabled = profileManagers.items.some(
         (manager) => manager.isLensManager
       );
+
       if (lensManagerEnabled) {
         const result = await lensClient.frames.signFrameAction({
           url: actionContext.url,
@@ -226,7 +272,7 @@ export function useLensIdentity({
           buttonIndex: actionContext.buttonIndex,
           actionResponse:
             actionContext.type === "tx-post" ? actionContext.transactionId : "",
-          profileId: lensSigner.profileId,
+          profileId: signer.profileId,
           pubId: actionContext.frameContext.pubId || "",
           specVersion: "1.0.0",
         });
@@ -249,7 +295,7 @@ export function useLensIdentity({
             clientProtocol: "lens@1.0.0",
             untrustedData: {
               ...result.value.signedTypedData.value,
-              identityToken: lensSigner.identityToken,
+              identityToken: signer.identityToken,
               unixTimestamp: Date.now(),
             },
             trustedData: {
@@ -267,17 +313,19 @@ export function useLensIdentity({
         buttonIndex: actionContext.buttonIndex,
         actionResponse:
           actionContext.type === "tx-post" ? actionContext.transactionId : "",
-        profileId: lensSigner.profileId,
+        profileId: signer.profileId,
         pubId: actionContext.frameContext.pubId || "",
         specVersion: "1.0.0",
         deadline: Math.floor(Date.now() / 1000) + 86400, // 1 day
       });
 
-      if (activeConnection[0]?.chainId !== typedData.domain.chainId) {
-        await switchChain(config, { chainId: typedData.domain.chainId });
+      if (
+        activeConnectionRef.current[0]?.chainId !== typedData.domain.chainId
+      ) {
+        await switchChainAsync({ chainId: typedData.domain.chainId });
       }
 
-      const signature = await signTypedData(config, {
+      const signature = await signTypedDataAsync({
         domain: {
           ...typedData.domain,
           verifyingContract: typedData.domain
@@ -301,7 +349,7 @@ export function useLensIdentity({
           clientProtocol: "lens@1.0.0",
           untrustedData: {
             ...typedData.value,
-            identityToken: lensSigner.identityToken,
+            identityToken: signer.identityToken,
             unixTimestamp: Date.now(),
           },
           trustedData: {
@@ -312,11 +360,12 @@ export function useLensIdentity({
       };
     },
     [
-      activeConnection,
-      config,
+      activeConnectionRef,
       lensClient.frames,
       lensClient.profile,
-      lensSigner,
+      lensSignerRef,
+      signTypedDataAsync,
+      switchChainAsync,
     ]
   );
 
@@ -324,36 +373,59 @@ export function useLensIdentity({
     setShowProfileSelector(false);
   }, []);
 
-  return useMemo(
-    () => ({
+  const isLoadingRef = useFreshRef(isLoading);
+  const availableProfilesRef = useFreshRef(availableProfiles);
+
+  return useMemo(() => {
+    /**
+     * See the explanation in useFarcasterIdentity()
+     */
+    void lensSigner;
+    void isLoading;
+    void availableProfiles;
+
+    return {
       specification: "openframes",
-      signer: lensSigner,
-      hasSigner: !!lensSigner?.accessToken,
+      get signer() {
+        return lensSignerRef.current;
+      },
+      get hasSigner() {
+        return !!lensSignerRef.current?.accessToken;
+      },
       signFrameAction,
-      isLoadingSigner: isLoading,
+      get isLoadingSigner() {
+        return isLoadingRef.current;
+      },
       onSignerlessFramePress,
       logout,
       showProfileSelector,
       closeProfileSelector,
-      availableProfiles,
+      get availableProfiles() {
+        return availableProfilesRef.current;
+      },
       handleSelectProfile,
-      withContext(frameContext) {
+      withContext(frameContext, overrides) {
         return {
-          signerState: this,
+          signerState: {
+            ...this,
+            ...overrides,
+          },
           frameContext,
         };
       },
-    }),
-    [
-      availableProfiles,
-      closeProfileSelector,
-      handleSelectProfile,
-      isLoading,
-      lensSigner,
-      logout,
-      onSignerlessFramePress,
-      showProfileSelector,
-      signFrameAction,
-    ]
-  );
+    };
+  }, [
+    availableProfiles,
+    availableProfilesRef,
+    closeProfileSelector,
+    handleSelectProfile,
+    isLoading,
+    isLoadingRef,
+    lensSigner,
+    lensSignerRef,
+    logout,
+    onSignerlessFramePress,
+    showProfileSelector,
+    signFrameAction,
+  ]);
 }

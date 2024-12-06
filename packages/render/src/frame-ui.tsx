@@ -7,6 +7,7 @@ import type {
   FrameStackMessage,
   FrameStackRequestError,
 } from "./types";
+import { isValidPartialFrame } from "./ui/utils";
 
 export const defaultTheme: Required<FrameTheme> = {
   buttonBg: "#fff",
@@ -117,7 +118,13 @@ export type FrameUIProps = {
   enableImageDebugging?: boolean;
 };
 
-/** A UI component only, that should be easy for any app to integrate */
+/**
+ * A UI component only, that should be easy for any app to integrate.
+ *
+ * This component doesn't support Frames V2.
+ *
+ * @deprecated - please use `FrameUI` from `@frames.js/render/ui` instead.
+ */
 export function FrameUI({
   frameState,
   theme,
@@ -143,12 +150,7 @@ export function FrameUI({
   if (
     currentFrame.status === "done" &&
     currentFrame.frameResult.status === "failure" &&
-    !(
-      allowPartialFrame &&
-      // Need at least image and buttons to render a partial frame
-      currentFrame.frameResult.frame.image &&
-      currentFrame.frameResult.frame.buttons
-    )
+    !(allowPartialFrame && isValidPartialFrame(currentFrame.frameResult))
   ) {
     return <MessageTooltip inline message="Invalid frame" variant="error" />;
   }
@@ -157,6 +159,14 @@ export function FrameUI({
   let debugImage: string | undefined;
 
   if (currentFrame.status === "done") {
+    // we don't support frames v2 in this component as it is deprecated
+    if (
+      currentFrame.frameResult.specification !== "farcaster" &&
+      currentFrame.frameResult.specification !== "openframes"
+    ) {
+      return null;
+    }
+
     frame = currentFrame.frameResult.frame;
     debugImage = enableImageDebugging
       ? currentFrame.frameResult.framesDebugInfo?.image
