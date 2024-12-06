@@ -186,9 +186,7 @@ export function useFrameApp({
         };
       }
 
-      // omit ethProviderRequestV2 from the API because otherwise the @farcaster/frame-sdk will not work properly
-      // they handle the missing function so no worries leaving it out
-      const apiToExpose: Omit<FrameHost, "ethProviderRequestV2"> = {
+      const apiToExpose: FrameHost = {
         close() {
           logDebugRef.current(
             '@frames.js/render/unstable-use-frame-app: "close" called'
@@ -265,13 +263,29 @@ export function useFrameApp({
             });
           }
         },
-        ethProviderRequest(...args) {
+        ethProviderRequest(parameters) {
+          logDebugRef.current(
+            '@frames.js/render/unstable-use-frame-app: "ethProviderRequest" called',
+            parameters
+          );
+
           if (!clientRef.current.data) {
             throw new Error("client is not ready");
           }
 
           // @ts-expect-error -- type mismatch
-          return clientRef.current.data.request(...args);
+          return clientRef.current.data.request(parameters);
+        },
+        ethProviderRequestV2(parameters) {
+          logDebugRef.current(
+            '@frames.js/render/unstable-use-frame-app: "ethProviderRequestV2" called',
+            parameters
+          );
+
+          // this is stupid because previously it was enough just to not expose this method at all
+          // but now it suddenly stopped working because somehow the error message was not the same
+          // as @farcasters/frame-sdk was expecting
+          return Promise.reject(new Error("cannot read property 'apply'"));
         },
         async addFrame() {
           if (
@@ -293,7 +307,16 @@ export function useFrameApp({
             };
           }
 
+          logDebugRef.current(
+            '@frames.js/render/unstable-use-frame-app: "addFrame" called'
+          );
+
           const added = await onAddFrameRequestedRef.current(frame);
+
+          logDebugRef.current(
+            "@frames.js/render/unstable-use-frame-app: addFrameRequested",
+            added
+          );
 
           addFrameRequestsCacheRef.current.add(frame.frame.button.action.url);
 
