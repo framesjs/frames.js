@@ -296,7 +296,7 @@
     "src"
   ],
   "devDependencies": {
-    "@farcaster/frame-sdk": "^0.0.8",
+    "@farcaster/frame-sdk": "^0.0.10",
     "@lens-protocol/client": "^2.3.2",
     "@rainbow-me/rainbowkit": "^2.1.2",
     "@remix-run/node": "^2.8.1",
@@ -312,7 +312,7 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "@farcaster/frame-sdk": "^0.0.8",
+    "@farcaster/frame-sdk": "^0.0.10",
     "@lens-protocol/client": "^2.0.0",
     "@rainbow-me/rainbowkit": "^2.1.2",
     "@types/react": "^18.2.0",

@@ -258,7 +258,10 @@ export function useFrameApp({
               logDebugRef.current(
                 '@frames.js/render/unstable-use-frame-app: "primaryButtonClicked" called'
               );
-              endpoint.postMessage({ type: "primaryButtonClicked" });
+              endpoint.postMessage({
+                type: "frameEvent",
+                event: "primaryButtonClicked",
+              });
             });
           }
         },
@@ -628,29 +631,53 @@ window.addEventListener("message", function $$handleMessageFromParentApplication
         }
         return;
       }
+      
+      if ('type' in data) {
+        switch (data.type) {
+          case 'frameEthProviderEvent': {
+            // dispatch the event to document so it can be picked up by @farcaster/frame-sdk
+            document.dispatchEvent(new MessageEvent('FarcasterFrameEthProviderEvent', {
+              data: data,
+              origin: window.location.origin,
+              source: window.parent,
+            }));
 
-      if ('type' in data && data.type === 'primaryButtonClicked') {
-        // dispatch the event to document so it can be picked up by @farcaster/frame-sdk
-        document.dispatchEvent(new MessageEvent('FarcasterFrameEvent', {
-          data: data,
-          origin: window.location.origin,
-          source: window.parent,
-        }));
+            if (${enableDebug.toString()}) {
+              console.debug('@frames.js/render/unstable-use-frame-app: dispatched FarcasterFrameEthProviderEvent message to document', data);
+            }
 
-        if (${enableDebug.toString()}) {
-          console.debug('@frames.js/render/unstable-use-frame-app: dispatched FarcasterFrameEvent message to window', data);
+            return;
+          }
+          case 'frameEvent': {
+            // dispatch the event to document so it can be picked up by @farcaster/frame-sdk
+            document.dispatchEvent(new MessageEvent('FarcasterFrameEvent', {
+              data: {
+                // there is weird mismatch in @farcaster/frame-sdk when handling react native web view events
+                // they don't use the same shape as the one in message {type: string, event: string}
+                type: data.event,
+              },
+              origin: window.location.origin,
+              source: window.parent,
+            }));
+
+            if (${enableDebug.toString()}) {
+              console.debug('@frames.js/render/unstable-use-frame-app: dispatched FarcasterFrameEvent message to document', data);
+            }
+
+            return;
+          }
         }
-      } else {
-        // dispatch the event to document so it can be picked up by @farcaster/frame-sdk
-        document.dispatchEvent(new MessageEvent('FarcasterFrameCallback', {
-          data: data,
-          origin: window.location.origin,
-          source: window.parent,
-        }));
+      }
 
-        if (${enableDebug.toString()}) {
-          console.debug('@frames.js/render/unstable-use-frame-app: dispatched FarcasterFrameCallback message to window', data);
-        }
+      // unknown message type, dispatch it to document so it can be picked up by @farcaster/frame-sdk
+      document.dispatchEvent(new MessageEvent('FarcasterFrameCallback', {
+        data: data,
+        origin: window.location.origin,
+        source: window.parent,
+      }));
+
+      if (${enableDebug.toString()}) {
+        console.debug('@frames.js/render/unstable-use-frame-app: dispatched FarcasterFrameCallback message to window', data);
       }
     } catch (error) {
       if (${enableDebug.toString()}) {
