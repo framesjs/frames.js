@@ -40,6 +40,7 @@ export function FrameAppDialog({
     null
   );
   const frameApp = useFrameAppInIframe({
+    debug: true,
     walletClient,
     farcasterSigner,
     frame: frameState.parseResult,
