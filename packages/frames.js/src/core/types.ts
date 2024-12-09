@@ -410,7 +410,9 @@ export type ErrorMessageResponse = {
 };
 
 export type CastActionMessageResponse = {
+  type: "message";
   message: string;
+  link?: string;
 };
 
 export type CastActionFrameResponse = {

@@ -8,26 +8,31 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { isAddress } from "viem";
 import FarcasterSignerWindow from "./farcaster-signer-config";
-import { forwardRef, useMemo } from "react";
+import { forwardRef, useMemo, useState } from "react";
 import { WithTooltip } from "./with-tooltip";
-import { useAnonymousIdentity } from "@frames.js/render/identity/anonymous";
+import { type AnonymousSignerInstance } from "@frames.js/render/identity/anonymous";
 import {
+  type FarcasterMultiSignerInstance,
   useFarcasterFrameContext,
-  useFarcasterMultiIdentity,
 } from "@frames.js/render/identity/farcaster";
 import {
   useLensFrameContext,
-  useLensIdentity,
+  type LensSignerInstance,
 } from "@frames.js/render/identity/lens";
 import {
   useXmtpFrameContext,
-  useXmtpIdentity,
+  type XmtpSignerInstance,
 } from "@frames.js/render/identity/xmtp";
+import { FarcasterDomainAccountAssociationDialog } from "./farcaster-domain-account-association-dialog";
 
 export type ProtocolConfiguration =
   | {
       protocol: "farcaster";
       specification: "farcaster";
+    }
+  | {
+      protocol: "farcaster_v2";
+      specification: "farcaster_v2";
     }
   | {
       protocol: "lens";
@@ -47,6 +52,10 @@ export const protocolConfigurationMap: Record<string, ProtocolConfiguration> = {
     protocol: "farcaster",
     specification: "farcaster",
   },
+  farcaster_v2: {
+    protocol: "farcaster_v2",
+    specification: "farcaster_v2",
+  },
   xmtp: {
     protocol: "xmtp",
     specification: "openframes",
@@ -64,10 +73,10 @@ export const protocolConfigurationMap: Record<string, ProtocolConfiguration> = {
 type ProtocolConfigurationButtonProps = {
   onChange: (configuration: ProtocolConfiguration) => void;
   value: ProtocolConfiguration | null;
-  farcasterSignerState: ReturnType<typeof useFarcasterMultiIdentity>;
-  xmtpSignerState: ReturnType<typeof useXmtpIdentity>;
-  lensSignerState: ReturnType<typeof useLensIdentity>;
-  anonymousSignerState: ReturnType<typeof useAnonymousIdentity>;
+  farcasterSignerState: FarcasterMultiSignerInstance;
+  xmtpSignerState: XmtpSignerInstance;
+  lensSignerState: LensSignerInstance;
+  anonymousSignerState: AnonymousSignerInstance;
   farcasterFrameContext: ReturnType<typeof useFarcasterFrameContext>;
   xmtpFrameContext: ReturnType<typeof useXmtpFrameContext>;
   lensFrameContext: ReturnType<typeof useLensFrameContext>;
@@ -94,7 +103,10 @@ export const ProtocolConfigurationButton = forwardRef<
     const isSignerValid = useMemo(() => {
       let valid = false;
 
-      if (value?.protocol === "farcaster") {
+      if (
+        value?.protocol === "farcaster" ||
+        value?.protocol === "farcaster_v2"
+      ) {
         valid =
           !!farcasterSignerState.signer &&
           farcasterSignerState.signer.status !== "pending_approval";
@@ -126,28 +138,18 @@ export const ProtocolConfigurationButton = forwardRef<
         <PopoverTrigger asChild ref={ref}>
           <WithTooltip tooltip={<p>Protocol and identity management</p>}>
             <Button variant={isSignerValid ? "outline" : "destructive"}>
-              {value ? (
-                <>
-                  {value.protocol}{" "}
-                  {value.specification === "openframes"
-                    ? `(${value.specification})`
-                    : // Farcaster
-                      farcasterSignerState.signer?.status !== "pending_approval"
-                      ? `(${
-                          farcasterSignerState.signer?.fid ?? "select identity"
-                        })`
-                      : "select identity"}
-                </>
-              ) : (
-                <>Select a protocol</>
+              {protocolToConfigurationToButtonLabel(
+                value,
+                farcasterSignerState
               )}
             </Button>
           </WithTooltip>
         </PopoverTrigger>
-        <PopoverContent>
+        <PopoverContent style={{ minWidth: 460 }}>
           <Tabs value={value?.protocol} defaultValue="none">
-            <TabsList className={"w-full grid grid-cols-4"}>
+            <TabsList className={"w-full grid grid-cols-5"}>
               <TabsTrigger
+                className="px-1"
                 value="anonymous"
                 onClick={() =>
                   onChange({
@@ -159,6 +161,7 @@ export const ProtocolConfigurationButton = forwardRef<
                 None
               </TabsTrigger>
               <TabsTrigger
+                className="px-1"
                 value="farcaster"
                 onClick={() =>
                   onChange({
@@ -170,6 +173,19 @@ export const ProtocolConfigurationButton = forwardRef<
                 Farcaster
               </TabsTrigger>
               <TabsTrigger
+                className="px-1"
+                value="farcaster_v2"
+                onClick={() =>
+                  onChange({
+                    protocol: "farcaster_v2",
+                    specification: "farcaster_v2",
+                  })
+                }
+              >
+                Farcaster v2
+              </TabsTrigger>
+              <TabsTrigger
+                className="px-1"
                 value="xmtp"
                 onClick={() =>
                   onChange({ protocol: "xmtp", specification: "openframes" })
@@ -178,6 +194,7 @@ export const ProtocolConfigurationButton = forwardRef<
                 XMTP
               </TabsTrigger>
               <TabsTrigger
+                className="px-1"
                 value="lens"
                 onClick={() =>
                   onChange({ protocol: "lens", specification: "openframes" })
@@ -186,61 +203,78 @@ export const ProtocolConfigurationButton = forwardRef<
                 Lens
               </TabsTrigger>
             </TabsList>
-            <TabsContent value={"none"}></TabsContent>
+            <TabsContent value="none"></TabsContent>
             <TabsContent value="farcaster">
               <FarcasterSignerWindow
-                farcasterUser={farcasterSignerState.signer ?? null}
-                loading={!!farcasterSignerState.isLoadingSigner ?? false}
+                farcasterUser={farcasterSignerState.signer}
+                loading={farcasterSignerState.isLoadingSigner}
                 startFarcasterSignerProcess={farcasterSignerState.createSigner}
                 impersonateUser={farcasterSignerState.impersonateUser}
                 logout={farcasterSignerState.logout}
                 removeIdentity={farcasterSignerState.removeIdentity}
                 storedUsers={farcasterSignerState.identities}
                 onIdentitySelect={farcasterSignerState.selectIdentity}
-              ></FarcasterSignerWindow>
-              <div className="border-t pt-4 mt-4">
-                <div className="text-md font-bold mb-2">Frame Context</div>
-                <div>Cast Hash</div>
-                <Input
-                  type="text"
-                  placeholder="Cast Hash"
-                  defaultValue={farcasterFrameContext.frameContext.castId.hash}
-                  onChange={(e) => {
-                    farcasterFrameContext.setFrameContext({
-                      ...farcasterFrameContext.frameContext,
-                      castId: {
-                        fid: farcasterFrameContext.frameContext.castId.fid,
-                        hash: e.target.value as unknown as `0x${string}`,
-                      },
-                    });
-                  }}
-                />
-                <div>Cast FID</div>
-                <Input
-                  type="text"
-                  placeholder="Cast FID"
-                  defaultValue={farcasterFrameContext.frameContext.castId.fid}
-                  onChange={(e) => {
-                    farcasterFrameContext.setFrameContext({
-                      ...farcasterFrameContext.frameContext,
-                      castId: {
-                        fid: parseInt(e.target.value),
-                        hash: farcasterFrameContext.frameContext.castId.hash,
-                      },
-                    });
-                  }}
-                />
-                {/* Reset context button */}
-                <Button
-                  onClick={() => {
-                    farcasterFrameContext.resetFrameContext();
-                  }}
-                  variant={"secondary"}
-                  className="mt-2 w-full"
-                >
-                  Reset
-                </Button>
-              </div>
+              />
+              {value?.specification === "farcaster" && (
+                <div className="border-t pt-4 mt-4">
+                  <div className="text-md font-bold mb-2">Frame Context</div>
+                  <div>Cast Hash</div>
+                  <Input
+                    type="text"
+                    placeholder="Cast Hash"
+                    defaultValue={
+                      farcasterFrameContext.frameContext.castId.hash
+                    }
+                    onChange={(e) => {
+                      farcasterFrameContext.setFrameContext({
+                        ...farcasterFrameContext.frameContext,
+                        castId: {
+                          fid: farcasterFrameContext.frameContext.castId.fid,
+                          hash: e.target.value as unknown as `0x${string}`,
+                        },
+                      });
+                    }}
+                  />
+                  <div>Cast FID</div>
+                  <Input
+                    type="text"
+                    placeholder="Cast FID"
+                    defaultValue={farcasterFrameContext.frameContext.castId.fid}
+                    onChange={(e) => {
+                      farcasterFrameContext.setFrameContext({
+                        ...farcasterFrameContext.frameContext,
+                        castId: {
+                          fid: parseInt(e.target.value),
+                          hash: farcasterFrameContext.frameContext.castId.hash,
+                        },
+                      });
+                    }}
+                  />
+                  {/* Reset context button */}
+                  <Button
+                    onClick={() => {
+                      farcasterFrameContext.resetFrameContext();
+                    }}
+                    variant={"secondary"}
+                    className="mt-2 w-full"
+                  >
+                    Reset
+                  </Button>
+                </div>
+              )}
+            </TabsContent>
+            <TabsContent value="farcaster_v2">
+              <FarcasterSignerWindow
+                farcasterUser={farcasterSignerState.signer}
+                loading={farcasterSignerState.isLoadingSigner}
+                startFarcasterSignerProcess={farcasterSignerState.createSigner}
+                impersonateUser={farcasterSignerState.impersonateUser}
+                logout={farcasterSignerState.logout}
+                removeIdentity={farcasterSignerState.removeIdentity}
+                storedUsers={farcasterSignerState.identities}
+                onIdentitySelect={farcasterSignerState.selectIdentity}
+              />
+              <FarcasterDomainAccountAssociation />
             </TabsContent>
             <TabsContent value="xmtp">
               <div>
@@ -382,3 +416,49 @@ export const ProtocolConfigurationButton = forwardRef<
 );
 
 ProtocolConfigurationButton.displayName = "ProtocolConfigurationButton";
+
+function protocolToConfigurationToButtonLabel(
+  protocol: ProtocolConfiguration | null,
+  farcasterSigner: FarcasterMultiSignerInstance
+) {
+  if (!protocol) {
+    return "Select a protocol";
+  }
+
+  const farcasterIdentity =
+    farcasterSigner.signer &&
+    farcasterSigner.signer.status !== "pending_approval"
+      ? farcasterSigner.signer.fid
+      : "select identity";
+
+  switch (protocol.protocol) {
+    case "farcaster":
+      return `Farcaster  (${farcasterIdentity})`;
+    case "farcaster_v2":
+      return `Farcaster v2 (${farcasterIdentity})`;
+    case "lens":
+      return `Lens ${protocol.specification}`;
+    case "xmtp":
+      return `XMTP ${protocol.specification}`;
+    default:
+      return protocol.protocol;
+  }
+}
+
+function FarcasterDomainAccountAssociation() {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  return (
+    <>
+      <div className="flex flex-col border-t mt-4 pt-4 gap-2">
+        <h3 className="font-bold">Domain Account Association</h3>
+        <Button onClick={() => setIsDialogOpen(true)}>Generate</Button>
+      </div>
+      {isDialogOpen && (
+        <FarcasterDomainAccountAssociationDialog
+          onClose={() => setIsDialogOpen(false)}
+        />
+      )}
+    </>
+  );
+}

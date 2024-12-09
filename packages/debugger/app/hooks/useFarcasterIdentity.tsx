@@ -2,21 +2,18 @@ import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/components/ui/use-toast";
 import { useFarcasterMultiIdentity } from "@frames.js/render/identity/farcaster";
 import { WebStorage } from "@frames.js/render/identity/storage";
+import { useProtocolSelector } from "../providers/ProtocolSelectorProvider";
 
 const sharedStorage = new WebStorage();
 
 type Options = Omit<
   Parameters<typeof useFarcasterMultiIdentity>[0],
   "onMissingIdentity"
-> & {
-  selectProtocolButtonRef?: React.RefObject<HTMLButtonElement>;
-};
+>;
 
-export function useFarcasterIdentity({
-  selectProtocolButtonRef,
-  ...options
-}: Options = {}) {
+export function useFarcasterIdentity(options: Options = {}) {
   const { toast } = useToast();
+  const protocolSelector = useProtocolSelector();
 
   return useFarcasterMultiIdentity({
     ...(options ?? {}),
@@ -27,17 +24,17 @@ export function useFarcasterIdentity({
         description:
           "In order to test the buttons you need to select an identity first",
         variant: "destructive",
-        action: selectProtocolButtonRef?.current ? (
+        action: (
           <ToastAction
             altText="Select identity"
             onClick={() => {
-              selectProtocolButtonRef?.current?.click();
+              protocolSelector.open();
             }}
             type="button"
           >
             Select identity
           </ToastAction>
-        ) : undefined,
+        ),
       });
     },
   });
