@@ -586,7 +586,7 @@ export default defineConfig({
         },
         {
           text: "Contributing",
-          link: "https://github.com/raihankhan-rk/frames.js/blob/main/CONTRIBUTING.md",
+          link: "https://github.com/framesjs/frames.js/blob/main/CONTRIBUTING.md",
         },
       ],
     },
