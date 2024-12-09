@@ -55,6 +55,7 @@ export function useFetchFrame<
   frameActionProxy,
   frameGetProxy,
   extraButtonRequestPayload,
+  parseFarcasterManifest = false,
   onTransaction,
   transactionDataSuffix,
   onSignature,
@@ -157,6 +158,7 @@ export function useFetchFrame<
       proxyUrl: frameGetProxy,
       fetchFn,
       url: request.url,
+      parseFarcasterManifest,
     });
 
     const endTime = new Date();
@@ -800,6 +802,10 @@ function proxyUrlAndSearchParamsToUrl(
 type FetchProxiedArg = {
   proxyUrl: string;
   fetchFn: typeof fetch;
+  /**
+   * Valid only for GET requests
+   */
+  parseFarcasterManifest?: boolean;
 } & (
   | {
       frameAction: SignedFrameAction;
@@ -834,6 +840,10 @@ async function fetchProxied(
         }),
       })
     );
+  }
+
+  if (params.parseFarcasterManifest) {
+    searchParams.set("parseFarcasterManifest", "true");
   }
 
   searchParams.set("url", params.url);

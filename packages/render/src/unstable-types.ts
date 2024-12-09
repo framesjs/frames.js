@@ -138,6 +138,14 @@ export type UseFrameOptions<
   /** the route used to GET the initial frame via proxy */
   frameGetProxy: string;
   /**
+   * Will request the Farcaster Frames v2 manifest.
+   *
+   * This is only valid for Frames v2 and GET requests.
+   *
+   * @defaultValue false
+   */
+  parseFarcasterManifest?: boolean;
+  /**
    * Called on initial frame load.
    *
    * The function is called again if:
@@ -501,6 +509,14 @@ export type UseFetchFrameOptions<
    * URL or path to the frame proxy handling POST requests.
    */
   frameActionProxy: string;
+  /**
+   * Will request the Farcaster Frames v2 manifest.
+   *
+   * This is only valid for Frames v2 and GET requests.
+   *
+   * @defaultValue false
+   */
+  parseFarcasterManifest?: boolean;
   /**
    * Extra payload to be sent with the POST request.
    */

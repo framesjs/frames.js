@@ -172,6 +172,7 @@ export function useFrame_unstable<
   frameActionProxy,
   /** Ex: /frames */
   frameGetProxy,
+  parseFarcasterManifest = false,
   extraButtonRequestPayload,
   resolveSigner: resolveSpecification,
   onError = onErrorFallback,
@@ -238,6 +239,7 @@ export function useFrame_unstable<
     onTransactionProcessingSuccess,
     onTransactionStart,
     onTransactionSuccess,
+    parseFarcasterManifest,
   });
 
   const fetchFrameRef = useFreshRef(fetchFrame);
