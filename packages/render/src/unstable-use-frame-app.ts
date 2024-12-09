@@ -6,6 +6,7 @@ import {
 import { type LegacyRef, useCallback, useEffect, useMemo, useRef } from "react";
 import type {
   AddFrameResult,
+  EthProviderRequest,
   FrameHost,
   SetPrimaryButton,
 } from "@farcaster/frame-sdk";
@@ -13,11 +14,84 @@ import type { UseWalletClientReturnType } from "wagmi";
 import type { WebView, WebViewProps } from "react-native-webview";
 import { z } from "zod";
 import type { ParseFramesV2ResultWithFrameworkDetails } from "frames.js/frame-parsers";
+import { UserRejectedRequestError } from "viem";
+import type { ExtractRequest, Default as DefaultRpcSchema } from "ox/RpcSchema";
 import { useFreshRef } from "./hooks/use-fresh-ref";
 import type { FarcasterSignerState } from "./farcaster";
 import type { FarcasterSigner } from "./identity/farcaster";
 
+export type SendTransactionRpcRequest = ExtractRequest<
+  DefaultRpcSchema,
+  "eth_sendTransaction"
+>;
+
+function isSendTransactionRpcRequest(
+  request: Parameters<EthProviderRequest>[0]
+): request is SendTransactionRpcRequest {
+  return request.method === "eth_sendTransaction";
+}
+
+export type SignMessageRpcRequest = ExtractRequest<
+  DefaultRpcSchema,
+  "personal_sign"
+>;
+
+function isSignMessageRpcRequest(
+  request: Parameters<EthProviderRequest>[0]
+): request is SignMessageRpcRequest {
+  return request.method === "personal_sign";
+}
+
+export type SignTypedDataRpcRequest = ExtractRequest<
+  DefaultRpcSchema,
+  "eth_signTypedData_v4"
+>;
+
+function isSignTypedDataRpcRequest(
+  request: Parameters<EthProviderRequest>[0]
+): request is SignTypedDataRpcRequest {
+  return request.method === "eth_signTypedData_v4";
+}
+
 const defaultFrameRequestCache = new Set<string>();
+
+export type FramePrimaryButton = Parameters<SetPrimaryButton>[0];
+
+export type OnPrimaryButtonSetFunction = (
+  options: FramePrimaryButton,
+  pressedCallback: () => void
+) => void;
+
+export type OnAddFrameRequestedFunction = (
+  frame: ParseFramesV2ResultWithFrameworkDetails
+) => Promise<false | Extract<AddFrameResult, { added: true }>>;
+
+/**
+ * Function called when the frame app requests sending transaction.
+ *
+ * If false is returned then the request is cancelled and user rejected error is thrown
+ */
+export type OnSendTransactionRequestFunction = (
+  request: SendTransactionRpcRequest
+) => Promise<boolean>;
+
+/**
+ * Function called when the frame app requests signing message.
+ *
+ * If false is returned signing is cancelled and user rejected error is thrown
+ */
+export type OnSignMessageRequestFunction = (
+  request: SignMessageRpcRequest
+) => Promise<boolean>;
+
+/**
+ * Function called when the frame app requests signing typed data.
+ *
+ * If false is returned then the request is cancelled and user rejected error is thrown
+ */
+export type OnSignTypedDataRequestFunction = (
+  request: SignTypedDataRpcRequest
+) => Promise<boolean>;
 
 function defaultOnSignerNotApproved(): void {
   // eslint-disable-next-line no-console -- provide feedback to the developer
@@ -38,16 +112,36 @@ const defaultOnAddFrameRequested: OnAddFrameRequestedFunction =
     return Promise.reject(new Error("onAddFrameRequested not implemented"));
   };
 
-export type FramePrimaryButton = Parameters<SetPrimaryButton>[0];
+const defaultOnSendTransactionRequest: OnSendTransactionRequestFunction =
+  () => {
+    // eslint-disable-next-line no-console -- provide feedback to the developer
+    console.warn(
+      "@frames.js/render/unstable-use-frame-app",
+      "onSendTransactionRequest not implemented"
+    );
 
-export type OnPrimaryButtonSetFunction = (
-  options: FramePrimaryButton,
-  pressedCallback: () => void
-) => void;
+    return Promise.resolve(true);
+  };
 
-export type OnAddFrameRequestedFunction = (
-  frame: ParseFramesV2ResultWithFrameworkDetails
-) => Promise<false | Extract<AddFrameResult, { added: true }>>;
+const defaultOnSignMessageRequest: OnSignMessageRequestFunction = () => {
+  // eslint-disable-next-line no-console -- provide feedback to the developer
+  console.warn(
+    "@frames.js/render/unstable-use-frame-app",
+    "onSignMessageRequest not implemented"
+  );
+
+  return Promise.resolve(true);
+};
+
+const defaultOnSignTypedDataRequest: OnSignTypedDataRequestFunction = () => {
+  // eslint-disable-next-line no-console -- provide feedback to the developer
+  console.warn(
+    "@frames.js/render/unstable-use-frame-app",
+    "onSignTypedDataRequest not implemented"
+  );
+
+  return Promise.resolve(true);
+};
 
 type UseFrameAppOptions = {
   /**
@@ -100,6 +194,9 @@ type UseFrameAppOptions = {
    * Cache of frame app requests (calls to `addFrame` method).
    */
   addFrameRequestsCache?: Set<string>;
+  onSendTransactionRequest?: OnSendTransactionRequestFunction;
+  onSignMessageRequest?: OnSignMessageRequestFunction;
+  onSignTypedDataRequest?: OnSignTypedDataRequestFunction;
 };
 
 type UnregisterEndpointFunction = () => void;
@@ -130,6 +227,9 @@ export function useFrameApp({
   debug = false,
   addFrameRequestsCache = defaultFrameRequestCache,
   onAddFrameRequested = defaultOnAddFrameRequested,
+  onSendTransactionRequest = defaultOnSendTransactionRequest,
+  onSignMessageRequest = defaultOnSignMessageRequest,
+  onSignTypedDataRequest = defaultOnSignTypedDataRequest,
 }: UseFrameAppOptions): UseFrameAppReturn {
   const clientRef = useFreshRef(client);
   const readyRef = useFreshRef(onReady);
@@ -139,6 +239,9 @@ export function useFrameApp({
   const onPrimaryButtonSetRef = useFreshRef(onPrimaryButtonSet);
   const farcasterSignerRef = useFreshRef(farcasterSigner);
   const onAddFrameRequestedRef = useFreshRef(onAddFrameRequested);
+  const onSendTransactionRequestRef = useFreshRef(onSendTransactionRequest);
+  const onSignMessageRequestRef = useFreshRef(onSignMessageRequest);
+  const onSignTypedDataRequestRef = useFreshRef(onSignTypedDataRequest);
   const addFrameRequestsCacheRef = useFreshRef(addFrameRequestsCache);
   /**
    * Used to unregister message listener of previously exposed endpoint.
@@ -263,7 +366,7 @@ export function useFrameApp({
             });
           }
         },
-        ethProviderRequest(parameters) {
+        async ethProviderRequest(parameters) {
           logDebugRef.current(
             '@frames.js/render/unstable-use-frame-app: "ethProviderRequest" called',
             parameters
@@ -271,6 +374,22 @@ export function useFrameApp({
 
           if (!clientRef.current.data) {
             throw new Error("client is not ready");
+          }
+
+          let isApproved = true;
+
+          if (isSendTransactionRpcRequest(parameters)) {
+            isApproved = await onSendTransactionRequestRef.current(parameters);
+          } else if (isSignTypedDataRpcRequest(parameters)) {
+            isApproved = await onSignTypedDataRequestRef.current(parameters);
+          } else if (isSignMessageRpcRequest(parameters)) {
+            isApproved = await onSignMessageRequestRef.current(parameters);
+          }
+
+          if (!isApproved) {
+            throw new UserRejectedRequestError(
+              new Error("User rejected request")
+            );
           }
 
           // @ts-expect-error -- type mismatch
