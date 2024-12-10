@@ -56,6 +56,9 @@ export function FrameAppDialog({
   const { name, url, splashImageUrl, splashBackgroundColor } =
     frameState.frame.button.action;
 
+  const isLoadingWallet = walletClient.status === "pending";
+  const isLoading = isLoadingWallet || !isReady;
+
   return (
     <Dialog
       open
@@ -70,7 +73,7 @@ export function FrameAppDialog({
           <DialogTitle>{frameState.frame.button.action.name}</DialogTitle>
         </DialogHeader>
         <div className="relative">
-          {!isReady && (
+          {isLoading && (
             <div
               className={cn(
                 "bg-white flex items-center justify-center absolute top-0 bottom-0 left-0 right-0"
@@ -93,12 +96,14 @@ export function FrameAppDialog({
               </div>
             </div>
           )}
-          <iframe
-            className="h-[600px] w-full opacity-100 transition-opacity duration-300"
-            onLoad={frameApp.onLoad}
-            src={url}
-            sandbox="allow-forms allow-scripts allow-same-origin"
-          ></iframe>
+          {!isLoadingWallet && (
+            <iframe
+              className="h-[600px] w-full opacity-100 transition-opacity duration-300"
+              onLoad={frameApp.onLoad}
+              src={url}
+              sandbox="allow-forms allow-scripts allow-same-origin"
+            ></iframe>
+          )}
         </div>
         {primaryButton && !primaryButton.hidden && (
           <DialogFooter>
