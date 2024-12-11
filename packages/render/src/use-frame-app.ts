@@ -10,7 +10,6 @@ import type {
   FrameHost,
   SetPrimaryButton,
 } from "@farcaster/frame-sdk";
-import type { UseWalletClientReturnType } from "wagmi";
 import type { WebView, WebViewProps } from "react-native-webview";
 import { z } from "zod";
 import type { ParseFramesV2ResultWithFrameworkDetails } from "frames.js/frame-parsers";
@@ -19,6 +18,8 @@ import type { ExtractRequest, Default as DefaultRpcSchema } from "ox/RpcSchema";
 import { useFreshRef } from "./hooks/use-fresh-ref";
 import type { FarcasterSignerState } from "./farcaster";
 import type { FarcasterSigner } from "./identity/farcaster";
+import type { EthProvider } from "./frame-app/provider/types";
+import type { FrameClientConfig, FrameEvent } from "./frame-app/types";
 
 export type SendTransactionRpcRequest = ExtractRequest<
   DefaultRpcSchema,
@@ -145,30 +146,63 @@ const defaultOnSignTypedDataRequest: OnSignTypedDataRequestFunction = () => {
 
 type UseFrameAppOptions = {
   /**
-   * Wallet client from wagmi's useWalletClient() hook
+   * @example
+   * ```ts
+   * import { useWagmiProvider } from '@frames.js/render/frame-app/provider/wagmi';
+   *
+   * function Component() {
+   *  const provider = useWagmiProvider();
+   *  const frameApp = useFrameApp({
+   *    provider,
+   *  });
+   *
+   *  //...
+   * }
+   * ```
    */
-  walletClient: UseWalletClientReturnType;
+  provider: EthProvider;
+  /**
+   * Frame client that is rendering the app
+   */
+  client: FrameClientConfig;
   /**
    * Obtained from useFrame() onLaunchFrameButtonPressed() callback
    */
   frame: ParseFramesV2ResultWithFrameworkDetails;
   /**
    * Farcaster signer state. Must be already approved otherwise it will call onError
-   * and getting context in app will be rejected
+   * and getting context in frames app will be rejected
+   *
+   * @example
+   * ```ts
+   * import { useFarcasterSigner } from '@frames.js/render/identity/farcaster';
+   *
+   * function Component() {
+   *  const farcasterSigner = useFarcasterSigner({
+   *   // ...
+   *  });
+   *  const frameApp = useFrameApp({
+   *   farcasterSigner,
+   *   // ...
+   *  });
+   *
+   *  //...
+   * }
+   * ```
    */
   farcasterSigner: FarcasterSignerState<FarcasterSigner | null>;
   /**
    * Called when app calls `ready` method.
    */
-  onReady?: () => void;
+  onReady?: FrameHost["ready"];
   /**
    * Called when app calls `close` method.
    */
-  onClose?: () => void;
+  onClose?: FrameHost["close"];
   /**
    * Called when app calls `openUrl` method.
    */
-  onOpenUrl?: (url: string) => void;
+  onOpenUrl?: FrameHost["openUrl"];
   /**
    * Called when provided signer is not approved.
    */
@@ -208,6 +242,9 @@ type RegisterEndpointFunction = (
 type UseFrameAppReturn = {
   /**
    * Necessary to call with target endpoint to expose API to the frame.
+   *
+   * The function returns a function to unregister the endpoint listener. Make sure you call it
+   * when the frame app is closed.
    */
   registerEndpoint: RegisterEndpointFunction;
 };
@@ -216,7 +253,8 @@ type UseFrameAppReturn = {
  * This hook is used to handle frames v2 apps.
  */
 export function useFrameApp({
-  walletClient: client,
+  provider,
+  client,
   farcasterSigner,
   frame,
   onClose,
@@ -231,6 +269,7 @@ export function useFrameApp({
   onSignMessageRequest = defaultOnSignMessageRequest,
   onSignTypedDataRequest = defaultOnSignTypedDataRequest,
 }: UseFrameAppOptions): UseFrameAppReturn {
+  const providerRef = useFreshRef(provider);
   const clientRef = useFreshRef(client);
   const readyRef = useFreshRef(onReady);
   const closeRef = useFreshRef(onClose);
@@ -259,6 +298,8 @@ export function useFrameApp({
           // no-op
         }
   );
+
+  providerRef.current.emitter.setDebugMode(debug);
 
   const registerEndpoint = useCallback<RegisterEndpointFunction>(
     (endpoint) => {
@@ -289,92 +330,56 @@ export function useFrameApp({
         };
       }
 
+      // bridge events to the frame app
+      const disconnectEndpointFromEvents =
+        providerRef.current.emitter.forwardToEndpoint(endpoint);
+
       const apiToExpose: FrameHost = {
         close() {
           logDebugRef.current(
             '@frames.js/render/unstable-use-frame-app: "close" called'
           );
-          const handler = closeRef.current;
-
-          if (!handler) {
-            // eslint-disable-next-line no-console -- provide feedback to the developer
-            console.warn(
-              '@frames.js/render/unstable-use-frame-app: "close" called but no handler provided'
-            );
-          } else {
-            handler();
-          }
+          closeRef.current?.();
         },
         get context() {
           logDebugRef.current(
             '@frames.js/render/unstable-use-frame-app: "context" getter called'
           );
-          return { user: { fid: signer.fid } };
+          return { user: { fid: signer.fid }, client: clientRef.current };
         },
         openUrl(url) {
           logDebugRef.current(
             '@frames.js/render/unstable-use-frame-app: "openUrl" called',
             url
           );
-          const handler = onOpenUrlRef.current;
-
-          if (!handler) {
-            // eslint-disable-next-line no-console -- provide feedback to the developer
-            console.warn(
-              '@frames.js/render/unstable-use-frame-app: "openUrl" called but no handler provided'
-            );
-          } else {
-            handler(url);
-          }
+          onOpenUrlRef.current?.(url);
         },
-        ready() {
+        ready(options) {
           logDebugRef.current(
             '@frames.js/render/unstable-use-frame-app: "ready" called'
           );
-          const handler = readyRef.current;
-
-          if (!handler) {
-            // eslint-disable-next-line no-console -- provide feedback to the developer
-            console.warn(
-              '@frames.js/render/unstable-use-frame-app: "ready" called but no handler provided'
-            );
-          } else {
-            handler();
-          }
+          readyRef.current?.(options);
         },
         setPrimaryButton(options) {
           logDebugRef.current(
             '@frames.js/render/unstable-use-frame-app: "setPrimaryButton" called',
             options
           );
-          const handler = onPrimaryButtonSetRef.current;
-
-          if (!handler) {
-            // eslint-disable-next-line no-console -- provide feedback to the developer
-            console.warn(
-              '@frames.js/render/unstable-use-frame-app: "setPrimaryButton" called but no handler provided'
+          onPrimaryButtonSetRef.current?.(options, () => {
+            logDebugRef.current(
+              '@frames.js/render/unstable-use-frame-app: "primaryButtonClicked" called'
             );
-          } else {
-            handler(options, () => {
-              logDebugRef.current(
-                '@frames.js/render/unstable-use-frame-app: "primaryButtonClicked" called'
-              );
-              endpoint.postMessage({
-                type: "frameEvent",
-                event: "primaryButtonClicked",
-              });
-            });
-          }
+            endpoint.postMessage({
+              type: "frameEvent",
+              event: "primaryButtonClicked",
+            } satisfies FrameEvent);
+          });
         },
         async ethProviderRequest(parameters) {
           logDebugRef.current(
             '@frames.js/render/unstable-use-frame-app: "ethProviderRequest" called',
             parameters
           );
-
-          if (!clientRef.current.data) {
-            throw new Error("client is not ready");
-          }
 
           let isApproved = true;
 
@@ -393,7 +398,7 @@ export function useFrameApp({
           }
 
           // @ts-expect-error -- type mismatch
-          return clientRef.current.data.request(parameters);
+          return providerRef.current.request(parameters);
         },
         ethProviderRequestV2(parameters) {
           logDebugRef.current(
@@ -413,7 +418,7 @@ export function useFrameApp({
           ) {
             return {
               added: false,
-              reason: "invalid-domain-manifest",
+              reason: "invalid_domain_manifest",
             };
           }
 
@@ -422,7 +427,7 @@ export function useFrameApp({
           ) {
             return {
               added: false,
-              reason: "rejected-by-user",
+              reason: "rejected_by_user",
             };
           }
 
@@ -442,7 +447,7 @@ export function useFrameApp({
           if (!added) {
             return {
               added: false,
-              reason: "rejected-by-user",
+              reason: "rejected_by_user",
             };
           }
 
@@ -460,20 +465,27 @@ export function useFrameApp({
         "@frames.js/render/unstable-use-frame-app: endpoint registered"
       );
 
-      return unregisterPreviouslyExposedEndpointListenerRef.current;
+      return () => {
+        disconnectEndpointFromEvents();
+        unregisterPreviouslyExposedEndpointListenerRef.current();
+      };
     },
     [
-      addFrameRequestsCacheRef,
-      clientRef,
-      closeRef,
+      logDebugRef,
       farcasterSignerRef,
       frame,
-      logDebugRef,
-      onAddFrameRequestedRef,
-      onOpenUrlRef,
-      onPrimaryButtonSetRef,
+      providerRef,
       onSignerNotApprovedRef,
+      closeRef,
+      clientRef,
+      onOpenUrlRef,
       readyRef,
+      onPrimaryButtonSetRef,
+      onSendTransactionRequestRef,
+      onSignTypedDataRequestRef,
+      onSignMessageRequestRef,
+      addFrameRequestsCacheRef,
+      onAddFrameRequestedRef,
     ]
   );
 
@@ -495,16 +507,16 @@ type UseFrameAppInIframeReturn = {
  * @example
  * ```
  * import { useFrameAppInIframe } from '@frames.js/render/unstable-use-frame-app';
- * import { useWalletClient } from 'wagmi';
+ * import { useWagmiProvider } from '@frames.js/render/frame-app/provider/wagmi';
  * import { useFarcasterSigner } from '@frames.js/render/identity/farcaster';
  *
  * function MyAppDialog() {
- *  const walletClient = useWalletClient();
+ *  const provider = useWagmiProvider();
  *  const farcasterSigner = useFarcasterSigner({
  *    // ...
  *  });
  *  const frameAppProps = useFrameAppInIframe({
- *    walletClient,
+ *    provider,
  *    farcasterSigner,
  *    // frame returned by useFrame() hook
  *    frame: frameState.frame,
@@ -595,16 +607,20 @@ const webViewEventParser = z.record(z.any());
  * @example
  * ```
  * import { useFrameAppInWebView } from '@frames.js/render/unstable-use-frame-app';
- * import { useWalletClient } from 'wagmi';
+ * import { useWagmiProvider } from '@frames.js/render/frame-app/provider/wagmi';
  * import { useFarcasterSigner } from '@frames.js/render/identity/farcaster';
  *
  * function MyAppDialog() {
+ *   const provider = useWagmiProvider();
+ *   const farcasterSigner = useFarcasterSigner({
+ *     // ...
+ *   });
  *   const frameAppProps = useFrameAppInWebView({
- *    walletClient,
- *   farcasterSigner,
- *   // frame returned by useFrame() hook
- *   frame: frameState.frame,
- *   // ... handlers for frame app actions
+ *    provider,
+ *    farcasterSigner,
+ *    // frame returned by useFrame() hook
+ *    frame: frameState.frame,
+ *    // ... handlers for frame app actions
  *  });
  *
  *  return <WebView {...frameAppProps }/>;

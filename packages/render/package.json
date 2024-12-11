@@ -86,6 +86,26 @@
         "default": "./dist/farcaster/index.cjs"
       }
     },
+    "./frame-app/provider/event-emitter": {
+      "import": {
+        "types": "./dist/frame-app/provider/event-emitter.d.ts",
+        "default": "./dist/frame-app/provider/event-emitter.js"
+      },
+      "require": {
+        "types": "./dist/frame-app/provider/event-emitter.d.cts",
+        "default": "./dist/frame-app/provider/event-emitter.cjs"
+      }
+    },
+    "./frame-app/provider/wagmi": {
+      "import": {
+        "types": "./dist/frame-app/provider/wagmi.d.ts",
+        "default": "./dist/frame-app/provider/wagmi.js"
+      },
+      "require": {
+        "types": "./dist/frame-app/provider/wagmi.d.cts",
+        "default": "./dist/frame-app/provider/wagmi.cjs"
+      }
+    },
     "./ui": {
       "react-native": {
         "types": "./dist/ui/index.native.d.cts",
@@ -180,14 +200,14 @@
         "default": "./dist/unstable-use-fetch-frame.cjs"
       }
     },
-    "./unstable-use-frame-app": {
+    "./use-frame-app": {
       "import": {
-        "types": "./dist/unstable-use-frame-app.d.ts",
-        "default": "./dist/unstable-use-frame-app.js"
+        "types": "./dist/use-frame-app.d.ts",
+        "default": "./dist/use-frame-app.js"
       },
       "require": {
-        "types": "./dist/unstable-use-frame-app.d.cts",
-        "default": "./dist/unstable-use-frame-app.cjs"
+        "types": "./dist/use-frame-app.d.cts",
+        "default": "./dist/use-frame-app.cjs"
       }
     },
     "./unstable-use-frame-state": {
@@ -296,7 +316,7 @@
     "src"
   ],
   "devDependencies": {
-    "@farcaster/frame-sdk": "^0.0.10",
+    "@farcaster/frame-sdk": "^0.0.15",
     "@lens-protocol/client": "^2.3.2",
     "@rainbow-me/rainbowkit": "^2.1.2",
     "@remix-run/node": "^2.8.1",
@@ -312,7 +332,7 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "@farcaster/frame-sdk": "^0.0.10",
+    "@farcaster/frame-sdk": "^0.0.11",
     "@lens-protocol/client": "^2.0.0",
     "@rainbow-me/rainbowkit": "^2.1.2",
     "@types/react": "^18.2.0",
@@ -330,6 +350,7 @@
     "@farcaster/core": "^0.14.7",
     "@michalkvasnicak/comlink": "^4.5.1",
     "@noble/ed25519": "^2.0.0",
+    "eventemitter3": "^5.0.1",
     "frames.js": "^0.20.0",
     "ox": "^0.4.0",
     "zod": "^3.23.8"
