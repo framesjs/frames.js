@@ -10,7 +10,7 @@ export type FrameEvent = {
 };
 
 /**
- * This is here just because it is incosistent in @farcaster/frame-sdk
+ * This is here just because it is inconsistent in farcaster/frame-sdk
  * Eventually this will be removed if they fix that.
  *
  * This is just a type that is used as a lead how to convert FrameEvent to FrameEventReactNative
