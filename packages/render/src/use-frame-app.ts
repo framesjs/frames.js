@@ -558,8 +558,10 @@ export function useFrameApp({
 type UseFrameAppInIframeReturn =
   | Exclude<UseFrameAppReturn, { status: "success" }>
   | ({
-      onLoad: (event: React.SyntheticEvent<HTMLIFrameElement>) => void;
-      src: string | undefined;
+      iframeProps: {
+        onLoad: (event: React.SyntheticEvent<HTMLIFrameElement>) => void;
+        src: string | undefined;
+      };
     } & Extract<UseFrameAppReturn, { status: "success" }>);
 
 /**
@@ -578,7 +580,7 @@ type UseFrameAppInIframeReturn =
  *  const farcasterSigner = useFarcasterSigner({
  *    // ...
  *  });
- *  const frameAppProps = useFrameAppInIframe({
+ *  const frameApp = useFrameAppInIframe({
  *    provider,
  *    farcasterSigner,
  *    // frame returned by useFrame() hook
@@ -586,7 +588,12 @@ type UseFrameAppInIframeReturn =
  *    // ... handlers for frame app actions
  *  });
  *
- *  return <iframe {...frameAppProps} />;
+ *  if (frameApp.status !== 'success') {
+ *   // render loading or error
+ *   return null;
+ *  }
+ *
+ *  return <iframe {...frameApp.iframeProps} />;
  * }
  * ```
  */
@@ -625,27 +632,32 @@ export function useFrameAppInIframe(
         return {
           ...frameApp,
           status: "success",
-          src: frameApp.frame.frame.button?.action?.url,
-          onLoad(event) {
-            logDebugRef.current(
-              "@frames.js/render/unstable-use-frame-app: iframe loaded"
-            );
-
-            if (!(event.currentTarget instanceof HTMLIFrameElement)) {
-              // eslint-disable-next-line no-console -- provide feedback to the developer
-              console.error(
-                '@frames.js/render/unstable-use-frame-app: "onLoad" called but event target is not an iframe'
+          iframeProps: {
+            src: frameApp.frame.frame.button?.action?.url,
+            onLoad(event) {
+              logDebugRef.current(
+                "@frames.js/render/unstable-use-frame-app: iframe loaded"
               );
 
-              return;
-            }
-            if (!event.currentTarget.contentWindow) {
-              return;
-            }
+              if (!(event.currentTarget instanceof HTMLIFrameElement)) {
+                // eslint-disable-next-line no-console -- provide feedback to the developer
+                console.error(
+                  '@frames.js/render/unstable-use-frame-app: "onLoad" called but event target is not an iframe'
+                );
 
-            const endpoint = windowEndpoint(event.currentTarget.contentWindow);
+                return;
+              }
+              if (!event.currentTarget.contentWindow) {
+                return;
+              }
 
-            unregisterEndpointRef.current = frameApp.registerEndpoint(endpoint);
+              const endpoint = windowEndpoint(
+                event.currentTarget.contentWindow
+              );
+
+              unregisterEndpointRef.current =
+                frameApp.registerEndpoint(endpoint);
+            },
           },
         };
       }
@@ -665,12 +677,14 @@ type MessageEventListener = (event: ReactNativeMessageEvent) => void;
 type UseFrameAppInWebViewReturn =
   | Exclude<UseFrameAppReturn, { status: "success" }>
   | (Extract<UseFrameAppReturn, { status: "success" }> & {
-      source: WebViewProps["source"];
-      onMessage: NonNullable<WebViewProps["onMessage"]>;
-      injectedJavaScriptBeforeContentLoaded: NonNullable<
-        WebViewProps["injectedJavaScriptBeforeContentLoaded"]
-      >;
-      ref: LegacyRef<WebView>;
+      webViewProps: {
+        source: WebViewProps["source"];
+        onMessage: NonNullable<WebViewProps["onMessage"]>;
+        injectedJavaScriptBeforeContentLoaded: NonNullable<
+          WebViewProps["injectedJavaScriptBeforeContentLoaded"]
+        >;
+        ref: LegacyRef<WebView>;
+      };
     });
 
 const webViewEventParser = z.record(z.any());
@@ -691,7 +705,7 @@ const webViewEventParser = z.record(z.any());
  *   const farcasterSigner = useFarcasterSigner({
  *     // ...
  *   });
- *   const frameAppProps = useFrameAppInWebView({
+ *   const frameApp = useFrameAppInWebView({
  *    provider,
  *    farcasterSigner,
  *    // frame returned by useFrame() hook
@@ -699,7 +713,12 @@ const webViewEventParser = z.record(z.any());
  *    // ... handlers for frame app actions
  *  });
  *
- *  return <WebView {...frameAppProps }/>;
+ *  if (frameApp.status !== 'success') {
+ *     // render loading or error
+ *    return null;
+ *  }
+ *
+ *  return <WebView {...frameApp.webViewProps} />;
  * }
  * ```
  */
@@ -748,112 +767,116 @@ export function useFrameAppInWebView(
 
         return {
           ...frameApp,
-          source: frame.button?.action?.url
-            ? { uri: frame.button.action.url }
-            : undefined,
-          onMessage(event) {
-            logDebugRef.current(
-              "@frames.js/render/unstable-use-frame-app: received an event",
-              event.nativeEvent.data
-            );
+          webViewProps: {
+            source: frame.button?.action?.url
+              ? { uri: frame.button.action.url }
+              : undefined,
+            onMessage(event) {
+              logDebugRef.current(
+                "@frames.js/render/unstable-use-frame-app: received an event",
+                event.nativeEvent.data
+              );
 
-            try {
-              const result = z
-                .preprocess((value) => {
-                  return typeof value === "string" ? JSON.parse(value) : value;
-                }, webViewEventParser)
-                .safeParse(event.nativeEvent.data);
+              try {
+                const result = z
+                  .preprocess((value) => {
+                    return typeof value === "string"
+                      ? JSON.parse(value)
+                      : value;
+                  }, webViewEventParser)
+                  .safeParse(event.nativeEvent.data);
 
-              if (!result.success) {
+                if (!result.success) {
+                  logDebugRef.current(
+                    "@frames.js/render/unstable-use-frame-app: received event parsing error",
+                    result.error
+                  );
+                  return;
+                }
+
+                const messageEvent = {
+                  origin: new URL(event.nativeEvent.url).origin,
+                  data: result.data,
+                };
+
                 logDebugRef.current(
-                  "@frames.js/render/unstable-use-frame-app: received event parsing error",
-                  result.error
+                  "@frames.js/render/unstable-use-frame-app: received message from web view",
+                  messageEvent
                 );
+
+                messageListenersRef.current?.forEach((listener) => {
+                  listener(messageEvent);
+                });
+              } catch (error) {
+                logDebugRef.current(
+                  "@frames.js/render/unstable-use-frame-app: event receiving error",
+                  error
+                );
+              }
+            },
+            // inject js code which handles message parsing between the frame app and the application.
+            // react native web view is able to send only string messages so we need to serialize/deserialize them
+            injectedJavaScriptBeforeContentLoaded: createMessageBridgeScript(
+              debugRef.current
+            ),
+            ref(webView) {
+              ref.current = webView;
+
+              if (!webView) {
                 return;
               }
 
-              const messageEvent = {
-                origin: new URL(event.nativeEvent.url).origin,
-                data: result.data,
-              };
+              unregisterEndpointRef.current = frameApp.registerEndpoint({
+                postMessage(message) {
+                  logDebugRef.current(
+                    "@frames.js/render/unstable-use-frame-app: sent message to web view",
+                    message
+                  );
 
-              logDebugRef.current(
-                "@frames.js/render/unstable-use-frame-app: received message from web view",
-                messageEvent
-              );
+                  webView.postMessage(JSON.stringify(message));
+                },
+                addEventListener(type, listener) {
+                  if (type !== "message") {
+                    throw new Error("Invalid event");
+                  }
 
-              messageListenersRef.current?.forEach((listener) => {
-                listener(messageEvent);
+                  if (typeof listener === "function") {
+                    messageListenersRef.current?.add(
+                      listener as unknown as MessageEventListener
+                    );
+
+                    logDebugRef.current(
+                      "@frames.js/render/unstable-use-frame-app: registered an event listener",
+                      listener
+                    );
+                  } else {
+                    throw new Error('Invalid listener, expected "function"');
+                  }
+                },
+                removeEventListener(type, listener) {
+                  if (type !== "message") {
+                    throw new Error("Invalid event");
+                  }
+
+                  if (typeof listener === "function") {
+                    messageListenersRef.current?.delete(
+                      listener as unknown as MessageEventListener
+                    );
+
+                    logDebugRef.current(
+                      "@frames.js/render/unstable-use-frame-app: removed an event listener",
+                      listener
+                    );
+                  } else {
+                    throw new Error('Invalid listener, expected "function"');
+                  }
+                },
               });
-            } catch (error) {
+
               logDebugRef.current(
-                "@frames.js/render/unstable-use-frame-app: event receiving error",
-                error
+                "@frames.js/render/unstable-use-frame-app: registered web view endpoint"
               );
-            }
-          },
-          // inject js code which handles message parsing between the frame app and the application.
-          // react native web view is able to send only string messages so we need to serialize/deserialize them
-          injectedJavaScriptBeforeContentLoaded: createMessageBridgeScript(
-            debugRef.current
-          ),
-          ref(webView) {
-            ref.current = webView;
-
-            if (!webView) {
-              return;
-            }
-
-            unregisterEndpointRef.current = frameApp.registerEndpoint({
-              postMessage(message) {
-                logDebugRef.current(
-                  "@frames.js/render/unstable-use-frame-app: sent message to web view",
-                  message
-                );
-
-                webView.postMessage(JSON.stringify(message));
-              },
-              addEventListener(type, listener) {
-                if (type !== "message") {
-                  throw new Error("Invalid event");
-                }
-
-                if (typeof listener === "function") {
-                  messageListenersRef.current?.add(
-                    listener as unknown as MessageEventListener
-                  );
-
-                  logDebugRef.current(
-                    "@frames.js/render/unstable-use-frame-app: registered an event listener",
-                    listener
-                  );
-                } else {
-                  throw new Error('Invalid listener, expected "function"');
-                }
-              },
-              removeEventListener(type, listener) {
-                if (type !== "message") {
-                  throw new Error("Invalid event");
-                }
-
-                if (typeof listener === "function") {
-                  messageListenersRef.current?.delete(
-                    listener as unknown as MessageEventListener
-                  );
-
-                  logDebugRef.current(
-                    "@frames.js/render/unstable-use-frame-app: removed an event listener",
-                    listener
-                  );
-                } else {
-                  throw new Error('Invalid listener, expected "function"');
-                }
-              },
-            });
-
-            logDebugRef.current(
-              "@frames.js/render/unstable-use-frame-app: registered web view endpoint"
-            );
+            },
           },
         };
       }
