@@ -806,6 +806,7 @@ type FetchProxiedArg = {
    * Valid only for GET requests
    */
   parseFarcasterManifest?: boolean;
+  signal?: AbortSignal;
 } & (
   | {
       frameAction: SignedFrameAction;
@@ -814,7 +815,7 @@ type FetchProxiedArg = {
   | { url: string }
 );
 
-async function fetchProxied(
+export async function fetchProxied(
   params: FetchProxiedArg
 ): Promise<Response | Error> {
   const searchParams = new URLSearchParams({
@@ -850,7 +851,9 @@ async function fetchProxied(
 
   const proxyUrl = proxyUrlAndSearchParamsToUrl(params.proxyUrl, searchParams);
 
-  return tryCallAsync(() => params.fetchFn(proxyUrl, { method: "GET" }));
+  return tryCallAsync(() =>
+    params.fetchFn(proxyUrl, { method: "GET", signal: params.signal })
+  );
 }
 
 function getResponseBody(response: Response): Promise<unknown> {

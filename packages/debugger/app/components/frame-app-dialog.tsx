@@ -49,7 +49,8 @@ export function FrameAppDialog({
     },
     provider,
     farcasterSigner,
-    frame: frameState.parseResult,
+    source: frameState.parseResult,
+    proxyUrl: "/frames",
     onReady() {
       setIsReady(true);
     },
@@ -59,11 +60,12 @@ export function FrameAppDialog({
     },
     onPrimaryButtonSet: setPrimaryButton,
   });
-  const { name, url, splashImageUrl, splashBackgroundColor } =
+  const { name, splashImageUrl, splashBackgroundColor } =
     frameState.frame.button.action;
 
   const isLoadingWallet = walletClient.status === "pending";
-  const isLoading = isLoadingWallet || !isReady;
+  const isLoading =
+    isLoadingWallet || !isReady || frameApp.status === "pending";
 
   return (
     <Dialog
@@ -102,11 +104,11 @@ export function FrameAppDialog({
               </div>
             </div>
           )}
-          {!isLoadingWallet && (
+          {!isLoadingWallet && frameApp.status === "success" && (
             <iframe
               className="h-[600px] w-full opacity-100 transition-opacity duration-300"
               onLoad={frameApp.onLoad}
-              src={url}
+              src={frameApp.src}
               sandbox="allow-forms allow-scripts allow-same-origin"
             ></iframe>
           )}
