@@ -107,9 +107,8 @@ export function FrameAppDialog({
           {!isLoadingWallet && frameApp.status === "success" && (
             <iframe
               className="h-[600px] w-full opacity-100 transition-opacity duration-300"
-              onLoad={frameApp.onLoad}
-              src={frameApp.src}
               sandbox="allow-forms allow-scripts allow-same-origin"
+              {...frameApp.iframeProps}
             ></iframe>
           )}
         </div>
