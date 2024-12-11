@@ -9,7 +9,8 @@ import { useState } from "react";
 import {
   useFrameAppInIframe,
   type FramePrimaryButton,
-} from "@frames.js/render/unstable-use-frame-app";
+} from "@frames.js/render/use-frame-app";
+import { useWagmiProvider } from "@frames.js/render/frame-app/provider/wagmi";
 import type { LaunchFrameButtonPressEvent } from "@frames.js/render/unstable-types";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -39,9 +40,14 @@ export function FrameAppDialog({
   const [primaryButton, setPrimaryButton] = useState<FramePrimaryButton | null>(
     null
   );
+  const provider = useWagmiProvider();
   const frameApp = useFrameAppInIframe({
     debug: true,
-    walletClient,
+    client: {
+      clientFid: parseInt(process.env.FARCASTER_DEVELOPER_FID ?? "-1"),
+      added: false,
+    },
+    provider,
     farcasterSigner,
     frame: frameState.parseResult,
     onReady() {
