@@ -68,9 +68,12 @@ export function useAnonymousIdentity(): AnonymousSignerInstance {
       isLoadingSigner: false,
       logout,
       signFrameAction,
-      withContext(frameContext) {
+      withContext(frameContext, overrides) {
         return {
-          signerState: this,
+          signerState: {
+            ...this,
+            ...overrides,
+          },
           frameContext,
         };
       },

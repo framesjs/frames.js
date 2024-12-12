@@ -1,23 +1,23 @@
 import type {
+  FramesStack,
+  FramesStackItem,
   FrameState,
   FrameStateAPI,
   UseFrameStateOptions,
 } from "@frames.js/render/unstable-types";
 import { useFrameState } from "@frames.js/render/unstable-use-frame-state";
+import type { ParseFramesWithReportsResult } from "frames.js/frame-parsers";
 
 function computeDurationInSeconds(start: Date, end: Date): number {
   return Number(((end.getTime() - start.getTime()) / 1000).toFixed(2));
 }
 
-type ExtraPending = {
-  startTime: Date;
+type DebuggerSharedResponseExtra = {
+  timestamp: Date;
   requestDetails: {
     body?: object;
     searchParams?: URLSearchParams;
   };
-};
-
-type SharedResponseExtra = {
   response: Response;
   responseStatus: number;
   responseBody: unknown;
@@ -27,40 +27,69 @@ type SharedResponseExtra = {
   speed: number;
 };
 
-type ExtraDone = SharedResponseExtra;
+export type DebuggerExtraPending = Pick<
+  DebuggerSharedResponseExtra,
+  "timestamp" | "requestDetails"
+> & {
+  timestamp: Date;
+  startTime: Date;
+};
 
-type ExtraDoneRedirect = SharedResponseExtra;
+export type DebuggerExtraDone = DebuggerSharedResponseExtra & {
+  parseResult: ParseFramesWithReportsResult;
+};
 
-type ExtraRequestError = Pick<SharedResponseExtra, "speed"> & {
+export type DebuggerExtraDoneRedirect = DebuggerSharedResponseExtra;
+
+export type DebuggerExtraRequestError = Pick<
+  DebuggerSharedResponseExtra,
+  "speed" | "timestamp" | "requestDetails"
+> & {
   response: Response | null;
   responseStatus: number;
   responseBody: unknown;
 };
 
-type ExtraMessage = SharedResponseExtra;
+export type DebuggerExtraMessage = DebuggerSharedResponseExtra;
+
+export type DebuggerFrameStackItem = FramesStackItem<
+  DebuggerExtraPending,
+  DebuggerExtraDone,
+  DebuggerExtraDoneRedirect,
+  DebuggerExtraRequestError,
+  DebuggerExtraMessage
+>;
+
+export type DebuggerFrameStack = FramesStack<
+  DebuggerExtraPending,
+  DebuggerExtraDone,
+  DebuggerExtraDoneRedirect,
+  DebuggerExtraRequestError,
+  DebuggerExtraMessage
+>;
 
 type DebuggerFrameState = FrameState<
-  ExtraPending,
-  ExtraDone,
-  ExtraDoneRedirect,
-  ExtraRequestError,
-  ExtraMessage
+  DebuggerExtraPending,
+  DebuggerExtraDone,
+  DebuggerExtraDoneRedirect,
+  DebuggerExtraRequestError,
+  DebuggerExtraMessage
 >;
 type DebuggerFrameStateAPI = FrameStateAPI<
-  ExtraPending,
-  ExtraDone,
-  ExtraDoneRedirect,
-  ExtraRequestError,
-  ExtraMessage
+  DebuggerExtraPending,
+  DebuggerExtraDone,
+  DebuggerExtraDoneRedirect,
+  DebuggerExtraRequestError,
+  DebuggerExtraMessage
 >;
 
 type DebuggerFrameStateOptions = Omit<
   UseFrameStateOptions<
-    ExtraPending,
-    ExtraDone,
-    ExtraDoneRedirect,
-    ExtraRequestError,
-    ExtraMessage
+    DebuggerExtraPending,
+    DebuggerExtraDone,
+    DebuggerExtraDoneRedirect,
+    DebuggerExtraRequestError,
+    DebuggerExtraMessage
   >,
   "resolveDoneExtra"
 >;
@@ -69,21 +98,28 @@ export function useDebuggerFrameState(
   options: DebuggerFrameStateOptions
 ): [DebuggerFrameState, DebuggerFrameStateAPI] {
   return useFrameState<
-    ExtraPending,
-    ExtraDone,
-    ExtraDoneRedirect,
-    ExtraRequestError,
-    ExtraMessage
+    DebuggerExtraPending,
+    DebuggerExtraDone,
+    DebuggerExtraDoneRedirect,
+    DebuggerExtraRequestError,
+    DebuggerExtraMessage
   >({
     ...options,
+    initialPendingExtra: {
+      requestDetails: {},
+      timestamp: new Date(),
+      startTime: new Date(),
+    },
     resolveGETPendingExtra() {
       return {
+        timestamp: new Date(),
         startTime: new Date(),
         requestDetails: {},
       };
     },
     resolvePOSTPendingExtra(arg) {
       return {
+        timestamp: new Date(),
         startTime: new Date(),
         requestDetails: {
           body: arg.action.body,
@@ -93,6 +129,9 @@ export function useDebuggerFrameState(
     },
     resolveDoneExtra(arg) {
       return {
+        parseResult: arg.parseResult,
+        timestamp: arg.pendingItem.extra.timestamp,
+        requestDetails: arg.pendingItem.extra.requestDetails,
         response: arg.response.clone(),
         speed: computeDurationInSeconds(
           arg.pendingItem.extra.startTime,
@@ -104,6 +143,8 @@ export function useDebuggerFrameState(
     },
     resolveDoneRedirectExtra(arg) {
       return {
+        timestamp: arg.pendingItem.extra.timestamp,
+        requestDetails: arg.pendingItem.extra.requestDetails,
         speed: computeDurationInSeconds(
           arg.pendingItem.extra.startTime,
           arg.endTime
@@ -115,6 +156,8 @@ export function useDebuggerFrameState(
     },
     resolveDoneWithErrorMessageExtra(arg) {
       return {
+        timestamp: arg.pendingItem.extra.timestamp,
+        requestDetails: arg.pendingItem.extra.requestDetails,
         speed: computeDurationInSeconds(
           arg.pendingItem.extra.startTime,
           arg.endTime
@@ -126,6 +169,8 @@ export function useDebuggerFrameState(
     },
     resolveFailedExtra(arg) {
       return {
+        timestamp: arg.pendingItem.extra.timestamp,
+        requestDetails: arg.pendingItem.extra.requestDetails,
         speed: computeDurationInSeconds(
           arg.pendingItem.extra.startTime,
           arg.endTime
@@ -137,6 +182,8 @@ export function useDebuggerFrameState(
     },
     resolveFailedWithRequestErrorExtra(arg) {
       return {
+        timestamp: arg.pendingItem.extra.timestamp,
+        requestDetails: arg.pendingItem.extra.requestDetails,
         speed: computeDurationInSeconds(
           arg.pendingItem.extra.startTime,
           arg.endTime

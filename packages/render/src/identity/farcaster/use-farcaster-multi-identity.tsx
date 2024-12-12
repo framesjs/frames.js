@@ -8,7 +8,11 @@ import {
 } from "react";
 import { convertKeypairToHex, createKeypairEDDSA } from "../crypto";
 import type { FarcasterSignerState } from "../../farcaster";
-import { signComposerAction, signFrameAction } from "../../farcaster";
+import {
+  signComposerAction,
+  signCastAction,
+  signFrameAction,
+} from "../../farcaster";
 import type { Storage } from "../types";
 import { useVisibilityDetection } from "../../hooks/use-visibility-detection";
 import { WebStorage } from "../storage";
@@ -278,6 +282,7 @@ export function useFarcasterMultiIdentity({
   const generateUserIdRef = useFreshRef(generateUserId);
   const onMissingIdentityRef = useFreshRef(onMissingIdentity);
   const fetchFnRef = useFreshRef(fetchFn);
+  const signerUrlRef = useFreshRef(signerUrl);
 
   const createFarcasterSigner =
     useCallback(async (): Promise<FarcasterCreateSignerResult> => {
@@ -286,7 +291,7 @@ export function useFarcasterMultiIdentity({
         const keypairString = convertKeypairToHex(keypair);
         const authorizationResponse = await fetchFnRef.current(
           // real signer or local one are handled by local route so we don't need to expose anything to client side bundle
-          signerUrl,
+          signerUrlRef.current,
           {
             method: "POST",
             body: JSON.stringify({
@@ -396,7 +401,13 @@ export function useFarcasterMultiIdentity({
         console.error("@frames.js/render: API Call failed", error);
         throw error;
       }
-    }, [fetchFnRef, generateUserIdRef, onLogInStartRef, setState, signerUrl]);
+    }, [
+      fetchFnRef,
+      generateUserIdRef,
+      onLogInStartRef,
+      setState,
+      signerUrlRef,
+    ]);
 
   const impersonateUser = useCallback(
     async (fid: number) => {
@@ -514,7 +525,7 @@ export function useFarcasterMultiIdentity({
         unregisterVisibilityChangeListener();
       };
     }
-  }, [farcasterUser, identityPoller, visibilityDetector, setState]);
+  }, [farcasterUser, identityPoller, visibilityDetector, setState, onLogInRef]);
 
   const selectIdentity = useCallback(
     async (id: number | string) => {
@@ -531,45 +542,71 @@ export function useFarcasterMultiIdentity({
         return newState;
       });
     },
-    [setState]
+    [onIdentitySelectRef, setState]
   );
 
-  return useMemo(
-    () => ({
-      specification: "farcaster",
-      signer: farcasterUser,
-      hasSigner:
-        farcasterUser?.status === "approved" ||
-        farcasterUser?.status === "impersonating",
+  const farcasterUserRef = useFreshRef(farcasterUser);
+  const isLoadingRef = useFreshRef(isLoading);
+  const identitiesRef = useFreshRef(state.identities);
+
+  return useMemo(() => {
+    /**
+     * See the explanation in useFarcasterIdentity()
+     */
+    void farcasterUser;
+    void isLoading;
+    void state.identities;
+
+    return {
+      specification: ["farcaster", "farcaster_v2"],
+      get signer() {
+        return farcasterUserRef.current;
+      },
+      get hasSigner() {
+        return (
+          farcasterUserRef.current?.status === "approved" ||
+          farcasterUserRef.current?.status === "impersonating"
+        );
+      },
       signFrameAction,
+      signCastAction,
       signComposerAction,
-      isLoadingSigner: isLoading,
+      get isLoadingSigner() {
+        return isLoadingRef.current;
+      },
       impersonateUser,
       onSignerlessFramePress,
       createSigner,
       logout,
       removeIdentity,
-      identities: state.identities,
+      get identities() {
+        return identitiesRef.current;
+      },
       selectIdentity,
       identityPoller,
-      withContext(frameContext) {
+      withContext(frameContext, overrides) {
         return {
-          signerState: this,
+          signerState: {
+            ...this,
+            ...overrides,
+          },
           frameContext,
         };
       },
-    }),
-    [
-      farcasterUser,
-      identityPoller,
-      impersonateUser,
-      isLoading,
-      logout,
-      createSigner,
-      onSignerlessFramePress,
-      removeIdentity,
-      selectIdentity,
-      state.identities,
-    ]
-  );
+    };
+  }, [
+    impersonateUser,
+    onSignerlessFramePress,
+    createSigner,
+    logout,
+    removeIdentity,
+    selectIdentity,
+    identityPoller,
+    farcasterUserRef,
+    farcasterUser,
+    isLoading,
+    isLoadingRef,
+    state.identities,
+    identitiesRef,
+  ]);
 }

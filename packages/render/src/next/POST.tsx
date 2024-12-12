@@ -241,8 +241,9 @@ export async function POST(req: Request | NextRequest): Promise<Response> {
     const html = await response.text();
 
     if (multiSpecificationEnabled) {
-      const result = parseFramesWithReports({
+      const result = await parseFramesWithReports({
         html,
+        frameUrl: body.untrustedData.url,
         fallbackPostUrl: body.untrustedData.url,
         fromRequestMethod: "POST",
       });
@@ -259,8 +260,9 @@ export async function POST(req: Request | NextRequest): Promise<Response> {
       );
     }
 
-    const result = getFrame({
+    const result = await getFrame({
       htmlString: html,
+      frameUrl: body.untrustedData.url,
       url: body.untrustedData.url,
       fromRequestMethod: "POST",
       specification,

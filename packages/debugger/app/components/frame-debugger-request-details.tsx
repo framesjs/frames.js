@@ -1,4 +1,3 @@
-import type { FramesStackItem } from "@frames.js/render";
 import { JSONTree } from "react-json-tree";
 import {
   Table,
@@ -8,9 +7,10 @@ import {
   TableRow,
 } from "@/components/table";
 import { urlSearchParamsToObject } from "../utils/url-search-params-to-object";
+import type { DebuggerFrameStackItem } from "../hooks/useDebuggerFrameState";
 
 type FrameDebuggerRequestDetailsProps = {
-  frameStackItem: FramesStackItem;
+  frameStackItem: DebuggerFrameStackItem;
 };
 
 export function FrameDebuggerRequestDetails({
@@ -48,7 +48,7 @@ export function FrameDebuggerRequestDetails({
               <TableHead>Payload</TableHead>
               <TableCell>
                 <JSONTree
-                  data={frameStackItem.requestDetails.body}
+                  data={frameStackItem.extra.requestDetails.body}
                   invertTheme
                   theme="default"
                 ></JSONTree>
@@ -67,16 +67,16 @@ export function FrameDebuggerRequestDetails({
               <TableRow>
                 <TableHead>Response status</TableHead>
                 <TableCell className="w-full">
-                  {frameStackItem.responseStatus}
+                  {frameStackItem.extra.responseStatus}
                 </TableCell>
               </TableRow>
-              {frameStackItem.response && (
+              {frameStackItem.extra.response && (
                 <TableRow>
                   <TableHead>Response headers</TableHead>
                   <TableCell className="w-full">
                     <JSONTree
                       data={Object.fromEntries(
-                        frameStackItem.response.headers.entries()
+                        frameStackItem.extra.response.headers.entries()
                       )}
                       theme="default"
                       invertTheme
@@ -105,7 +105,7 @@ export function FrameDebuggerRequestDetails({
                           ? {
                               message: frameStackItem.message,
                             }
-                          : frameStackItem.responseBody
+                          : frameStackItem.extra.responseBody
                       }
                       theme="default"
                       invertTheme

@@ -1,5 +1,6 @@
 import { version as framesjsVersion } from "../package.json";
-import type { Frame, FrameFlattened } from "./types";
+import type { ParsedFrameV2 } from "./frame-parsers";
+import type { Frame, FrameFlattened, FrameV2Flattened } from "./types";
 
 export function getFrameFlattened(
   frame: Frame,
@@ -95,4 +96,18 @@ export function getFrameFlattened(
   };
 
   return metadata;
+}
+
+/**
+ * Formats a Frame v2 and formats it as an intermediate step before rendering as html
+ */
+export function getFrameV2Flattened(
+  frame: ParsedFrameV2,
+  overrides?: Partial<FrameV2Flattened>
+): Partial<FrameV2Flattened> {
+  return {
+    "fc:frame": JSON.stringify(frame),
+    [`frames.js:version`]: framesjsVersion,
+    ...overrides,
+  };
 }

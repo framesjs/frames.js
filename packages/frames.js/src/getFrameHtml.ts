@@ -1,6 +1,7 @@
 import { DEFAULT_FRAME_TITLE } from "./constants";
-import { getFrameFlattened } from "./getFrameFlattened";
-import type { Frame, FrameFlattened } from "./types";
+import type { ParsedFrameV2 } from "./frame-parsers";
+import { getFrameFlattened, getFrameV2Flattened } from "./getFrameFlattened";
+import type { Frame, FrameFlattened, FrameV2Flattened } from "./types";
 import { escapeHtmlAttributeValue } from "./utils";
 
 export interface GetFrameHtmlOptions {
@@ -66,4 +67,24 @@ export function getFrameHtmlHead(
   }
 
   return tags.join("");
+}
+
+/**
+ * Formats a Frame v2 ready to be included in a <head> of an html string
+ */
+export function getFrameV2HtmlHead(
+  frame: ParsedFrameV2,
+  overrides?: Partial<FrameV2Flattened>
+): string {
+  const flattened = getFrameV2Flattened(frame, overrides);
+
+  const tagStrings = Object.entries(flattened)
+    .map(([key, value]) => {
+      return value
+        ? `<meta name="${key}" content="${escapeHtmlAttributeValue(value)}"/>`
+        : null;
+    })
+    .filter(Boolean) as string[];
+
+  return tagStrings.join("");
 }

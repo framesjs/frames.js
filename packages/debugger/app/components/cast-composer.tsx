@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import IconByName from "./octicons";
 import { useFrame_unstable } from "@frames.js/render/use-frame";
+import { isValidPartialFrame } from "@frames.js/render/ui/utils";
 import { WithTooltip } from "./with-tooltip";
 import { fallbackFrameContext } from "@frames.js/render";
 import { FrameUI } from "./frame-ui";
@@ -20,7 +21,6 @@ import { ToastAction } from "@radix-ui/react-toast";
 import Link from "next/link";
 import { useFarcasterIdentity } from "../hooks/useFarcasterIdentity";
 import { useAccount } from "wagmi";
-import { FrameStackDone } from "@frames.js/render/unstable-types";
 import { useDebuggerFrameState } from "../hooks/useDebuggerFrameState";
 
 type CastComposerProps = {
@@ -122,15 +122,6 @@ function createDebugUrl(frameUrl: string, currentUrl: string) {
   return debugUrl.toString();
 }
 
-function isAtLeastPartialFrame(stackItem: FrameStackDone): boolean {
-  return (
-    stackItem.frameResult.status === "success" ||
-    (!!stackItem.frameResult.frame &&
-      !!stackItem.frameResult.frame.buttons &&
-      stackItem.frameResult.frame.buttons.length > 0)
-  );
-}
-
 function CastEmbedPreview({ onRemove, url }: CastEmbedPreviewProps) {
   const account = useAccount();
   const { toast } = useToast();
@@ -212,7 +203,7 @@ function CastEmbedPreview({ onRemove, url }: CastEmbedPreviewProps) {
 
   if (
     frame.currentFrameStackItem?.status === "done" &&
-    isAtLeastPartialFrame(frame.currentFrameStackItem)
+    isValidPartialFrame(frame.currentFrameStackItem.frameResult)
   ) {
     return (
       <div className="flex flex-col gap-1 w-full">
