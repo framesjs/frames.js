@@ -5,17 +5,58 @@ import { useFreshRef } from "../../hooks/use-fresh-ref";
 import type { EthProvider, EthProviderEventEmitterInterface } from "./types";
 import { createEmitter } from "./event-emitter";
 
-export function useWagmiProvider(): EthProvider {
+export type UseWagmiProviderOptions = {
+  /**
+   * @defaultValue false
+   */
+  debug?: boolean;
+};
+
+export function useWagmiProvider({
+  debug = false,
+}: UseWagmiProviderOptions = {}): EthProvider {
   const account = useAccount();
   const config = useConfig();
   const configRef = useFreshRef(config);
   const providerRef = useRef<EthProvider | null>(null);
   const emitterRef = useRef<EthProviderEventEmitterInterface | null>(null);
 
+  const logDebugRef = useFreshRef(
+    debug
+      ? // eslint-disable-next-line no-console -- provide feedback to the developer
+        console.debug
+      : () => {
+          // noop
+        }
+  );
+
   useEffect(() => {
     const connector = account.connector;
 
     if (!connector) {
+      logDebugRef.current(
+        "@frames.js/render/frame-app/provider/wagmi: No connector found, skipping event listeners registration"
+      );
+
+      return;
+    }
+
+    /**
+     * This is weird case but sometimes when account is connecting
+     * injected connector could miss the emitter property.
+     *
+     * Not sure if it is because it is connecting or something else
+     * and the type here is saying that emitter is never nullable
+     * but we actually ran into the case where it was null.
+     *
+     * So just to be sure.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- it actually can be nullable in some cases
+    if (!connector.emitter) {
+      logDebugRef.current(
+        "@frames.js/render/frame-app/provider/wagmi: No emitter found on connector, skipping event listeners registration"
+      );
+
       return;
     }
 
