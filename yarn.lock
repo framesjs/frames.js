@@ -2397,20 +2397,20 @@
     neverthrow "^6.0.0"
     viem "^1.12.2"
 
-"@farcaster/frame-core@^0.0.14":
-  version "0.0.14"
-  resolved "https://registry.yarnpkg.com/@farcaster/frame-core/-/frame-core-0.0.14.tgz#4c9ed21be3b4c5961886c47ed58d8a77afc2f082"
-  integrity sha512-4Zm2IO8N7e1jshryG7zNIKna/ctwtLsamRwrXG8Pd4Parf+2QmCkg7wLb/VuZpHHCqH+Ez34tzggg6cEBEn6NA==
+"@farcaster/frame-core@^0.0.15":
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/@farcaster/frame-core/-/frame-core-0.0.15.tgz#05a4ed6f7c0d43d2f41d13714fb8b13419068a11"
+  integrity sha512-WQfAEqyQAz3EzEdfqAMV7s2VMIYBGWz0Qt5CUUkmSelvv0a+8A61YmBnpemCi3NEwWzEJBTc/IxzQ29w2axPBg==
   dependencies:
     ox "^0.4.0"
     zod "^3.23.8"
 
-"@farcaster/frame-sdk@^0.0.15":
-  version "0.0.15"
-  resolved "https://registry.yarnpkg.com/@farcaster/frame-sdk/-/frame-sdk-0.0.15.tgz#10824faf2832f981fdde1e96366f73bcf4e23b5e"
-  integrity sha512-gGM8ZGeh8c2JvoUL3FsOowuaTu8v4a6WThEdcPuNA6kxKXto+tzN6uacll/c2vuFbee9Vu/LlOW49HGbAZuRqQ==
+"@farcaster/frame-sdk@^0.0.16":
+  version "0.0.16"
+  resolved "https://registry.yarnpkg.com/@farcaster/frame-sdk/-/frame-sdk-0.0.16.tgz#1e3dc191f950065d2f38daf61dc45775d7073421"
+  integrity sha512-043j2EiCOaHvS1ox0yVx7KZQU5LB1P+39waK3xtX0knNKQ54wZxCOTcca0kUcJfTBN5db7iVPOh/E+LJ5kjDew==
   dependencies:
-    "@farcaster/frame-core" "^0.0.14"
+    "@farcaster/frame-core" "^0.0.15"
     comlink "^4.4.2"
     eventemitter3 "^5.0.1"
     ox "^0.4.0"
