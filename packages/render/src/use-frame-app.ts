@@ -146,7 +146,7 @@ const defaultOnSignTypedDataRequest: OnSignTypedDataRequestFunction = () => {
   return Promise.resolve(true);
 };
 
-type UseFrameAppOptions = {
+export type UseFrameAppOptions = {
   /**
    * @example
    * ```ts
@@ -256,7 +256,7 @@ type RegisterEndpointFunction = (
   endpoint: Endpoint
 ) => UnregisterEndpointFunction;
 
-type UseFrameAppReturn =
+export type UseFrameAppReturn =
   | {
       /**
        * Necessary to call with target endpoint to expose API to the frame.
@@ -555,7 +555,7 @@ export function useFrameApp({
   ]);
 }
 
-type UseFrameAppInIframeReturn =
+export type UseFrameAppInIframeReturn =
   | Exclude<UseFrameAppReturn, { status: "success" }>
   | ({
       iframeProps: {
@@ -674,7 +674,7 @@ type ReactNativeMessageEvent = {
 
 type MessageEventListener = (event: ReactNativeMessageEvent) => void;
 
-type UseFrameAppInWebViewReturn =
+export type UseFrameAppInWebViewReturn =
   | Exclude<UseFrameAppReturn, { status: "success" }>
   | (Extract<UseFrameAppReturn, { status: "success" }> & {
       webViewProps: {
