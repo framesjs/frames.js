@@ -60,6 +60,10 @@ export function useFetchFrameApp({
       // we don't want to return promise from fetchFrame because it is used in effect
       Promise.resolve(sourceUrl)
         .then(async (url) => {
+          setState({
+            status: "pending",
+          });
+
           const responseOrError = await fetchProxied({
             fetchFn: fetchRef.current,
             url: url.toString(),
@@ -86,6 +90,10 @@ export function useFetchFrameApp({
             );
           }
 
+          if (abortController.signal.aborted) {
+            return;
+          }
+
           setState({
             status: "success",
             frame: data.farcaster_v2,
@@ -93,22 +101,15 @@ export function useFetchFrameApp({
           });
         })
         .catch((e) => {
+          if (abortController.signal.aborted) {
+            return;
+          }
+
           setState({
             status: "error",
             error: e instanceof Error ? e : new Error(String(e)),
           });
         });
-
-      try {
-        setState({
-          status: "pending",
-        });
-      } catch (e) {
-        setState({
-          status: "error",
-          error: e instanceof Error ? e : new Error(String(e)),
-        });
-      }
 
       return () => {
         abortController.abort();
