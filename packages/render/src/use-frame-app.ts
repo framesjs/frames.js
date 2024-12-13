@@ -8,6 +8,8 @@ import type {
   AddFrameResult,
   EthProviderRequest,
   FrameHost,
+  FrameLocationContext,
+  FrameLocationContextLauncher,
   SetPrimaryButton,
 } from "@farcaster/frame-sdk";
 import type { WebView, WebViewProps } from "react-native-webview";
@@ -168,6 +170,12 @@ export type UseFrameAppOptions = {
    */
   client: FrameClientConfig;
   /**
+   * Information about the context from which the frame was launched.
+   *
+   * @defaultValue launcher context
+   */
+  location?: FrameLocationContext;
+  /**
    * Either:
    *
    * - frame parse result obtained from useFrame() hook
@@ -248,6 +256,12 @@ export type UseFrameAppOptions = {
   onSendTransactionRequest?: OnSendTransactionRequestFunction;
   onSignMessageRequest?: OnSignMessageRequestFunction;
   onSignTypedDataRequest?: OnSignTypedDataRequestFunction;
+  /**
+   * Called when the frame app requests eth provider request.
+   *
+   * This is called only if debug mode is enabled and should be used only for debugging.
+   */
+  onDebugEthProviderRequest?: (...args: Parameters<EthProviderRequest>) => void;
 };
 
 type UnregisterEndpointFunction = () => void;
@@ -276,12 +290,17 @@ export type UseFrameAppReturn =
       status: "error";
     };
 
+const defaultLocation: FrameLocationContextLauncher = {
+  type: "launcher",
+};
+
 /**
  * This hook is used to handle frames v2 apps.
  */
 export function useFrameApp({
   provider,
   client,
+  location = defaultLocation,
   farcasterSigner,
   source,
   fetchFn,
@@ -297,9 +316,12 @@ export function useFrameApp({
   onSendTransactionRequest = defaultOnSendTransactionRequest,
   onSignMessageRequest = defaultOnSignMessageRequest,
   onSignTypedDataRequest = defaultOnSignTypedDataRequest,
+  onDebugEthProviderRequest,
 }: UseFrameAppOptions): UseFrameAppReturn {
   const providerRef = useFreshRef(provider);
+  const debugRef = useFreshRef(debug);
   const clientRef = useFreshRef(client);
+  const locationRef = useFreshRef(location);
   const readyRef = useFreshRef(onReady);
   const closeRef = useFreshRef(onClose);
   const onOpenUrlRef = useFreshRef(onOpenUrl);
@@ -311,6 +333,7 @@ export function useFrameApp({
   const onSignMessageRequestRef = useFreshRef(onSignMessageRequest);
   const onSignTypedDataRequestRef = useFreshRef(onSignTypedDataRequest);
   const addFrameRequestsCacheRef = useFreshRef(addFrameRequestsCache);
+  const onDebugEthProviderRequestRef = useFreshRef(onDebugEthProviderRequest);
   const frameResolutionState = useFetchFrameApp({
     source,
     fetchFn,
@@ -384,7 +407,11 @@ export function useFrameApp({
                 logDebugRef.current(
                   '@frames.js/render/unstable-use-frame-app: "context" getter called'
                 );
-                return { user: { fid: signer.fid }, client: clientRef.current };
+                return {
+                  user: { fid: signer.fid },
+                  client: clientRef.current,
+                  location: locationRef.current,
+                };
               },
               openUrl(url) {
                 logDebugRef.current(
@@ -419,6 +446,10 @@ export function useFrameApp({
                   '@frames.js/render/unstable-use-frame-app: "ethProviderRequest" called',
                   parameters
                 );
+
+                if (debugRef.current) {
+                  onDebugEthProviderRequestRef.current?.(parameters);
+                }
 
                 let isApproved = true;
 
@@ -544,9 +575,12 @@ export function useFrameApp({
     onSignerNotApprovedRef,
     closeRef,
     clientRef,
+    locationRef,
     onOpenUrlRef,
     readyRef,
     onPrimaryButtonSetRef,
+    debugRef,
+    onDebugEthProviderRequestRef,
     onSendTransactionRequestRef,
     onSignTypedDataRequestRef,
     onSignMessageRequestRef,
