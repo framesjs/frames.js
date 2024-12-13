@@ -200,12 +200,6 @@ export type UseFrameOptions<
    * Only for frames v2
    */
   onLaunchFrameButtonPressed?: LaunchFrameButtonPressFunction;
-  /**
-   * This function is called when lauched frame is closed.
-   *
-   * Only for frames v2
-   */
-  onLaunchedFrameClosed?: FrameCloseFunction;
 } & Partial<
   Pick<
     UseFetchFrameOptions,
@@ -349,12 +343,6 @@ export type UseFrameReturnValue<
    * Only for frames v2
    */
   onLaunchFrameButtonPress: LaunchFrameButtonPressFunction;
-  /**
-   * Called by UI when the launched frame is closed.
-   *
-   * Only for frames v2
-   */
-  onLaunchedFrameClose: FrameCloseFunction;
   readonly homeframeUrl: string | null | undefined;
   /**
    * Resets the frame state to initial frame and resolves specification and signer again

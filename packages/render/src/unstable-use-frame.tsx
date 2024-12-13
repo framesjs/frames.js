@@ -180,7 +180,6 @@ export function useFrame_unstable<
   onRedirect = handleRedirectFallback,
   fetchFn = defaultFetchFunction,
   onLaunchFrameButtonPressed,
-  onLaunchedFrameClosed,
   onTransactionDataError,
   onTransactionDataStart,
   onTransactionDataSuccess,
@@ -416,7 +415,6 @@ export function useFrame_unstable<
   );
 
   const onLaunchFrameButtonPressRef = useFreshRef(onLaunchFrameButtonPressed);
-  const onLaunchedFrameCloseRef = useFreshRef(onLaunchedFrameClosed);
 
   const onLaunchFrameButtonPress = useCallback(
     (event: LaunchFrameButtonPressEvent) => {
@@ -424,10 +422,6 @@ export function useFrame_unstable<
     },
     [onLaunchFrameButtonPressRef]
   );
-
-  const onLaunchedFrameClose = useCallback(() => {
-    onLaunchedFrameCloseRef.current?.();
-  }, [onLaunchedFrameCloseRef]);
 
   const onButtonPress = useCallback(
     async function onButtonPress(
@@ -555,7 +549,6 @@ export function useFrame_unstable<
       framesStack: stack,
       currentFrameStackItem: stack[0],
       onLaunchFrameButtonPress,
-      onLaunchedFrameClose,
     };
   }, [
     signerState,
@@ -569,6 +562,5 @@ export function useFrame_unstable<
     homeframeUrl,
     stack,
     onLaunchFrameButtonPress,
-    onLaunchedFrameClose,
   ]);
 }
