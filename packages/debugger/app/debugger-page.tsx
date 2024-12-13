@@ -18,6 +18,7 @@ import { useAccount } from "wagmi";
 import pkg from "../package.json";
 import {
   FrameDebugger,
+  FrameLaunchedInContext,
   type FrameDebuggerRef,
 } from "./components/frame-debugger";
 import { LOCAL_STORAGE_KEYS } from "./constants";
@@ -57,6 +58,7 @@ import {
 import { useFarcasterIdentity } from "./hooks/useFarcasterIdentity";
 import { ProtocolSelectorProvider } from "./providers/ProtocolSelectorProvider";
 import { FrameContextProvider } from "./providers/FrameContextProvider";
+import { FrameAppDebugger } from "./components/frame-app-debugger";
 
 const FALLBACK_URL =
   process.env.NEXT_PUBLIC_DEBUGGER_DEFAULT_URL || "http://localhost:3000";
@@ -78,6 +80,8 @@ export default function DebuggerPage({
   const router = useRouter();
   const [protocolConfiguration, setProtocolConfiguration] =
     useState<ProtocolConfiguration | null>(null);
+  const [frameV2LaunchContext, setFrameV2LaunchContext] =
+    useState<FrameLaunchedInContext | null>(null);
   /**
    * Parse the URL from the query string. This will also cause debugger to automatically load the frame.
    */
@@ -168,9 +172,11 @@ export default function DebuggerPage({
           if (json.type === "action") {
             setInitialAction(json);
             setInitialFrame(undefined);
+            setFrameV2LaunchContext(null);
           } else if (json.type === "frame") {
             setInitialFrame(json);
             setInitialAction(undefined);
+            setFrameV2LaunchContext(null);
           }
         })
         .catch((e) => {
@@ -447,8 +453,15 @@ export default function DebuggerPage({
                     protocol={protocolConfiguration}
                     ref={debuggerRef}
                     hasExamples={!!examples}
+                    onFrameLaunchedInContext={setFrameV2LaunchContext}
                   />
                 )}
+
+                {initialFrame &&
+                  !!protocolConfiguration &&
+                  frameV2LaunchContext && (
+                    <FrameAppDebugger context={frameV2LaunchContext} />
+                  )}
               </>
             ) : (
               examples
