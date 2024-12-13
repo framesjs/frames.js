@@ -24,6 +24,12 @@ import type { EthProvider } from "./frame-app/provider/types";
 import type { FrameClientConfig, FrameEvent } from "./frame-app/types";
 import { assertNever } from "./assert-never";
 import { useFetchFrameApp } from "./frame-app/use-fetch-frame-app";
+import {
+  type ResolveClientFunction,
+  useResolveClient,
+} from "./frame-app/use-resolve-client";
+
+export type { ResolveClientFunction, FrameClientConfig };
 
 export type SendTransactionRpcRequest = ExtractRequest<
   DefaultRpcSchema,
@@ -167,8 +173,13 @@ export type UseFrameAppOptions = {
   provider: EthProvider;
   /**
    * Frame client that is rendering the app
+   *
+   * This is async function if you need to fetch the client configuration
+   * like notification settings, etc.
+   *
+   * Value should be memoized otherwise it will cause unnecessary re-renders.
    */
-  client: FrameClientConfig;
+  client: FrameClientConfig | ResolveClientFunction;
   /**
    * Information about the context from which the frame was launched.
    *
@@ -280,6 +291,7 @@ export type UseFrameAppReturn =
        */
       registerEndpoint: RegisterEndpointFunction;
       frame: ParseFramesV2ResultWithFrameworkDetails;
+      client: FrameClientConfig;
       status: "success";
     }
   | {
@@ -320,7 +332,6 @@ export function useFrameApp({
 }: UseFrameAppOptions): UseFrameAppReturn {
   const providerRef = useFreshRef(provider);
   const debugRef = useFreshRef(debug);
-  const clientRef = useFreshRef(client);
   const locationRef = useFreshRef(location);
   const readyRef = useFreshRef(onReady);
   const closeRef = useFreshRef(onClose);
@@ -334,6 +345,7 @@ export function useFrameApp({
   const onSignTypedDataRequestRef = useFreshRef(onSignTypedDataRequest);
   const addFrameRequestsCacheRef = useFreshRef(addFrameRequestsCache);
   const onDebugEthProviderRequestRef = useFreshRef(onDebugEthProviderRequest);
+  const clientResolutionState = useResolveClient({ client });
   const frameResolutionState = useFetchFrameApp({
     source,
     fetchFn,
@@ -359,6 +371,19 @@ export function useFrameApp({
   providerRef.current.emitter.setDebugMode(debug);
 
   return useMemo<UseFrameAppReturn>(() => {
+    if (clientResolutionState.status === "pending") {
+      return {
+        status: "pending",
+      };
+    }
+
+    if (clientResolutionState.status === "error") {
+      return {
+        status: "error",
+        error: clientResolutionState.error,
+      };
+    }
+
     switch (frameResolutionState.status) {
       case "success": {
         const frame = frameResolutionState.frame;
@@ -409,7 +434,7 @@ export function useFrameApp({
                 );
                 return {
                   user: { fid: signer.fid },
-                  client: clientRef.current,
+                  client: clientResolutionState.client,
                   location: locationRef.current,
                 };
               },
@@ -551,6 +576,7 @@ export function useFrameApp({
           },
           status: "success",
           frame: frameResolutionState.frame,
+          client: clientResolutionState.client,
         };
       }
       case "error": {
@@ -568,13 +594,13 @@ export function useFrameApp({
         assertNever(frameResolutionState);
     }
   }, [
+    clientResolutionState,
     frameResolutionState,
     logDebugRef,
     farcasterSignerRef,
     providerRef,
     onSignerNotApprovedRef,
     closeRef,
-    clientRef,
     locationRef,
     onOpenUrlRef,
     readyRef,
