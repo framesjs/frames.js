@@ -37,9 +37,10 @@ export function FrameAppDialog({
   const { toast } = useToast();
   const walletClient = useWalletClient();
   const [isReady, setIsReady] = useState(false);
-  const [primaryButton, setPrimaryButton] = useState<FramePrimaryButton | null>(
-    null
-  );
+  const [primaryButton, setPrimaryButton] = useState<{
+    button: FramePrimaryButton;
+    callback: () => void;
+  } | null>(null);
   const provider = useWagmiProvider();
   const frameApp = useFrameAppInIframe({
     debug: true,
@@ -58,7 +59,14 @@ export function FrameAppDialog({
     onOpenUrl(url) {
       window.open(url, "_blank");
     },
-    onPrimaryButtonSet: setPrimaryButton,
+    onPrimaryButtonSet(button, buttonCallback) {
+      setPrimaryButton({
+        button,
+        callback: () => {
+          buttonCallback();
+        },
+      });
+    },
   });
   const { name, splashImageUrl, splashBackgroundColor } =
     frameState.frame.button.action;
@@ -76,11 +84,11 @@ export function FrameAppDialog({
         }
       }}
     >
-      <DialogContent className="w-[424px] h-[695px] p-0 gap-0">
+      <DialogContent className="w-[424px] p-0 gap-0">
         <DialogHeader className="p-6">
           <DialogTitle>{frameState.frame.button.action.name}</DialogTitle>
         </DialogHeader>
-        <div className="relative">
+        <div className="relative h-[695px]">
           {isLoading && (
             <div
               className={cn(
@@ -106,31 +114,34 @@ export function FrameAppDialog({
           )}
           {!isLoadingWallet && frameApp.status === "success" && (
             <iframe
-              className="h-[600px] w-full opacity-100 transition-opacity duration-300"
+              className="h-full w-full opacity-100 transition-opacity duration-300"
               sandbox="allow-forms allow-scripts allow-same-origin"
               {...frameApp.iframeProps}
             ></iframe>
           )}
         </div>
-        {primaryButton && !primaryButton.hidden && (
-          <DialogFooter>
-            <Button
-              className="w-full m-1"
-              disabled={primaryButton.disabled || primaryButton.loading}
-              onClick={() => {
-                toast({
-                  title: "Feature not implemented",
-                  description: "This feature is not implemented yet.",
-                  variant: "destructive",
-                });
-              }}
-              size="lg"
-              type="button"
-            >
-              {primaryButton.text}
-            </Button>
-          </DialogFooter>
-        )}
+        {!!primaryButton &&
+          primaryButton.button &&
+          !primaryButton.button.hidden && (
+            <DialogFooter>
+              <Button
+                className="w-full m-1 gap-2"
+                disabled={
+                  primaryButton.button.disabled || primaryButton.button.loading
+                }
+                onClick={() => {
+                  primaryButton.callback();
+                }}
+                size="lg"
+                type="button"
+              >
+                {primaryButton.button.loading && (
+                  <Loader2Icon className="animate-spin" />
+                )}
+                {primaryButton.button.text}
+              </Button>
+            </DialogFooter>
+          )}
       </DialogContent>
     </Dialog>
   );
