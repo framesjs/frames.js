@@ -460,7 +460,10 @@ export default function DebuggerPage({
                 {initialFrame &&
                   !!protocolConfiguration &&
                   frameV2LaunchContext && (
-                    <FrameAppDebugger context={frameV2LaunchContext} />
+                    <FrameAppDebugger
+                      context={frameV2LaunchContext}
+                      farcasterSigner={farcasterSignerState}
+                    />
                   )}
               </>
             ) : (

@@ -4,11 +4,12 @@ import { WithTooltip } from "./with-tooltip";
 import { Loader2Icon, RefreshCwIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  FramePrimaryButton,
+  type FramePrimaryButton,
+  type ResolveClientFunction,
+  type FrameClientConfig,
   useFrameAppInIframe,
 } from "@frames.js/render/use-frame-app";
 import { useCallback, useRef, useState } from "react";
-import { useFarcasterIdentity } from "../hooks/useFarcasterIdentity";
 import { useWagmiProvider } from "@frames.js/render/frame-app/provider/wagmi";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,14 +19,25 @@ import Image from "next/image";
 import { fallbackFrameContext } from "@frames.js/render";
 import { Console } from "console-feed";
 import type { Message } from "console-feed/lib/definitions/Component";
+import type { FarcasterSignerInstance } from "@frames.js/render/identity/farcaster";
+import type { NotificationSettings } from "../notifications/route";
+import { FrameAppDebuggerNotifications } from "./frame-app-debugger-notifications";
 
-type TabValues = "events" | "console";
+type TabValues = "events" | "console" | "notifications";
 
 type FrameAppDebuggerProps = {
   context: FrameLaunchedInContext;
+  farcasterSigner: FarcasterSignerInstance;
 };
 
-export function FrameAppDebugger({ context }: FrameAppDebuggerProps) {
+const addFrameRequestsCache = new Set<string>();
+
+export function FrameAppDebugger({
+  context,
+  farcasterSigner,
+}: FrameAppDebuggerProps) {
+  const farcasterSignerRef = useRef(farcasterSigner);
+  farcasterSignerRef.current = farcasterSigner;
   const { toast } = useToast();
   const debuggerConsoleTabRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -36,7 +48,6 @@ export function FrameAppDebugger({ context }: FrameAppDebuggerProps) {
     button: FramePrimaryButton;
     callback: () => void;
   } | null>(null);
-  const farcasterSigner = useFarcasterIdentity();
   const provider = useWagmiProvider();
   const logEvent = useCallback((method: Message["method"], ...args: any[]) => {
     setEvents((prev) => [
@@ -48,13 +59,57 @@ export function FrameAppDebugger({ context }: FrameAppDebuggerProps) {
       },
     ]);
   }, []);
+  const resolveClient: ResolveClientFunction = useCallback(async () => {
+    const signer = farcasterSignerRef.current.signer;
+    let notificationDetails: FrameClientConfig["notificationDetails"];
+
+    if (signer?.status !== "approved") {
+      console.debug(
+        "Signer not approved, cannot resolve notification settings"
+      );
+    } else {
+      const response = await fetch("/notifications", {
+        headers: {
+          "x-fid": signer.fid.toString(),
+          "x-frame-app-url": context.frame.button.action.url,
+        },
+      });
+
+      if (response.status === 200) {
+        const data = await response.json();
+
+        notificationDetails = data;
+      } else if (response.status === 403) {
+        toast({
+          title: "Access Forbidden",
+          description: "Debugger is probably misconfigured.",
+          variant: "destructive",
+        });
+      } else if (response.status === 401) {
+        toast({
+          title: "Not Authenticated",
+          description: "Check that you have approved farcaster signer.",
+          variant: "destructive",
+        });
+      }
+    }
+
+    return {
+      clientFid: parseInt(process.env.FARCASTER_DEVELOPER_FID ?? "-1"),
+      added: !!notificationDetails,
+      notificationDetails,
+    };
+  }, [context.frame.button.action.url, toast]);
+  /**
+   * Undefined means that it was never changed, so we should use the value from client
+   */
+  const [notificationSettings, setNotificationSettings] = useState<
+    NotificationSettings["details"] | null | undefined
+  >(undefined);
   const frameApp = useFrameAppInIframe({
     debug: true,
     source: context.parseResult,
-    client: {
-      clientFid: parseInt(process.env.FARCASTER_DEVELOPER_FID ?? "-1"),
-      added: false,
-    },
+    client: resolveClient,
     location:
       context.context === "button_press"
         ? {
@@ -67,6 +122,7 @@ export function FrameAppDebugger({ context }: FrameAppDebuggerProps) {
     farcasterSigner,
     provider,
     proxyUrl: "/frames",
+    addFrameRequestsCache,
     onReady(options) {
       logEvent("info", "sdk.actions.ready() called", { options });
       setIsAppReady(true);
@@ -91,10 +147,78 @@ export function FrameAppDebugger({ context }: FrameAppDebuggerProps) {
         },
       });
     },
-    async onAddFrameRequested() {
+    async onAddFrameRequested(parseResult) {
+      // this is not compliant with how it should work in production
+      // but this is debugger, what if you want to test your function repeately
+      addFrameRequestsCache.clear();
+
       logEvent("info", "sdk.actions.addFrame() called");
 
-      return false;
+      if (farcasterSigner.signer?.status !== "approved") {
+        toast({
+          title: "Signer not approved",
+          description:
+            "Signer is not approved. Approved farcaster signer is necessary.",
+          variant: "destructive",
+        });
+
+        return false;
+      }
+
+      const webhookUrl = parseResult.manifest?.manifest.frame?.webhookUrl;
+
+      if (!webhookUrl) {
+        toast({
+          title: "Webhook URL not found",
+          description:
+            "Webhook URL is not found in the manifest. It is required in order to enable notifications.",
+          variant: "destructive",
+        });
+
+        return false;
+      }
+
+      // check what is the status of notifications for this app and signer
+      // if there are no settings ask for user's consent and store the result
+      const consent = window.confirm(
+        "Do you want to add the frame to the app?"
+      );
+
+      if (!consent) {
+        return false;
+      }
+
+      // register the settings
+      const response = await fetch("/notifications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fid: farcasterSigner.signer.fid,
+          frameUrl: context.frame.button.action.url,
+          webhookUrl,
+        }),
+      });
+
+      if (response.status !== 201) {
+        toast({
+          title: "Failed to register notifications",
+          description: "Failed to register notifications for this app.",
+          variant: "destructive",
+        });
+
+        return false;
+      }
+
+      const settings = (await response.json()) as NotificationSettings;
+
+      setNotificationSettings(settings.details);
+
+      return {
+        added: true,
+        notificationDetails: settings.details,
+      };
     },
     onDebugEthProviderRequest(parameters) {
       logEvent("info", "sdk.wallet.ethProvider.request() called", {
@@ -191,7 +315,7 @@ export function FrameAppDebugger({ context }: FrameAppDebuggerProps) {
         </div>
       </div>
       <div className="flex flex-row gap-4 order-2 md:col-span-2 lg:col-span-1 lg:order-2">
-        {frameApp.status !== "pending" ? (
+        {frameApp.status === "success" ? (
           <Card className="w-full max-h-[600px]">
             <CardContent className="p-5 h-full">
               <Tabs
@@ -199,9 +323,10 @@ export function FrameAppDebugger({ context }: FrameAppDebuggerProps) {
                 onValueChange={(value) => setActiveTab(value as TabValues)}
                 className="grid grid-rows-[auto_1fr] w-full h-full"
               >
-                <TabsList className={cn("grid w-full grid-cols-2")}>
+                <TabsList className={cn("grid w-full grid-cols-3")}>
                   <TabsTrigger value="events">Events</TabsTrigger>
                   <TabsTrigger value="console">Console</TabsTrigger>
+                  <TabsTrigger value="notifications">Notifications</TabsTrigger>
                 </TabsList>
                 <TabsContent className="overflow-y-auto" value="events">
                   <Console logs={events} variant="light" />
@@ -220,6 +345,16 @@ export function FrameAppDebugger({ context }: FrameAppDebuggerProps) {
                         );
                       }
                     }}
+                  />
+                </TabsContent>
+                <TabsContent value="notifications">
+                  <FrameAppDebuggerNotifications
+                    frame={frameApp.frame}
+                    notificationSettings={
+                      notificationSettings === undefined
+                        ? frameApp.client.notificationDetails
+                        : notificationSettings
+                    }
                   />
                 </TabsContent>
               </Tabs>

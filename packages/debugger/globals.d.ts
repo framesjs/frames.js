@@ -19,6 +19,10 @@ declare global {
        * FID to be attributed for farcaster frame transactions.
        */
       NEXT_PUBLIC_FARCASTER_ATTRIBUTION_FID: string | undefined;
+
+      KV_URL: string | undefined;
+      KV_REST_API_TOKEN: string | undefined;
+      KV_REST_API_URL: string | undefined;
     }
   }
 }

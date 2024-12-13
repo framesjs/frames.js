@@ -16,7 +16,9 @@
     "url": "https://github.com/framesjs/frames.js/tree/main/packages/debugger"
   },
   "dependencies": {
+    "@upstash/redis": "^1.34.3",
     "@lens-protocol/client": "2.3.2",
+    "@farcaster/frame-sdk": "^0.0.16",
     "@xmtp/xmtp-js": "^12.0.0",
     "is-port-reachable": "^4.0.0",
     "next": "14.1.4",
