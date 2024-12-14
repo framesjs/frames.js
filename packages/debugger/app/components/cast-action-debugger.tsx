@@ -171,6 +171,13 @@ export function CastActionDebugger({
           }}
           mockHubContext={mockHubContext}
           setMockHubContext={setMockHubContext}
+          onFrameLaunchedInContext={() => {
+            toast({
+              title: "Frame v2 is not supported in cast action debugger.",
+              description: "Please use the frame debugger instead.",
+              variant: "destructive",
+            });
+          }}
         />
       )}
     </>
