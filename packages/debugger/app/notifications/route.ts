@@ -1,33 +1,10 @@
-import { FrameClientConfig } from "@frames.js/render/use-frame-app";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
-import crypto from "node:crypto";
 import { createRedis } from "../lib/redis";
-import type { NotificationUrl } from "./[id]/route";
-import { NOTIFICATION_TTL_IN_SECONDS } from "../constants";
-
-function validateAuth(req: Request) {
-  const fid = req.headers.get("x-fid");
-  const frameAppUrl = req.headers.get("x-frame-app-url");
-
-  if (!fid || !frameAppUrl) {
-    return false;
-  }
-
-  return {
-    fid,
-    frameAppUrl,
-  };
-}
-
-function getFrameAppNotificationSettingsKey(fid: string, frameAppUrl: string) {
-  return `frame-app-notification:${fid}:${frameAppUrl}`;
-}
-
-export type NotificationSettings = {
-  details: NonNullable<FrameClientConfig["notificationDetails"]>;
-  webhookUrl: string;
-};
+import { validateAuth } from "./auth";
+import type { NotificationSettings } from "./types";
+import { RedisNotificationsStorage } from "./storage";
+import { createNotificationsUrl } from "./helpers";
 
 /**
  * Checks for the given notifications settings of user and url
@@ -40,11 +17,14 @@ export async function GET(req: NextRequest): Promise<Response> {
   }
 
   const redis = createRedis();
+  const storage = new RedisNotificationsStorage({
+    redis,
+  });
 
-  const { fid, frameAppUrl } = auth;
-  const key = getFrameAppNotificationSettingsKey(fid, frameAppUrl);
-
-  const settings = await redis.get<NotificationSettings>(key);
+  const settings = await storage.getSettings({
+    fid: auth.fid,
+    frameAppUrl: auth.frameAppUrl,
+  });
 
   if (!settings) {
     return Response.json({ message: "Not Found" }, { status: 404 });
@@ -57,49 +37,82 @@ export async function GET(req: NextRequest): Promise<Response> {
   });
 }
 
+export type CreateNotificationSettings = Extract<
+  NotificationSettings,
+  { enabled: true }
+>;
+
 const bodySchema = z.object({
-  fid: z.coerce.number().int().min(1),
-  frameUrl: z.string().url(),
   webhookUrl: z.string().url(),
 });
 
 /**
- * Registers notification for the given url and user
+ * Adds frame app to client
  */
 export async function POST(req: NextRequest): Promise<Response> {
-  const { fid, frameUrl, webhookUrl } = bodySchema.parse(await req.json());
+  const auth = validateAuth(req);
+
+  if (!auth) {
+    return Response.json({ message: "Not Authenticated" }, { status: 401 });
+  }
+
+  const { webhookUrl } = bodySchema.parse(await req.json());
   const redis = createRedis();
-  const key = getFrameAppNotificationSettingsKey(fid.toString(), frameUrl);
-  const token = crypto.randomUUID();
-  const notificationUrl = new URL(`/notifications/${token}`, req.nextUrl.href);
+  const notificationsUrl = createNotificationsUrl(req);
 
-  const settings: NotificationSettings = {
-    webhookUrl,
-    details: {
-      token: crypto.randomUUID(),
-      url: notificationUrl.toString(),
-    },
-  };
-
-  await redis.set<NotificationUrl>(
-    notificationUrl.toString(),
-    { token },
-    {
-      ex: NOTIFICATION_TTL_IN_SECONDS,
-    }
-  );
-  const result = await redis.set<NotificationSettings>(key, settings, {
-    ex: NOTIFICATION_TTL_IN_SECONDS,
+  const storage = new RedisNotificationsStorage({
+    redis,
   });
 
-  if (!result) {
+  const existingSettings = await storage.getSettings({
+    fid: auth.fid,
+    frameAppUrl: auth.frameAppUrl,
+  });
+
+  if (existingSettings?.enabled) {
     return Response.json(
-      { message: "Failed to save settings" },
-      { status: 500 }
+      { message: "Notifications are already enabled" },
+      { status: 409 }
     );
   }
 
-  //  @todo call webhook?
+  const settings = await storage.addFrame({
+    fid: auth.fid,
+    frameAppUrl: auth.frameAppUrl,
+    notificationsUrl,
+    webhookUrl,
+  });
 
-  return Response.json(settings, { status: 201 });
+  if (existingSettings) {
+    // @todo call webhook with enable notifications event
+  } else {
+    // @todo call webhook with add frame event
+  }
+
+  return Response.json(settings, { status: existingSettings ? 200 : 201 });
+}
+
+/**
+ * Removes frame app from client
+ */
+export async function DELETE(req: NextRequest): Promise<Response> {
+  const auth = validateAuth(req);
+
+  if (!auth) {
+    return Response.json({ message: "Not Authenticated" }, { status: 401 });
+  }
+
+  const redis = createRedis();
+  const storage = new RedisNotificationsStorage({
+    redis,
+  });
+
+  // @todo call webhook with remove frame event
+
+  await storage.removeFrame({
+    fid: auth.fid,
+    frameAppUrl: auth.frameAppUrl,
+  });
+
+  return new Response(undefined, { status: 204 });
 }

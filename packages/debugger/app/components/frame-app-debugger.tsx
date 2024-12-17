@@ -6,7 +6,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   type FramePrimaryButton,
   type ResolveClientFunction,
-  type FrameClientConfig,
   useFrameAppInIframe,
 } from "@frames.js/render/use-frame-app";
 import { useCallback, useRef, useState } from "react";
@@ -20,8 +19,11 @@ import { fallbackFrameContext } from "@frames.js/render";
 import { Console } from "console-feed";
 import type { Message } from "console-feed/lib/definitions/Component";
 import type { FarcasterSignerInstance } from "@frames.js/render/identity/farcaster";
-import type { NotificationSettings } from "../notifications/route";
 import { FrameAppDebuggerNotifications } from "./frame-app-debugger-notifications";
+import {
+  FrameAppNotificationsManagerProvider,
+  useFrameAppNotificationsManager,
+} from "../providers/FrameAppNotificationsManagerProvider";
 
 type TabValues = "events" | "console" | "notifications";
 
@@ -30,7 +32,20 @@ type FrameAppDebuggerProps = {
   farcasterSigner: FarcasterSignerInstance;
 };
 
-const addFrameRequestsCache = new Set<string>();
+// in debugger we don't want to automatically reject repeated add frame calls
+const addFrameRequestsCache = new (class extends Set {
+  has(key: string) {
+    return false;
+  }
+
+  add(key: string) {
+    return this;
+  }
+
+  delete(key: string) {
+    return true;
+  }
+})();
 
 export function FrameAppDebugger({
   context,
@@ -38,10 +53,14 @@ export function FrameAppDebugger({
 }: FrameAppDebuggerProps) {
   const farcasterSignerRef = useRef(farcasterSigner);
   farcasterSignerRef.current = farcasterSigner;
+  const frameAppNotificationManager = useFrameAppNotificationsManager({
+    farcasterSigner,
+    context,
+  });
   const { toast } = useToast();
   const debuggerConsoleTabRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [activeTab, setActiveTab] = useState<TabValues>("events");
+  const [activeTab, setActiveTab] = useState<TabValues>("notifications");
   const [isAppReady, setIsAppReady] = useState(false);
   const [events, setEvents] = useState<Message[]>([]);
   const [primaryButton, setPrimaryButton] = useState<{
@@ -60,52 +79,32 @@ export function FrameAppDebugger({
     ]);
   }, []);
   const resolveClient: ResolveClientFunction = useCallback(async () => {
-    const signer = farcasterSignerRef.current.signer;
-    let notificationDetails: FrameClientConfig["notificationDetails"];
+    try {
+      const { manager } = await frameAppNotificationManager.promise;
 
-    if (signer?.status !== "approved") {
-      console.debug(
-        "Signer not approved, cannot resolve notification settings"
-      );
-    } else {
-      const response = await fetch("/notifications", {
-        headers: {
-          "x-fid": signer.fid.toString(),
-          "x-frame-app-url": context.frame.button.action.url,
-        },
+      return {
+        clientFid: parseInt(process.env.FARCASTER_DEVELOPER_FID ?? "-1"),
+        added: !!manager.state,
+        notificationDetails: manager.state?.enabled
+          ? manager.state.details
+          : undefined,
+      };
+    } catch (e) {
+      console.error(e);
+
+      toast({
+        title: "Unexpected error",
+        description:
+          "Failed to load notifications settings. Check the console for more details.",
+        variant: "destructive",
       });
-
-      if (response.status === 200) {
-        const data = await response.json();
-
-        notificationDetails = data;
-      } else if (response.status === 403) {
-        toast({
-          title: "Access Forbidden",
-          description: "Debugger is probably misconfigured.",
-          variant: "destructive",
-        });
-      } else if (response.status === 401) {
-        toast({
-          title: "Not Authenticated",
-          description: "Check that you have approved farcaster signer.",
-          variant: "destructive",
-        });
-      }
     }
 
     return {
       clientFid: parseInt(process.env.FARCASTER_DEVELOPER_FID ?? "-1"),
-      added: !!notificationDetails,
-      notificationDetails,
+      added: false,
     };
-  }, [context.frame.button.action.url, toast]);
-  /**
-   * Undefined means that it was never changed, so we should use the value from client
-   */
-  const [notificationSettings, setNotificationSettings] = useState<
-    NotificationSettings["details"] | null | undefined
-  >(undefined);
+  }, [frameAppNotificationManager.promise, toast]);
   const frameApp = useFrameAppInIframe({
     debug: true,
     source: context.parseResult,
@@ -148,21 +147,28 @@ export function FrameAppDebugger({
       });
     },
     async onAddFrameRequested(parseResult) {
-      // this is not compliant with how it should work in production
-      // but this is debugger, what if you want to test your function repeately
-      addFrameRequestsCache.clear();
-
       logEvent("info", "sdk.actions.addFrame() called");
 
-      if (farcasterSigner.signer?.status !== "approved") {
+      if (frameAppNotificationManager.status === "pending") {
         toast({
-          title: "Signer not approved",
+          title: "Notifications manager not ready",
           description:
-            "Signer is not approved. Approved farcaster signer is necessary.",
+            "Notifications manager is not ready. Please wait a moment.",
           variant: "destructive",
         });
 
-        return false;
+        throw new Error("Notifications manager is not ready");
+      }
+
+      if (frameAppNotificationManager.status === "error") {
+        toast({
+          title: "Notifications manager error",
+          description:
+            "Notifications manager failed to load. Please check the console for more details.",
+          variant: "destructive",
+        });
+
+        throw new Error("Notifications manager failed to load");
       }
 
       const webhookUrl = parseResult.manifest?.manifest.frame?.webhookUrl;
@@ -188,37 +194,26 @@ export function FrameAppDebugger({
         return false;
       }
 
-      // register the settings
-      const response = await fetch("/notifications", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fid: farcasterSigner.signer.fid,
-          frameUrl: context.frame.button.action.url,
-          webhookUrl,
-        }),
-      });
+      try {
+        const result =
+          await frameAppNotificationManager.data.manager.addFrame();
 
-      if (response.status !== 201) {
+        return {
+          added: true,
+          notificationDetails: result,
+        };
+      } catch (e) {
+        console.error(e);
+
         toast({
-          title: "Failed to register notifications",
-          description: "Failed to register notifications for this app.",
+          title: "Failed to add frame",
+          description:
+            "Failed to add frame to the notifications manager. Check the console for more details.",
           variant: "destructive",
         });
 
-        return false;
+        throw e;
       }
-
-      const settings = (await response.json()) as NotificationSettings;
-
-      setNotificationSettings(settings.details);
-
-      return {
-        added: true,
-        notificationDetails: settings.details,
-      };
     },
     onDebugEthProviderRequest(parameters) {
       logEvent("info", "sdk.wallet.ethProvider.request() called", {
@@ -315,51 +310,51 @@ export function FrameAppDebugger({
         </div>
       </div>
       <div className="flex flex-row gap-4 order-2 md:col-span-2 lg:col-span-1 lg:order-2">
-        {frameApp.status === "success" ? (
-          <Card className="w-full max-h-[600px]">
-            <CardContent className="p-5 h-full">
-              <Tabs
-                value={activeTab}
-                onValueChange={(value) => setActiveTab(value as TabValues)}
-                className="grid grid-rows-[auto_1fr] w-full h-full"
-              >
-                <TabsList className={cn("grid w-full grid-cols-3")}>
-                  <TabsTrigger value="events">Events</TabsTrigger>
-                  <TabsTrigger value="console">Console</TabsTrigger>
-                  <TabsTrigger value="notifications">Notifications</TabsTrigger>
-                </TabsList>
-                <TabsContent className="overflow-y-auto" value="events">
-                  <Console logs={events} variant="light" />
-                </TabsContent>
-                <TabsContent
-                  className="overflow-y-auto"
-                  ref={debuggerConsoleTabRef}
-                  value="console"
+        {frameApp.status === "success" &&
+        frameAppNotificationManager.status === "success" ? (
+          <FrameAppNotificationsManagerProvider
+            manager={frameAppNotificationManager.data.manager}
+          >
+            <Card className="w-full max-h-[600px]">
+              <CardContent className="p-5 h-full">
+                <Tabs
+                  value={activeTab}
+                  onValueChange={(value) => setActiveTab(value as TabValues)}
+                  className="grid grid-rows-[auto_1fr] w-full h-full"
                 >
-                  <DebuggerConsole
-                    onMount={(element) => {
-                      if (debuggerConsoleTabRef.current) {
-                        debuggerConsoleTabRef.current.scrollTo(
-                          0,
-                          element.scrollHeight
-                        );
-                      }
-                    }}
-                  />
-                </TabsContent>
-                <TabsContent value="notifications">
-                  <FrameAppDebuggerNotifications
-                    frame={frameApp.frame}
-                    notificationSettings={
-                      notificationSettings === undefined
-                        ? frameApp.client.notificationDetails
-                        : notificationSettings
-                    }
-                  />
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+                  <TabsList className={cn("grid w-full grid-cols-3")}>
+                    <TabsTrigger value="notifications">
+                      Notifications
+                    </TabsTrigger>
+                    <TabsTrigger value="events">Events</TabsTrigger>
+                    <TabsTrigger value="console">Console</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="notifications">
+                    <FrameAppDebuggerNotifications frame={frameApp.frame} />
+                  </TabsContent>
+                  <TabsContent className="overflow-y-auto" value="events">
+                    <Console logs={events} variant="light" />
+                  </TabsContent>
+                  <TabsContent
+                    className="overflow-y-auto"
+                    ref={debuggerConsoleTabRef}
+                    value="console"
+                  >
+                    <DebuggerConsole
+                      onMount={(element) => {
+                        if (debuggerConsoleTabRef.current) {
+                          debuggerConsoleTabRef.current.scrollTo(
+                            0,
+                            element.scrollHeight
+                          );
+                        }
+                      }}
+                    />
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          </FrameAppNotificationsManagerProvider>
         ) : null}
       </div>
     </div>

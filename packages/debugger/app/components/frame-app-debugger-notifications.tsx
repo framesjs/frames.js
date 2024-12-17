@@ -1,68 +1,66 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Console } from "console-feed";
+import { InboxIcon, Loader2Icon } from "lucide-react";
 import type { ParseFramesV2ResultWithFrameworkDetails } from "frames.js/frame-parsers";
-import type { NotificationSettings } from "../notifications/route";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Message } from "console-feed/lib/definitions/Component";
 import type { Notification } from "../notifications/[id]/route";
+import { useQuery } from "@tanstack/react-query";
+import { FrameAppNotificationsControlPanel } from "./frame-app-notifications-control-panel";
+import { useFrameAppNotificationsManagerContext } from "../providers/FrameAppNotificationsManagerProvider";
 
 type FrameAppDebuggerNotificationsProps = {
   frame: ParseFramesV2ResultWithFrameworkDetails;
-  notificationSettings: NotificationSettings["details"] | null | undefined;
 };
 
 export function FrameAppDebuggerNotifications({
   frame,
-  notificationSettings,
 }: FrameAppDebuggerNotificationsProps) {
+  const frameAppNotificationManager = useFrameAppNotificationsManagerContext();
   const [notifications, setNotifications] = useState<Message[]>([]);
-  const loadNotifications = useCallback(async (url: string) => {
-    try {
-      const response = await fetch(url, {
-        method: "GET",
-      });
+  const notificationsQuery = useQuery({
+    initialData: [],
+    enabled: frameAppNotificationManager.state?.enabled ?? false,
+    queryKey: [
+      "frame-app-notifications-log",
+      frameAppNotificationManager.state?.enabled
+        ? frameAppNotificationManager.state.details.url
+        : null,
+    ],
+    async queryFn() {
+      if (!frameAppNotificationManager.state?.enabled) {
+        return [] as Message[];
+      }
+
+      const response = await fetch(
+        frameAppNotificationManager.state.details.url,
+        {
+          method: "GET",
+        }
+      );
 
       if (!response.ok) {
-        return;
+        return [] as Message[];
       }
 
-      const notifications = (await response.json()) as Notification[];
+      const data = (await response.json()) as Notification[];
 
-      if (notifications.length === 0) {
-        return;
-      }
-
-      setNotifications((prevNotifications) => {
-        return [
-          ...prevNotifications,
-          ...notifications.map((notification): Message => {
-            return {
-              method: "log",
-              id: notification.notificationId,
-              data: ["Received notification", notification],
-            };
-          }),
-        ];
+      return data.map((notification): Message => {
+        return {
+          method: "log",
+          id: notification.notificationId,
+          data: ["Received notification", notification],
+        };
       });
-    } catch (e) {}
-  }, []);
+    },
+    refetchInterval: 5000,
+  });
 
   useEffect(() => {
-    // if url is set then start fetching notifications
-    if (!notificationSettings?.url) {
-      return;
+    if (notificationsQuery.data) {
+      setNotifications((prev) => [...prev, ...notificationsQuery.data]);
     }
-
-    // maybe use server sent events instead
-    const interval = window.setInterval(
-      () => loadNotifications(notificationSettings.url),
-      5000
-    );
-
-    return () => {
-      window.clearInterval(interval);
-    };
-  }, [loadNotifications, notificationSettings?.url]);
+  }, [notificationsQuery.data]);
 
   if (frame.status !== "success") {
     return (
@@ -117,25 +115,40 @@ export function FrameAppDebuggerNotifications({
     );
   }
 
-  // @todo we should show a way to enable notifications
-  if (!notificationSettings) {
-    return (
-      <>
-        <Alert>
-          <AlertTitle>Notifications are not enabled</AlertTitle>
-          <AlertDescription>
-            In order debug the notifications you should allow the app to send
-            notifications.
-          </AlertDescription>
-        </Alert>
-      </>
-    );
-  }
+  const notificationsNotEnabled = !frameAppNotificationManager.state?.enabled;
 
-  // @todo add a way to send to webhook different events
+  // @todo on local dev we need to show an information that it won't be accessible to test notifications from non localhost frame apps
+  // @todo on production we need to show an information that localhost frame apps notifications can't be tested
+  // @todo show also events like frame add -> frame remove, notification enabled and disable in logs + response from frame app webhook so we can debug it
   return (
-    <div className="flex flex-grow">
-      <Console logs={notifications} variant="light" />
+    <div className="flex flex-row flex-grow gap-4 w-full h-full">
+      <div className="w-1/3">
+        <FrameAppNotificationsControlPanel />
+      </div>
+      <div className="flex flex-grow border rounded-lg p-2 items-center justify-center">
+        {notifications.length === 0 ? (
+          <div className="flex flex-col items-center max-w-[300px] text-center">
+            <div className="w-[2em] h-[2em] relative">
+              <InboxIcon className="text-gray-400 w-[2em] h-[2em]" />
+              {!notificationsNotEnabled && (
+                <Loader2Icon className="absolute -bottom-[7px] -right-[7px] h-[14px] w-[14px] animate-spin text-slate-800" />
+              )}
+            </div>
+            <h3 className="mt-2 text-sm font-semibold text-gray-900">
+              {notificationsNotEnabled
+                ? "Notifications are not enabled"
+                : "No notifications"}
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {notificationsNotEnabled
+                ? "Notifications will appear here once they are enabled and the application sents any of them."
+                : "No notifications received yet."}
+            </p>
+          </div>
+        ) : (
+          <Console logs={notifications} variant="light" />
+        )}
+      </div>
     </div>
   );
 }
