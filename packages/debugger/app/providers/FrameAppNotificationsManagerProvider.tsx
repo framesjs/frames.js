@@ -1,9 +1,17 @@
-import { createContext, useContext } from "react";
-import type { CreateNotificationSettings } from "../notifications/route";
+import { createContext, useContext, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FarcasterSignerInstance } from "@frames.js/render/identity/farcaster";
-import { FrameLaunchedInContext } from "../components/frame-debugger";
+import type { FarcasterSignerInstance } from "@frames.js/render/identity/farcaster";
+import type { FrameLaunchedInContext } from "../components/frame-debugger";
 import type { NotificationSettings } from "../notifications/types";
+import type {
+  POSTNotificationsRequestBody,
+  POSTNotificationsResponseBody,
+} from "../notifications/route";
+import type {
+  GETNotificationsDetailResponseBody,
+  POSTNotificationsDetailRequestBody,
+  POSTNotificationsDetailResponseBody,
+} from "../notifications/[namespaceId]/route";
 
 export const notificationManagerQueryKeys = {
   settingsQuery: (fid: string, frameAppUrl: string): string[] => [
@@ -14,7 +22,7 @@ export const notificationManagerQueryKeys = {
 };
 
 export type FrameAppNotificationsManager = {
-  readonly state: NotificationSettings | null | undefined;
+  readonly state: GETNotificationsDetailResponseBody | undefined;
   addFrame(): Promise<
     Extract<NotificationSettings, { enabled: true }>["details"]
   >;
@@ -26,7 +34,7 @@ export type FrameAppNotificationsManager = {
 
 const FrameAppNotificationsManagerContext =
   createContext<FrameAppNotificationsManager>({
-    state: null,
+    state: undefined,
     async addFrame() {
       throw new Error("Not implemented");
     },
@@ -65,119 +73,30 @@ export function useFrameAppNotificationsManager({
   context,
   farcasterSigner,
 }: UseFrameAppNotificationsManagerOptions) {
+  const namespaceSettingsRef = useRef<POSTNotificationsResponseBody | null>(
+    null
+  );
   const { signer } = farcasterSigner;
   const frameUrl = context.frame.button.action.url;
-
+  const webhookUrl = context.parseResult.manifest?.manifest.frame?.webhookUrl;
   const queryClient = useQueryClient();
 
-  const addFrameMutation = useMutation({
-    async mutationFn() {
-      if (signer?.status !== "approved") {
-        throw new Error("Signer not approved");
+  const sendEvent = useMutation({
+    async mutationFn(event: POSTNotificationsDetailRequestBody) {
+      if (!namespaceSettingsRef.current) {
+        throw new Error("Namespace settings not found");
       }
 
-      const webhookUrl =
-        context.parseResult.manifest?.manifest.frame?.webhookUrl;
-
-      if (!webhookUrl) {
-        throw new Error("Webhook URL not found");
-      }
-
-      const response = await fetch("/notifications", {
+      const response = await fetch(namespaceSettingsRef.current.namespaceUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-fid": signer.fid.toString(),
-          "x-frame-url": frameUrl,
-        },
-        body: JSON.stringify({
-          webhookUrl,
-        }),
-      });
-
-      if (response.status !== 201) {
-        throw new Error("Failed to add frame");
-      }
-
-      const data = (await response.json()) as CreateNotificationSettings;
-
-      return data["details"];
-    },
-  });
-
-  const removeFrameMutation = useMutation({
-    async mutationFn() {
-      if (signer?.status !== "approved") {
-        throw new Error("Signer not approved");
-      }
-
-      const response = await fetch("/notifications", {
-        method: "DELETE",
-        headers: {
-          "x-fid": signer.fid.toString(),
-          "x-frame-url": frameUrl,
-        },
-      });
-
-      if (response.status === 204) {
-        return true;
-      }
-
-      throw new Error("Failed to remove frame");
-    },
-  });
-
-  const enableNotificationsMutation = useMutation({
-    async mutationFn() {
-      if (signer?.status !== "approved") {
-        throw new Error("Signer not approved");
-      }
-
-      const webhookUrl =
-        context.parseResult.manifest?.manifest.frame?.webhookUrl;
-
-      if (!webhookUrl) {
-        throw new Error("Webhook URL not found");
-      }
-
-      const response = await fetch("/notifications", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-fid": signer.fid.toString(),
-          "x-frame-url": frameUrl,
-        },
-        body: JSON.stringify({
-          webhookUrl,
-        }),
+        body: JSON.stringify(event),
       });
 
       if (response.status !== 201 && response.status !== 200) {
         throw new Error("Failed to enable notifications");
       }
-    },
-  });
 
-  const disableNotificationsMutation = useMutation({
-    async mutationFn({ notificationUrl }: { notificationUrl: string }) {
-      if (signer?.status !== "approved") {
-        throw new Error("Signer not approved");
-      }
-
-      const response = await fetch(notificationUrl, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          "x-fid": signer.fid.toString(),
-          "x-frame-url": frameUrl,
-        },
-      });
-
-      if (response.status === 204) {
-        return;
-      }
-
-      throw new Error("Failed to disable notifications");
+      return response.json() as Promise<POSTNotificationsDetailResponseBody>;
     },
   });
 
@@ -193,35 +112,70 @@ export function useFrameAppNotificationsManager({
         throw new Error("Signer not approved");
       }
 
-      const response = await fetch("/notifications", {
-        method: "GET",
-        headers: {
-          "x-fid": signer.fid.toString(),
-          "x-frame-url": frameUrl,
-        },
-      });
+      if (!webhookUrl) {
+        throw new Error("Webhook URL not found");
+      }
+
+      let state: POSTNotificationsResponseBody;
+
+      if (!namespaceSettingsRef.current) {
+        const response = await fetch("/notifications", {
+          method: "POST",
+          body: JSON.stringify({
+            fid: signer.fid,
+            frameAppUrl: frameUrl,
+            signerPrivateKey: signer.privateKey,
+            webhookUrl,
+          } satisfies POSTNotificationsRequestBody),
+        });
+
+        if (response.status !== 201) {
+          throw new Error("Failed to create notification settings");
+        }
+
+        state = (await response.json()) as POSTNotificationsResponseBody;
+
+        namespaceSettingsRef.current = state;
+      } else {
+        const response = await fetch(
+          namespaceSettingsRef.current.namespaceUrl,
+          {
+            method: "GET",
+          }
+        );
+
+        if (!response.ok) {
+          namespaceSettingsRef.current = null;
+
+          throw new Error("Failed to fetch notification settings");
+        }
+
+        state = (await response.json()) as POSTNotificationsResponseBody;
+      }
 
       return {
         manager: {
-          state: response.ok
-            ? ((await response.json()) as NotificationSettings)
-            : null,
+          state: state as GETNotificationsDetailResponseBody,
           async addFrame() {
-            const result = await addFrameMutation.mutateAsync();
+            const result = await sendEvent.mutateAsync({
+              action: "add_frame",
+            });
+
+            if (result.type !== "frame_added") {
+              throw new Error("Failed to add frame");
+            }
 
             // refetch notification settings
             await queryClient.refetchQueries({
               queryKey,
             });
 
-            return result;
+            return result.notificationDetails;
           },
           async removeFrame() {
-            if (!this.state) {
-              throw new Error("Frame not added");
-            }
-
-            await removeFrameMutation.mutateAsync();
+            await sendEvent.mutateAsync({
+              action: "remove_frame",
+            });
 
             // refetch notification settings
             await queryClient.refetchQueries({
@@ -229,15 +183,9 @@ export function useFrameAppNotificationsManager({
             });
           },
           async enableNotifications() {
-            if (!this.state) {
-              throw new Error("Frame not added");
-            }
-
-            if (this.state.enabled === true) {
-              throw new Error("Notifications already enabled");
-            }
-
-            await enableNotificationsMutation.mutateAsync();
+            await sendEvent.mutateAsync({
+              action: "enable_notifications",
+            });
 
             // refetch notification settings
             await queryClient.refetchQueries({
@@ -245,16 +193,8 @@ export function useFrameAppNotificationsManager({
             });
           },
           async disableNotifications() {
-            if (!this.state) {
-              throw new Error("Frame not added");
-            }
-
-            if (this.state.enabled === false) {
-              throw new Error("Notifications already disabled");
-            }
-
-            await disableNotificationsMutation.mutateAsync({
-              notificationUrl: this.state.details.url,
+            await sendEvent.mutateAsync({
+              action: "disable_notifications",
             });
 
             // refetch notification settings

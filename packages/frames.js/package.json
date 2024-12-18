@@ -157,6 +157,16 @@
         "default": "./dist/anonymous/index.cjs"
       }
     },
+    "./farcaster-v2/events": {
+      "import": {
+        "types": "./dist/farcaster-v2/events.d.ts",
+        "default": "./dist/farcaster-v2/events.js"
+      },
+      "require": {
+        "types": "./dist/farcaster-v2/events.d.cts",
+        "default": "./dist/farcaster-v2/events.cjs"
+      }
+    },
     "./farcaster-v2/json-signature": {
       "import": {
         "types": "./dist/farcaster-v2/json-signature.d.ts",
@@ -409,6 +419,7 @@
     "react-dom": "^18.2.0"
   },
   "dependencies": {
+    "@farcaster/frame-node": "^0.0.4",
     "@vercel/og": "^0.6.3",
     "cheerio": "^1.0.0-rc.12",
     "protobufjs": "^7.2.6",

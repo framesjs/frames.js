@@ -12,6 +12,7 @@ import {
 import { useFrameAppNotificationsManagerContext } from "../providers/FrameAppNotificationsManagerProvider";
 import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
+import { WithTooltip } from "./with-tooltip";
 
 type FrameAppNotificationsControlPanelProps = {};
 
@@ -25,9 +26,11 @@ export function FrameAppNotificationsControlPanel({}: FrameAppNotificationsContr
     | "reloading-settings"
   >("idle");
   const frameAppNotificationManager = useFrameAppNotificationsManagerContext();
-  const isAddedToClient = !!frameAppNotificationManager.state;
+  const isAddedToClient =
+    frameAppNotificationManager.state?.frame.status === "added";
   const hasNotificationsEnabled =
-    isAddedToClient && !!frameAppNotificationManager.state.enabled;
+    frameAppNotificationManager.state?.frame.status === "added" &&
+    !!frameAppNotificationManager.state.frame.notificationDetails;
 
   const addFrame = useCallback(async () => {
     try {
@@ -75,23 +78,25 @@ export function FrameAppNotificationsControlPanel({}: FrameAppNotificationsContr
   );
 
   return (
-    <div className="flex flex-col gap-2 w-full">
+    <div className="flex flex-col gap-2 w-full border rounded-lg p-2">
       <h3 className="font-semibold">
         Client settings
-        <Button
-          disabled={state !== "idle"}
-          onClick={reloadSettings}
-          size="icon"
-          type="button"
-          variant="link"
-        >
-          <RefreshCwIcon
-            className={cn(
-              "h-[1em] w-[1em]",
-              state === "reloading-settings" && "animate-spin"
-            )}
-          />
-        </Button>
+        <WithTooltip tooltip="Reload settings">
+          <Button
+            disabled={state !== "idle"}
+            onClick={reloadSettings}
+            size="icon"
+            type="button"
+            variant="link"
+          >
+            <RefreshCwIcon
+              className={cn(
+                "h-[1em] w-[1em]",
+                state === "reloading-settings" && "animate-spin"
+              )}
+            />
+          </Button>
+        </WithTooltip>
       </h3>
       {isAddedToClient ? (
         <>
@@ -106,7 +111,7 @@ export function FrameAppNotificationsControlPanel({}: FrameAppNotificationsContr
               htmlFor="notifications-enabled"
               className="inline-flex gap-2 items-center"
             >
-              Notifications enabled{" "}
+              Notifications{" "}
               {state === "disabling-notifications" ||
               state === "enabling-notifications" ? (
                 <Loader2Icon className="animate-spin h-[1em] w-[1em]" />

@@ -1,118 +1,59 @@
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { createRedis } from "../lib/redis";
-import { validateAuth } from "./auth";
-import type { NotificationSettings } from "./types";
 import { RedisNotificationsStorage } from "./storage";
-import { createNotificationsUrl } from "./helpers";
+import {
+  type GETNotificationsDetailResponseBody,
+  getResponseBodySchema,
+} from "./[namespaceId]/route";
 
-/**
- * Checks for the given notifications settings of user and url
- */
-export async function GET(req: NextRequest): Promise<Response> {
-  const auth = validateAuth(req);
-
-  if (!auth) {
-    return Response.json({ message: "Not Authenticated" }, { status: 401 });
-  }
-
-  const redis = createRedis();
-  const storage = new RedisNotificationsStorage({
-    redis,
-  });
-
-  const settings = await storage.getSettings({
-    fid: auth.fid,
-    frameAppUrl: auth.frameAppUrl,
-  });
-
-  if (!settings) {
-    return Response.json({ message: "Not Found" }, { status: 404 });
-  }
-
-  return Response.json(settings, {
-    headers: {
-      "Cache-Control": "no-store, no-cache",
-    },
-  });
-}
-
-export type CreateNotificationSettings = Extract<
-  NotificationSettings,
-  { enabled: true }
->;
-
-const bodySchema = z.object({
+const postRequestBodySchema = z.object({
+  fid: z.coerce.number().int().positive(),
+  frameAppUrl: z.string().url(),
+  signerPrivateKey: z.string().min(1),
   webhookUrl: z.string().url(),
 });
 
+export type POSTNotificationsRequestBody = z.infer<
+  typeof postRequestBodySchema
+>;
+
+export type POSTNotificationsResponseBody = GETNotificationsDetailResponseBody;
+
 /**
- * Adds frame app to client
+ * Creates new notification settings namespace.
+ *
+ * This endpoint should be used to initialize notification settings namespace
+ * because it returns a unique URL that is used then to set settings and list all
+ * recorded events.
  */
-export async function POST(req: NextRequest): Promise<Response> {
-  const auth = validateAuth(req);
+export async function POST(req: NextRequest) {
+  const body = postRequestBodySchema.safeParse(await req.json());
 
-  if (!auth) {
-    return Response.json({ message: "Not Authenticated" }, { status: 401 });
+  if (!body.success) {
+    return Response.json(body.error.flatten(), { status: 400 });
   }
 
-  const { webhookUrl } = bodySchema.parse(await req.json());
   const redis = createRedis();
-  const notificationsUrl = createNotificationsUrl(req);
+  const { fid, frameAppUrl, signerPrivateKey, webhookUrl } = body.data;
+  const storage = new RedisNotificationsStorage(redis, req.nextUrl.href);
 
-  const storage = new RedisNotificationsStorage({
-    redis,
-  });
+  // Create new namespace
+  const namespaceId = crypto.randomUUID();
 
-  const existingSettings = await storage.getSettings({
-    fid: auth.fid,
-    frameAppUrl: auth.frameAppUrl,
-  });
-
-  if (existingSettings?.enabled) {
-    return Response.json(
-      { message: "Notifications are already enabled" },
-      { status: 409 }
-    );
-  }
-
-  const settings = await storage.addFrame({
-    fid: auth.fid,
-    frameAppUrl: auth.frameAppUrl,
-    notificationsUrl,
+  const namespace = await storage.registerNamespace(namespaceId, {
+    fid,
+    frameAppUrl,
+    signerPrivateKey,
     webhookUrl,
   });
 
-  if (existingSettings) {
-    // @todo call webhook with enable notifications event
-  } else {
-    // @todo call webhook with add frame event
-  }
-
-  return Response.json(settings, { status: existingSettings ? 200 : 201 });
-}
-
-/**
- * Removes frame app from client
- */
-export async function DELETE(req: NextRequest): Promise<Response> {
-  const auth = validateAuth(req);
-
-  if (!auth) {
-    return Response.json({ message: "Not Authenticated" }, { status: 401 });
-  }
-
-  const redis = createRedis();
-  const storage = new RedisNotificationsStorage({
-    redis,
-  });
-
-  // @todo call webhook with remove frame event
-
-  await storage.removeFrame({
-    fid: auth.fid,
-    frameAppUrl: auth.frameAppUrl,
-  });
-
-  return new Response(undefined, { status: 204 });
+  return Response.json(
+    getResponseBodySchema.parse(
+      namespace
+    ) satisfies POSTNotificationsResponseBody,
+    {
+      status: 201,
+    }
+  );
 }

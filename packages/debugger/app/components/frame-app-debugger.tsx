@@ -16,8 +16,6 @@ import { cn } from "@/lib/utils";
 import { DebuggerConsole } from "./debugger-console";
 import Image from "next/image";
 import { fallbackFrameContext } from "@frames.js/render";
-import { Console } from "console-feed";
-import type { Message } from "console-feed/lib/definitions/Component";
 import type { FarcasterSignerInstance } from "@frames.js/render/identity/farcaster";
 import { FrameAppDebuggerNotifications } from "./frame-app-debugger-notifications";
 import {
@@ -62,32 +60,28 @@ export function FrameAppDebugger({
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [activeTab, setActiveTab] = useState<TabValues>("notifications");
   const [isAppReady, setIsAppReady] = useState(false);
-  const [events, setEvents] = useState<Message[]>([]);
   const [primaryButton, setPrimaryButton] = useState<{
     button: FramePrimaryButton;
     callback: () => void;
   } | null>(null);
   const provider = useWagmiProvider();
-  const logEvent = useCallback((method: Message["method"], ...args: any[]) => {
-    setEvents((prev) => [
-      ...prev,
-      {
-        id: prev.length.toString(),
-        method,
-        data: args,
-      },
-    ]);
-  }, []);
   const resolveClient: ResolveClientFunction = useCallback(async () => {
     try {
       const { manager } = await frameAppNotificationManager.promise;
+      const clientFid = parseInt(process.env.FARCASTER_DEVELOPER_FID ?? "-1");
+
+      if (!manager.state || manager.state.frame.status === "removed") {
+        return {
+          clientFid,
+          added: false,
+        };
+      }
 
       return {
         clientFid: parseInt(process.env.FARCASTER_DEVELOPER_FID ?? "-1"),
-        added: !!manager.state,
-        notificationDetails: manager.state?.enabled
-          ? manager.state.details
-          : undefined,
+        added: true,
+        notificationDetails:
+          manager.state.frame.notificationDetails ?? undefined,
       };
     } catch (e) {
       console.error(e);
@@ -123,31 +117,32 @@ export function FrameAppDebugger({
     proxyUrl: "/frames",
     addFrameRequestsCache,
     onReady(options) {
-      logEvent("info", "sdk.actions.ready() called", { options });
+      console.info("sdk.actions.ready() called", { options });
       setIsAppReady(true);
     },
     onClose() {
-      logEvent("info", "sdk.actions.close() called");
+      console.info("sdk.actions.close() called");
       toast({
         title: "Frame app closed",
         description: "The frame app called close() action.",
       });
     },
     onOpenUrl(url) {
-      logEvent("info", "sdk.actions.openUrl() called", { url });
+      console.info("sdk.actions.openUrl() called", { url });
       window.open(url, "_blank");
     },
     onPrimaryButtonSet(button, buttonCallback) {
-      logEvent("info", "sdk.actions.setPrimaryButton() called", { button });
+      console.info("sdk.actions.setPrimaryButton() called", { button });
       setPrimaryButton({
         button,
         callback: () => {
+          console.info("primary button clicked");
           buttonCallback();
         },
       });
     },
     async onAddFrameRequested(parseResult) {
-      logEvent("info", "sdk.actions.addFrame() called");
+      console.info("sdk.actions.addFrame() called");
 
       if (frameAppNotificationManager.status === "pending") {
         toast({
@@ -216,9 +211,7 @@ export function FrameAppDebugger({
       }
     },
     onDebugEthProviderRequest(parameters) {
-      logEvent("info", "sdk.wallet.ethProvider.request() called", {
-        parameters,
-      });
+      console.info("sdk.wallet.ethProvider.request() called", { parameters });
     },
   });
 
@@ -322,18 +315,17 @@ export function FrameAppDebugger({
                   onValueChange={(value) => setActiveTab(value as TabValues)}
                   className="grid grid-rows-[auto_1fr] w-full h-full"
                 >
-                  <TabsList className={cn("grid w-full grid-cols-3")}>
+                  <TabsList className={cn("grid w-full grid-cols-2")}>
                     <TabsTrigger value="notifications">
                       Notifications
                     </TabsTrigger>
-                    <TabsTrigger value="events">Events</TabsTrigger>
                     <TabsTrigger value="console">Console</TabsTrigger>
                   </TabsList>
-                  <TabsContent value="notifications">
+                  <TabsContent
+                    className="overflow-hidden"
+                    value="notifications"
+                  >
                     <FrameAppDebuggerNotifications frame={frameApp.frame} />
-                  </TabsContent>
-                  <TabsContent className="overflow-y-auto" value="events">
-                    <Console logs={events} variant="light" />
                   </TabsContent>
                   <TabsContent
                     className="overflow-y-auto"

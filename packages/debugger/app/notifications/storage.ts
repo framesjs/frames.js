@@ -1,232 +1,218 @@
-import type { FrameClientConfig } from "@frames.js/render/use-frame-app";
-import type {
-  Notification,
-  NotificationSettings,
-  NotificationsStorageInterface,
-} from "./types";
+import type { RecordedEvent } from "./types";
 import { Redis } from "@upstash/redis";
 import crypto from "node:crypto";
 import { NOTIFICATION_TTL_IN_SECONDS } from "../constants";
+import type { FrameNotificationDetails } from "@farcaster/frame-sdk";
 
-type NotificationsEndpointSettings = {
-  token: string;
-  fid: string;
+type NotificationsNamespace = {
+  id: string;
+  fid: number;
   frameAppUrl: string;
+  signerPrivateKey: string;
+  namespaceUrl: string;
+  webhookUrl: string;
+  frame:
+    | {
+        status: "added";
+        notificationDetails: null | FrameNotificationDetails;
+      }
+    | {
+        status: "removed";
+      };
 };
 
-export class RedisNotificationsStorage
-  implements NotificationsStorageInterface
-{
-  private redis: Redis;
+export class RedisNotificationsStorage {
+  constructor(
+    private redis: Redis,
+    private serverUrl: string
+  ) {}
 
-  constructor({ redis }: { redis: Redis }) {
-    this.redis = redis;
-  }
+  async registerNamespace(
+    id: string,
+    params: {
+      fid: number;
+      frameAppUrl: string;
+      signerPrivateKey: string;
+      webhookUrl: string;
+    }
+  ) {
+    const namespace: NotificationsNamespace = {
+      id,
+      fid: params.fid,
+      frameAppUrl: params.frameAppUrl,
+      signerPrivateKey: params.signerPrivateKey,
+      namespaceUrl: new URL(`/notifications/${id}`, this.serverUrl).toString(),
+      webhookUrl: params.webhookUrl,
+      frame: {
+        status: "removed",
+      },
+    };
 
-  async getSettings(params: {
-    fid: string;
-    frameAppUrl: string;
-  }): Promise<NotificationSettings | null> {
-    const settings = await this.redis.get<NotificationSettings>(
-      createSettingsKey(params.fid, params.frameAppUrl)
+    await this.redis.set<NotificationsNamespace>(
+      createNamespaceKey(id),
+      namespace,
+      {
+        ex: NOTIFICATION_TTL_IN_SECONDS,
+      }
     );
 
-    if (!settings) {
+    return namespace;
+  }
+
+  async getNamespace(id: string): Promise<NotificationsNamespace | null> {
+    const namespace = await this.redis.get<NotificationsNamespace>(
+      createNamespaceKey(id)
+    );
+
+    if (!namespace) {
       return null;
     }
 
     await this.redis.expire(
-      createSettingsKey(params.fid, params.frameAppUrl),
+      createNamespaceKey(id),
       NOTIFICATION_TTL_IN_SECONDS
     );
 
-    return settings;
+    return namespace;
   }
 
-  async addFrame({
-    fid,
-    frameAppUrl,
-    notificationsUrl,
-    webhookUrl,
-  }: {
-    fid: string;
-    frameAppUrl: string;
-    webhookUrl: string;
-    notificationsUrl: string;
-  }) {
-    const settings: Extract<NotificationSettings, { enabled: true }> = {
-      enabled: true,
-      details: {
-        token: crypto.randomUUID(),
-        url: notificationsUrl,
-      },
-      webhookUrl,
+  async addFrame(namespace: NotificationsNamespace) {
+    if (namespace.frame.status === "added") {
+      throw new Error("Frame is already added");
+    }
+
+    const token = crypto.randomUUID();
+    const url = new URL(
+      `/notifications/${namespace.id}/send`,
+      this.serverUrl
+    ).toString();
+    const notificationDetails: FrameNotificationDetails = {
+      url,
+      token,
     };
 
-    await this.redis
-      .pipeline()
-      .set<Extract<NotificationSettings, { enabled: true }>>(
-        createSettingsKey(fid, frameAppUrl),
-        settings
-      )
-      .set<NotificationsEndpointSettings>(
-        createNotificationsEndpointSettingsKey(notificationsUrl),
-        {
-          fid,
-          frameAppUrl,
-          token: settings.details.token,
+    await this.redis.set<NotificationsNamespace>(
+      createNamespaceKey(namespace.id),
+      {
+        ...namespace,
+        frame: {
+          status: "added",
+          notificationDetails,
         },
-        { ex: NOTIFICATION_TTL_IN_SECONDS }
-      )
-      .exec();
-
-    return settings;
-  }
-
-  async removeFrame(params: {
-    fid: string;
-    frameAppUrl: string;
-  }): Promise<void> {
-    const result = await this.redis.del(
-      createSettingsKey(params.fid, params.frameAppUrl)
+      },
+      {
+        ex: NOTIFICATION_TTL_IN_SECONDS,
+      }
     );
 
-    if (!result) {
-      throw new Error("Failed to remove notification settings");
-    }
+    return notificationDetails;
   }
 
-  async disableNotifications({
-    fid,
-    frameAppUrl,
-  }: {
-    fid: string;
-    frameAppUrl: string;
-  }): Promise<void> {
-    const settings = await this.redis.get<NotificationSettings>(
-      createSettingsKey(fid, frameAppUrl)
+  async removeFrame(namespace: NotificationsNamespace) {
+    if (namespace.frame.status === "removed") {
+      throw new Error("Frame is already removed");
+    }
+
+    await this.redis.set<NotificationsNamespace>(
+      createNamespaceKey(namespace.id),
+      {
+        ...namespace,
+        frame: {
+          status: "removed",
+        },
+      },
+      {
+        ex: NOTIFICATION_TTL_IN_SECONDS,
+      }
     );
-
-    if (!settings) {
-      throw new Error("Notification settings not found");
-    }
-
-    if (!settings.enabled) {
-      throw new Error("Notifications are already disabled");
-    }
-
-    const newSettings: NotificationSettings = {
-      enabled: false,
-      webhookUrl: settings.webhookUrl,
-    };
-
-    await this.redis
-      .pipeline()
-      .set<NotificationSettings>(
-        createSettingsKey(fid, frameAppUrl),
-        newSettings,
-        { ex: NOTIFICATION_TTL_IN_SECONDS }
-      )
-      .del(createNotificationsEndpointSettingsKey(settings.details.url))
-      .exec();
   }
 
-  async recordNotification(
-    notificationsUrl: string,
-    notification: Notification
-  ): Promise<void> {
-    const notificationsEndpointSettings =
-      await this.redis.get<NotificationsEndpointSettings>(
-        createNotificationsEndpointSettingsKey(notificationsUrl)
-      );
-
-    if (!notificationsEndpointSettings) {
-      throw new Error("Notifications endpoint settings not found");
-    }
-
-    const notificationSettings = await this.redis.get<NotificationSettings>(
-      createSettingsKey(
-        notificationsEndpointSettings.fid,
-        notificationsEndpointSettings.frameAppUrl
-      )
-    );
-
-    if (!notificationSettings) {
+  async enableNotifications(namespace: NotificationsNamespace) {
+    if (namespace.frame.status === "removed") {
       throw new Error("Frame is not added");
     }
 
-    if (!notificationSettings.enabled) {
-      throw new Error("Notifications are disabled");
+    const token = crypto.randomUUID();
+    const url = new URL(
+      `/notifications/${namespace.id}/send`,
+      this.serverUrl
+    ).toString();
+    const notificationDetails: FrameNotificationDetails = {
+      token,
+      url,
+    };
+
+    await this.redis.set<NotificationsNamespace>(
+      createNamespaceKey(namespace.id),
+      {
+        ...namespace,
+        frame: {
+          status: "added",
+          notificationDetails,
+        },
+      },
+      {
+        ex: NOTIFICATION_TTL_IN_SECONDS,
+      }
+    );
+
+    return notificationDetails;
+  }
+
+  async disableNotifications(namespace: NotificationsNamespace) {
+    if (namespace.frame.status === "removed") {
+      throw new Error("Frame is not added");
     }
+
+    await this.redis.set<NotificationsNamespace>(
+      createNamespaceKey(namespace.id),
+      {
+        ...namespace,
+        frame: {
+          status: "added",
+          notificationDetails: null,
+        },
+      },
+      {
+        ex: NOTIFICATION_TTL_IN_SECONDS,
+      }
+    );
+  }
+
+  async recordEvent(namespaceId: string, event: RecordedEvent): Promise<void> {
+    const eventListStorageKey = createEventListStorageKey(namespaceId);
 
     await this.redis
       .pipeline()
-      .lpush(
-        createNotificationsListStorageKey(notificationSettings.details.url),
-        notification
-      )
-      .expire(
-        createNotificationsListStorageKey(notificationSettings.details.url),
-        NOTIFICATION_TTL_IN_SECONDS
-      )
+      .rpush<RecordedEvent>(eventListStorageKey, event)
+      .expire(eventListStorageKey, NOTIFICATION_TTL_IN_SECONDS)
       .exec();
 
     return;
   }
 
-  async listNotifications(notificationsUrl: string): Promise<Notification[]> {
-    const notificationsEndpointSettings =
-      await this.redis.get<NotificationsEndpointSettings>(
-        createNotificationsEndpointSettingsKey(notificationsUrl)
-      );
+  async listEvents(namespaceId: string): Promise<RecordedEvent[]> {
+    const namespace = await this.getNamespace(namespaceId);
 
-    if (!notificationsEndpointSettings) {
-      throw new Error("Notifications endpoint settings not found");
-    }
-
-    const notificationSettings = await this.redis.get<NotificationSettings>(
-      createSettingsKey(
-        notificationsEndpointSettings.fid,
-        notificationsEndpointSettings.frameAppUrl
-      )
-    );
-
-    if (!notificationSettings || !notificationSettings.enabled) {
+    if (!namespace || namespace.frame.status === "removed") {
       return [];
     }
 
-    const notifications = await this.redis.lpop<Notification[]>(
-      createNotificationsListStorageKey(notificationSettings.details.url),
+    const eventListStorageKey = createEventListStorageKey(namespaceId);
+
+    const notifications = await this.redis.lpop<RecordedEvent[]>(
+      eventListStorageKey,
       100
     );
-
-    await this.redis
-      .pipeline()
-      .expire(
-        createNotificationsEndpointSettingsKey(notificationsUrl),
-        NOTIFICATION_TTL_IN_SECONDS
-      )
-      .expire(
-        createSettingsKey(
-          notificationsEndpointSettings.fid,
-          notificationsEndpointSettings.frameAppUrl
-        ),
-        NOTIFICATION_TTL_IN_SECONDS
-      )
-      .exec();
 
     return notifications || [];
   }
 }
 
-function createSettingsKey(fid: string, frameAppUrl: string) {
-  return `notification-settings:${fid}:${frameAppUrl}`;
+function createEventListStorageKey(namespaceId: string) {
+  return `notifications-namespace:${namespaceId}:events`;
 }
 
-function createNotificationsEndpointSettingsKey(notificationsUrl: string) {
-  return `notifications-endpoint-settings:${notificationsUrl}`;
-}
-
-function createNotificationsListStorageKey(notificationUrl: string) {
-  return `notifications-list:${notificationUrl}`;
+function createNamespaceKey(namespaceId: string) {
+  return `notifications-namespace:${namespaceId}`;
 }
