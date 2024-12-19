@@ -3,7 +3,7 @@ import { createRedis } from "../../../lib/redis";
 import { RedisNotificationsStorage } from "../../storage";
 import { z } from "zod";
 import {
-  eventPayloadSchema,
+  serverEventSchema,
   sendNotificationRequestSchema,
 } from "@farcaster/frame-sdk";
 
@@ -17,18 +17,18 @@ const getEventsResponseBodySchema = z.array(
     z.object({
       id: z.string().uuid(),
       type: z.literal("event"),
-      event: eventPayloadSchema,
+      event: serverEventSchema,
     }),
     z.object({
       id: z.string().uuid(),
       type: z.literal("event_success"),
       eventId: z.string().uuid(),
-      event: eventPayloadSchema,
+      event: serverEventSchema,
     }),
     z.object({
       id: z.string().uuid(),
       type: z.literal("event_failure"),
-      event: eventPayloadSchema,
+      event: serverEventSchema,
       eventId: z.string().uuid(),
       message: z.string(),
       response: z

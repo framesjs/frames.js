@@ -127,11 +127,11 @@ describe("farcaster frame v2 parser", () => {
         ...restOfFrame,
       },
       reports: {
-        "fc:frame": [
+        "fc:frame.version": [
           {
             source: "farcaster_v2",
             level: "error",
-            message: 'Missing required key "version" in Frame',
+            message: 'Invalid literal value, expected "next"',
           },
         ],
       },
@@ -160,11 +160,11 @@ describe("farcaster frame v2 parser", () => {
           ...restOfFrame,
         },
         reports: {
-          "fc:frame": [
+          "fc:frame.version": [
             {
               source: "farcaster_v2",
               level: "error",
-              message: 'Key "version" in Frame must be a string',
+              message: 'Invalid literal value, expected "next"',
             },
           ],
         },
@@ -192,11 +192,11 @@ describe("farcaster frame v2 parser", () => {
         ...restOfFrame,
       },
       reports: {
-        "fc:frame": [
+        "fc:frame.imageUrl": [
           {
             source: "farcaster_v2",
             level: "error",
-            message: 'Missing required key "imageUrl" in Frame',
+            message: "Required",
           },
         ],
       },
@@ -225,11 +225,11 @@ describe("farcaster frame v2 parser", () => {
           ...restOfFrame,
         },
         reports: {
-          "fc:frame": [
+          "fc:frame.imageUrl": [
             {
               source: "farcaster_v2",
               level: "error",
-              message: 'Key "imageUrl" in Frame must be a string',
+              message: expect.stringMatching("Expected string, received"),
             },
           ],
         },
@@ -257,11 +257,16 @@ describe("farcaster frame v2 parser", () => {
         ...restOfFrame,
       },
       reports: {
-        "fc:frame": [
+        "fc:frame.imageUrl": [
           {
             source: "farcaster_v2",
             level: "error",
-            message: 'Key "imageUrl" in Frame must be a valid URL',
+            message: "Invalid url",
+          },
+          {
+            source: "farcaster_v2",
+            level: "error",
+            message: "Must be an https url",
           },
         ],
       },
@@ -298,11 +303,11 @@ describe("farcaster frame v2 parser", () => {
           },
         },
         reports: {
-          "fc:frame": [
+          "fc:frame.button.title": [
             {
               source: "farcaster_v2",
               level: "error",
-              message: 'Missing required key "title" in Frame.button',
+              message: "Required",
             },
           ],
         },
@@ -340,11 +345,11 @@ describe("farcaster frame v2 parser", () => {
             },
           },
           reports: {
-            "fc:frame": [
+            "fc:frame.button.title": [
               {
                 source: "farcaster_v2",
                 level: "error",
-                message: 'Key "title" in Frame.button must be a string',
+                message: expect.stringMatching("Expected string, received"),
               },
             ],
           },
@@ -391,11 +396,11 @@ describe("farcaster frame v2 parser", () => {
             },
           },
           reports: {
-            "fc:frame": [
+            "fc:frame.button.action.name": [
               {
                 source: "farcaster_v2",
                 level: "error",
-                message: 'Missing required key "name" in Frame.button.action',
+                message: "Required",
               },
             ],
           },
@@ -442,11 +447,11 @@ describe("farcaster frame v2 parser", () => {
               },
             },
             reports: {
-              "fc:frame": [
+              "fc:frame.button.action.name": [
                 {
                   source: "farcaster_v2",
                   level: "error",
-                  message: 'Key "name" in Frame.button.action must be a string',
+                  message: expect.stringMatching("Expected string, received"),
                 },
               ],
             },
@@ -492,11 +497,11 @@ describe("farcaster frame v2 parser", () => {
             },
           },
           reports: {
-            "fc:frame": [
+            "fc:frame.button.action.type": [
               {
                 source: "farcaster_v2",
                 level: "error",
-                message: 'Missing required key "type" in Frame.button.action',
+                message: "Invalid discriminator value. Expected 'launch_frame'",
               },
             ],
           },
@@ -543,11 +548,12 @@ describe("farcaster frame v2 parser", () => {
               },
             },
             reports: {
-              "fc:frame": [
+              "fc:frame.button.action.type": [
                 {
                   source: "farcaster_v2",
                   level: "error",
-                  message: 'Key "type" in Frame.button.action must be a string',
+                  message:
+                    "Invalid discriminator value. Expected 'launch_frame'",
                 },
               ],
             },
@@ -593,12 +599,11 @@ describe("farcaster frame v2 parser", () => {
             },
           },
           reports: {
-            "fc:frame": [
+            "fc:frame.button.action.type": [
               {
                 source: "farcaster_v2",
                 level: "error",
-                message:
-                  'Key "type" in Frame.button.action must be "launch_frame"',
+                message: "Invalid discriminator value. Expected 'launch_frame'",
               },
             ],
           },
@@ -643,11 +648,11 @@ describe("farcaster frame v2 parser", () => {
             },
           },
           reports: {
-            "fc:frame": [
+            "fc:frame.button.action.url": [
               {
                 source: "farcaster_v2",
                 level: "error",
-                message: 'Missing required key "url" in Frame.button.action',
+                message: "Required",
               },
             ],
           },
@@ -692,11 +697,11 @@ describe("farcaster frame v2 parser", () => {
             },
           },
           reports: {
-            "fc:frame": [
+            "fc:frame.button.action.url": [
               {
                 source: "farcaster_v2",
                 level: "error",
-                message: 'Key "url" in Frame.button.action must be a string',
+                message: expect.stringMatching("Expected string, received"),
               },
             ],
           },
@@ -741,61 +746,16 @@ describe("farcaster frame v2 parser", () => {
             },
           },
           reports: {
-            "fc:frame": [
+            "fc:frame.button.action.url": [
               {
                 source: "farcaster_v2",
                 level: "error",
-                message: 'Key "url" in Frame.button.action must be a valid URL',
+                message: "Invalid url",
               },
-            ],
-          },
-        });
-      });
-
-      it('fails on missing "splashImageUrl"', async () => {
-        const document = load(`
-          <meta property="fc:frame" content='${JSON.stringify({
-            ...validFrame,
-            button: {
-              ...validFrame.button,
-              action: {
-                ...validFrame.button.action,
-                splashImageUrl: undefined,
-              },
-            },
-          } satisfies PartialDeep<FrameV2>)}' />
-          <title>Test</title>
-        `);
-
-        const {
-          button: {
-            action: { splashImageUrl: _, ...restOfAction },
-            ...restOfButton
-          },
-          ...restOfFrame
-        } = validFrame;
-
-        await expect(
-          parseFarcasterFrameV2(document, { frameUrl, reporter })
-        ).resolves.toMatchObject({
-          status: "failure",
-          specification: "farcaster_v2",
-          frame: {
-            ...restOfFrame,
-            button: {
-              ...restOfButton,
-              action: {
-                ...restOfAction,
-              },
-            },
-          },
-          reports: {
-            "fc:frame": [
               {
                 source: "farcaster_v2",
                 level: "error",
-                message:
-                  'Missing required key "splashImageUrl" in Frame.button.action',
+                message: "Must be an https url",
               },
             ],
           },
@@ -842,12 +802,11 @@ describe("farcaster frame v2 parser", () => {
               },
             },
             reports: {
-              "fc:frame": [
+              "fc:frame.button.action.splashImageUrl": [
                 {
                   source: "farcaster_v2",
                   level: "error",
-                  message:
-                    'Key "splashImageUrl" in Frame.button.action must be a string',
+                  message: expect.stringMatching("Expected string, received"),
                 },
               ],
             },
@@ -893,62 +852,16 @@ describe("farcaster frame v2 parser", () => {
             },
           },
           reports: {
-            "fc:frame": [
+            "fc:frame.button.action.splashImageUrl": [
               {
                 source: "farcaster_v2",
                 level: "error",
-                message:
-                  'Key "splashImageUrl" in Frame.button.action must be a valid URL',
+                message: "Invalid url",
               },
-            ],
-          },
-        });
-      });
-
-      it('fails on missing "splashBackgroundColor"', async () => {
-        const document = load(`
-          <meta property="fc:frame" content='${JSON.stringify({
-            ...validFrame,
-            button: {
-              ...validFrame.button,
-              action: {
-                ...validFrame.button.action,
-                splashBackgroundColor: undefined,
-              },
-            },
-          } satisfies PartialDeep<FrameV2>)}' />
-          <title>Test</title>
-        `);
-
-        const {
-          button: {
-            action: { splashBackgroundColor: _, ...restOfAction },
-            ...restOfButton
-          },
-          ...restOfFrame
-        } = validFrame;
-
-        await expect(
-          parseFarcasterFrameV2(document, { frameUrl, reporter })
-        ).resolves.toMatchObject({
-          status: "failure",
-          specification: "farcaster_v2",
-          frame: {
-            ...restOfFrame,
-            button: {
-              ...restOfButton,
-              action: {
-                ...restOfAction,
-              },
-            },
-          },
-          reports: {
-            "fc:frame": [
               {
                 source: "farcaster_v2",
                 level: "error",
-                message:
-                  'Missing required key "splashBackgroundColor" in Frame.button.action',
+                message: "Must be an https url",
               },
             ],
           },
@@ -995,12 +908,11 @@ describe("farcaster frame v2 parser", () => {
               },
             },
             reports: {
-              "fc:frame": [
+              "fc:frame.button.action.splashBackgroundColor": [
                 {
                   source: "farcaster_v2",
                   level: "error",
-                  message:
-                    'Key "splashBackgroundColor" in Frame.button.action must be a string',
+                  message: expect.stringMatching("Expected string, received"),
                 },
               ],
             },
@@ -1046,12 +958,12 @@ describe("farcaster frame v2 parser", () => {
             },
           },
           reports: {
-            "fc:frame": [
+            "fc:frame.button.action.splashBackgroundColor": [
               {
                 source: "farcaster_v2",
                 level: "error",
                 message:
-                  'Key "splashBackgroundColor" in Frame.button.action must be a valid hex color',
+                  "Invalid hex color code. It should be in the format #RRGGBB or #RGB.",
               },
             ],
           },
@@ -1160,11 +1072,6 @@ describe("farcaster frame v2 parser", () => {
           accountAssociation: {
             header: "test",
           },
-          triggers: [
-            {
-              type: "invalid",
-            },
-          ],
         })
       );
 
@@ -1187,30 +1094,14 @@ describe("farcaster frame v2 parser", () => {
           "fc:manifest.accountAssociation.payload": [
             {
               level: "error",
-              message:
-                'Missing required property "payload" in account association',
+              message: "Required",
               source: "farcaster_v2",
             },
           ],
           "fc:manifest.accountAssociation.signature": [
             {
               level: "error",
-              message:
-                'Missing required property "signature" in account association',
-              source: "farcaster_v2",
-            },
-          ],
-          "fc:manifest": [
-            {
-              level: "error",
-              message: 'Missing required property "frame" in manifest',
-              source: "farcaster_v2",
-            },
-          ],
-          "fc:manifest.triggers[0].type": [
-            {
-              level: "error",
-              message: "Trigger type must be either 'cast' or 'composer'",
+              message: "Required",
               source: "farcaster_v2",
             },
           ],

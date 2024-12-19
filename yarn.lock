@@ -2397,36 +2397,44 @@
     neverthrow "^6.0.0"
     viem "^1.12.2"
 
-"@farcaster/frame-core@^0.0.16":
-  version "0.0.16"
-  resolved "https://registry.yarnpkg.com/@farcaster/frame-core/-/frame-core-0.0.16.tgz#c84ded4470a2fb17e4abec3fb26dcfc10b8f083f"
-  integrity sha512-BnFfXigvN9E4mKuMk94d0EWZbcu5KEgPSRjjc9SC5RVPkZzM/UqewRXSALzfl0+ENx0dBU7gIoha7XN2RsLyvQ==
+"@farcaster/frame-core@^0.0.19":
+  version "0.0.19"
+  resolved "https://registry.yarnpkg.com/@farcaster/frame-core/-/frame-core-0.0.19.tgz#76621fe6e207c3a5c78a22aa679bbbd7beafdd11"
+  integrity sha512-/0XjVZa/rUuUR16GVhhKnAQI33SXI61bB24jNA1DD0L0ytcKsM14wBptW9CF4RDiYIXxtt4mXmnQ+rMhO38RcA==
   dependencies:
     ox "^0.4.0"
     zod "^3.23.8"
 
-"@farcaster/frame-core@^0.0.17":
-  version "0.0.17"
-  resolved "https://registry.yarnpkg.com/@farcaster/frame-core/-/frame-core-0.0.17.tgz#e679dfba507486296c6b36e2fca04a53440853c2"
-  integrity sha512-AJnUfuTrZCc2OP7OkpdIfrus2zscnxo+6ph5WzUhVUH66UM6NPAoqhbWR15PRODTdyR2TdDz7aNq/0PlxiAiwg==
+"@farcaster/frame-host-react-native@^0.0.14":
+  version "0.0.14"
+  resolved "https://registry.yarnpkg.com/@farcaster/frame-host-react-native/-/frame-host-react-native-0.0.14.tgz#0919eb1466dfd497a29d0965a5e5c6e7e25336b1"
+  integrity sha512-iPjysnQ5H8aoWJWIdJIWPaBP9wo7s9fLNPy56RZXMsrqrkWDskOYfgND5CRZJzA9JDvvgLjqJ+XYdGPVXlKyGQ==
   dependencies:
-    ox "^0.4.0"
-    zod "^3.23.8"
-
-"@farcaster/frame-node@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@farcaster/frame-node/-/frame-node-0.0.4.tgz#450a131f898ec120f45d335adf1689a1ad84d153"
-  integrity sha512-3MOou30EE+ItAE43nWchwRlylKL98jy5DmD757M0EupV6v0mc58cU6VsBbWtL6PiVMunq8N5nVuGFJwWyvDJHQ==
-  dependencies:
-    "@farcaster/frame-core" "^0.0.16"
+    "@farcaster/frame-host" "^0.0.19"
     ox "^0.4.0"
 
-"@farcaster/frame-sdk@^0.0.18":
-  version "0.0.18"
-  resolved "https://registry.yarnpkg.com/@farcaster/frame-sdk/-/frame-sdk-0.0.18.tgz#3ddde95fe7e201a1e7a1bf685ba13011b37bdd32"
-  integrity sha512-aUe2+bopQgGHZBu1GGDBA2jD9pqhx2ljvRh4y3Z3g/riuIBJM+jgx6j6pF6MlUKneAYNkPc3byRXfzX5SBpLDA==
+"@farcaster/frame-host@^0.0.19":
+  version "0.0.19"
+  resolved "https://registry.yarnpkg.com/@farcaster/frame-host/-/frame-host-0.0.19.tgz#7e44bc6df2d86bb6f210b51189676558ffe414ef"
+  integrity sha512-4Svhipw24PAcux4vCHlXA6L3sVi248Ad4bDuXVgqvOEgQ3Ue1Ic4iDQ/bgF+LG3/hLh5UvYJ4csz0xOEwRNT0Q==
   dependencies:
-    "@farcaster/frame-core" "^0.0.17"
+    "@farcaster/frame-core" "^0.0.19"
+    ox "^0.4.0"
+
+"@farcaster/frame-node@^0.0.8":
+  version "0.0.8"
+  resolved "https://registry.yarnpkg.com/@farcaster/frame-node/-/frame-node-0.0.8.tgz#14c5c8c527a793eefbffac5b03570ed3925c95fd"
+  integrity sha512-AE3xFVj7Tu2nfVASka0wagR9plaZ2UA1ezzh9aHA4f6GU/gVl+SdfZzAn4uOqgEPl3D2g7W4p0tPRYZVwMJfdg==
+  dependencies:
+    "@farcaster/frame-core" "^0.0.19"
+    ox "^0.4.0"
+
+"@farcaster/frame-sdk@^0.0.20":
+  version "0.0.20"
+  resolved "https://registry.yarnpkg.com/@farcaster/frame-sdk/-/frame-sdk-0.0.20.tgz#253dba9a1aba23c63e01617720835fe6b2b0880b"
+  integrity sha512-9EbB3A9V1ZSH4NvhHVbylcDVNevJqpuGkwz4I+0bKF2936qxvMlcWclDZVEmfO/woYH0ZQgy47YYRIiS3YpIQw==
+  dependencies:
+    "@farcaster/frame-core" "^0.0.19"
     comlink "^4.4.2"
     eventemitter3 "^5.0.1"
     ox "^0.4.0"
@@ -3308,11 +3316,6 @@
     semver "^7.5.4"
     superstruct "^1.0.3"
     uuid "^9.0.1"
-
-"@michalkvasnicak/comlink@^4.5.1":
-  version "4.5.1"
-  resolved "https://registry.yarnpkg.com/@michalkvasnicak/comlink/-/comlink-4.5.1.tgz#a6d35b1066c4b93d264c284cb94bda89a660d569"
-  integrity sha512-KPbz5g6pufKrth1OKKJtRsm+GY6H/zsqqu0j4o250b6pptZjFPp+SvWOlcCZuKE6IQDbJHEU0j9znIv7cgZ8Bw==
 
 "@microsoft/tsdoc-config@0.16.2":
   version "0.16.2"

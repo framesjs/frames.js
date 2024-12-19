@@ -1,23 +1,80 @@
-import type { EthProviderWireEvent, FrameContext } from "@farcaster/frame-sdk";
+import type {
+  AddFrameResult,
+  FrameContext,
+  SetPrimaryButton,
+} from "@farcaster/frame-sdk";
+import type { ParseFramesV2ResultWithFrameworkDetails } from "frames.js/frame-parsers";
+import type { Provider } from "ox/Provider";
+import type { Default as DefaultRpcSchema, ExtractRequest } from "ox/RpcSchema";
 
-export type FrameEthProviderEvent = {
-  type: "frameEthProviderEvent";
-} & EthProviderWireEvent;
+export type FrameClientConfig = FrameContext["client"];
 
-export type FrameEvent = {
-  type: "frameEvent";
-  event: "primaryButtonClicked";
+export type SendTransactionRpcRequest = ExtractRequest<
+  DefaultRpcSchema,
+  "eth_sendTransaction"
+>;
+
+export type SignMessageRpcRequest = ExtractRequest<
+  DefaultRpcSchema,
+  "personal_sign"
+>;
+
+export type SignTypedDataRpcRequest = ExtractRequest<
+  DefaultRpcSchema,
+  "eth_signTypedData_v4"
+>;
+
+export type EthProvider = Provider<undefined, DefaultRpcSchema> & {
+  setEventHandlers: (handlers: SharedEthProviderEventHandlers) => void;
 };
 
 /**
- * This is here just because it is inconsistent in farcaster/frame-sdk
- * Eventually this will be removed if they fix that.
+ * Function called when the frame app requests sending transaction.
  *
- * This is just a type that is used as a lead how to convert FrameEvent to FrameEventReactNative
- * in react native event bridge implementation.
+ * If false is returned then the request is cancelled and user rejected error is thrown
  */
-export type FrameEventReactNative = {
-  type: "primaryButtonClicked";
+export type OnSendTransactionRequestFunction = (
+  request: SendTransactionRpcRequest
+) => Promise<boolean>;
+
+/**
+ * Function called when the frame app requests signing message.
+ *
+ * If false is returned signing is cancelled and user rejected error is thrown
+ */
+export type OnSignMessageRequestFunction = (
+  request: SignMessageRpcRequest
+) => Promise<boolean>;
+
+/**
+ * Function called when the frame app requests signing typed data.
+ *
+ * If false is returned then the request is cancelled and user rejected error is thrown
+ */
+export type OnSignTypedDataRequestFunction = (
+  request: SignTypedDataRpcRequest
+) => Promise<boolean>;
+
+export type SharedEthProviderEventHandlers = {
+  onSendTransactionRequest: OnSendTransactionRequestFunction;
+  onSignMessageRequest: OnSignMessageRequestFunction;
+  onSignTypedDataRequest: OnSignTypedDataRequestFunction;
 };
 
-export type FrameClientConfig = FrameContext["client"];
+export type FramePrimaryButton = Parameters<SetPrimaryButton>[0];
+
+export type OnPrimaryButtonSetFunction = (
+  options: FramePrimaryButton,
+  pressedCallback: () => void
+) => void;
+
+export type OnAddFrameRequestedFunction = (
+  frame: ParseFramesV2ResultWithFrameworkDetails
+) => Promise<false | Extract<AddFrameResult, { added: true }>>;
+
+/**
+ * Function called when the frame app is being loaded and we need to resolve the client that renders the frame app
+ */
+export type ResolveClientFunction = (options: {
+  signal: AbortSignal;
+}) => Promise<FrameClientConfig>;

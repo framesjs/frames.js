@@ -1,12 +1,31 @@
-import { useAccount, useConfig, type ConnectorEventMap } from "wagmi";
-import { getWalletClient } from "wagmi/actions";
+import {
+  createEmitter,
+  type EventMap,
+  from,
+  type Emitter,
+  UserRejectedRequestError,
+} from "ox/Provider";
 import { useEffect, useRef } from "react";
+import { useAccount } from "wagmi";
 import { useFreshRef } from "../../hooks/use-fresh-ref";
-import type { EthProvider, EthProviderEventEmitterInterface } from "./types";
-import { createEmitter } from "./event-emitter";
+import { useDebugLog } from "../../hooks/use-debug-log";
+import type {
+  EthProvider,
+  OnSendTransactionRequestFunction,
+  OnSignMessageRequestFunction,
+  OnSignTypedDataRequestFunction,
+} from "../types";
+import {
+  isEIP1193Provider,
+  isSendTransactionRpcRequest,
+  isSignMessageRpcRequest,
+  isSignTypedDataRpcRequest,
+} from "./helpers";
 
-export type UseWagmiProviderOptions = {
+type UseWagmiProviderOptions = {
   /**
+   * Enables debug logging
+   *
    * @defaultValue false
    */
   debug?: boolean;
@@ -15,121 +34,139 @@ export type UseWagmiProviderOptions = {
 export function useWagmiProvider({
   debug = false,
 }: UseWagmiProviderOptions = {}): EthProvider {
-  const account = useAccount();
-  const config = useConfig();
-  const configRef = useFreshRef(config);
-  const providerRef = useRef<EthProvider | null>(null);
-  const emitterRef = useRef<EthProviderEventEmitterInterface | null>(null);
-
-  const logDebugRef = useFreshRef(
+  const logDebug = useDebugLog(
+    "@frames.js/render/frame-app/provider/wagmi",
     debug
-      ? // eslint-disable-next-line no-console -- provide feedback to the developer
-        console.debug
-      : () => {
-          // noop
-        }
   );
+  const account = useAccount();
+  const accountRef = useFreshRef(account);
+  const emitterRef = useRef<Emitter | null>(null);
+  const providerRef = useRef<EthProvider | null>(null);
+  const onSendTransactionRequestRef =
+    useRef<OnSendTransactionRequestFunction | null>(null);
+  const onSignMessageRequestRef = useRef<OnSignMessageRequestFunction | null>(
+    null
+  );
+  const onSignTypedDataRequestRef =
+    useRef<OnSignTypedDataRequestFunction | null>(null);
+
+  if (!providerRef.current) {
+    emitterRef.current = createEmitter();
+    providerRef.current = {
+      ...from({
+        ...emitterRef.current,
+        async request(parameters) {
+          const connector = accountRef.current.connector;
+
+          if (!connector) {
+            throw new Error(
+              "No connector found, make sure you have wallet connected."
+            );
+          }
+
+          const provider = await connector.getProvider();
+
+          if (!isEIP1193Provider(provider)) {
+            throw new Error(
+              "Provider is not EIP-1193 compatible, make sure you have wallet connected."
+            );
+          }
+
+          logDebug("sdk.ethProviderRequest() called", parameters);
+
+          let isApproved = true;
+
+          if (isSendTransactionRpcRequest(parameters)) {
+            logDebug("sendTransaction request", parameters);
+            isApproved = onSendTransactionRequestRef.current
+              ? await onSendTransactionRequestRef.current(parameters)
+              : true;
+          } else if (isSignTypedDataRpcRequest(parameters)) {
+            logDebug("signTypedData request", parameters);
+            isApproved = onSignTypedDataRequestRef.current
+              ? await onSignTypedDataRequestRef.current(parameters)
+              : true;
+          } else if (isSignMessageRpcRequest(parameters)) {
+            logDebug("signMessage request", parameters);
+            isApproved = onSignMessageRequestRef.current
+              ? await onSignMessageRequestRef.current(parameters)
+              : true;
+          }
+
+          if (!isApproved) {
+            throw new UserRejectedRequestError(
+              new Error("User rejected request")
+            );
+          }
+
+          return provider.request(
+            parameters as unknown as Parameters<typeof provider.request>[0]
+          );
+        },
+      }),
+      setEventHandlers(handlers) {
+        onSendTransactionRequestRef.current = handlers.onSendTransactionRequest;
+        onSignMessageRequestRef.current = handlers.onSignMessageRequest;
+        onSignTypedDataRequestRef.current = handlers.onSignTypedDataRequest;
+      },
+    };
+  }
 
   useEffect(() => {
+    if (account.status !== "connected") {
+      return;
+    }
+
     const connector = account.connector;
+    let cleanup = (): void => {
+      // noop
+    };
 
-    if (!connector) {
-      logDebugRef.current(
-        "@frames.js/render/frame-app/provider/wagmi: No connector found, skipping event listeners registration"
-      );
-
-      return;
-    }
-
-    /**
-     * This is weird case but sometimes when account is connecting
-     * injected connector could miss the emitter property.
-     *
-     * Not sure if it is because it is connecting or something else
-     * and the type here is saying that emitter is never nullable
-     * but we actually ran into the case where it was null.
-     *
-     * So just to be sure.
-     */
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- it actually can be nullable in some cases
-    if (!connector.emitter) {
-      logDebugRef.current(
-        "@frames.js/render/frame-app/provider/wagmi: No emitter found on connector, skipping event listeners registration"
-      );
-
-      return;
-    }
-
-    function redispatchConnectEvent(event: ConnectorEventMap["connect"]): void {
-      emitterRef.current?.emit("connect", {
-        event: "connect",
-        params: [
-          {
-            chainId: event.chainId.toString(),
-          },
-        ],
-      });
-    }
-    function redispatchDisconnectEvent(): void {
-      emitterRef.current?.emit("disconnect", {
-        event: "disconnect",
-        // @ts-expect-error -- this is weird, why there must be an error?
-        params: [],
-      });
-    }
-    function redispatchMessageEvent(event: ConnectorEventMap["message"]): void {
-      emitterRef.current?.emit("message", {
-        event: "message",
-        params: [
-          // @ts-expect-error -- this is correct but upstream type is requiring data property which is optional in wagmi
-          event,
-        ],
-      });
-    }
-    function redispatchChangeEvent(event: ConnectorEventMap["change"]): void {
-      if (event.accounts) {
-        emitterRef.current?.emit("accountsChanged", {
-          event: "accountsChanged",
-          params: [event.accounts],
-        });
-      } else if (event.chainId) {
-        emitterRef.current?.emit("chainChanged", {
-          event: "chainChanged",
-          params: [event.chainId.toString()],
-        });
+    // forward events to the provider
+    void connector.getProvider().then((provider) => {
+      if (!isEIP1193Provider(provider)) {
+        return;
       }
-    }
 
-    connector.emitter.on("connect", redispatchConnectEvent);
-    connector.emitter.on("disconnect", redispatchDisconnectEvent);
-    connector.emitter.on("message", redispatchMessageEvent);
-    connector.emitter.on("change", redispatchChangeEvent);
+      if (!emitterRef.current) {
+        return;
+      }
+
+      const accountsChanged: EventMap["accountsChanged"] = (...args) => {
+        emitterRef.current?.emit("accountsChanged", ...args);
+      };
+      const chainChanged: EventMap["chainChanged"] = (...args) => {
+        emitterRef.current?.emit("chainChanged", ...args);
+      };
+      const connect: EventMap["connect"] = (...args) => {
+        emitterRef.current?.emit("connect", ...args);
+      };
+      const disconnect: EventMap["disconnect"] = (...args) => {
+        emitterRef.current?.emit("disconnect", ...args);
+      };
+      const message: EventMap["message"] = (...args) => {
+        emitterRef.current?.emit("message", ...args);
+      };
+
+      provider.on("accountsChanged", accountsChanged);
+      provider.on("chainChanged", chainChanged);
+      provider.on("connect", connect);
+      provider.on("disconnect", disconnect);
+      provider.on("message", message);
+
+      cleanup = () => {
+        provider.removeListener("accountsChanged", accountsChanged);
+        provider.removeListener("chainChanged", chainChanged);
+        provider.removeListener("connect", connect);
+        provider.removeListener("disconnect", disconnect);
+        provider.removeListener("message", message);
+      };
+    });
 
     return () => {
-      connector.emitter.off("connect", redispatchConnectEvent);
-      connector.emitter.off("disconnect", redispatchDisconnectEvent);
-      connector.emitter.off("message", redispatchMessageEvent);
-      connector.emitter.off("change", redispatchChangeEvent);
+      cleanup();
     };
-  }, [account.connector]);
-
-  // we don't want to call createEmitter repeately
-  if (!emitterRef.current) {
-    emitterRef.current = createEmitter();
-  }
-
-  // we don't want to reinstaniate the provider repeately
-  if (!providerRef.current) {
-    providerRef.current = {
-      emitter: emitterRef.current,
-      async request(params) {
-        const walletClient = await getWalletClient(configRef.current);
-
-        // @ts-expect-error(2345) -- this is correct but params are typed by ox library so different type but shape is the same
-        return walletClient.request(params);
-      },
-    } satisfies EthProvider;
-  }
+  }, [account]);
 
   return providerRef.current;
 }

@@ -1,11 +1,13 @@
 import type {
+  FrameServerEvent,
   EncodedJsonFarcasterSignatureSchema,
-  FrameEvent,
-} from "@farcaster/frame-node";
+} from "@farcaster/frame-core";
+import { serverEventSchema } from "@farcaster/frame-core";
 import {
   createJsonFarcasterSignature,
-  eventPayloadSchema,
+  hexToBytes,
 } from "@farcaster/frame-node";
+import type { Hex } from "viem";
 
 export class InvalidWebhookResponseError extends Error {
   constructor(
@@ -16,13 +18,13 @@ export class InvalidWebhookResponseError extends Error {
   }
 }
 
-export type { FrameEvent };
+export type { FrameServerEvent };
 
 type SendEventOptions = {
   /**
    * App private key
    */
-  privateKey: string | Uint8Array;
+  privateKey: Hex | Uint8Array;
   fid: number;
   webhookUrl: string | URL;
 };
@@ -31,14 +33,15 @@ type SendEventOptions = {
  * Sends an event to frame app webhook.
  */
 export async function sendEvent(
-  event: FrameEvent,
+  event: FrameServerEvent,
   { privateKey, fid, webhookUrl }: SendEventOptions
 ): Promise<void> {
-  const payload = eventPayloadSchema.parse(event);
+  const payload = serverEventSchema.parse(event);
   const signature = createJsonFarcasterSignature({
     fid,
     payload: Buffer.from(JSON.stringify(payload)),
-    privateKey: Buffer.from(privateKey),
+    privateKey:
+      typeof privateKey === "string" ? hexToBytes(privateKey) : privateKey,
     type: "app_key",
   });
 

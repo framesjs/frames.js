@@ -463,6 +463,9 @@ export default function DebuggerPage({
                     <FrameAppDebugger
                       context={frameV2LaunchContext}
                       farcasterSigner={farcasterSignerState}
+                      onClose={() => {
+                        setFrameV2LaunchContext(null);
+                      }}
                     />
                   )}
               </>

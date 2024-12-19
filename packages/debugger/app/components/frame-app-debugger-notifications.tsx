@@ -131,7 +131,7 @@ export function FrameAppDebuggerNotifications({
     );
   }
 
-  if (!frame.manifest.manifest.frame.webhookUrl) {
+  if (!frame.manifest.manifest.frame?.webhookUrl) {
     return (
       <>
         <Alert variant="destructive">

@@ -86,14 +86,34 @@
         "default": "./dist/farcaster/index.cjs"
       }
     },
-    "./frame-app/provider/event-emitter": {
+    "./frame-app/iframe": {
       "import": {
-        "types": "./dist/frame-app/provider/event-emitter.d.ts",
-        "default": "./dist/frame-app/provider/event-emitter.js"
+        "types": "./dist/frame-app/iframe.d.ts",
+        "default": "./dist/frame-app/iframe.js"
       },
       "require": {
-        "types": "./dist/frame-app/provider/event-emitter.d.cts",
-        "default": "./dist/frame-app/provider/event-emitter.cjs"
+        "types": "./dist/frame-app/iframe.d.cts",
+        "default": "./dist/frame-app/iframe.cjs"
+      }
+    },
+    "./frame-app/types": {
+      "import": {
+        "types": "./dist/frame-app/types.d.ts",
+        "default": "./dist/frame-app/types.js"
+      },
+      "require": {
+        "types": "./dist/frame-app/types.d.cts",
+        "default": "./dist/frame-app/types.cjs"
+      }
+    },
+    "./frame-app/web-view": {
+      "import": {
+        "types": "./dist/frame-app/web-view.d.ts",
+        "default": "./dist/frame-app/web-view.js"
+      },
+      "require": {
+        "types": "./dist/frame-app/web-view.d.cts",
+        "default": "./dist/frame-app/web-view.cjs"
       }
     },
     "./frame-app/provider/wagmi": {
@@ -316,7 +336,7 @@
     "src"
   ],
   "devDependencies": {
-    "@farcaster/frame-sdk": "^0.0.18",
+    "@farcaster/frame-host-react-native": "^0.0.14",
     "@lens-protocol/client": "^2.3.2",
     "@rainbow-me/rainbowkit": "^2.1.2",
     "@remix-run/node": "^2.8.1",
@@ -332,7 +352,7 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "@farcaster/frame-sdk": "^0.0.18",
+    "@farcaster/frame-host-react-native": "^0.0.14",
     "@lens-protocol/client": "^2.0.0",
     "@rainbow-me/rainbowkit": "^2.1.2",
     "@types/react": "^18.2.0",
@@ -348,9 +368,8 @@
   },
   "dependencies": {
     "@farcaster/core": "^0.14.7",
-    "@michalkvasnicak/comlink": "^4.5.1",
+    "@farcaster/frame-host": "^0.0.19",
     "@noble/ed25519": "^2.0.0",
-    "eventemitter3": "^5.0.1",
     "frames.js": "^0.20.0",
     "ox": "^0.4.0",
     "zod": "^3.23.8"

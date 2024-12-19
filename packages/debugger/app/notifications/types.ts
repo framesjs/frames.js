@@ -1,6 +1,6 @@
 import type { SendNotificationRequest } from "@farcaster/frame-sdk";
-import type { FrameClientConfig } from "@frames.js/render/use-frame-app";
-import type { FrameEvent } from "frames.js/farcaster-v2/events";
+import { FrameClientConfig } from "@frames.js/render/frame-app/types";
+import type { FrameServerEvent } from "frames.js/farcaster-v2/events";
 
 export type Notification = SendNotificationRequest;
 
@@ -12,18 +12,18 @@ export type RecordedEvent =
     }
   | {
       type: "event";
-      event: FrameEvent;
+      event: FrameServerEvent;
       id: string;
     }
   | {
       type: "event_success";
-      event: FrameEvent;
+      event: FrameServerEvent;
       id: string;
       eventId: string;
     }
   | {
       type: "event_failure";
-      event: FrameEvent;
+      event: FrameServerEvent;
       id: string;
       eventId: string;
       message: string;

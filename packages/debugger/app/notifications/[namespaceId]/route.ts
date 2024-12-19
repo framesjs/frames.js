@@ -7,7 +7,7 @@ import { createRedis } from "../../lib/redis";
 import { RedisNotificationsStorage } from "../storage";
 import { z } from "zod";
 import {
-  FrameEvent,
+  FrameServerEvent,
   InvalidWebhookResponseError,
   sendEvent,
 } from "frames.js/farcaster-v2/events";
@@ -96,7 +96,7 @@ export async function POST(
         id: eventId,
       });
 
-      const event: FrameEvent = {
+      const event: FrameServerEvent = {
         event: "frame_added",
         notificationDetails,
       };
@@ -144,7 +144,7 @@ export async function POST(
       await storage.removeFrame(namespace);
 
       const eventId = crypto.randomUUID();
-      const event: FrameEvent = {
+      const event: FrameServerEvent = {
         event: "frame_removed",
       };
 
@@ -205,7 +205,7 @@ export async function POST(
         id: eventId,
       });
 
-      const event: FrameEvent = {
+      const event: FrameServerEvent = {
         event: "notifications_enabled",
         notificationDetails,
       };
@@ -261,7 +261,7 @@ export async function POST(
         id: eventId,
       });
 
-      const event: FrameEvent = {
+      const event: FrameServerEvent = {
         event: "notifications_disabled",
       };
 

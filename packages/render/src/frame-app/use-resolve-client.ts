@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { FrameClientConfig } from "./types";
-
-export type ResolveClientFunction = (options: {
-  signal: AbortSignal;
-}) => Promise<FrameClientConfig>;
+import type { FrameClientConfig, ResolveClientFunction } from "./types";
 
 type UseResolveClientOptions = {
   client: FrameClientConfig | ResolveClientFunction;

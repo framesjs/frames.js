@@ -3,11 +3,7 @@ import type { FrameLaunchedInContext } from "./frame-debugger";
 import { WithTooltip } from "./with-tooltip";
 import { Loader2Icon, RefreshCwIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  type FramePrimaryButton,
-  type ResolveClientFunction,
-  useFrameAppInIframe,
-} from "@frames.js/render/use-frame-app";
+import { useFrameAppInIframe } from "@frames.js/render/frame-app/iframe";
 import { useCallback, useRef, useState } from "react";
 import { useWagmiProvider } from "@frames.js/render/frame-app/provider/wagmi";
 import { useToast } from "@/components/ui/use-toast";
@@ -22,12 +18,18 @@ import {
   FrameAppNotificationsManagerProvider,
   useFrameAppNotificationsManager,
 } from "../providers/FrameAppNotificationsManagerProvider";
+import { ToastAction } from "@/components/ui/toast";
+import type {
+  FramePrimaryButton,
+  ResolveClientFunction,
+} from "@frames.js/render/frame-app/types";
 
 type TabValues = "events" | "console" | "notifications";
 
 type FrameAppDebuggerProps = {
   context: FrameLaunchedInContext;
   farcasterSigner: FarcasterSignerInstance;
+  onClose: () => void;
 };
 
 // in debugger we don't want to automatically reject repeated add frame calls
@@ -48,6 +50,7 @@ const addFrameRequestsCache = new (class extends Set {
 export function FrameAppDebugger({
   context,
   farcasterSigner,
+  onClose,
 }: FrameAppDebuggerProps) {
   const farcasterSignerRef = useRef(farcasterSigner);
   farcasterSignerRef.current = farcasterSigner;
@@ -57,14 +60,16 @@ export function FrameAppDebugger({
   });
   const { toast } = useToast();
   const debuggerConsoleTabRef = useRef<HTMLDivElement>(null);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const [activeTab, setActiveTab] = useState<TabValues>("notifications");
   const [isAppReady, setIsAppReady] = useState(false);
   const [primaryButton, setPrimaryButton] = useState<{
     button: FramePrimaryButton;
     callback: () => void;
   } | null>(null);
-  const provider = useWagmiProvider();
+  const provider = useWagmiProvider({
+    debug: true,
+  });
   const resolveClient: ResolveClientFunction = useCallback(async () => {
     try {
       const { manager } = await frameAppNotificationManager.promise;
@@ -124,7 +129,18 @@ export function FrameAppDebugger({
       console.info("sdk.actions.close() called");
       toast({
         title: "Frame app closed",
-        description: "The frame app called close() action.",
+        description:
+          "The frame app called close() action. Would you like to close it?",
+        action: (
+          <ToastAction
+            altText="Close"
+            onClick={() => {
+              onClose();
+            }}
+          >
+            Close
+          </ToastAction>
+        ),
       });
     },
     onOpenUrl(url) {
@@ -210,9 +226,6 @@ export function FrameAppDebugger({
         throw e;
       }
     },
-    onDebugEthProviderRequest(parameters) {
-      console.info("sdk.wallet.ethProvider.request() called", { parameters });
-    },
   });
 
   return (
@@ -253,20 +266,22 @@ export function FrameAppDebugger({
                     context.frame.button.action.splashBackgroundColor,
                 }}
               >
-                <div className="w-[200px] h-[200px] relative">
-                  <Image
-                    alt={`${name} splash image`}
-                    src={context.frame.button.action.splashImageUrl}
-                    width={200}
-                    height={200}
-                  />
-                  <div className="absolute bottom-0 right-0">
-                    <Loader2Icon
-                      className="animate-spin text-primary"
-                      size={40}
+                {context.frame.button.action.splashImageUrl && (
+                  <div className="w-[200px] h-[200px] relative">
+                    <Image
+                      alt={`${name} splash image`}
+                      src={context.frame.button.action.splashImageUrl}
+                      width={200}
+                      height={200}
                     />
+                    <div className="absolute bottom-0 right-0">
+                      <Loader2Icon
+                        className="animate-spin text-primary"
+                        size={40}
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             ))}
           {frameApp.status === "success" && (
@@ -274,8 +289,11 @@ export function FrameAppDebugger({
               <iframe
                 className="flex h-full w-full border rounded-lg"
                 sandbox="allow-forms allow-scripts allow-same-origin"
-                ref={iframeRef}
                 {...frameApp.iframeProps}
+                ref={(r) => {
+                  frameApp.iframeProps.ref.current = r;
+                  iframeRef.current = r;
+                }}
               />
               {!!primaryButton && !primaryButton.button.hidden && (
                 <div className="w-full py-1">

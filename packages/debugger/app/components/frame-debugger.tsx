@@ -34,10 +34,7 @@ import { FrameDebuggerRequestDetails } from "./frame-debugger-request-details";
 import { FrameUI } from "./frame-ui";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
-import {
-  DebuggerFrameStackItem,
-  useDebuggerFrameState,
-} from "../hooks/useDebuggerFrameState";
+import { useDebuggerFrameState } from "../hooks/useDebuggerFrameState";
 import { FrameDebuggerDiagnostics } from "./frame-debugger-diagnostics";
 import { FrameDebuggerRequestCardContent } from "./frame-debugger-request-card-content";
 import { useSharedFrameEventHandlers } from "../hooks/useSharedFrameEventHandlers";
@@ -53,20 +50,21 @@ import type {
 import { useFrameContext } from "../providers/FrameContextProvider";
 import { cn } from "@/lib/utils";
 import { FrameDebuggerFarcasterManifestDetails } from "./frame-debugger-farcaster-manifest-details";
-import { Frame, TriggerConfig } from "frames.js/farcaster-v2/types";
+import type { Frame } from "frames.js/farcaster-v2/types";
 
+// @todo uncomment once triggers are implemented upstream
 export type FrameLaunchedInContext =
-  | {
+  /* | {
       context: "trigger";
       triggerConfig: TriggerConfig;
       frame: Frame;
       parseResult: ParseFramesV2ResultWithFrameworkDetails;
-    }
-  | {
-      context: "button_press";
-      frame: Frame;
-      parseResult: ParseFramesV2ResultWithFrameworkDetails;
-    };
+    }*/
+  {
+    context: "button_press";
+    frame: Frame;
+    parseResult: ParseFramesV2ResultWithFrameworkDetails;
+  };
 
 type FrameDebuggerProps = {
   url: string;
@@ -381,14 +379,14 @@ export const FrameDebugger = React.forwardRef<
             />
             <div className="ml-auto text-sm text-slate-500">{url}</div>
 
-            {!isLoading &&
+            {/* !isLoading &&
               currentFrameStackItem &&
               protocol.specification === "farcaster_v2" && (
                 <FrameV2TriggerButtons
                   onLaunchFrameButtonPressed={onFrameLaunchedInContext}
                   stackItem={currentFrameStackItem}
                 />
-              )}
+              )*/}
 
             {!isLoading && protocol.specification !== "farcaster_v2" && (
               <>
@@ -590,6 +588,7 @@ export const FrameDebugger = React.forwardRef<
 
 FrameDebugger.displayName = "FrameDebugger";
 
+/*
 type FrameV2TriggerButtonsProps = {
   stackItem: DebuggerFrameStackItem;
   onLaunchFrameButtonPressed: (
@@ -664,4 +663,4 @@ function FrameV2TriggerButtons({
       })}
     </div>
   );
-}
+}*/
