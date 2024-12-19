@@ -1,4 +1,5 @@
 import type { Abi, Hex, Address, TypedData } from "viem";
+import type { Frame as FrameV2 } from "./farcaster-v2/types";
 
 export type {
   ParsingReport,
@@ -34,7 +35,13 @@ export type Frame = {
   title?: string;
 };
 
+export { type FrameV2 };
+
 export type ActionButtonType = "post" | "post_redirect" | "link";
+
+type FrameJSOptionalStringKeys =
+  | "frames.js:version"
+  | "frames.js:debug-info:image";
 
 type FrameOptionalStringKeys =
   | "fc:frame:image:aspect_ratio"
@@ -42,8 +49,7 @@ type FrameOptionalStringKeys =
   | "fc:frame:state"
   | "fc:frame:post_url"
   | keyof OpenFramesProperties
-  | "frames.js:version"
-  | "frames.js:debug-info:image";
+  | FrameJSOptionalStringKeys;
 type FrameOptionalActionButtonTypeKeys = `fc:frame:button:${
   | 1
   | 2
@@ -62,8 +68,8 @@ type MapFrameOptionalKeyToValueType<K extends FrameKeys> =
   K extends FrameOptionalStringKeys
     ? string | undefined
     : K extends FrameOptionalActionButtonTypeKeys
-    ? ActionButtonType | undefined
-    : string | undefined;
+      ? ActionButtonType | undefined
+      : string | undefined;
 
 type FrameRequiredProperties = {
   "fc:frame": FrameVersion;
@@ -96,6 +102,12 @@ export type FrameFlattened = FrameRequiredProperties & {
     | FrameOptionalStringKeys
     | FrameOptionalActionButtonTypeKeys
     | FrameOptionalButtonStringKeys]?: MapFrameOptionalKeyToValueType<K>;
+};
+
+export type FrameV2Flattened = {
+  "fc:frame": string;
+} & {
+  [K in FrameJSOptionalStringKeys]?: MapFrameOptionalKeyToValueType<K>;
 };
 
 export interface FrameButtonLink {
@@ -151,7 +163,7 @@ export type ActionIndex = 1 | 2 | 3 | 4;
 export type FrameButtonsType = FrameButton[];
 
 export type AddressReturnType<
-  Options extends { fallbackToCustodyAddress?: boolean } | undefined
+  Options extends { fallbackToCustodyAddress?: boolean } | undefined,
 > = Options extends { fallbackToCustodyAddress: true }
   ? `0x${string}`
   : `0x${string}` | null;

@@ -2,20 +2,26 @@ import type {
   ComposerActionResponse,
   ComposerActionState,
 } from "frames.js/types";
-import { CastComposer, CastComposerRef } from "./cast-composer";
+import { CastComposer, type CastComposerRef } from "./cast-composer";
 import { useRef, useState } from "react";
 import { ComposerFormActionDialog } from "./composer-form-action-dialog";
 import { useFarcasterIdentity } from "../hooks/useFarcasterIdentity";
+import { ActionInfo } from "./action-info";
+import type { CastActionDefinitionResponse } from "../frames/route";
 
 type ComposerActionDebuggerProps = {
   url: string;
+  actionMetadataItem: CastActionDefinitionResponse;
   actionMetadata: Partial<ComposerActionResponse>;
   onToggleToCastActionDebugger: () => void;
+  onRefreshUrl: () => void;
 };
 
 export function ComposerActionDebugger({
   actionMetadata,
+  actionMetadataItem,
   url,
+  onRefreshUrl,
   onToggleToCastActionDebugger,
 }: ComposerActionDebuggerProps) {
   const castComposerRef = useRef<CastComposerRef>(null);
@@ -25,7 +31,10 @@ export function ComposerActionDebugger({
   );
 
   return (
-    <>
+    <ActionInfo
+      actionMetadataItem={actionMetadataItem}
+      onRefreshUrl={onRefreshUrl}
+    >
       <CastComposer
         composerAction={actionMetadata}
         onComposerActionClick={setActionState}
@@ -46,6 +55,6 @@ export function ComposerActionDebugger({
           onToggleToCastActionDebugger={onToggleToCastActionDebugger}
         />
       )}
-    </>
+    </ActionInfo>
   );
 }

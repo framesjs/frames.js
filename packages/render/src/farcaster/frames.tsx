@@ -16,7 +16,9 @@ import type {
   SignFrameActionFunc,
 } from "../types";
 import type {
-  SignComposerActionFunc,
+  SignCastActionFunction,
+  SignComposerActionFunction,
+  SignerStateCastActionContext,
   SignerStateComposerActionContext,
 } from "../unstable-types";
 import { tryCallAsync } from "../helpers";
@@ -26,7 +28,7 @@ import type { FarcasterFrameContext } from "./types";
 /**
  * Creates a singer request payload to fetch composer action url.
  */
-export const signComposerAction: SignComposerActionFunc =
+export const signComposerAction: SignComposerActionFunction =
   async function signComposerAction(signerPrivateKey, actionContext) {
     const messageOrError = await tryCallAsync(() =>
       createComposerActionMessageWithSignerKey(signerPrivateKey, actionContext)
@@ -40,13 +42,40 @@ export const signComposerAction: SignComposerActionFunc =
 
     return {
       untrustedData: {
-        buttonIndex: 1,
-        fid: actionContext.fid,
+        buttonIndex: message.data.frameActionBody.buttonIndex,
+        fid: message.data.fid,
         messageHash: bytesToHex(message.hash),
-        network: 1,
+        network: FarcasterNetwork.MAINNET,
         state: Buffer.from(message.data.frameActionBody.state).toString(),
-        timestamp: new Date().getTime(),
-        url: actionContext.url,
+        timestamp: message.data.timestamp,
+        url: Buffer.from(message.data.frameActionBody.url).toString(),
+      },
+      trustedData: {
+        messageBytes: trustedBytes,
+      },
+    };
+  };
+
+export const signCastAction: SignCastActionFunction =
+  async function signCastAction(signerPrivateKey, actionContext) {
+    const messageOrError = await tryCallAsync(() =>
+      createCastActionMessageWithSignerKey(signerPrivateKey, actionContext)
+    );
+
+    if (messageOrError instanceof Error) {
+      throw messageOrError;
+    }
+
+    const { message, trustedBytes } = messageOrError;
+
+    return {
+      untrustedData: {
+        buttonIndex: message.data.frameActionBody.buttonIndex,
+        fid: message.data.fid,
+        messageHash: bytesToHex(message.hash),
+        network: FarcasterNetwork.MAINNET,
+        timestamp: message.data.timestamp,
+        url: Buffer.from(message.data.frameActionBody.url).toString(),
       },
       trustedData: {
         messageBytes: trustedBytes,
@@ -159,6 +188,46 @@ export async function createComposerActionMessageWithSignerKey(
       url: Buffer.from(url),
       buttonIndex: 1,
       state: Buffer.from(encodeURIComponent(JSON.stringify({ cast: state }))),
+    }),
+    messageDataOptions,
+    signer
+  );
+
+  if (message.isErr()) {
+    throw message.error;
+  }
+
+  const messageData = message.value;
+
+  const trustedBytes = Buffer.from(
+    Message.encode(message._unsafeUnwrap()).finish()
+  ).toString("hex");
+
+  return { message: messageData, trustedBytes };
+}
+
+export async function createCastActionMessageWithSignerKey(
+  signerKey: string,
+  { fid, castId, postUrl }: SignerStateCastActionContext
+): Promise<{
+  message: FrameActionMessage;
+  trustedBytes: string;
+}> {
+  const signer = new NobleEd25519Signer(Buffer.from(signerKey.slice(2), "hex"));
+
+  const messageDataOptions = {
+    fid,
+    network: FarcasterNetwork.MAINNET,
+  };
+
+  const message = await makeFrameAction(
+    FrameActionBody.create({
+      url: Buffer.from(postUrl),
+      buttonIndex: 1,
+      castId: {
+        fid: castId.fid,
+        hash: hexToBytes(castId.hash),
+      },
     }),
     messageDataOptions,
     signer

@@ -1,8 +1,56 @@
 import type { CheerioAPI } from "cheerio";
+import type { PartialDeep } from "type-fest";
+import type { z } from "zod";
 import type { FrameButton, ImageAspectRatio } from "../types";
 import { getByteLength } from "../utils";
 import { getTokenFromUrl } from "../getTokenFromUrl";
 import type { ParsedButton, Reporter } from "./types";
+
+function removePropertyByPath(path: (string | number)[], obj: unknown): void {
+  if (typeof obj !== "object" && !Array.isArray(obj)) {
+    return;
+  }
+
+  if (!obj) {
+    return;
+  }
+
+  if (path.length === 0) {
+    return;
+  }
+
+  const [property, ...rest] = path;
+
+  if (property) {
+    if (rest.length === 0) {
+      // @ts-expect-error -- we are just marking the whole thing as undefined
+      obj[path[0] as unkown as string | number] = undefined;
+    } else {
+      removePropertyByPath(
+        rest,
+        // @ts-expect-error -- property is checked and also obj is checked
+        obj[property]
+      );
+    }
+  }
+}
+
+export function removeInvalidDataFromObject<TSchema extends z.AnyZodObject>(
+  data: unknown,
+  error: z.ZodError<z.output<TSchema>>
+): PartialDeep<z.output<TSchema>> {
+  if (typeof data !== "object" || !data) {
+    return {} as PartialDeep<z.output<TSchema>>;
+  }
+
+  const cloned = structuredClone(data);
+
+  for (const err of error.errors) {
+    removePropertyByPath(err.path, cloned);
+  }
+
+  return cloned as PartialDeep<z.output<TSchema>>;
+}
 
 export function validate<TValidator extends (...args: any) => any>(
   reporter: Reporter,
