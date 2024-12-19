@@ -10,7 +10,6 @@ import {
 const postRequestBodySchema = z.object({
   fid: z.coerce.number().int().positive(),
   frameAppUrl: z.string().url(),
-  signerPrivateKey: z.string().min(1),
   webhookUrl: z.string().url(),
 });
 
@@ -35,7 +34,7 @@ export async function POST(req: NextRequest) {
   }
 
   const redis = createRedis();
-  const { fid, frameAppUrl, signerPrivateKey, webhookUrl } = body.data;
+  const { fid, frameAppUrl, webhookUrl } = body.data;
   const storage = new RedisNotificationsStorage(redis, req.nextUrl.href);
 
   // Create new namespace
@@ -44,7 +43,6 @@ export async function POST(req: NextRequest) {
   const namespace = await storage.registerNamespace(namespaceId, {
     fid,
     frameAppUrl,
-    signerPrivateKey,
     webhookUrl,
   });
 

@@ -9,7 +9,7 @@ import { useFrameAppNotificationsManagerContext } from "../providers/FrameAppNot
 import type { GETEventsResponseBody } from "../notifications/[namespaceId]/events/route";
 import { Button } from "@/components/ui/button";
 import { WithTooltip } from "./with-tooltip";
-import { UseFrameAppInIframeReturn } from "@frames.js/render/src/frame-app/iframe";
+import type { UseFrameAppInIframeReturn } from "@frames.js/render/frame-app/iframe";
 
 type FrameAppDebuggerNotificationsProps = {
   frameApp: Extract<UseFrameAppInIframeReturn, { status: "success" }>;

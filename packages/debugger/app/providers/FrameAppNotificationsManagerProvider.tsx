@@ -127,7 +127,6 @@ export function useFrameAppNotificationsManager({
           body: JSON.stringify({
             fid: signer.fid,
             frameAppUrl: frameUrl,
-            signerPrivateKey: signer.privateKey,
             webhookUrl,
           } satisfies POSTNotificationsRequestBody),
         });
@@ -162,6 +161,7 @@ export function useFrameAppNotificationsManager({
           async addFrame() {
             const result = await sendEvent.mutateAsync({
               action: "add_frame",
+              privateKey: signer.privateKey,
             });
 
             if (result.type !== "frame_added") {
@@ -178,6 +178,7 @@ export function useFrameAppNotificationsManager({
           async removeFrame() {
             await sendEvent.mutateAsync({
               action: "remove_frame",
+              privateKey: signer.privateKey,
             });
 
             // refetch notification settings
@@ -188,6 +189,7 @@ export function useFrameAppNotificationsManager({
           async enableNotifications() {
             const result = await sendEvent.mutateAsync({
               action: "enable_notifications",
+              privateKey: signer.privateKey,
             });
 
             // refetch notification settings
@@ -204,6 +206,7 @@ export function useFrameAppNotificationsManager({
           async disableNotifications() {
             await sendEvent.mutateAsync({
               action: "disable_notifications",
+              privateKey: signer.privateKey,
             });
 
             // refetch notification settings

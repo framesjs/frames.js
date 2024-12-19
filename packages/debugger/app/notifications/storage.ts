@@ -8,7 +8,6 @@ type NotificationsNamespace = {
   id: string;
   fid: number;
   frameAppUrl: string;
-  signerPrivateKey: string;
   namespaceUrl: string;
   webhookUrl: string;
   frame:
@@ -32,7 +31,6 @@ export class RedisNotificationsStorage {
     params: {
       fid: number;
       frameAppUrl: string;
-      signerPrivateKey: string;
       webhookUrl: string;
     }
   ) {
@@ -40,7 +38,6 @@ export class RedisNotificationsStorage {
       id,
       fid: params.fid,
       frameAppUrl: params.frameAppUrl,
-      signerPrivateKey: params.signerPrivateKey,
       namespaceUrl: new URL(`/notifications/${id}`, this.serverUrl).toString(),
       webhookUrl: params.webhookUrl,
       frame: {

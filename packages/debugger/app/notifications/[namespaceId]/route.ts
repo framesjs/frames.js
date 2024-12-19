@@ -19,22 +19,32 @@ export type NotificationUrl = {
 
 export type Notification = Omit<SendNotificationRequest, "tokens">;
 
+const privateKeyParser = z
+  .string()
+  .min(1)
+  .startsWith("0x")
+  .transform((val) => hexToBytes(val as Hex));
+
 const postRequestBodySchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("add_frame"),
+    privateKey: privateKeyParser,
   }),
   z.object({
     action: z.literal("remove_frame"),
+    privateKey: privateKeyParser,
   }),
   z.object({
     action: z.literal("enable_notifications"),
+    privateKey: privateKeyParser,
   }),
   z.object({
     action: z.literal("disable_notifications"),
+    privateKey: privateKeyParser,
   }),
 ]);
 
-export type POSTNotificationsDetailRequestBody = z.infer<
+export type POSTNotificationsDetailRequestBody = z.input<
   typeof postRequestBodySchema
 >;
 
@@ -80,8 +90,6 @@ export async function POST(
     return Response.json({ message: "Not found" }, { status: 404 });
   }
 
-  const privateKey = hexToBytes(namespace.signerPrivateKey as Hex);
-
   switch (requestBody.data.action) {
     case "add_frame": {
       const notificationDetails = await storage.addFrame(namespace);
@@ -102,7 +110,7 @@ export async function POST(
       };
 
       sendEvent(event, {
-        privateKey,
+        privateKey: requestBody.data.privateKey,
         fid: namespace.fid,
         webhookUrl: namespace.webhookUrl,
       })
@@ -156,7 +164,7 @@ export async function POST(
 
       sendEvent(event, {
         fid: namespace.fid,
-        privateKey,
+        privateKey: requestBody.data.privateKey,
         webhookUrl: namespace.webhookUrl,
       })
         .then(() => {
@@ -212,7 +220,7 @@ export async function POST(
 
       sendEvent(event, {
         fid: namespace.fid,
-        privateKey,
+        privateKey: requestBody.data.privateKey,
         webhookUrl: namespace.webhookUrl,
       })
         .then(() => {
@@ -267,7 +275,7 @@ export async function POST(
 
       sendEvent(event, {
         fid: namespace.fid,
-        privateKey,
+        privateKey: requestBody.data.privateKey,
         webhookUrl: namespace.webhookUrl,
       })
         .then(() => {
