@@ -12,6 +12,7 @@ import type { FarcasterSigner } from "./identity/farcaster";
 import type {
   EthProvider,
   FrameClientConfig,
+  HostEndpointEmitter,
   OnAddFrameRequestedFunction,
   OnPrimaryButtonSetFunction,
   OnSendTransactionRequestFunction,
@@ -184,7 +185,14 @@ export type UseFrameAppReturn =
       frame: ParseFramesV2ResultWithFrameworkDetails;
       client: FrameClientConfig;
       status: "success";
+      /**
+       * Creates sdk that must be exposed to frame app endpoint
+       */
       sdk: (endpoint: HostEndpoint) => Omit<FrameHost, "ethProviderRequestV2">;
+      /**
+       * Gets emitter object that can be used to emit events to the frame app.
+       */
+      getEmitter: (endpoint: HostEndpoint) => HostEndpointEmitter;
     }
   | {
       status: "pending";
@@ -276,6 +284,10 @@ export function useFrameApp({
         const frame = frameResolutionState.frame;
 
         return {
+          getEmitter: (endpoint) => ({
+            emit: endpoint.emit,
+            emitEthProvider: endpoint.emitEthProvider,
+          }),
           sdk: (endpoint) => ({
             async addFrame() {
               logDebug("sdk.addFrame() called");
@@ -285,6 +297,11 @@ export function useFrameApp({
                 frame.manifest?.status !== "success"
               ) {
                 logDebug("Invalid frame domain manifest");
+
+                endpoint.emit({
+                  event: "frame_add_rejected",
+                  reason: "invalid_domain_manifest",
+                });
 
                 return {
                   added: false,
@@ -298,6 +315,11 @@ export function useFrameApp({
                 )
               ) {
                 logDebug("Frame already requested to be added.");
+
+                endpoint.emit({
+                  event: "frame_add_rejected",
+                  reason: "rejected_by_user",
+                });
 
                 return {
                   added: false,
@@ -316,11 +338,21 @@ export function useFrameApp({
               if (!added) {
                 logDebug("Frame add request rejected by user");
 
+                endpoint.emit({
+                  event: "frame_add_rejected",
+                  reason: "rejected_by_user",
+                });
+
                 return {
                   added: false,
                   reason: "rejected_by_user",
                 };
               }
+
+              endpoint.emit({
+                event: "frame_added",
+                notificationDetails: added.notificationDetails,
+              });
 
               return added;
             },

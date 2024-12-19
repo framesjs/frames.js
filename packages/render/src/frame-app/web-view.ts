@@ -14,10 +14,17 @@ import {
 import { useFreshRef } from "../hooks/use-fresh-ref";
 import { useDebugLog } from "../hooks/use-debug-log";
 import { assertNever } from "../assert-never";
+import type { HostEndpointEmitter } from "./types";
+
+type UseFrameAppReturnSuccess = Extract<
+  UseFrameAppReturn,
+  { status: "success" }
+>;
 
 export type UseFrameAppInWebViewReturn =
   | Exclude<UseFrameAppReturn, { status: "success" }>
-  | (Extract<UseFrameAppReturn, { status: "success" }> & {
+  | (Omit<UseFrameAppReturnSuccess, "emitter"> & {
+      emitter: HostEndpointEmitter;
       webViewProps: {
         source: WebViewProps["source"];
         onMessage: NonNullable<WebViewProps["onMessage"]>;
@@ -32,7 +39,7 @@ export type UseFrameAppInWebViewReturn =
  *
  * @example
  * ```
- * import { useFrameAppInWebView } from '@frames.js/render/unstable-use-frame-app';
+ * import { useFrameAppInWebView } from '@frames.js/render/frame-app/web-view';
  * import { useWagmiProvider } from '@frames.js/render/frame-app/provider/wagmi';
  * import { useFarcasterSigner } from '@frames.js/render/identity/farcaster';
  *
@@ -66,10 +73,35 @@ export function useFrameAppInWebView(
   const debugRef = useFreshRef(options.debug ?? false);
   const frameApp = useFrameApp(options);
   const endpointRef = useRef<WebViewEndpoint | null>(null);
+  const emitterRef = useRef<HostEndpointEmitter | null>(null);
   const logDebug = useDebugLog(
     "@frames.js/render/frame-app/web-view",
     debugRef.current
   );
+  const emitter = useMemo<HostEndpointEmitter>(() => {
+    return {
+      emit(...args) {
+        if (emitterRef.current) {
+          emitterRef.current.emit(...args);
+        } else {
+          logDebug(
+            "endpoint not available, probably not initialized yet, skipping emit",
+            args
+          );
+        }
+      },
+      emitEthProvider(...args) {
+        if (emitterRef.current) {
+          emitterRef.current.emitEthProvider(...args);
+        } else {
+          logDebug(
+            "endpoint not available, probably not initialized yet, skipping emitEthProvider",
+            args
+          );
+        }
+      },
+    };
+  }, [logDebug]);
 
   const onMessage = useCallback<NonNullable<WebViewProps["onMessage"]>>(
     (event) => {
@@ -100,6 +132,7 @@ export function useFrameAppInWebView(
 
         return {
           ...frameApp,
+          emitter,
           webViewProps: {
             source: { uri: frameUrl },
             onMessage,
@@ -110,7 +143,7 @@ export function useFrameAppInWebView(
       default:
         assertNever(frameApp);
     }
-  }, [frameApp, onMessage]);
+  }, [frameApp, onMessage, emitter]);
 
   useEffect(() => {
     if (result.status !== "success") {
@@ -125,7 +158,6 @@ export function useFrameAppInWebView(
     }
 
     const endpoint = createWebViewRpcEndpoint(webViewRef);
-    endpointRef.current = endpoint;
     const cleanup = exposeToEndpoint({
       endpoint,
       frameOrigin: "ReactNativeWebView",
@@ -134,10 +166,14 @@ export function useFrameAppInWebView(
       ethProvider: providerRef.current,
     });
 
+    endpointRef.current = endpoint;
+    emitterRef.current = result.getEmitter(endpoint);
+
     return () => {
       logDebug("WebView unmounted, cleaning up");
       webViewRef.current = null;
       endpointRef.current = null;
+      emitterRef.current = null;
       cleanup();
     };
   }, [result, logDebug, debugRef, providerRef]);

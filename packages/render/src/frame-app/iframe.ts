@@ -1,10 +1,20 @@
-import { exposeToEndpoint, createIframeEndpoint } from "@farcaster/frame-host";
+import {
+  exposeToEndpoint,
+  createIframeEndpoint,
+  type HostEndpoint,
+} from "@farcaster/frame-host";
 import { useEffect, useMemo, useRef } from "react";
 import type { UseFrameAppOptions, UseFrameAppReturn } from "../use-frame-app";
 import { useFrameApp } from "../use-frame-app";
 import { useFreshRef } from "../hooks/use-fresh-ref";
 import { useDebugLog } from "../hooks/use-debug-log";
 import { assertNever } from "../assert-never";
+import type { HostEndpointEmitter } from "./types";
+
+type UseFrameAppReturnSuccess = Extract<
+  UseFrameAppReturn,
+  { status: "success" }
+>;
 
 export type UseFrameAppInIframeReturn =
   | Exclude<UseFrameAppReturn, { status: "success" }>
@@ -13,7 +23,8 @@ export type UseFrameAppInIframeReturn =
         src: string | undefined;
         ref: React.MutableRefObject<HTMLIFrameElement | null>;
       };
-    } & Extract<UseFrameAppReturn, { status: "success" }>);
+      emitter: HostEndpointEmitter;
+    } & Omit<UseFrameAppReturnSuccess, "emitter">);
 
 /**
  * Handles frame app in iframe.
@@ -22,7 +33,7 @@ export type UseFrameAppInIframeReturn =
  *
  * @example
  * ```
- * import { useFrameAppInIframe } from '@frames.js/render/unstable-use-frame-app';
+ * import { useFrameAppInIframe } from '@frames.js/render/frame-app/iframe';
  * import { useWagmiProvider } from '@frames.js/render/frame-app/provider/wagmi';
  * import { useFarcasterSigner } from '@frames.js/render/identity/farcaster';
  *
@@ -55,10 +66,36 @@ export function useFrameAppInIframe(
   const debugRef = useFreshRef(options.debug ?? false);
   const frameApp = useFrameApp(options);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const endpointRef = useRef<HostEndpoint | null>(null);
+  const emitterRef = useRef<HostEndpointEmitter | null>(null);
   const logDebug = useDebugLog(
     "@frames.js/render/frame-app/iframe",
     debugRef.current
   );
+  const emitter = useMemo<HostEndpointEmitter>(() => {
+    return {
+      emit(...args) {
+        if (emitterRef.current) {
+          emitterRef.current.emit(...args);
+        } else {
+          logDebug(
+            "endpoint not available, probably not initialized yet, skipping emit",
+            args
+          );
+        }
+      },
+      emitEthProvider(...args) {
+        if (emitterRef.current) {
+          emitterRef.current.emitEthProvider(...args);
+        } else {
+          logDebug(
+            "endpoint not available, probably not initialized yet, skipping emitEthProvider",
+            args
+          );
+        }
+      },
+    };
+  }, [logDebug]);
 
   const result = useMemo<UseFrameAppInIframeReturn>(() => {
     switch (frameApp.status) {
@@ -87,12 +124,13 @@ export function useFrameAppInIframe(
             src: frameUrl,
             ref: iframeRef,
           },
+          emitter,
         };
       }
       default:
         assertNever(frameApp);
     }
-  }, [frameApp]);
+  }, [frameApp, emitter]);
 
   useEffect(() => {
     if (result.status !== "success") {
@@ -128,8 +166,14 @@ export function useFrameAppInIframe(
       ethProvider: providerRef.current,
     });
 
+    endpointRef.current = endpoint;
+    emitterRef.current = result.getEmitter(endpoint);
+
     return () => {
       logDebug("iframe unmounted, cleaning up");
+      endpointRef.current = null;
+      iframeRef.current = null;
+      emitterRef.current = null;
       cleanup();
     };
   }, [result, logDebug, debugRef, providerRef]);

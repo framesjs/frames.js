@@ -1,3 +1,4 @@
+import { HostEndpoint } from "@farcaster/frame-host";
 import type {
   AddFrameResult,
   FrameContext,
@@ -78,3 +79,8 @@ export type OnAddFrameRequestedFunction = (
 export type ResolveClientFunction = (options: {
   signal: AbortSignal;
 }) => Promise<FrameClientConfig>;
+
+export type HostEndpointEmitter = Pick<
+  HostEndpoint,
+  "emit" | "emitEthProvider"
+>;
