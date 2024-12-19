@@ -171,6 +171,8 @@ export function useFrameAppInIframe(
     endpointRef.current = endpoint;
     emitterRef.current = iframeFrameApp.getEmitter(endpoint);
 
+    logDebug("iframe endpoint created");
+
     return () => {
       logDebug("iframe unmounted, cleaning up");
       endpointRef.current = null;

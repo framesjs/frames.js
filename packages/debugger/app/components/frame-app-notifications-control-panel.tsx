@@ -13,10 +13,15 @@ import { useFrameAppNotificationsManagerContext } from "../providers/FrameAppNot
 import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
 import { WithTooltip } from "./with-tooltip";
+import { UseFrameAppInIframeReturn } from "@frames.js/render/frame-app/iframe";
 
-type FrameAppNotificationsControlPanelProps = {};
+type FrameAppNotificationsControlPanelProps = {
+  frameApp: Extract<UseFrameAppInIframeReturn, { status: "success" }>;
+};
 
-export function FrameAppNotificationsControlPanel({}: FrameAppNotificationsControlPanelProps) {
+export function FrameAppNotificationsControlPanel({
+  frameApp,
+}: FrameAppNotificationsControlPanelProps) {
   const [state, setState] = useState<
     | "idle"
     | "adding-frame"
@@ -45,10 +50,13 @@ export function FrameAppNotificationsControlPanel({}: FrameAppNotificationsContr
     try {
       setState("removing-frame");
       await frameAppNotificationManager.removeFrame();
+      frameApp.emitter.emit({
+        event: "frame_removed",
+      });
     } finally {
       setState("idle");
     }
-  }, [frameAppNotificationManager]);
+  }, [frameAppNotificationManager, frameApp.emitter]);
 
   const reloadSettings = useCallback(async () => {
     try {
@@ -65,16 +73,24 @@ export function FrameAppNotificationsControlPanel({}: FrameAppNotificationsContr
       try {
         if (newValue) {
           setState("enabling-notifications");
-          await frameAppNotificationManager.enableNotifications();
+          const notificationDetails =
+            await frameAppNotificationManager.enableNotifications();
+          frameApp.emitter.emit({
+            event: "notifications_enabled",
+            notificationDetails,
+          });
         } else {
           setState("disabling-notifications");
           await frameAppNotificationManager.disableNotifications();
+          frameApp.emitter.emit({
+            event: "notifications_disabled",
+          });
         }
       } finally {
         setState("idle");
       }
     },
-    [frameAppNotificationManager]
+    [frameApp.emitter, frameAppNotificationManager]
   );
 
   return (

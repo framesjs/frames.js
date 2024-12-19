@@ -12,6 +12,7 @@ import type {
   POSTNotificationsDetailRequestBody,
   POSTNotificationsDetailResponseBody,
 } from "../notifications/[namespaceId]/route";
+import type { FrameNotificationDetails } from "@farcaster/frame-sdk";
 
 export const notificationManagerQueryKeys = {
   settingsQuery: (fid: string, frameAppUrl: string): string[] => [
@@ -27,7 +28,7 @@ export type FrameAppNotificationsManager = {
     Extract<NotificationSettings, { enabled: true }>["details"]
   >;
   removeFrame(): Promise<void>;
-  enableNotifications(): Promise<void>;
+  enableNotifications(): Promise<FrameNotificationDetails>;
   disableNotifications(): Promise<void>;
   reload(): Promise<void>;
 };
@@ -39,7 +40,9 @@ const FrameAppNotificationsManagerContext =
       throw new Error("Not implemented");
     },
     async removeFrame() {},
-    async enableNotifications() {},
+    async enableNotifications() {
+      throw new Error("Not implemented");
+    },
     async disableNotifications() {},
     async reload() {},
   });
@@ -183,7 +186,7 @@ export function useFrameAppNotificationsManager({
             });
           },
           async enableNotifications() {
-            await sendEvent.mutateAsync({
+            const result = await sendEvent.mutateAsync({
               action: "enable_notifications",
             });
 
@@ -191,6 +194,12 @@ export function useFrameAppNotificationsManager({
             await queryClient.refetchQueries({
               queryKey,
             });
+
+            if (result.type === "notifications_enabled") {
+              return result.notificationDetails;
+            }
+
+            throw new Error("Server returned incorrect response");
           },
           async disableNotifications() {
             await sendEvent.mutateAsync({

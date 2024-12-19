@@ -171,6 +171,8 @@ export function useFrameAppInWebView(
     endpointRef.current = endpoint;
     emitterRef.current = webViewFrameApp.getEmitter(endpoint);
 
+    logDebug("WebView endpoint created");
+
     return () => {
       logDebug("WebView unmounted, cleaning up");
       webViewRef.current = null;

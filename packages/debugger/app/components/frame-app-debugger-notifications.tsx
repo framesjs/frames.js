@@ -1,7 +1,6 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Console } from "console-feed";
 import { InboxIcon, Loader2Icon, TrashIcon } from "lucide-react";
-import type { ParseFramesV2ResultWithFrameworkDetails } from "frames.js/frame-parsers";
 import { useEffect, useState } from "react";
 import { Message } from "console-feed/lib/definitions/Component";
 import { useQuery } from "@tanstack/react-query";
@@ -10,14 +9,16 @@ import { useFrameAppNotificationsManagerContext } from "../providers/FrameAppNot
 import type { GETEventsResponseBody } from "../notifications/[namespaceId]/events/route";
 import { Button } from "@/components/ui/button";
 import { WithTooltip } from "./with-tooltip";
+import { UseFrameAppInIframeReturn } from "@frames.js/render/src/frame-app/iframe";
 
 type FrameAppDebuggerNotificationsProps = {
-  frame: ParseFramesV2ResultWithFrameworkDetails;
+  frameApp: Extract<UseFrameAppInIframeReturn, { status: "success" }>;
 };
 
 export function FrameAppDebuggerNotifications({
-  frame,
+  frameApp,
 }: FrameAppDebuggerNotificationsProps) {
+  const frame = frameApp.frame;
   const frameAppNotificationManager = useFrameAppNotificationsManagerContext();
   const [events, setEvents] = useState<Message[]>([]);
   const notificationsQuery = useQuery({
@@ -152,7 +153,7 @@ export function FrameAppDebuggerNotifications({
   return (
     <div className="flex flex-row flex-grow gap-4 w-full h-full">
       <div className="w-1/3">
-        <FrameAppNotificationsControlPanel />
+        <FrameAppNotificationsControlPanel frameApp={frameApp} />
       </div>
       {events.length === 0 ? (
         <div className="flex flex-grow border rounded-lg p-2 items-center justify-center w-full">

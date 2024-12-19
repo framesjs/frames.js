@@ -343,7 +343,7 @@ export function FrameAppDebugger({
                     className="overflow-hidden"
                     value="notifications"
                   >
-                    <FrameAppDebuggerNotifications frame={frameApp.frame} />
+                    <FrameAppDebuggerNotifications frameApp={frameApp} />
                   </TabsContent>
                   <TabsContent
                     className="overflow-y-auto"
