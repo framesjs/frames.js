@@ -70,9 +70,16 @@ export function FrameAppDebugger({
   const provider = useWagmiProvider({
     debug: true,
   });
+  /**
+   * we have to store promise in ref otherwise it will always invalidate the frame app hooks
+   * which happens for example when you disable notifications from notifications panel
+   */
+  const frameAppNotificationManagerPromiseRef = useRef(
+    frameAppNotificationManager.promise
+  );
   const resolveClient: ResolveClientFunction = useCallback(async () => {
     try {
-      const { manager } = await frameAppNotificationManager.promise;
+      const { manager } = await frameAppNotificationManagerPromiseRef.current;
       const clientFid = parseInt(process.env.FARCASTER_DEVELOPER_FID ?? "-1");
 
       if (!manager.state || manager.state.frame.status === "removed") {
@@ -103,7 +110,7 @@ export function FrameAppDebugger({
       clientFid: parseInt(process.env.FARCASTER_DEVELOPER_FID ?? "-1"),
       added: false,
     };
-  }, [frameAppNotificationManager.promise, toast]);
+  }, [toast]);
   const frameApp = useFrameAppInIframe({
     debug: true,
     source: context.parseResult,
