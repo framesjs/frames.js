@@ -97,7 +97,7 @@ export function useFrameAppInIframe(
     };
   }, [logDebug]);
 
-  const result = useMemo<UseFrameAppInIframeReturn>(() => {
+  const iframeFrameApp = useMemo<UseFrameAppInIframeReturn>(() => {
     switch (frameApp.status) {
       case "error":
       case "pending":
@@ -133,7 +133,7 @@ export function useFrameAppInIframe(
   }, [frameApp, emitter]);
 
   useEffect(() => {
-    if (result.status !== "success") {
+    if (iframeFrameApp.status !== "success") {
       return;
     }
 
@@ -144,7 +144,7 @@ export function useFrameAppInIframe(
       return;
     }
 
-    const frameUrl = result.iframeProps.src;
+    const frameUrl = iframeFrameApp.iframeProps.src;
     let frameOrigin = "";
 
     if (!frameUrl) {
@@ -161,13 +161,13 @@ export function useFrameAppInIframe(
     const cleanup = exposeToEndpoint({
       endpoint,
       frameOrigin,
-      sdk: result.sdk(endpoint),
+      sdk: iframeFrameApp.sdk(endpoint),
       debug: debugRef.current,
       ethProvider: providerRef.current,
     });
 
     endpointRef.current = endpoint;
-    emitterRef.current = result.getEmitter(endpoint);
+    emitterRef.current = iframeFrameApp.getEmitter(endpoint);
 
     return () => {
       logDebug("iframe unmounted, cleaning up");
@@ -176,7 +176,7 @@ export function useFrameAppInIframe(
       emitterRef.current = null;
       cleanup();
     };
-  }, [result, logDebug, debugRef, providerRef]);
+  }, [iframeFrameApp, logDebug, debugRef, providerRef]);
 
-  return result;
+  return iframeFrameApp;
 }

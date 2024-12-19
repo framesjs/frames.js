@@ -112,7 +112,7 @@ export function useFrameAppInWebView(
     [logDebug]
   );
 
-  const result = useMemo<UseFrameAppInWebViewReturn>(() => {
+  const webViewFrameApp = useMemo<UseFrameAppInWebViewReturn>(() => {
     switch (frameApp.status) {
       case "error":
       case "pending":
@@ -146,7 +146,7 @@ export function useFrameAppInWebView(
   }, [frameApp, onMessage, emitter]);
 
   useEffect(() => {
-    if (result.status !== "success") {
+    if (webViewFrameApp.status !== "success") {
       return;
     }
 
@@ -161,13 +161,13 @@ export function useFrameAppInWebView(
     const cleanup = exposeToEndpoint({
       endpoint,
       frameOrigin: "ReactNativeWebView",
-      sdk: result.sdk(endpoint),
+      sdk: webViewFrameApp.sdk(endpoint),
       debug: debugRef.current,
       ethProvider: providerRef.current,
     });
 
     endpointRef.current = endpoint;
-    emitterRef.current = result.getEmitter(endpoint);
+    emitterRef.current = webViewFrameApp.getEmitter(endpoint);
 
     return () => {
       logDebug("WebView unmounted, cleaning up");
@@ -176,7 +176,7 @@ export function useFrameAppInWebView(
       emitterRef.current = null;
       cleanup();
     };
-  }, [result, logDebug, debugRef, providerRef]);
+  }, [webViewFrameApp, logDebug, debugRef, providerRef]);
 
-  return result;
+  return webViewFrameApp;
 }
