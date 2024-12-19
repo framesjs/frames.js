@@ -86,7 +86,9 @@ export function useFrameAppInIframe(
       },
       emitEthProvider(...args) {
         if (emitterRef.current) {
-          emitterRef.current.emitEthProvider(...args);
+          emitterRef.current.emitEthProvider(
+            ...(args as Parameters<typeof emitterRef.current.emitEthProvider>)
+          );
         } else {
           logDebug(
             "endpoint not available, probably not initialized yet, skipping emitEthProvider",
