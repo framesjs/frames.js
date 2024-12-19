@@ -1,4 +1,4 @@
-import { HostEndpoint } from "@farcaster/frame-host";
+import type { HostEndpoint } from "@farcaster/frame-host";
 import type {
   AddFrameResult,
   FrameContext,
