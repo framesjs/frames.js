@@ -1,5 +1,15 @@
 # @frames.js/debugger
 
+## 0.4.0
+
+### Minor Changes
+
+- 1f3e724: feat: farcaster v2 support
+
+### Patch Changes
+
+- fe7cd94: chore: bumped @lens-protocol/client to remove limitation on using latest node lts ver 22
+
 ## 0.3.19
 
 ### Patch Changes

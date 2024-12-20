@@ -1,5 +1,20 @@
 # @frames.js/render
 
+## 0.5.0
+
+### Minor Changes
+
+- 1f3e724: feat: farcaster v2 support
+
+### Patch Changes
+
+- fe7cd94: chore: bumped @lens-protocol/client to remove limitation on using latest node lts ver 22
+- Updated dependencies [ef118a4]
+- Updated dependencies [70af4ca]
+- Updated dependencies [1f3e724]
+- Updated dependencies [fe7cd94]
+  - frames.js@0.21.0
+
 ## 0.4.2
 
 ### Patch Changes

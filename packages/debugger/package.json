@@ -5,7 +5,7 @@
     "frames.js",
     "farcaster"
   ],
-  "version": "0.3.19",
+  "version": "0.4.0",
   "bin": {
     "frames": "./bin/debugger.js"
   },
@@ -36,7 +36,7 @@
   },
   "devDependencies": {
     "@farcaster/core": "^0.15.6",
-    "@frames.js/render": "^0.4.2",
+    "@frames.js/render": "^0.5.0",
     "@primer/octicons-react": "^19.9.0",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-checkbox": "^1.0.4",
@@ -68,7 +68,7 @@
     "console-feed": "^3.6.0",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.1.0",
-    "frames.js": "^0.20.0",
+    "frames.js": "^0.21.0",
     "lucide-react": "^0.408.0",
     "postcss": "^8",
     "qrcode.react": "^3.1.0",

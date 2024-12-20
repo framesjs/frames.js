@@ -1,5 +1,17 @@
 # frames.js
 
+## 0.21.0
+
+### Minor Changes
+
+- ef118a4: Adds support for Lens development environment in use-lens-identity
+- 1f3e724: feat: farcaster v2 support
+
+### Patch Changes
+
+- 70af4ca: fix: a "complete" URLObject in `target` should be left as it is
+- fe7cd94: chore: bumped @lens-protocol/client to remove limitation on using latest node lts ver 22
+
 ## 0.20.0
 
 ### Minor Changes
