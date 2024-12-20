@@ -470,7 +470,6 @@ export const FrameDebugger = React.forwardRef<
                   </TabsList>
                   <TabsContent className="overflow-y-auto" value="diagnostics">
                     <FrameDebuggerDiagnostics
-                      farcasterSigner={farcasterSignerState.signer}
                       stackItem={currentFrameStackItem}
                       protocol={protocol}
                     />

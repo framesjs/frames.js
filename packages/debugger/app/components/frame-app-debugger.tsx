@@ -350,7 +350,10 @@ export function FrameAppDebugger({
                     className="overflow-hidden"
                     value="notifications"
                   >
-                    <FrameAppDebuggerNotifications frameApp={frameApp} />
+                    <FrameAppDebuggerNotifications
+                      frameApp={frameApp}
+                      farcasterSigner={farcasterSigner.signer}
+                    />
                   </TabsContent>
                   <TabsContent
                     className="overflow-y-auto"

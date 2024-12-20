@@ -121,8 +121,7 @@ export type UseFrameAppOptions = {
    */
   proxyUrl: string;
   /**
-   * Farcaster signer state. Must be already approved otherwise it will call onError
-   * and getting context in frames app will be rejected
+   * Farcaster signer state. Must be approved or impersonated.
    *
    * @example
    * ```ts
@@ -269,10 +268,15 @@ export function useFrameApp({
       };
     }
 
-    if (farcasterSignerRef.current.signer?.status !== "approved") {
+    if (
+      farcasterSignerRef.current.signer?.status !== "approved" &&
+      farcasterSignerRef.current.signer?.status !== "impersonating"
+    ) {
       return {
         status: "error",
-        error: new Error("Farcaster signer is not approved"),
+        error: new Error(
+          "Farcaster signer must be either approved or impersonating"
+        ),
       };
     }
 

@@ -111,8 +111,8 @@ export function useFrameAppNotificationsManager({
       context.frame.button.action.url,
     ],
     async queryFn({ queryKey }) {
-      if (signer?.status !== "approved") {
-        throw new Error("Signer not approved");
+      if (signer?.status !== "approved" && signer?.status !== "impersonating") {
+        throw new Error("Signer must be either approved or impersonating");
       }
 
       if (!webhookUrl) {
