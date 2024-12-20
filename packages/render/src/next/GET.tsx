@@ -20,6 +20,8 @@ export async function GET(request: Request | NextRequest): Promise<Response> {
     const specification = searchParams.get("specification") ?? "farcaster";
     const parseFarcasterManifest =
       searchParams.get("parseFarcasterManifest") === "true";
+    const strictlyParseFarcasterV2 =
+      searchParams.get("looseFarcasterV2Parsing") !== "true";
     const multiSpecificationEnabled =
       searchParams.get("multispecification") === "true";
 
@@ -41,6 +43,7 @@ export async function GET(request: Request | NextRequest): Promise<Response> {
           parseSettings: {
             farcaster_v2: {
               parseManifest: parseFarcasterManifest,
+              strict: strictlyParseFarcasterV2,
             },
           },
         }

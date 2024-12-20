@@ -51,6 +51,7 @@ import { useFrameContext } from "../providers/FrameContextProvider";
 import { cn } from "@/lib/utils";
 import { FrameDebuggerFarcasterManifestDetails } from "./frame-debugger-farcaster-manifest-details";
 import type { Frame } from "frames.js/farcaster-v2/types";
+import { PartialFrameV2 } from "@frames.js/render/unstable-types";
 
 // @todo uncomment once triggers are implemented upstream
 export type FrameLaunchedInContext =
@@ -62,7 +63,7 @@ export type FrameLaunchedInContext =
     }*/
   {
     context: "button_press";
-    frame: Frame;
+    frame: Frame | PartialFrameV2;
     parseResult: ParseFramesV2ResultWithFrameworkDetails;
   };
 
@@ -171,27 +172,16 @@ export const FrameDebugger = React.forwardRef<
           toast({
             title: "Partial frame loaded",
             description:
-              "The frame is partially invalid, please fix the errors.",
+              "The frame is invalid, please fix errors before you decide to launch it publicly.",
             variant: "destructive",
-            action: (
-              <ToastAction
-                altText="Show console"
-                onClick={() => {
-                  wantsToScrollConsoleToBottomRef.current = true;
-                  setActiveTab("console");
-                }}
-              >
-                Show console
-              </ToastAction>
-            ),
-          });
-        } else {
-          onFrameLaunchedInContext({
-            context: "button_press",
-            frame: event.frame,
-            parseResult: event.parseResult,
           });
         }
+
+        onFrameLaunchedInContext({
+          context: "button_press",
+          frame: event.frame,
+          parseResult: event.parseResult,
+        });
       },
     });
     const debuggerConsoleTabRef = useRef<HTMLDivElement>(null);

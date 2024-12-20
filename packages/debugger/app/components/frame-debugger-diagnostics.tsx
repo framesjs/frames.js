@@ -62,6 +62,13 @@ export function FrameDebuggerDiagnostics({
       visitedInvalidProperties.push(key);
     }
 
+    if (result.specification === "farcaster_v2" && result.manifest) {
+      for (const [key, reports] of Object.entries(result.manifest.reports)) {
+        invalidProperties.push([key, reports]);
+        visitedInvalidProperties.push(key);
+      }
+    }
+
     const flattenedFrame =
       result.specification === "farcaster_v2"
         ? getFrameV2Flattened(result.frame, {

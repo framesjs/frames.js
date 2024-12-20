@@ -1213,4 +1213,342 @@ describe("farcaster frame v2 parser", () => {
       },
     });
   });
+
+  describe("non strict mode", () => {
+    describe("button", () => {
+      it("returns error but keeps imageUrl if imageUrl is not https string", async () => {
+        const document = load(`
+          <meta property="fc:frame" content='${JSON.stringify({
+            ...validFrame,
+            imageUrl: "http://example.com/image.png",
+          } satisfies PartialDeep<FrameV2>)}' />
+          <title>Test</title>
+        `);
+
+        await expect(
+          parseFarcasterFrameV2(document, { frameUrl, reporter, strict: false })
+        ).resolves.toMatchObject({
+          status: "failure",
+          specification: "farcaster_v2",
+          frame: {
+            ...validFrame,
+            imageUrl: "http://example.com/image.png",
+          },
+          reports: {
+            "fc:frame.imageUrl": [
+              {
+                source: "farcaster_v2",
+                level: "error",
+                message: "Must be an https url",
+              },
+            ],
+          },
+        });
+      });
+
+      describe("action", () => {
+        it("returns error but keeps url if url is not https string", async () => {
+          const document = load(`
+            <meta property="fc:frame" content='${JSON.stringify({
+              ...validFrame,
+              button: {
+                ...validFrame.button,
+                action: {
+                  ...validFrame.button.action,
+                  url: "http://example.com",
+                },
+              },
+            } satisfies PartialDeep<FrameV2>)}' />
+            <title>Test</title>
+          `);
+
+          await expect(
+            parseFarcasterFrameV2(document, {
+              frameUrl,
+              reporter,
+              strict: false,
+            })
+          ).resolves.toMatchObject({
+            status: "failure",
+            specification: "farcaster_v2",
+            frame: {
+              ...validFrame,
+              button: {
+                ...validFrame.button,
+                action: {
+                  ...validFrame.button.action,
+                  url: "http://example.com",
+                },
+              },
+            },
+            reports: {
+              "fc:frame.button.action.url": [
+                {
+                  source: "farcaster_v2",
+                  level: "error",
+                  message: "Must be an https url",
+                },
+              ],
+            },
+          });
+        });
+
+        it('returns error but keeps "splashImageUrl" if "splashImageUrl" is not https string', async () => {
+          const document = load(`
+            <meta property="fc:frame" content='${JSON.stringify({
+              ...validFrame,
+              button: {
+                ...validFrame.button,
+                action: {
+                  ...validFrame.button.action,
+                  splashImageUrl: "http://example.com",
+                },
+              },
+            } satisfies PartialDeep<FrameV2>)}' />
+            <title>Test</title>
+          `);
+
+          await expect(
+            parseFarcasterFrameV2(document, {
+              frameUrl,
+              reporter,
+              strict: false,
+            })
+          ).resolves.toMatchObject({
+            status: "failure",
+            specification: "farcaster_v2",
+            frame: {
+              ...validFrame,
+              button: {
+                ...validFrame.button,
+                action: {
+                  ...validFrame.button.action,
+                  splashImageUrl: "http://example.com",
+                },
+              },
+            },
+            reports: {
+              "fc:frame.button.action.splashImageUrl": [
+                {
+                  source: "farcaster_v2",
+                  level: "error",
+                  message: "Must be an https url",
+                },
+              ],
+            },
+          });
+        });
+      });
+    });
+
+    describe("manifest", () => {
+      describe("frame", () => {
+        it('returns an error if "homeUrl" is not an https string', async () => {
+          const document = load(`
+            <meta property="fc:frame" content='${JSON.stringify(validFrame)}' />
+            <title>Test</title>
+          `);
+
+          enableNetConnect("mainnet.optimism.io:443");
+
+          nock("https://framesjs.org")
+            .get("/.well-known/farcaster.json")
+            .reply(
+              200,
+              JSON.stringify({
+                accountAssociation: {
+                  header:
+                    "eyJmaWQiOjM0MTc5NCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDc4Mzk3RDlEMTg1RDNhNTdEMDEyMTNDQmUzRWMxRWJBQzNFRWM3N2QifQ",
+                  payload: "eyJkb21haW4iOiJmcmFtZXNqcy5vcmcifQ",
+                  signature:
+                    "MHgwOWExNWMyZDQ3ZDk0NTM5NWJjYTJlNGQzNDg3MzYxMGUyNGZiMDFjMzc0NTUzYTJmOTM2NjM3YjU4YTA5NzdjNzAxOWZiYzljNGUxY2U5ZmJjOGMzNWVjYTllNzViMTM5Zjg3ZGQyNTBlMzhkMjBmM2YyZmEyNDk2MDQ1NGExMjFi",
+                },
+                frame: {
+                  homeUrl: "http://example.com",
+                  iconUrl: "https://framesjs.org/logo.png",
+                  name: "App name",
+                  version: "next",
+                },
+              } satisfies FarcasterManifest)
+            );
+
+          await expect(
+            parseFarcasterFrameV2(document, {
+              frameUrl: "https://framesjs.org/my/frame/v2",
+              reporter,
+              parseManifest: true,
+              strict: false,
+            })
+          ).resolves.toMatchObject({
+            status: "success",
+            manifest: {
+              status: "failure",
+              manifest: {
+                accountAssociation: {
+                  header:
+                    "eyJmaWQiOjM0MTc5NCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDc4Mzk3RDlEMTg1RDNhNTdEMDEyMTNDQmUzRWMxRWJBQzNFRWM3N2QifQ",
+                  payload: "eyJkb21haW4iOiJmcmFtZXNqcy5vcmcifQ",
+                  signature:
+                    "MHgwOWExNWMyZDQ3ZDk0NTM5NWJjYTJlNGQzNDg3MzYxMGUyNGZiMDFjMzc0NTUzYTJmOTM2NjM3YjU4YTA5NzdjNzAxOWZiYzljNGUxY2U5ZmJjOGMzNWVjYTllNzViMTM5Zjg3ZGQyNTBlMzhkMjBmM2YyZmEyNDk2MDQ1NGExMjFi",
+                },
+                frame: {
+                  homeUrl: "http://example.com",
+                  iconUrl: "https://framesjs.org/logo.png",
+                  name: "App name",
+                  version: "next",
+                },
+              },
+              reports: {
+                "fc:manifest.frame.homeUrl": [
+                  {
+                    level: "error",
+                    message: "Must be an https url",
+                    source: "farcaster_v2",
+                  },
+                ],
+              },
+            },
+          });
+        });
+
+        it('returns an error if "iconUrl" is not an https string', async () => {
+          const document = load(`
+            <meta property="fc:frame" content='${JSON.stringify(validFrame)}' />
+            <title>Test</title>
+          `);
+
+          enableNetConnect("mainnet.optimism.io:443");
+
+          nock("https://framesjs.org")
+            .get("/.well-known/farcaster.json")
+            .reply(
+              200,
+              JSON.stringify({
+                accountAssociation: {
+                  header:
+                    "eyJmaWQiOjM0MTc5NCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDc4Mzk3RDlEMTg1RDNhNTdEMDEyMTNDQmUzRWMxRWJBQzNFRWM3N2QifQ",
+                  payload: "eyJkb21haW4iOiJmcmFtZXNqcy5vcmcifQ",
+                  signature:
+                    "MHgwOWExNWMyZDQ3ZDk0NTM5NWJjYTJlNGQzNDg3MzYxMGUyNGZiMDFjMzc0NTUzYTJmOTM2NjM3YjU4YTA5NzdjNzAxOWZiYzljNGUxY2U5ZmJjOGMzNWVjYTllNzViMTM5Zjg3ZGQyNTBlMzhkMjBmM2YyZmEyNDk2MDQ1NGExMjFi",
+                },
+                frame: {
+                  homeUrl: "https://example.com",
+                  iconUrl: "http://framesjs.org/logo.png",
+                  name: "App name",
+                  version: "next",
+                },
+              } satisfies FarcasterManifest)
+            );
+
+          await expect(
+            parseFarcasterFrameV2(document, {
+              frameUrl: "https://framesjs.org/my/frame/v2",
+              reporter,
+              parseManifest: true,
+              strict: false,
+            })
+          ).resolves.toMatchObject({
+            status: "success",
+            manifest: {
+              status: "failure",
+              manifest: {
+                accountAssociation: {
+                  header:
+                    "eyJmaWQiOjM0MTc5NCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDc4Mzk3RDlEMTg1RDNhNTdEMDEyMTNDQmUzRWMxRWJBQzNFRWM3N2QifQ",
+                  payload: "eyJkb21haW4iOiJmcmFtZXNqcy5vcmcifQ",
+                  signature:
+                    "MHgwOWExNWMyZDQ3ZDk0NTM5NWJjYTJlNGQzNDg3MzYxMGUyNGZiMDFjMzc0NTUzYTJmOTM2NjM3YjU4YTA5NzdjNzAxOWZiYzljNGUxY2U5ZmJjOGMzNWVjYTllNzViMTM5Zjg3ZGQyNTBlMzhkMjBmM2YyZmEyNDk2MDQ1NGExMjFi",
+                },
+                frame: {
+                  homeUrl: "https://example.com",
+                  iconUrl: "http://framesjs.org/logo.png",
+                  name: "App name",
+                  version: "next",
+                },
+              },
+              reports: {
+                "fc:manifest.frame.iconUrl": [
+                  {
+                    level: "error",
+                    message: "Must be an https url",
+                    source: "farcaster_v2",
+                  },
+                ],
+              },
+            },
+          });
+        });
+
+        it('returns an error if "splashImageUrl" is not an https string', async () => {
+          const document = load(`
+            <meta property="fc:frame" content='${JSON.stringify(validFrame)}' />
+            <title>Test</title>
+          `);
+
+          enableNetConnect("mainnet.optimism.io:443");
+
+          nock("https://framesjs.org")
+            .get("/.well-known/farcaster.json")
+            .reply(
+              200,
+              JSON.stringify({
+                accountAssociation: {
+                  header:
+                    "eyJmaWQiOjM0MTc5NCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDc4Mzk3RDlEMTg1RDNhNTdEMDEyMTNDQmUzRWMxRWJBQzNFRWM3N2QifQ",
+                  payload: "eyJkb21haW4iOiJmcmFtZXNqcy5vcmcifQ",
+                  signature:
+                    "MHgwOWExNWMyZDQ3ZDk0NTM5NWJjYTJlNGQzNDg3MzYxMGUyNGZiMDFjMzc0NTUzYTJmOTM2NjM3YjU4YTA5NzdjNzAxOWZiYzljNGUxY2U5ZmJjOGMzNWVjYTllNzViMTM5Zjg3ZGQyNTBlMzhkMjBmM2YyZmEyNDk2MDQ1NGExMjFi",
+                },
+                frame: {
+                  homeUrl: "https://example.com",
+                  iconUrl: "https://framesjs.org/logo.png",
+                  name: "App name",
+                  version: "next",
+                  splashImageUrl: "http://example.com/splash.png",
+                },
+              } satisfies FarcasterManifest)
+            );
+
+          await expect(
+            parseFarcasterFrameV2(document, {
+              frameUrl: "https://framesjs.org/my/frame/v2",
+              reporter,
+              parseManifest: true,
+              strict: false,
+            })
+          ).resolves.toMatchObject({
+            status: "success",
+            manifest: {
+              status: "failure",
+              manifest: {
+                accountAssociation: {
+                  header:
+                    "eyJmaWQiOjM0MTc5NCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDc4Mzk3RDlEMTg1RDNhNTdEMDEyMTNDQmUzRWMxRWJBQzNFRWM3N2QifQ",
+                  payload: "eyJkb21haW4iOiJmcmFtZXNqcy5vcmcifQ",
+                  signature:
+                    "MHgwOWExNWMyZDQ3ZDk0NTM5NWJjYTJlNGQzNDg3MzYxMGUyNGZiMDFjMzc0NTUzYTJmOTM2NjM3YjU4YTA5NzdjNzAxOWZiYzljNGUxY2U5ZmJjOGMzNWVjYTllNzViMTM5Zjg3ZGQyNTBlMzhkMjBmM2YyZmEyNDk2MDQ1NGExMjFi",
+                },
+                frame: {
+                  homeUrl: "https://example.com",
+                  iconUrl: "https://framesjs.org/logo.png",
+                  splashImageUrl: "http://example.com/splash.png",
+                  name: "App name",
+                  version: "next",
+                },
+              },
+              reports: {
+                "fc:manifest.frame.splashImageUrl": [
+                  {
+                    level: "error",
+                    message: "Must be an https url",
+                    source: "farcaster_v2",
+                  },
+                ],
+              },
+            },
+          });
+        });
+      });
+    });
+  });
 });

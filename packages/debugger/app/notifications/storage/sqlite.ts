@@ -194,7 +194,10 @@ export class SQLiteStorage implements StorageInterface {
     }
 
     const token = crypto.randomUUID();
-    const url = `/notifications/${namespace.id}/send`;
+    const url = new URL(
+      `/notifications/${namespace.id}/send`,
+      this.serverUrl
+    ).toString();
     const notificationDetails: FrameNotificationDetails = {
       url,
       token,

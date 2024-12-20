@@ -70,6 +70,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       parseSettings: {
         farcaster_v2: {
           parseManifest: true,
+          strict: false,
         },
       },
     });
