@@ -4,7 +4,7 @@
   "scripts": {
     "build": "turbo build --filter=!./templates/* && node ./.scripts/prepare-create-frames.js",
     "build:ci": "turbo build --filter=!debugger --filter=!docs --filter=!template-*",
-    "dev": "FJS_MONOREPO=true turbo dev --filter=template-next-starter-with-examples... --filter=template-next-frames-v2-starter... --filter=debugger...",
+    "dev": "FJS_MONOREPO=true turbo dev --filter=template-next-starter-with-examples... --filter=debugger...",
     "dev:utils-starter": "FJS_MONOREPO=true turbo dev --filter=template-next-utils-starter... --filter=debugger...",
     "lint": "turbo lint --filter=!template-*",
     "test:ci": "jest --ci",
