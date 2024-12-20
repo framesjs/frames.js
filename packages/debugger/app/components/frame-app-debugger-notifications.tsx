@@ -146,10 +146,6 @@ export function FrameAppDebuggerNotifications({
     frameAppNotificationManager.state?.frame.status === "added" &&
     !!frameAppNotificationManager.state.frame.notificationDetails;
 
-  const unsupportedSignerStatus =
-    farcasterSigner?.status !== "approved" &&
-    farcasterSigner?.status !== "impersonating";
-
   return (
     <div className="grid grid-rows-[auto_1fr] h-full">
       <div className="w-full">
@@ -162,7 +158,7 @@ export function FrameAppDebuggerNotifications({
             </AlertDescription>
           </Alert>
         )}
-        {unsupportedSignerStatus && (
+        {farcasterSigner?.status === "impersonating" && (
           <Alert className="mb-4" variant="destructive">
             <AlertTriangleIcon className="h-4 w-4" />
             <AlertTitle>Warning: Unsupported Farcaster signer</AlertTitle>
@@ -173,7 +169,7 @@ export function FrameAppDebuggerNotifications({
           </Alert>
         )}
       </div>
-      {!unsupportedSignerStatus && (
+      {farcasterSigner?.status === "approved" && (
         <div className="flex flex-row flex-grow gap-4 h-full w-full overflow-hidden">
           <div className="w-1/3">
             <FrameAppNotificationsControlPanel frameApp={frameApp} />
