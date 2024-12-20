@@ -139,7 +139,7 @@ export function FrameAppDebuggerNotifications({
     !!frameAppNotificationManager.state.frame.notificationDetails;
 
   return (
-    <>
+    <div className="grid grid-rows-[auto_1fr] h-full">
       {frame.manifest.status === "failure" && (
         <Alert className="mb-4" variant="destructive">
           <AlertTitle>Invalid manifest!</AlertTitle>
@@ -148,7 +148,7 @@ export function FrameAppDebuggerNotifications({
           </AlertDescription>
         </Alert>
       )}
-      <div className="flex flex-row flex-grow gap-4 w-full h-full">
+      <div className="flex flex-row flex-grow gap-4 h-full w-full overflow-hidden">
         <div className="w-1/3">
           <FrameAppNotificationsControlPanel frameApp={frameApp} />
         </div>
@@ -174,7 +174,7 @@ export function FrameAppDebuggerNotifications({
             </div>
           </div>
         ) : (
-          <div className="border rounded-lg p-2 flex flex-col gap-2 flex-grow w-full">
+          <div className="border rounded-lg p-2 flex flex-col gap-2 flex-grow w-full overflow-hidden">
             <h3 className="font-semibold">
               Event log
               <WithTooltip tooltip="Clear log">
@@ -193,6 +193,6 @@ export function FrameAppDebuggerNotifications({
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
