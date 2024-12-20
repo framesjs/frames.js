@@ -4,22 +4,19 @@ import {
   getFrameV2Flattened,
   type ParsingReport,
 } from "frames.js";
-import {
-  AlertTriangleIcon,
-  CheckCircle2Icon,
-  XCircleIcon,
-  AlertTriangle,
-} from "lucide-react";
+import { AlertTriangleIcon, CheckCircle2Icon, XCircleIcon } from "lucide-react";
 import { useMemo } from "react";
 import { ShortenedText } from "./shortened-text";
 import type { DebuggerFrameStackItem } from "../hooks/useDebuggerFrameState";
 import { cn } from "@/lib/utils";
 import type { ProtocolConfiguration } from "./protocol-config-button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import type { FarcasterSigner } from "@frames.js/render/identity/farcaster";
 
 type FrameDebuggerDiagnosticsProps = {
   stackItem: DebuggerFrameStackItem;
   protocol: ProtocolConfiguration;
+  farcasterSigner: FarcasterSigner | null;
 };
 
 function isPropertyExperimental([key, value]: [string, string]) {
@@ -30,6 +27,7 @@ function isPropertyExperimental([key, value]: [string, string]) {
 export function FrameDebuggerDiagnostics({
   stackItem,
   protocol,
+  farcasterSigner,
 }: FrameDebuggerDiagnosticsProps) {
   const properties = useMemo(() => {
     /** tuple of key and value */
@@ -120,6 +118,10 @@ export function FrameDebuggerDiagnostics({
       <TryDifferentFarcasterSpecificationAlert
         stackItem={stackItem}
         protocol={protocol}
+      />
+      <FarcasterV2DoesNotSupportImpersonatedSignersAlert
+        protocol={protocol}
+        farcasterSigner={farcasterSigner}
       />
       <Table>
         <TableBody>
@@ -237,7 +239,7 @@ function TryDifferentFarcasterSpecificationAlert({
     ) {
       return (
         <Alert className="mb-4" variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
+          <AlertTriangleIcon className="h-4 w-4" />
           <AlertTitle>Warning!</AlertTitle>
           <AlertDescription>
             This frame appears to be Farcaster v1 compatible only. Try parsing
@@ -257,7 +259,7 @@ function TryDifferentFarcasterSpecificationAlert({
   ) {
     return (
       <Alert className="mb-4" variant="destructive">
-        <AlertTriangle className="h-4 w-4" />
+        <AlertTriangleIcon className="h-4 w-4" />
         <AlertTitle>Warning!</AlertTitle>
         <AlertDescription>
           This frame appears to be Farcaster v2 compatible only. Try parsing it
@@ -268,4 +270,32 @@ function TryDifferentFarcasterSpecificationAlert({
   }
 
   return null;
+}
+
+type FarcasterV2DoesNotSupportImpersonatedSignersAlertProps = {
+  farcasterSigner: FarcasterSigner | null;
+  protocol: ProtocolConfiguration;
+};
+
+function FarcasterV2DoesNotSupportImpersonatedSignersAlert({
+  protocol,
+  farcasterSigner: signer,
+}: FarcasterV2DoesNotSupportImpersonatedSignersAlertProps) {
+  if (protocol.protocol !== "farcaster_v2") {
+    return null;
+  }
+
+  if (signer?.status !== "impersonating") {
+    return;
+  }
+
+  return (
+    <Alert className="mb-4" variant="destructive">
+      <AlertTriangleIcon className="h-4 w-4" />
+      <AlertTitle>Unsupported farcaster signer</AlertTitle>
+      <AlertDescription>
+        Please use approved signer because impersonated signer is not supported.
+      </AlertDescription>
+    </Alert>
+  );
 }

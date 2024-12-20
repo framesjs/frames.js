@@ -8,6 +8,7 @@ import {
   InfoIcon,
   Loader2Icon,
   RefreshCwIcon,
+  ShieldAlertIcon,
 } from "lucide-react";
 import { useFrameAppNotificationsManagerContext } from "../providers/FrameAppNotificationsManagerProvider";
 import { useCallback, useState } from "react";
@@ -94,7 +95,7 @@ export function FrameAppNotificationsControlPanel({
   );
 
   return (
-    <div className="flex flex-col gap-2 w-full border rounded-lg p-2">
+    <div className="flex flex-col gap-4 w-full border rounded-lg p-2">
       <h3 className="font-semibold">
         Client settings
         <WithTooltip tooltip="Reload settings">
@@ -114,6 +115,17 @@ export function FrameAppNotificationsControlPanel({
           </Button>
         </WithTooltip>
       </h3>
+      {!window.location.origin.match(/^https?:\/\/(localhost|127.0.0.1)/) && (
+        <Alert variant="destructive">
+          <ShieldAlertIcon className="h-[1em] w-[1em]"></ShieldAlertIcon>
+          <AlertTitle>Be careful!</AlertTitle>
+          <AlertDescription>
+            At the moment we&apos;re sending your signer private key to the
+            backend to sign event payload sent to webhook. We aren&apos;t
+            storing your private key.
+          </AlertDescription>
+        </Alert>
+      )}
       {isAddedToClient ? (
         <>
           <div className="flex gap-2 items-center">
