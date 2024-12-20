@@ -33,7 +33,7 @@
     "node": ">=18.17.0"
   },
   "devDependencies": {
-    "@farcaster/core": "^0.14.7",
+    "@farcaster/core": "^0.15.6",
     "@frames.js/render": "^0.4.2",
     "@primer/octicons-react": "^19.9.0",
     "@radix-ui/react-accordion": "^1.1.2",

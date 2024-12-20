@@ -367,7 +367,7 @@
     "wagmi": "^2.9.10"
   },
   "dependencies": {
-    "@farcaster/core": "^0.14.7",
+    "@farcaster/core": "^0.15.6",
     "@farcaster/frame-host": "^0.0.19",
     "@noble/ed25519": "^2.0.0",
     "frames.js": "^0.20.0",
