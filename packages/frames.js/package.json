@@ -157,6 +157,36 @@
         "default": "./dist/anonymous/index.cjs"
       }
     },
+    "./farcaster-v2/events": {
+      "import": {
+        "types": "./dist/farcaster-v2/events.d.ts",
+        "default": "./dist/farcaster-v2/events.js"
+      },
+      "require": {
+        "types": "./dist/farcaster-v2/events.d.cts",
+        "default": "./dist/farcaster-v2/events.cjs"
+      }
+    },
+    "./farcaster-v2/json-signature": {
+      "import": {
+        "types": "./dist/farcaster-v2/json-signature.d.ts",
+        "default": "./dist/farcaster-v2/json-signature.js"
+      },
+      "require": {
+        "types": "./dist/farcaster-v2/json-signature.d.cts",
+        "default": "./dist/farcaster-v2/json-signature.cjs"
+      }
+    },
+    "./farcaster-v2/types": {
+      "import": {
+        "types": "./dist/farcaster-v2/types.d.ts",
+        "default": "./dist/farcaster-v2/types.js"
+      },
+      "require": {
+        "types": "./dist/farcaster-v2/types.d.cts",
+        "default": "./dist/farcaster-v2/types.cjs"
+      }
+    },
     "./core": {
       "import": {
         "types": "./dist/core/index.d.ts",
@@ -389,9 +419,13 @@
     "react-dom": "^18.2.0"
   },
   "dependencies": {
+    "@farcaster/frame-core": "^0.0.19",
+    "@farcaster/frame-node": "^0.0.8",
     "@vercel/og": "^0.6.3",
     "cheerio": "^1.0.0-rc.12",
     "protobufjs": "^7.2.6",
-    "viem": "^2.7.8"
+    "viem": "^2.7.8",
+    "type-fest": "^4.28.1",
+    "zod": "^3.23.8"
   }
 }

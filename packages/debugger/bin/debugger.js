@@ -26,6 +26,20 @@ const args = yargs(hideBin(process.argv))
     default:
       process.env.FARCASTER_DEVELOPER_ID || process.env.FARCASTER_DEVELOPER_FID,
   })
+  .option("kv-rest-api-url", {
+    alias: "kvurl",
+    type: "string",
+    description:
+      "Sets debugger to store Farcaster Frames v2 events into redis instead of SQLite",
+    default: process.env.KV_REST_API_URL,
+  })
+  .option("kv-rest-api-token", {
+    alias: "kvtoken",
+    type: "string",
+    description:
+      "Sets debugger to store Farcaster Frames v2 events into redis instead of SQLite",
+    default: process.env.KV_REST_API_TOKEN,
+  })
   .option("signer-url", {
     type: "string",
     description:
@@ -52,6 +66,14 @@ if (args["farcaster-developer-mnemonic"]) {
 
 if (args["farcaster-developer-fid"]) {
   process.env.FARCASTER_DEVELOPER_ID = args["farcaster-developer-fid"];
+}
+
+if (args["kv-rest-api-url"]) {
+  process.env.KV_REST_API_URL = args["kv-rest-api-url"];
+}
+
+if (args["kv-rest-api-token"]) {
+  process.env.KV_REST_API_TOKEN = args["kv-rest-api-token"];
 }
 
 if (args["signer-url"]) {

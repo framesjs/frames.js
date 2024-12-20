@@ -55,6 +55,7 @@ export function useFetchFrame<
   frameActionProxy,
   frameGetProxy,
   extraButtonRequestPayload,
+  parseFarcasterManifest = false,
   onTransaction,
   transactionDataSuffix,
   onSignature,
@@ -157,6 +158,7 @@ export function useFetchFrame<
       proxyUrl: frameGetProxy,
       fetchFn,
       url: request.url,
+      parseFarcasterManifest,
     });
 
     const endTime = new Date();
@@ -800,6 +802,11 @@ function proxyUrlAndSearchParamsToUrl(
 type FetchProxiedArg = {
   proxyUrl: string;
   fetchFn: typeof fetch;
+  /**
+   * Valid only for GET requests
+   */
+  parseFarcasterManifest?: boolean;
+  signal?: AbortSignal;
 } & (
   | {
       frameAction: SignedFrameAction;
@@ -808,7 +815,7 @@ type FetchProxiedArg = {
   | { url: string }
 );
 
-async function fetchProxied(
+export async function fetchProxied(
   params: FetchProxiedArg
 ): Promise<Response | Error> {
   const searchParams = new URLSearchParams({
@@ -836,11 +843,17 @@ async function fetchProxied(
     );
   }
 
+  if (params.parseFarcasterManifest) {
+    searchParams.set("parseFarcasterManifest", "true");
+  }
+
   searchParams.set("url", params.url);
 
   const proxyUrl = proxyUrlAndSearchParamsToUrl(params.proxyUrl, searchParams);
 
-  return tryCallAsync(() => params.fetchFn(proxyUrl, { method: "GET" }));
+  return tryCallAsync(() =>
+    params.fetchFn(proxyUrl, { method: "GET", signal: params.signal })
+  );
 }
 
 function getResponseBody(response: Response): Promise<unknown> {

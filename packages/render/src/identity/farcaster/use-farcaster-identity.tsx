@@ -8,7 +8,11 @@ import {
 } from "react";
 import { convertKeypairToHex, createKeypairEDDSA } from "../crypto";
 import type { FarcasterSignerState } from "../../farcaster";
-import { signComposerAction, signFrameAction } from "../../farcaster";
+import {
+  signComposerAction,
+  signCastAction,
+  signFrameAction,
+} from "../../farcaster";
 import type { Storage } from "../types";
 import { useVisibilityDetection } from "../../hooks/use-visibility-detection";
 import { WebStorage } from "../storage";
@@ -205,6 +209,7 @@ export function useFarcasterIdentity({
   const generateUserIdRef = useFreshRef(generateUserId);
   const onMissingIdentityRef = useFreshRef(onMissingIdentity);
   const fetchFnRef = useFreshRef(fetchFn);
+  const signerUrlRef = useFreshRef(signerUrl);
 
   const createFarcasterSigner =
     useCallback(async (): Promise<FarcasterCreateSignerResult> => {
@@ -213,7 +218,7 @@ export function useFarcasterIdentity({
         const keypairString = convertKeypairToHex(keypair);
         const authorizationResponse = await fetchFnRef.current(
           // real signer or local one are handled by local route so we don't need to expose anything to client side bundle
-          signerUrl,
+          signerUrlRef.current,
           {
             method: "POST",
             body: JSON.stringify({
@@ -311,7 +316,13 @@ export function useFarcasterIdentity({
         console.error("@frames.js/render: API Call failed", error);
         throw error;
       }
-    }, [fetchFnRef, generateUserIdRef, onLogInStartRef, setState, signerUrl]);
+    }, [
+      fetchFnRef,
+      generateUserIdRef,
+      onLogInStartRef,
+      setState,
+      signerUrlRef,
+    ]);
 
   const impersonateUser = useCallback(
     async (fid: number) => {
@@ -432,36 +443,67 @@ export function useFarcasterIdentity({
     onLogInRef,
   ]);
 
-  return useMemo(
-    () => ({
-      specification: "farcaster",
-      signer: farcasterUser,
-      hasSigner:
-        farcasterUser?.status === "approved" ||
-        farcasterUser?.status === "impersonating",
+  const farcasterUserRef = useFreshRef(farcasterUser);
+  const isLoadingRef = useFreshRef(isLoading);
+
+  return useMemo(() => {
+    /**
+     * These are here only for backwards compatiblity so value is invalidate on change of these
+     * without the necessity to refactor the whole signer to have some sort of event handlers
+     * that will be able to react to changes (although that would be useful as well).
+     *
+     * We are using refs to fetch the current value in getters below so these are just to make eslint happy
+     * without the necessity to disable the check on hook dependencies.
+     *
+     * We have getters here because there is an edge case if you have identity hook with async storage
+     * and you resolve the signer in useFrame() before the signer internal values are resolved.
+     * That leads into an edge case when useFrame() behaves like you aren't signed in but you are because
+     * the return value of memo is copied.
+     */
+    void farcasterUser;
+    void isLoading;
+
+    return {
+      specification: ["farcaster", "farcaster_v2"],
+      get signer() {
+        return farcasterUserRef.current;
+      },
+      get hasSigner() {
+        return (
+          farcasterUserRef.current?.status === "approved" ||
+          farcasterUserRef.current?.status === "impersonating"
+        );
+      },
       signFrameAction,
+      signCastAction,
       signComposerAction,
-      isLoadingSigner: isLoading,
+      get isLoadingSigner() {
+        return isLoadingRef.current;
+      },
       impersonateUser,
       onSignerlessFramePress,
       createSigner,
       logout,
       identityPoller,
-      withContext(frameContext) {
+      withContext(frameContext, overrides) {
         return {
-          signerState: this,
+          signerState: {
+            ...this,
+            ...overrides,
+          },
           frameContext,
         };
       },
-    }),
-    [
-      farcasterUser,
-      identityPoller,
-      impersonateUser,
-      isLoading,
-      logout,
-      createSigner,
-      onSignerlessFramePress,
-    ]
-  );
+    };
+  }, [
+    farcasterUser,
+    isLoading,
+    impersonateUser,
+    onSignerlessFramePress,
+    createSigner,
+    logout,
+    identityPoller,
+    farcasterUserRef,
+    isLoadingRef,
+  ]);
 }

@@ -1,7 +1,11 @@
-import type { Frame, FrameButton } from "frames.js";
+import type { Frame, FrameButton, FrameV2 } from "frames.js";
 import type { createElement, ReactElement } from "react";
+import type {
+  ParseFramesV2SuccessResultWithFrameworkDetails,
+  ParseFramesV2FailureResultWithFrameworkDetails,
+} from "frames.js/frame-parsers";
 import type { FrameState } from "../types";
-import type { UseFrameReturnValue } from "../unstable-types";
+import type { PartialFrameV2, UseFrameReturnValue } from "../unstable-types";
 
 /**
  * Allows to override styling props on all component of the Frame UI
@@ -30,28 +34,64 @@ type RequiredFrameProperties = "image" | "buttons";
 export type PartialFrame = Omit<Partial<Frame>, RequiredFrameProperties> &
   Required<Pick<Frame, RequiredFrameProperties>>;
 
+type FrameUIStateLoading = {
+  status: "loading";
+  id: number;
+  frameState: FrameState | UseFrameReturnValue;
+};
+
+/**
+ * Frame is partial. Available only if allowPartialFrame prop is enabled.
+ */
+export type FrameUIStatePartialFramesV1 = {
+  id: number;
+  status: "partial";
+  frame: PartialFrame;
+  frameState: FrameState | UseFrameReturnValue;
+  debugImage?: string;
+  isImageLoading: boolean;
+};
+
+/**
+ * Frame is partial. Available only if allowPartialFrame prop is enabled.
+ */
+export type FrameUIStatePartialFramesV2 = {
+  id: number;
+  status: "partial";
+  frame: PartialFrameV2;
+  specification: "farcaster_v2";
+  frameState: FrameState | UseFrameReturnValue;
+  parseResult: ParseFramesV2FailureResultWithFrameworkDetails;
+  debugImage?: string;
+  isImageLoading: boolean;
+};
+
+export type FrameUIStateCompleteFramesV1 = {
+  id: number;
+  status: "complete";
+  frame: Frame;
+  frameState: FrameState | UseFrameReturnValue;
+  debugImage?: string;
+  isImageLoading: boolean;
+};
+
+export type FrameUIStateCompleteFramesV2 = {
+  id: number;
+  status: "complete";
+  specification: "farcaster_v2";
+  frame: FrameV2;
+  frameState: FrameState | UseFrameReturnValue;
+  parseResult: ParseFramesV2SuccessResultWithFrameworkDetails;
+  debugImage?: string;
+  isImageLoading: boolean;
+};
+
 export type FrameUIState =
-  | {
-      status: "loading";
-      id: number;
-      frameState: FrameState | UseFrameReturnValue;
-    }
-  | {
-      id: number;
-      status: "partial";
-      frame: PartialFrame;
-      frameState: FrameState | UseFrameReturnValue;
-      debugImage?: string;
-      isImageLoading: boolean;
-    }
-  | {
-      id: number;
-      status: "complete";
-      frame: Frame;
-      frameState: FrameState | UseFrameReturnValue;
-      debugImage?: string;
-      isImageLoading: boolean;
-    };
+  | FrameUIStateLoading
+  | FrameUIStatePartialFramesV1
+  | FrameUIStatePartialFramesV2
+  | FrameUIStateCompleteFramesV1
+  | FrameUIStateCompleteFramesV2;
 
 type FrameUIStateProps = {
   frameState: FrameUIState;
@@ -78,7 +118,7 @@ export type FrameImageContainerProps = {
   /**
    * Aspect ratio of current image or previous frame image if frame is loading
    */
-  aspectRatio: "1:1" | "1.91:1";
+  aspectRatio: "1:1" | "1.91:1" | "3:2";
 } & FrameUIStateProps;
 
 export type FrameLoadingScreenProps = FrameUIStateProps & {
@@ -233,18 +273,23 @@ export type FrameImageProps = FrameUIStateProps & {
         /**
          * Default value or aspect ratio from previous frame
          */
-        aspectRatio: "1:1" | "1.91:1";
+        aspectRatio: "1:1" | "1.91:1" | "3:2";
       }
     | {
         status: "frame-loading-complete";
         src: string;
-        aspectRatio: "1:1" | "1.91:1";
+        aspectRatio: "1:1" | "1.91:1" | "3:2";
       }
   );
 
+export type FrameLaunchButton = {
+  action: "launch_frame";
+  label: string;
+};
+
 export type FrameButtonProps = {
   isDisabled: boolean;
-  frameButton: FrameButton;
+  frameButton: FrameButton | FrameLaunchButton;
   onPress: () => void;
   index: number;
 } & FrameUIStateProps;

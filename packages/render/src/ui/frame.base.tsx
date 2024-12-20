@@ -8,6 +8,7 @@ import {
 } from "react";
 import type { FrameState } from "../types";
 import type { UseFrameReturnValue } from "../unstable-types";
+import { useFreshRef } from "../hooks/use-fresh-ref";
 import type {
   FrameMessage,
   FrameUIComponents as BaseFrameUIComponents,
@@ -15,6 +16,7 @@ import type {
   FrameUIState,
   RootContainerDimensions,
   RootContainerElement,
+  FrameButtonProps,
 } from "./types";
 import {
   getErrorMessageFromFramesStackItem,
@@ -66,14 +68,18 @@ export type BaseFrameUIProps<TStylingProps extends Record<string, unknown>> = {
 // eslint-disable-next-line @typescript-eslint/no-empty-function -- this is noop
 function defaultMessageHandler(): void {}
 
+function defaultErrorLogger(error: Error): void {
+  // eslint-disable-next-line no-console -- provide at least some feedback to the user
+  console.error(error);
+}
+
 export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
   frameState,
   components,
   theme,
   allowPartialFrame = false,
   enableImageDebugging = false,
-  // eslint-disable-next-line no-console -- provide at least some feedback to the user
-  onError = console.error,
+  onError = defaultErrorLogger,
   onMessage = defaultMessageHandler,
   createElement = reactCreateElement,
 }: BaseFrameUIProps<TStylingProps>): JSX.Element | null {
@@ -81,6 +87,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
   const { currentFrameStackItem } = frameState;
   const rootRef = useRef<RootContainerElement>(null);
   const rootDimensionsRef = useRef<RootContainerDimensions | undefined>();
+  const onErrorRef = useFreshRef(onError);
 
   const onImageLoadEnd = useCallback(() => {
     setIsImageLoading(false);
@@ -93,17 +100,13 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
     }
   }, [currentFrameStackItem?.status]);
 
-  const onErrorRef = useRef(onError);
-  onErrorRef.current = onError;
-
   useEffect(() => {
     if (currentFrameStackItem?.status === "requestError") {
       onErrorRef.current(currentFrameStackItem.requestError);
     }
-  }, [currentFrameStackItem]);
+  }, [currentFrameStackItem, onErrorRef]);
 
-  const onMessageRef = useRef(onMessage);
-  onMessageRef.current = onMessage;
+  const onMessageRef = useFreshRef(onMessage);
 
   useEffect(() => {
     if (currentFrameStackItem?.status === "message") {
@@ -112,7 +115,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
         status: currentFrameStackItem.type === "info" ? "message" : "error",
       });
     }
-  }, [currentFrameStackItem]);
+  }, [currentFrameStackItem, onMessageRef]);
 
   if (!frameState.homeframeUrl) {
     return components.Error(
@@ -128,8 +131,12 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
   let frameUiState: FrameUIState;
   const previousFrameStackItem =
     frameState.framesStack[frameState.framesStack.length - 1];
+  /**
+   * Frames v2 don't have previous frame as they consist purely of initial frame only
+   */
   const previousFrame =
-    previousFrameStackItem?.status === "done"
+    previousFrameStackItem?.status === "done" &&
+    previousFrameStackItem.frameResult.specification !== "farcaster_v2"
       ? previousFrameStackItem.frameResult.frame
       : null;
 
@@ -201,30 +208,64 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
     }
     case "done": {
       if (currentFrameStackItem.frameResult.status === "success") {
-        frameUiState = {
-          status: "complete",
-          frame: currentFrameStackItem.frameResult.frame,
-          debugImage: enableImageDebugging
-            ? currentFrameStackItem.frameResult.framesDebugInfo?.image
-            : undefined,
-          isImageLoading,
-          id: currentFrameStackItem.id,
-          frameState,
-        };
+        if (
+          currentFrameStackItem.frameResult.specification === "farcaster_v2"
+        ) {
+          frameUiState = {
+            status: "complete",
+            frame: currentFrameStackItem.frameResult.frame,
+            specification: "farcaster_v2",
+            debugImage: enableImageDebugging
+              ? currentFrameStackItem.frameResult.framesDebugInfo?.image
+              : undefined,
+            isImageLoading,
+            id: currentFrameStackItem.id,
+            frameState,
+            parseResult: currentFrameStackItem.frameResult,
+          };
+        } else {
+          frameUiState = {
+            status: "complete",
+            frame: currentFrameStackItem.frameResult.frame,
+            debugImage: enableImageDebugging
+              ? currentFrameStackItem.frameResult.framesDebugInfo?.image
+              : undefined,
+            isImageLoading,
+            id: currentFrameStackItem.id,
+            frameState,
+          };
+        }
       } else if (
         isPartialFrameStackItem(currentFrameStackItem) &&
         allowPartialFrame
       ) {
-        frameUiState = {
-          status: "partial",
-          frame: currentFrameStackItem.frameResult.frame,
-          debugImage: enableImageDebugging
-            ? currentFrameStackItem.frameResult.framesDebugInfo?.image
-            : undefined,
-          isImageLoading,
-          id: currentFrameStackItem.id,
-          frameState,
-        };
+        if (
+          currentFrameStackItem.frameResult.specification === "farcaster_v2"
+        ) {
+          frameUiState = {
+            status: "partial",
+            frame: currentFrameStackItem.frameResult.frame,
+            specification: "farcaster_v2",
+            debugImage: enableImageDebugging
+              ? currentFrameStackItem.frameResult.framesDebugInfo?.image
+              : undefined,
+            isImageLoading,
+            id: currentFrameStackItem.id,
+            frameState,
+            parseResult: currentFrameStackItem.frameResult,
+          };
+        } else {
+          frameUiState = {
+            status: "partial",
+            frame: currentFrameStackItem.frameResult.frame,
+            debugImage: enableImageDebugging
+              ? currentFrameStackItem.frameResult.framesDebugInfo?.image
+              : undefined,
+            isImageLoading,
+            id: currentFrameStackItem.id,
+            frameState,
+          };
+        }
       } else {
         return components.Error(
           { message: "Invalid frame" },
@@ -247,33 +288,74 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
   const isLoading =
     frameUiState.status === "loading" || frameUiState.isImageLoading;
 
-  const buttonsProps =
-    frameUiState.status === "loading" ||
-    !frameUiState.frame.buttons ||
-    frameUiState.frame.buttons.length === 0
-      ? null
-      : frameUiState.frame.buttons.map((frameButton, index) => ({
+  let buttonsProps: FrameButtonProps[] | null = null;
+
+  if (frameUiState.status !== "loading") {
+    if ("specification" in frameUiState) {
+      buttonsProps = [
+        {
           frameState: frameUiState,
-          frameButton,
-          index,
+          frameButton: {
+            action: "launch_frame",
+            label: frameUiState.frame.button.title,
+          },
+          index: 0,
           isDisabled: false,
           onPress() {
-            // track dimensions of the root if possible
-            rootDimensionsRef.current = rootRef.current?.computeDimensions();
+            // we don't need to track dimensions here because this button does nothing to frame stack
+            try {
+              if (!("onLaunchFrameButtonPress" in frameState)) {
+                throw new Error(
+                  "onLaunchFrameButtonPress is not implemented, you are porbably using old useFrame hook"
+                );
+              }
 
-            Promise.resolve(
-              frameState.onButtonPress(
-                // @todo change the type onButtonPress to accept partial frame as well because that can happen if partial frames are enabled
-                frameUiState.frame as Frame,
-                frameButton,
-                index
-              )
-            ).catch((error) => {
-              // eslint-disable-next-line no-console -- provide feedback to the user
-              console.error(error);
-            });
+              frameState.onLaunchFrameButtonPress(
+                frameUiState.status === "complete"
+                  ? {
+                      status: "complete",
+                      frame: frameUiState.frame,
+                      parseResult: frameUiState.parseResult,
+                    }
+                  : {
+                      status: "partial",
+                      frame: frameUiState.frame,
+                      parseResult: frameUiState.parseResult,
+                    }
+              );
+            } catch (e) {
+              onErrorRef.current(e instanceof Error ? e : new Error(String(e)));
+            }
           },
-        }));
+        },
+      ];
+    } else if (
+      frameUiState.frame.buttons &&
+      frameUiState.frame.buttons.length > 0
+    ) {
+      buttonsProps = frameUiState.frame.buttons.map((frameButton, index) => ({
+        frameState: frameUiState,
+        frameButton,
+        index,
+        isDisabled: false,
+        onPress() {
+          // track dimensions of the root if possible
+          rootDimensionsRef.current = rootRef.current?.computeDimensions();
+
+          Promise.resolve(
+            frameState.onButtonPress(
+              // @todo change the type onButtonPress to accept partial frame as well because that can happen if partial frames are enabled
+              frameUiState.frame as Frame,
+              frameButton,
+              index
+            )
+          ).catch((e) => {
+            onErrorRef.current(e instanceof Error ? e : new Error(String(e)));
+          });
+        },
+      }));
+    }
+  }
 
   return components.Root(
     {
@@ -309,22 +391,35 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
         {
           frameState: frameUiState,
           aspectRatio:
+            // eslint-disable-next-line no-nested-ternary -- unnecessary to extract this to a variable
             (frameUiState.status === "loading"
               ? previousFrame?.imageAspectRatio
-              : frameUiState.frame.imageAspectRatio) ?? "1.91:1",
+              : "specification" in frameUiState
+                ? "3:2" // frames v2
+                : frameUiState.frame.imageAspectRatio) ?? "1.91:1",
           image: components.Image(
             frameUiState.status === "loading"
               ? {
                   status: "frame-loading",
                   frameState: frameUiState,
                   onImageLoadEnd,
-                  aspectRatio: previousFrame?.imageAspectRatio ?? "1.91:1",
+                  aspectRatio:
+                    previousFrame?.imageAspectRatio ??
+                    ("specification" in frameUiState ? "3:2" : undefined) ??
+                    "1.91:1",
                 }
               : {
                   status: "frame-loading-complete",
                   frameState: frameUiState,
-                  src: frameUiState.debugImage ?? frameUiState.frame.image,
-                  aspectRatio: frameUiState.frame.imageAspectRatio ?? "1.91:1",
+                  src:
+                    frameUiState.debugImage ??
+                    ("specification" in frameUiState
+                      ? frameUiState.frame.imageUrl
+                      : frameUiState.frame.image),
+                  aspectRatio:
+                    ("specification" in frameUiState
+                      ? "3:2" // frames v2
+                      : frameUiState.frame.imageAspectRatio) ?? "1.91:1",
                   onImageLoadEnd,
                 },
             theme?.Image || ({} as TStylingProps)
@@ -350,6 +445,7 @@ export function BaseFrameUI<TStylingProps extends Record<string, unknown>>({
       ),
       textInputContainer:
         frameUiState.status === "loading" ||
+        "specification" in frameUiState ||
         typeof frameUiState.frame.inputText !== "string"
           ? null
           : components.TextInputContainer(

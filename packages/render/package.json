@@ -86,6 +86,46 @@
         "default": "./dist/farcaster/index.cjs"
       }
     },
+    "./frame-app/iframe": {
+      "import": {
+        "types": "./dist/frame-app/iframe.d.ts",
+        "default": "./dist/frame-app/iframe.js"
+      },
+      "require": {
+        "types": "./dist/frame-app/iframe.d.cts",
+        "default": "./dist/frame-app/iframe.cjs"
+      }
+    },
+    "./frame-app/types": {
+      "import": {
+        "types": "./dist/frame-app/types.d.ts",
+        "default": "./dist/frame-app/types.js"
+      },
+      "require": {
+        "types": "./dist/frame-app/types.d.cts",
+        "default": "./dist/frame-app/types.cjs"
+      }
+    },
+    "./frame-app/web-view": {
+      "import": {
+        "types": "./dist/frame-app/web-view.d.ts",
+        "default": "./dist/frame-app/web-view.js"
+      },
+      "require": {
+        "types": "./dist/frame-app/web-view.d.cts",
+        "default": "./dist/frame-app/web-view.cjs"
+      }
+    },
+    "./frame-app/provider/wagmi": {
+      "import": {
+        "types": "./dist/frame-app/provider/wagmi.d.ts",
+        "default": "./dist/frame-app/provider/wagmi.js"
+      },
+      "require": {
+        "types": "./dist/frame-app/provider/wagmi.d.cts",
+        "default": "./dist/frame-app/provider/wagmi.cjs"
+      }
+    },
     "./ui": {
       "react-native": {
         "types": "./dist/ui/index.native.d.cts",
@@ -98,6 +138,26 @@
       "require": {
         "types": "./dist/ui/index.d.cts",
         "default": "./dist/ui/index.cjs"
+      }
+    },
+    "./ui/utils": {
+      "import": {
+        "types": "./dist/ui/utils.d.ts",
+        "default": "./dist/ui/utils.js"
+      },
+      "require": {
+        "types": "./dist/ui/utils.d.cts",
+        "default": "./dist/ui/utils.cjs"
+      }
+    },
+    "./ui/types": {
+      "import": {
+        "types": "./dist/ui/types.d.ts",
+        "default": "./dist/ui/types.js"
+      },
+      "require": {
+        "types": "./dist/ui/types.d.cts",
+        "default": "./dist/ui/types.cjs"
       }
     },
     "./use-fetch-frame": {
@@ -130,6 +190,16 @@
         "default": "./dist/use-frame.cjs"
       }
     },
+    "./use-cast-action": {
+      "import": {
+        "types": "./dist/use-cast-action.d.ts",
+        "default": "./dist/use-cast-action.js"
+      },
+      "require": {
+        "types": "./dist/use-cast-action.d.cts",
+        "default": "./dist/use-cast-action.cjs"
+      }
+    },
     "./use-composer-action": {
       "import": {
         "types": "./dist/use-composer-action.d.ts",
@@ -140,16 +210,6 @@
         "default": "./dist/use-composer-action.cjs"
       }
     },
-    "./unstable-use-frame-state": {
-      "import": {
-        "types": "./dist/unstable-use-frame-state.d.ts",
-        "default": "./dist/unstable-use-frame-state.js"
-      },
-      "require": {
-        "types": "./dist/unstable-use-frame-state.d.cts",
-        "default": "./dist/unstable-use-frame-state.cjs"
-      }
-    },
     "./unstable-use-fetch-frame": {
       "import": {
         "types": "./dist/unstable-use-fetch-frame.d.ts",
@@ -158,6 +218,26 @@
       "require": {
         "types": "./dist/unstable-use-fetch-frame.d.cts",
         "default": "./dist/unstable-use-fetch-frame.cjs"
+      }
+    },
+    "./use-frame-app": {
+      "import": {
+        "types": "./dist/use-frame-app.d.ts",
+        "default": "./dist/use-frame-app.js"
+      },
+      "require": {
+        "types": "./dist/use-frame-app.d.cts",
+        "default": "./dist/use-frame-app.cjs"
+      }
+    },
+    "./unstable-use-frame-state": {
+      "import": {
+        "types": "./dist/unstable-use-frame-state.d.ts",
+        "default": "./dist/unstable-use-frame-state.js"
+      },
+      "require": {
+        "types": "./dist/unstable-use-frame-state.d.cts",
+        "default": "./dist/unstable-use-frame-state.cjs"
       }
     },
     "./unstable-use-frame": {
@@ -256,6 +336,7 @@
     "src"
   ],
   "devDependencies": {
+    "@farcaster/frame-host-react-native": "^0.0.14",
     "@lens-protocol/client": "^2.3.2",
     "@rainbow-me/rainbowkit": "^2.1.2",
     "@remix-run/node": "^2.8.1",
@@ -263,6 +344,7 @@
     "@types/react": "^18.2.0",
     "@xmtp/xmtp-js": "^12.0.0",
     "@xmtp/frames-client": "^0.5.3",
+    "react-native-webview": "^13.12.4",
     "tsup": "^8.0.1",
     "typescript": "^5.4.5",
     "viem": "^2.13.7",
@@ -270,6 +352,7 @@
   },
   "license": "MIT",
   "peerDependencies": {
+    "@farcaster/frame-host-react-native": "^0.0.14",
     "@lens-protocol/client": "^2.0.0",
     "@rainbow-me/rainbowkit": "^2.1.2",
     "@types/react": "^18.2.0",
@@ -279,13 +362,16 @@
     "next": "^14.1.0",
     "react": "^18.2.0",
     "react-native": "^0.74.3",
+    "react-native-webview": "^13.12.4",
     "viem": "^2.7.8",
     "wagmi": "^2.9.10"
   },
   "dependencies": {
-    "@farcaster/core": "^0.14.7",
+    "@farcaster/core": "^0.15.6",
+    "@farcaster/frame-host": "^0.0.19",
     "@noble/ed25519": "^2.0.0",
     "frames.js": "^0.20.0",
+    "ox": "^0.4.0",
     "zod": "^3.23.8"
   }
 }

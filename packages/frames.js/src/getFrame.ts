@@ -1,13 +1,20 @@
 import type {
   SupportedParsingSpecification,
   ParseResultWithFrameworkDetails,
+  ParseFramesV2ResultWithFrameworkDetails,
 } from "./frame-parsers/types";
 import { parseFramesWithReports } from "./parseFramesWithReports";
 
-export type GetFrameResult = ParseResultWithFrameworkDetails;
+export type GetFrameResult =
+  | ParseResultWithFrameworkDetails
+  | ParseFramesV2ResultWithFrameworkDetails;
 
 type GetFrameOptions = {
   htmlString: string;
+  /**
+   * URL to the frame.
+   */
+  frameUrl: string;
   /**
    * Fallback url used if post_url is missing.
    */
@@ -31,13 +38,15 @@ type GetFrameOptions = {
  *
  * @returns an object representing the parsing result
  */
-export function getFrame({
+export async function getFrame({
   htmlString,
+  frameUrl,
   specification = "farcaster",
   url,
   fromRequestMethod = "GET",
-}: GetFrameOptions): GetFrameResult {
-  const parsedFrames = parseFramesWithReports({
+}: GetFrameOptions): Promise<GetFrameResult> {
+  const parsedFrames = await parseFramesWithReports({
+    frameUrl,
     fallbackPostUrl: url,
     html: htmlString,
     fromRequestMethod,

@@ -16,7 +16,9 @@
     "url": "https://github.com/framesjs/frames.js/tree/main/packages/debugger"
   },
   "dependencies": {
-    "@lens-protocol/client": "2.3.2",
+    "@upstash/redis": "^1.34.3",
+    "@lens-protocol/client": "^2.3.2",
+    "@farcaster/frame-sdk": "^0.0.20",
     "@xmtp/xmtp-js": "^12.0.0",
     "is-port-reachable": "^4.0.0",
     "next": "14.1.4",
@@ -29,8 +31,11 @@
   "engines": {
     "node": ">=18.17.0"
   },
+  "optionalDependencies": {
+    "better-sqlite3": "^11.7.0"
+  },
   "devDependencies": {
-    "@farcaster/core": "^0.14.7",
+    "@farcaster/core": "^0.15.6",
     "@frames.js/render": "^0.4.2",
     "@primer/octicons-react": "^19.9.0",
     "@radix-ui/react-accordion": "^1.1.2",
@@ -48,10 +53,11 @@
     "@radix-ui/react-tooltip": "^1.0.7",
     "@rainbow-me/rainbowkit": "^2.1.2",
     "@reservoir0x/reservoir-sdk": "^2.0.11",
-    "@tanstack/react-query": "^5.22.2",
+    "@tanstack/react-query": "^5.62.7",
     "@types/node": "^18.17.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "@types/better-sqlite3": "^7.6.12",
     "@types/yargs": "^17.0.32",
     "@xmtp/frames-client": "^0.5.3",
     "@xmtp/frames-validator": "^0.6.2",

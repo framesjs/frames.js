@@ -4,7 +4,7 @@ import { getFrameHtml } from "./getFrameHtml";
 import type { Frame } from "./types";
 
 describe("getFrame", () => {
-  it("should parse html meta tags (farcaster)", () => {
+  it("should parse html meta tags (farcaster)", async () => {
     const htmlString = `
     <meta name="fc:frame" content="vNext" />
     <meta name="fc:frame:image" content="http://example.com/image.png" />
@@ -18,12 +18,13 @@ describe("getFrame", () => {
     <title>test</title>
   `;
 
-    expect(
+    await expect(
       getFrame({
         htmlString,
         url: "https://example.com",
+        frameUrl: "https://example.com",
       })
-    ).toEqual({
+    ).resolves.toEqual({
       status: "success",
       framesVersion: undefined,
       specification: "farcaster",
@@ -61,7 +62,7 @@ describe("getFrame", () => {
     });
   });
 
-  it("should parse button actions (farcaster)", () => {
+  it("should parse button actions (farcaster)", async () => {
     const html = `
     <meta name="fc:frame" content="vNext"/>
     <meta name="fc:frame:post_url" content="https://example.com"/>
@@ -81,9 +82,10 @@ describe("getFrame", () => {
     const frame = getFrame({
       htmlString: html,
       url: "https://example.com",
+      frameUrl: "https://example.com",
     });
 
-    expect(frame).toEqual({
+    await expect(frame).resolves.toEqual({
       status: "success",
       framesVersion: undefined,
       specification: "farcaster",
@@ -120,7 +122,7 @@ describe("getFrame", () => {
     });
   });
 
-  it("should convert a Farcaster Frame HTML into a Frame object", () => {
+  it("should convert a Farcaster Frame HTML into a Frame object", async () => {
     const exampleFrame: Frame = {
       version: "vNext",
       image: "http://example.com/image.png",
@@ -158,9 +160,10 @@ describe("getFrame", () => {
 
     const html = getFrameHtml(exampleFrame, { title: "Test" });
 
-    const parsedFrame = getFrame({
+    const parsedFrame = await getFrame({
       htmlString: html,
       url: "https://example.com",
+      frameUrl: "https://example.com",
     });
 
     expect(parsedFrame).toEqual({
@@ -172,7 +175,7 @@ describe("getFrame", () => {
     });
   });
 
-  it("should parse open frames tags", () => {
+  it("should parse open frames tags", async () => {
     const html = `
     <meta name="of:version" content="vNext" />
     <meta name="of:accepts:some" content="vNext" />
@@ -187,10 +190,11 @@ describe("getFrame", () => {
     <title>test</title>
   `;
 
-    const frame = getFrame({
+    const frame = await getFrame({
       htmlString: html,
       url: "https://example.com",
       specification: "openframes",
+      frameUrl: "https://example.com",
     });
 
     expect(frame).not.toBeNull();
@@ -233,7 +237,7 @@ describe("getFrame", () => {
     });
   });
 
-  it("should parse values with escaped html values", () => {
+  it("should parse values with escaped html values", async () => {
     const html = `
     <meta name="fc:frame" content="vNext" />
     <meta name="fc:frame:image" content="http://example.com/image.png" />
@@ -242,7 +246,15 @@ describe("getFrame", () => {
     <title>test</title>
   `;
 
-    const result = getFrame({ htmlString: html, url: "https://example.com" });
+    const result = await getFrame({
+      htmlString: html,
+      frameUrl: "https://example.com",
+      url: "https://example.com",
+    });
+
+    if (result.specification !== "farcaster") {
+      throw new Error("Specification should be farcaster");
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- this is test
     expect(JSON.parse(result.frame.state!)).toEqual({
@@ -250,7 +262,7 @@ describe("getFrame", () => {
     });
   });
 
-  it("should parse frames.js version from meta tags", () => {
+  it("should parse frames.js version from meta tags", async () => {
     const html = `
     <meta name="frames.js:version" content="1.0.0" />
     <meta name="fc:frame" content="vNext" />
@@ -260,12 +272,16 @@ describe("getFrame", () => {
     <title>test</title>
   `;
 
-    const result = getFrame({ htmlString: html, url: "https://example.com" });
+    const result = await getFrame({
+      htmlString: html,
+      url: "https://example.com",
+      frameUrl: "https://example.com",
+    });
 
     expect(result.framesVersion).toEqual("1.0.0");
   });
 
-  it("should parse a frame that does not have an og:image tag", () => {
+  it("should parse a frame that does not have an og:image tag", async () => {
     const htmlString = `
     <meta name="fc:frame" content="vNext" />
     <meta name="fc:frame:image" content="http://example.com/image.png" />
@@ -278,9 +294,10 @@ describe("getFrame", () => {
     <title>test</title>
   `;
 
-    const parseResult = getFrame({
+    const parseResult = await getFrame({
       htmlString,
       url: "https://example.com",
+      frameUrl: "https://example.com",
     });
 
     expect(parseResult).toEqual({
@@ -329,7 +346,7 @@ describe("getFrame", () => {
     });
   });
 
-  it("should parse button post_url (farcaster)", () => {
+  it("should parse button post_url (farcaster)", async () => {
     const html = `
     <meta name="fc:frame" content="vNext"/>
     <meta name="fc:frame:image" content="http://example.com/image.png"/>
@@ -338,9 +355,10 @@ describe("getFrame", () => {
     <meta name="fc:frame:button:1:post_url" content="https://example.com/submit"/>
     <title>test</title>
     `;
-    const frame = getFrame({
+    const frame = await getFrame({
       htmlString: html,
       url: "https://example.com",
+      frameUrl: "https://example.com",
     });
 
     expect(frame).toEqual({

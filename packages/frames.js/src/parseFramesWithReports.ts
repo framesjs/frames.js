@@ -7,9 +7,14 @@ import type {
 import { parseFarcasterFrame } from "./frame-parsers/farcaster";
 import { parseOpenFramesFrame } from "./frame-parsers/open-frames";
 import { FRAMESJS_DEBUG_INFO_IMAGE_KEY } from "./constants";
+import {
+  parseFarcasterFrameV2,
+  type ParseFarcasterFrameV2ValidationSettings,
+} from "./frame-parsers/farcasterV2";
 
 type ParseFramesWithReportsOptions = {
   html: string;
+  frameUrl: string;
   /**
    * URL used if frame doesn't contain a post_url meta tag.
    */
@@ -22,17 +27,26 @@ type ParseFramesWithReportsOptions = {
    * @defaultValue 'GET'
    */
   fromRequestMethod?: "GET" | "POST";
+  /**
+   * Control parse settings
+   */
+  parseSettings?: {
+    farcaster_v2?: ParseFarcasterFrameV2ValidationSettings;
+  };
 };
 
 /**
  * Gets all supported frames and validation their respective validation reports.
  */
-export function parseFramesWithReports({
+export async function parseFramesWithReports({
   html,
+  frameUrl,
   fallbackPostUrl,
   fromRequestMethod = "GET",
-}: ParseFramesWithReportsOptions): ParseFramesWithReportsResult {
+  parseSettings,
+}: ParseFramesWithReportsOptions): Promise<ParseFramesWithReportsResult> {
   const farcasterReporter = createReporter("farcaster");
+  const farcasterV2Reporter = createReporter("farcaster_v2");
   const openFramesReporter = createReporter("openframes");
   const document = loadDocument(html);
 
@@ -40,6 +54,12 @@ export function parseFramesWithReports({
     reporter: farcasterReporter,
     fallbackPostUrl,
     fromRequestMethod,
+  });
+
+  const farcasterV2 = await parseFarcasterFrameV2(document, {
+    ...parseSettings?.farcaster_v2,
+    reporter: farcasterV2Reporter,
+    frameUrl,
   });
 
   const framesVersion = document(
@@ -71,6 +91,10 @@ export function parseFramesWithReports({
   return {
     farcaster: {
       ...farcaster,
+      ...frameworkDetails,
+    },
+    farcaster_v2: {
+      ...farcasterV2,
       ...frameworkDetails,
     },
     openframes: {

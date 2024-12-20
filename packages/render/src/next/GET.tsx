@@ -18,6 +18,10 @@ export async function GET(request: Request | NextRequest): Promise<Response> {
         : new URL(request.url).searchParams;
     const url = searchParams.get("url");
     const specification = searchParams.get("specification") ?? "farcaster";
+    const parseFarcasterManifest =
+      searchParams.get("parseFarcasterManifest") === "true";
+    const strictlyParseFarcasterV2 =
+      searchParams.get("looseFarcasterV2Parsing") !== "true";
     const multiSpecificationEnabled =
       searchParams.get("multispecification") === "true";
 
@@ -31,10 +35,19 @@ export async function GET(request: Request | NextRequest): Promise<Response> {
     const html = await urlRes.text();
 
     if (multiSpecificationEnabled) {
-      const result: ParseFramesWithReportsResult = parseFramesWithReports({
-        html,
-        fallbackPostUrl: url,
-      });
+      const result: ParseFramesWithReportsResult = await parseFramesWithReports(
+        {
+          html,
+          fallbackPostUrl: url,
+          frameUrl: url,
+          parseSettings: {
+            farcaster_v2: {
+              parseManifest: parseFarcasterManifest,
+              strict: strictlyParseFarcasterV2,
+            },
+          },
+        }
+      );
 
       return Response.json(result satisfies GETResponse);
     }
@@ -48,8 +61,9 @@ export async function GET(request: Request | NextRequest): Promise<Response> {
       );
     }
 
-    const result = getFrame({
+    const result = await getFrame({
       htmlString: html,
+      frameUrl: url,
       url,
       specification,
     });

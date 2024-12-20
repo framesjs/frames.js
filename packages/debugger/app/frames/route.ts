@@ -21,7 +21,7 @@ export function isSpecificationValid(
 ): specification is SupportedParsingSpecification {
   return (
     typeof specification === "string" &&
-    ["farcaster", "openframes"].includes(specification)
+    ["farcaster", "farcaster_v2", "openframes"].includes(specification)
   );
 }
 
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     return Response.json({ message: "Invalid URL" }, { status: 400 });
   }
 
-  if (!(specification === "farcaster" || specification === "openframes")) {
+  if (!isSpecificationValid(specification)) {
     return Response.json({ message: "Invalid specification" }, { status: 400 });
   }
 
@@ -62,10 +62,17 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     const html = await urlRes.text();
 
-    const parseResult = parseFramesWithReports({
+    const parseResult = await parseFramesWithReports({
       html,
+      frameUrl: url,
       fallbackPostUrl: url,
       fromRequestMethod: "GET",
+      parseSettings: {
+        farcaster_v2: {
+          parseManifest: true,
+          strict: false,
+        },
+      },
     });
 
     return Response.json({
