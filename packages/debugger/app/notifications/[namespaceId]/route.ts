@@ -1,7 +1,4 @@
-import {
-  notificationDetailsSchema,
-  type SendNotificationRequest,
-} from "@farcaster/frame-sdk";
+import { type SendNotificationRequest } from "@farcaster/frame-sdk";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 import {
@@ -11,6 +8,7 @@ import {
 } from "frames.js/farcaster-v2/events";
 import { type Hex, hexToBytes } from "viem";
 import { getStorage } from "../storage";
+import { notificationDetailsSchema } from "../parsers";
 
 export type NotificationUrl = {
   token: string;

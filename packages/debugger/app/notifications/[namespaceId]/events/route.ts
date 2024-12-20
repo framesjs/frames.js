@@ -1,10 +1,8 @@
 import type { NextRequest } from "next/server";
 import { z } from "zod";
-import {
-  serverEventSchema,
-  sendNotificationRequestSchema,
-} from "@farcaster/frame-sdk";
+import { serverEventSchema } from "@farcaster/frame-sdk";
 import { getStorage } from "../../storage";
+import { sendNotificationRequestSchema } from "../../parsers";
 
 const getEventsResponseBodySchema = z.array(
   z.discriminatedUnion("type", [

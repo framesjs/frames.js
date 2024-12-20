@@ -1,17 +1,22 @@
 import type { NextRequest } from "next/server";
 import {
-  sendNotificationRequestSchema,
   sendNotificationResponseSchema,
   SendNotificationResponse,
 } from "@farcaster/frame-sdk";
 import crypto from "node:crypto";
 import { getStorage } from "../../storage";
+import { z } from "zod";
+import { sendNotificationRequestSchema } from "../../parsers";
+
+const requestBodySchema = sendNotificationRequestSchema.extend({
+  targetUrl: z.string().url(),
+});
 
 export async function POST(
   req: NextRequest,
   { params }: { params: { namespaceId: string } }
 ) {
-  const requestBody = sendNotificationRequestSchema.safeParse(await req.json());
+  const requestBody = requestBodySchema.safeParse(await req.json());
 
   if (!requestBody.success) {
     return Response.json(requestBody.error.flatten(), { status: 400 });

@@ -4,14 +4,12 @@ import type {
   RecordedEvent,
   StorageInterface,
 } from "../types";
-import {
-  serverEventSchema,
-  sendNotificationRequestSchema,
-} from "@farcaster/frame-sdk";
+import { serverEventSchema } from "@farcaster/frame-sdk";
 import type { FrameNotificationDetails } from "@farcaster/frame-sdk";
 import crypto from "node:crypto";
 import path from "node:path";
 import { z } from "zod";
+import { sendNotificationRequestSchema } from "../parsers";
 
 const NotificationsNamespaceSchema = z.object({
   id: z.string(),
