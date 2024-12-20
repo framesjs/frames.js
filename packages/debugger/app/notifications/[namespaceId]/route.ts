@@ -3,8 +3,6 @@ import {
   type SendNotificationRequest,
 } from "@farcaster/frame-sdk";
 import type { NextRequest } from "next/server";
-import { createRedis } from "../../lib/redis";
-import { RedisNotificationsStorage } from "../storage";
 import { z } from "zod";
 import {
   FrameServerEvent,
@@ -12,6 +10,7 @@ import {
   sendEvent,
 } from "frames.js/farcaster-v2/events";
 import { type Hex, hexToBytes } from "viem";
+import { getStorage } from "../storage";
 
 export type NotificationUrl = {
   token: string;
@@ -82,8 +81,7 @@ export async function POST(
     return Response.json(requestBody.error.flatten(), { status: 400 });
   }
 
-  const redis = createRedis();
-  const storage = new RedisNotificationsStorage(redis, req.nextUrl.href);
+  const storage = await getStorage(req.nextUrl.href);
   const namespace = await storage.getNamespace(params.namespaceId);
 
   if (!namespace) {
@@ -345,8 +343,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { namespaceId: string } }
 ): Promise<Response> {
-  const redis = createRedis();
-  const storage = new RedisNotificationsStorage(redis, req.nextUrl.href);
+  const storage = await getStorage(req.nextUrl.href);
   const namespace = await storage.getNamespace(params.namespaceId);
 
   if (!namespace) {

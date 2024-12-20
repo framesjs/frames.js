@@ -1,12 +1,11 @@
 import type { NextRequest } from "next/server";
-import { createRedis } from "../../../lib/redis";
-import { RedisNotificationsStorage } from "../../storage";
 import {
   sendNotificationRequestSchema,
   sendNotificationResponseSchema,
   SendNotificationResponse,
 } from "@farcaster/frame-sdk";
 import crypto from "node:crypto";
+import { getStorage } from "../../storage";
 
 export async function POST(
   req: NextRequest,
@@ -18,8 +17,7 @@ export async function POST(
     return Response.json(requestBody.error.flatten(), { status: 400 });
   }
 
-  const redis = createRedis();
-  const storage = new RedisNotificationsStorage(redis, req.nextUrl.href);
+  const storage = await getStorage(req.nextUrl.href);
   const namespace = await storage.getNamespace(params.namespaceId);
 
   if (

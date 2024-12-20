@@ -29,13 +29,15 @@ const args = yargs(hideBin(process.argv))
   .option("kv-rest-api-url", {
     alias: "kvurl",
     type: "string",
-    description: "Needed for debugging Farcaster Frames v2 events",
+    description:
+      "Sets debugger to store Farcaster Frames v2 events into redis instead of SQLite",
     default: process.env.KV_REST_API_URL,
   })
   .option("kv-rest-api-token", {
     alias: "kvtoken",
     type: "string",
-    description: "Needed for debugging Farcaster Frames v2 events",
+    description:
+      "Sets debugger to store Farcaster Frames v2 events into redis instead of SQLite",
     default: process.env.KV_REST_API_TOKEN,
   })
   .option("signer-url", {

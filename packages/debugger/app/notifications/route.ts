@@ -1,7 +1,6 @@
 import type { NextRequest } from "next/server";
 import { z } from "zod";
-import { createRedis } from "../lib/redis";
-import { RedisNotificationsStorage } from "./storage";
+import { getStorage } from "./storage";
 import {
   type GETNotificationsDetailResponseBody,
   getResponseBodySchema,
@@ -33,9 +32,8 @@ export async function POST(req: NextRequest) {
     return Response.json(body.error.flatten(), { status: 400 });
   }
 
-  const redis = createRedis();
+  const storage = await getStorage(req.nextUrl.href);
   const { fid, frameAppUrl, webhookUrl } = body.data;
-  const storage = new RedisNotificationsStorage(redis, req.nextUrl.href);
 
   // Create new namespace
   const namespaceId = crypto.randomUUID();

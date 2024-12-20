@@ -1,4 +1,7 @@
-import type { SendNotificationRequest } from "@farcaster/frame-sdk";
+import type {
+  FrameNotificationDetails,
+  SendNotificationRequest,
+} from "@farcaster/frame-sdk";
 import { FrameClientConfig } from "@frames.js/render/frame-app/types";
 import type { FrameServerEvent } from "frames.js/farcaster-v2/events";
 
@@ -46,3 +49,48 @@ export type NotificationSettings =
       webhookUrl: string;
       signerPrivateKey: string;
     };
+
+export type NotificationsNamespace = {
+  id: string;
+  fid: number;
+  frameAppUrl: string;
+  namespaceUrl: string;
+  webhookUrl: string;
+  frame:
+    | {
+        status: "added";
+        notificationDetails: null | FrameNotificationDetails;
+      }
+    | {
+        status: "removed";
+      };
+};
+
+export interface StorageInterface {
+  registerNamespace(
+    id: string,
+    params: {
+      fid: number;
+      frameAppUrl: string;
+      webhookUrl: string;
+    }
+  ): Promise<NotificationsNamespace>;
+
+  getNamespace(id: string): Promise<NotificationsNamespace | null>;
+
+  addFrame(
+    namespace: NotificationsNamespace
+  ): Promise<FrameNotificationDetails>;
+
+  removeFrame(namespace: NotificationsNamespace): Promise<void>;
+
+  enableNotifications(
+    namespace: NotificationsNamespace
+  ): Promise<FrameNotificationDetails>;
+
+  disableNotifications(namespace: NotificationsNamespace): Promise<void>;
+
+  recordEvent(namespaceId: string, event: RecordedEvent): Promise<void>;
+
+  listEvents(namespaceId: string): Promise<RecordedEvent[]>;
+}
