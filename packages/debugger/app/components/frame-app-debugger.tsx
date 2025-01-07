@@ -25,6 +25,7 @@ import type {
 } from "@frames.js/render/frame-app/types";
 import { useConfig } from "wagmi";
 import type { EIP6963ProviderInfo } from "@farcaster/frame-sdk";
+import { z } from "zod";
 
 type TabValues = "events" | "console" | "notifications";
 
@@ -82,8 +83,20 @@ export function FrameAppDebugger({
   );
   const resolveClient: ResolveClientFunction = useCallback(async () => {
     try {
+      const clientInfoResponse = await fetch("/client-info");
+
+      if (!clientInfoResponse.ok) {
+        throw new Error("Failed to fetch client info");
+      }
+
+      const parseClientInfo = z.object({
+        fid: z.number().int(),
+      });
+
+      const clientInfo = parseClientInfo.parse(await clientInfoResponse.json());
+
       const { manager } = await frameAppNotificationManagerPromiseRef.current;
-      const clientFid = parseInt(process.env.FARCASTER_DEVELOPER_FID ?? "-1");
+      const clientFid = clientInfo.fid;
 
       if (!manager.state || manager.state.frame.status === "removed") {
         return {
@@ -93,7 +106,7 @@ export function FrameAppDebugger({
       }
 
       return {
-        clientFid: parseInt(process.env.FARCASTER_DEVELOPER_FID ?? "-1"),
+        clientFid,
         added: true,
         notificationDetails:
           manager.state.frame.notificationDetails ?? undefined,
@@ -107,12 +120,12 @@ export function FrameAppDebugger({
           "Failed to load notifications settings. Check the console for more details.",
         variant: "destructive",
       });
-    }
 
-    return {
-      clientFid: parseInt(process.env.FARCASTER_DEVELOPER_FID ?? "-1"),
-      added: false,
-    };
+      return {
+        clientFid: -1,
+        added: false,
+      };
+    }
   }, [toast]);
   const frameApp = useFrameAppInIframe({
     debug: true,
