@@ -57,7 +57,7 @@ function createDomainManifestParser(strict: boolean, reporter: Reporter) {
             .transform((val) => {
               if (!val.startsWith("https://")) {
                 reporter.error(
-                  "fc:manigest.frame.imageUrl",
+                  "fc:manifest.frame.imageUrl",
                   "Must be an https url"
                 );
               }
