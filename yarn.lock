@@ -2403,47 +2403,50 @@
     neverthrow "^6.0.0"
     viem "^2.17.4"
 
-"@farcaster/frame-core@^0.0.19":
+"@farcaster/frame-core@0.0.24", "@farcaster/frame-core@^0.0.24":
+  version "0.0.24"
+  resolved "https://registry.yarnpkg.com/@farcaster/frame-core/-/frame-core-0.0.24.tgz#35c2403f561a74b6551e3032d6d57a730c3dc413"
+  integrity sha512-iO/Jxz6mZBVUoLIY753Id5Yhn6DHBakQkIBXf0mreAcnjPGCMvKx/0xKEM3ns3M801PqoX7VLYO4q+kKxYzQ0A==
+  dependencies:
+    ox "^0.4.4"
+    zod "^3.24.1"
+
+"@farcaster/frame-host-react-native@^0.0.19":
   version "0.0.19"
-  resolved "https://registry.yarnpkg.com/@farcaster/frame-core/-/frame-core-0.0.19.tgz#76621fe6e207c3a5c78a22aa679bbbd7beafdd11"
-  integrity sha512-/0XjVZa/rUuUR16GVhhKnAQI33SXI61bB24jNA1DD0L0ytcKsM14wBptW9CF4RDiYIXxtt4mXmnQ+rMhO38RcA==
+  resolved "https://registry.yarnpkg.com/@farcaster/frame-host-react-native/-/frame-host-react-native-0.0.19.tgz#7e809d5cd9f6a264aac165360cadc90bf650c79b"
+  integrity sha512-WH5nQSGPiu99lE0L64tIa6BcfVelbT34XzYo89eEgsAqPmlGRnnHJwQAxlWSAXTHYhaXWpIQMC3u1a6KsQBQCw==
   dependencies:
-    ox "^0.4.0"
-    zod "^3.23.8"
+    "@farcaster/frame-core" "0.0.24"
+    "@farcaster/frame-host" "0.0.24"
+    ox "^0.4.4"
 
-"@farcaster/frame-host-react-native@^0.0.14":
-  version "0.0.14"
-  resolved "https://registry.yarnpkg.com/@farcaster/frame-host-react-native/-/frame-host-react-native-0.0.14.tgz#0919eb1466dfd497a29d0965a5e5c6e7e25336b1"
-  integrity sha512-iPjysnQ5H8aoWJWIdJIWPaBP9wo7s9fLNPy56RZXMsrqrkWDskOYfgND5CRZJzA9JDvvgLjqJ+XYdGPVXlKyGQ==
+"@farcaster/frame-host@0.0.24", "@farcaster/frame-host@^0.0.24":
+  version "0.0.24"
+  resolved "https://registry.yarnpkg.com/@farcaster/frame-host/-/frame-host-0.0.24.tgz#8e97b3476443c25b33e8f4cd1948ad912e4deb21"
+  integrity sha512-4l9FS7LjEYRjOmNnGFvYXnnQnsW8VGrQ6ECIYZjxdAglP63B9nCBmH0UhhkeKrQA+z/HmwIqOneh8LRjj4J5Bg==
   dependencies:
-    "@farcaster/frame-host" "^0.0.19"
-    ox "^0.4.0"
+    "@farcaster/frame-core" "0.0.24"
+    ox "^0.4.4"
 
-"@farcaster/frame-host@^0.0.19":
-  version "0.0.19"
-  resolved "https://registry.yarnpkg.com/@farcaster/frame-host/-/frame-host-0.0.19.tgz#7e44bc6df2d86bb6f210b51189676558ffe414ef"
-  integrity sha512-4Svhipw24PAcux4vCHlXA6L3sVi248Ad4bDuXVgqvOEgQ3Ue1Ic4iDQ/bgF+LG3/hLh5UvYJ4csz0xOEwRNT0Q==
+"@farcaster/frame-node@^0.0.13":
+  version "0.0.13"
+  resolved "https://registry.yarnpkg.com/@farcaster/frame-node/-/frame-node-0.0.13.tgz#ba9d37358589b263aa9566cf1763b1eb528672e6"
+  integrity sha512-99rhLSpyhKKnWFh8eWx8N5tTYEToFkIzg9r5lRm2bvfsZaT0zXr/cA+G9pWDFZyodfoyS/cLHS46Qsm8P52uTg==
   dependencies:
-    "@farcaster/frame-core" "^0.0.19"
-    ox "^0.4.0"
+    "@farcaster/frame-core" "0.0.24"
+    "@noble/curves" "^1.7.0"
+    ox "^0.4.4"
+    zod "^3.24.1"
 
-"@farcaster/frame-node@^0.0.8":
-  version "0.0.8"
-  resolved "https://registry.yarnpkg.com/@farcaster/frame-node/-/frame-node-0.0.8.tgz#14c5c8c527a793eefbffac5b03570ed3925c95fd"
-  integrity sha512-AE3xFVj7Tu2nfVASka0wagR9plaZ2UA1ezzh9aHA4f6GU/gVl+SdfZzAn4uOqgEPl3D2g7W4p0tPRYZVwMJfdg==
+"@farcaster/frame-sdk@^0.0.26":
+  version "0.0.26"
+  resolved "https://registry.yarnpkg.com/@farcaster/frame-sdk/-/frame-sdk-0.0.26.tgz#2cf5c5e9e8ecdbdbc244e55f41129fc1caa9b88c"
+  integrity sha512-tOoJcJLXXezjmP0gg/MOU/mCjNdWyL+j99XMylYCovel1etDQjLovGamVex8A6eELryLZ4LElV9AIbxP/i9IfA==
   dependencies:
-    "@farcaster/frame-core" "^0.0.19"
-    ox "^0.4.0"
-
-"@farcaster/frame-sdk@^0.0.20":
-  version "0.0.20"
-  resolved "https://registry.yarnpkg.com/@farcaster/frame-sdk/-/frame-sdk-0.0.20.tgz#253dba9a1aba23c63e01617720835fe6b2b0880b"
-  integrity sha512-9EbB3A9V1ZSH4NvhHVbylcDVNevJqpuGkwz4I+0bKF2936qxvMlcWclDZVEmfO/woYH0ZQgy47YYRIiS3YpIQw==
-  dependencies:
-    "@farcaster/frame-core" "^0.0.19"
+    "@farcaster/frame-core" "0.0.24"
     comlink "^4.4.2"
     eventemitter3 "^5.0.1"
-    ox "^0.4.0"
+    ox "^0.4.4"
 
 "@fastify/busboy@^2.0.0":
   version "2.1.1"
@@ -3549,6 +3552,13 @@
   dependencies:
     "@noble/hashes" "1.6.0"
 
+"@noble/curves@^1.7.0":
+  version "1.8.0"
+  resolved "https://registry.yarnpkg.com/@noble/curves/-/curves-1.8.0.tgz#fe035a23959e6aeadf695851b51a87465b5ba8f7"
+  integrity sha512-j84kjAbzEnQHaSIhRPUmB3/eVXu2k3dKPl2LOrR8fSOIL+89U+7lV117EWHtq/GHM3ReGHM46iRBdZfpc4HRUQ==
+  dependencies:
+    "@noble/hashes" "1.7.0"
+
 "@noble/curves@~1.4.0":
   version "1.4.2"
   resolved "https://registry.yarnpkg.com/@noble/curves/-/curves-1.4.2.tgz#40309198c76ed71bc6dbf7ba24e81ceb4d0d1fe9"
@@ -3585,6 +3595,11 @@
   version "1.6.1"
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.6.1.tgz#df6e5943edcea504bac61395926d6fd67869a0d5"
   integrity sha512-pq5D8h10hHBjyqX+cfBm0i8JUXJ0UhczFc4r74zbuT9XgewFo2E3J1cOaGtdZynILNmQ685YWGzGE1Zv6io50w==
+
+"@noble/hashes@1.7.0":
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.7.0.tgz#5d9e33af2c7d04fee35de1519b80c958b2e35e39"
+  integrity sha512-HXydb0DgzTpDPwbVeDGCG1gIu7X6+AuU6Zl6av/E/KG8LMsvPntvq+w17CHRpKBmN6Ybdrt1eP3k4cj8DJa78w==
 
 "@noble/secp256k1@1.7.1":
   version "1.7.1"
@@ -14854,10 +14869,10 @@ ox@0.1.2:
     abitype "^1.0.6"
     eventemitter3 "5.0.1"
 
-ox@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/ox/-/ox-0.4.0.tgz#6c73b27a9f45912888917304d7a81c894856a980"
-  integrity sha512-F+Q8R/7SZ8AvBcejIV6QUcACLjRuFtSShCkwTuCFWLAN5DoS8dSwiFsDBltvQplEXXNGmAEZCV4HDe7orEDSxA==
+ox@^0.4.4:
+  version "0.4.4"
+  resolved "https://registry.yarnpkg.com/ox/-/ox-0.4.4.tgz#9d1757c026406e60097680d98ffedf9e3bc1fa0b"
+  integrity sha512-oJPEeCDs9iNiPs6J0rTx+Y0KGeCGyCAA3zo94yZhm8G5WpOxrwUtn2Ie/Y8IyARSqqY/j9JTKA3Fc1xs1DvFnw==
   dependencies:
     "@adraffy/ens-normalize" "^1.10.1"
     "@noble/curves" "^1.6.0"
@@ -19063,10 +19078,10 @@ zod@^3.20.6, zod@^3.22.4:
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.22.4.tgz#f31c3a9386f61b1f228af56faa9255e845cf3fff"
   integrity sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==
 
-zod@^3.23.8:
-  version "3.23.8"
-  resolved "https://registry.yarnpkg.com/zod/-/zod-3.23.8.tgz#e37b957b5d52079769fb8097099b592f0ef4067d"
-  integrity sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==
+zod@^3.24.1:
+  version "3.24.1"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-3.24.1.tgz#27445c912738c8ad1e9de1bea0359fa44d9d35ee"
+  integrity sha512-muH7gBL9sI1nciMZV67X5fTKKBLtwpZ5VBp1vsOQzj1MhrBZ4wlVCm3gedKZWLp0Oyel8sIGfeiz54Su+OVT+A==
 
 zustand@4.4.1:
   version "4.4.1"

@@ -23,6 +23,8 @@ import type {
   FramePrimaryButton,
   ResolveClientFunction,
 } from "@frames.js/render/frame-app/types";
+import { useConfig } from "wagmi";
+import type { EIP6963ProviderInfo } from "@farcaster/frame-sdk";
 
 type TabValues = "events" | "console" | "notifications";
 
@@ -52,6 +54,7 @@ export function FrameAppDebugger({
   farcasterSigner,
   onClose,
 }: FrameAppDebuggerProps) {
+  const config = useConfig();
   const farcasterSignerRef = useRef(farcasterSigner);
   farcasterSignerRef.current = farcasterSigner;
   const frameAppNotificationManager = useFrameAppNotificationsManager({
@@ -122,6 +125,7 @@ export function FrameAppDebugger({
           }
         : {
             type: "cast_embed",
+            embed: "",
             cast: fallbackFrameContext.castId,
           },
     farcasterSigner,
@@ -232,6 +236,18 @@ export function FrameAppDebugger({
 
         throw e;
       }
+    },
+    onEIP6963RequestProviderRequested({ endpoint }) {
+      if (!config._internal.mipd) {
+        return;
+      }
+
+      config._internal.mipd.getProviders().map((providerInfo) => {
+        endpoint.emit({
+          event: "eip6963:announceProvider",
+          info: providerInfo.info as EIP6963ProviderInfo,
+        });
+      });
     },
   });
 

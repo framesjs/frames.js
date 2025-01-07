@@ -1,14 +1,15 @@
-import type { HostEndpoint } from "@farcaster/frame-host";
 import type {
-  AddFrameResult,
-  FrameContext,
-  SetPrimaryButton,
-} from "@farcaster/frame-sdk";
+  HostEndpoint,
+  Context,
+  SetPrimaryButtonOptions,
+  AddFrame,
+  FrameHost,
+} from "@farcaster/frame-host";
 import type { ParseFramesV2ResultWithFrameworkDetails } from "frames.js/frame-parsers";
 import type { Provider } from "ox/Provider";
 import type { Default as DefaultRpcSchema, ExtractRequest } from "ox/RpcSchema";
 
-export type FrameClientConfig = FrameContext["client"];
+export type FrameClientConfig = Context.ClientContext;
 
 export type SendTransactionRpcRequest = ExtractRequest<
   DefaultRpcSchema,
@@ -62,16 +63,32 @@ export type SharedEthProviderEventHandlers = {
   onSignTypedDataRequest: OnSignTypedDataRequestFunction;
 };
 
-export type FramePrimaryButton = Parameters<SetPrimaryButton>[0];
+export type FramePrimaryButton = SetPrimaryButtonOptions;
 
 export type OnPrimaryButtonSetFunction = (
   options: FramePrimaryButton,
   pressedCallback: () => void
 ) => void;
 
+/**
+ * Returns false if user rejected the request, otherwise it returns the notification details
+ */
 export type OnAddFrameRequestedFunction = (
   frame: ParseFramesV2ResultWithFrameworkDetails
-) => Promise<false | Extract<AddFrameResult, { added: true }>>;
+) => Promise<false | Required<AddFrame.AddFrameResult>>;
+
+export type OnEIP6963RequestProviderRequestedFunctionOptions = {
+  endpoint: HostEndpoint;
+};
+
+/**
+ * Function that must emit eip6963:announceProvider event on endpoint to announce available providers
+ */
+export type OnEIP6963RequestProviderRequestedFunction = (
+  options: OnEIP6963RequestProviderRequestedFunctionOptions
+) => unknown;
+
+export type OnViewProfileFunction = FrameHost["viewProfile"];
 
 /**
  * Function called when the frame app is being loaded and we need to resolve the client that renders the frame app
