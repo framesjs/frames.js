@@ -3,8 +3,6 @@ import type { FrameHost, HostEndpoint, Context } from "@farcaster/frame-host";
 import { AddFrame } from "@farcaster/frame-host";
 import { useMemo } from "react";
 import { useFreshRef } from "./hooks/use-fresh-ref";
-import type { FarcasterSignerState } from "./farcaster";
-import type { FarcasterSigner } from "./identity/farcaster";
 import type {
   EthProvider,
   FrameClientConfig,
@@ -127,6 +125,12 @@ export type UseFrameAppOptions = {
    */
   location?: Context.LocationContext;
   /**
+   * Information about the user who manipulates with the frame.
+   *
+   * Value should be memoized otherwise it will cause unnecessary re-renders.
+   */
+  user: Context.UserContext;
+  /**
    * Either:
    *
    * - frame parse result obtained from useFrame() hook
@@ -145,27 +149,6 @@ export type UseFrameAppOptions = {
    * Frame proxyUrl used to fetch the frame parse result.
    */
   proxyUrl: string;
-  /**
-   * Farcaster signer state. Must be approved or impersonated.
-   *
-   * @example
-   * ```ts
-   * import { useFarcasterSigner } from '@frames.js/render/identity/farcaster';
-   *
-   * function Component() {
-   *  const farcasterSigner = useFarcasterSigner({
-   *   // ...
-   *  });
-   *  const frameApp = useFrameApp({
-   *   farcasterSigner,
-   *   // ...
-   *  });
-   *
-   *  //...
-   * }
-   * ```
-   */
-  farcasterSigner: FarcasterSignerState<FarcasterSigner | null>;
   /**
    * Called when app calls `ready` method.
    */
@@ -251,7 +234,7 @@ export function useFrameApp({
   provider,
   client,
   location = defaultLocation,
-  farcasterSigner,
+  user,
   source,
   fetchFn,
   proxyUrl,
@@ -281,7 +264,6 @@ export function useFrameApp({
     onEIP6963RequestProviderRequested
   );
   const onSignInRef = useFreshRef(onSignIn);
-  const farcasterSignerRef = useFreshRef(farcasterSigner);
   const onAddFrameRequestedRef = useFreshRef(onAddFrameRequested);
   const addFrameRequestsCacheRef = useFreshRef(addFrameRequestsCache);
   const clientResolutionState = useResolveClient({ client });
@@ -315,19 +297,6 @@ export function useFrameApp({
       };
     }
 
-    if (
-      farcasterSignerRef.current.signer?.status !== "approved" &&
-      farcasterSignerRef.current.signer?.status !== "impersonating"
-    ) {
-      return {
-        status: "error",
-        error: new Error(
-          "Farcaster signer must be either approved or impersonating"
-        ),
-      };
-    }
-
-    const signer = farcasterSignerRef.current.signer;
     const resolvedClient = clientResolutionState.client;
 
     switch (frameResolutionState.status) {
@@ -405,7 +374,7 @@ export function useFrameApp({
             context: {
               client: resolvedClient,
               location: locationRef.current,
-              user: { fid: signer.fid },
+              user,
             },
             async ethProviderRequest(parameters) {
               // @ts-expect-error -- type mismatch
@@ -466,7 +435,6 @@ export function useFrameApp({
     }
   }, [
     clientResolutionState,
-    farcasterSignerRef,
     frameResolutionState,
     locationRef,
     logDebug,
@@ -480,5 +448,6 @@ export function useFrameApp({
     onViewProfileRef,
     onEIP6963RequestProviderRequestedRef,
     onSignInRef,
+    user,
   ]);
 }

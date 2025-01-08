@@ -71,6 +71,19 @@ export function FrameAppDebugger({
   const config = useConfig();
   const farcasterSignerRef = useRef(farcasterSigner);
   farcasterSignerRef.current = farcasterSigner;
+
+  const userContext = useRef<{ fid: number }>({ fid: -1 });
+
+  if (
+    (farcasterSigner.signer?.status === "approved" ||
+      farcasterSigner.signer?.status === "impersonating") &&
+    userContext.current.fid !== farcasterSigner.signer.fid
+  ) {
+    userContext.current = {
+      fid: farcasterSigner.signer.fid,
+    };
+  }
+
   const frameAppNotificationManager = useFrameAppNotificationsManager({
     farcasterSigner,
     context,
@@ -154,7 +167,7 @@ export function FrameAppDebugger({
             embed: "",
             cast: fallbackFrameContext.castId,
           },
-    farcasterSigner,
+    user: userContext.current,
     provider,
     proxyUrl: "/frames",
     addFrameRequestsCache,
