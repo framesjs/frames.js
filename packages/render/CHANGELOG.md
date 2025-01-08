@@ -1,5 +1,13 @@
 # @frames.js/render
 
+## 0.5.1
+
+### Patch Changes
+
+- 0e7244d: feat: farcaster v2 sign in and libs update
+- Updated dependencies [0e7244d]
+  - frames.js@0.21.1
+
 ## 0.5.0
 
 ### Minor Changes

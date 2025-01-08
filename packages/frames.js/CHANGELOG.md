@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.21.1
+
+### Patch Changes
+
+- 0e7244d: feat: farcaster v2 sign in and libs update
+
 ## 0.21.0
 
 ### Minor Changes

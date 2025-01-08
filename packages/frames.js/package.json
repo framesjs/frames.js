@@ -1,6 +1,6 @@
 {
   "name": "frames.js",
-  "version": "0.21.0",
+  "version": "0.21.1",
   "type": "module",
   "main": "./dist/index.cjs",
   "types": "index.d.cts",
@@ -419,13 +419,13 @@
     "react-dom": "^18.2.0"
   },
   "dependencies": {
-    "@farcaster/frame-core": "^0.0.19",
-    "@farcaster/frame-node": "^0.0.8",
+    "@farcaster/frame-core": "^0.0.24",
+    "@farcaster/frame-node": "^0.0.13",
     "@vercel/og": "^0.6.3",
     "cheerio": "^1.0.0-rc.12",
     "protobufjs": "^7.2.6",
     "viem": "^2.7.8",
     "type-fest": "^4.28.1",
-    "zod": "^3.23.8"
+    "zod": "^3.24.1"
   }
 }

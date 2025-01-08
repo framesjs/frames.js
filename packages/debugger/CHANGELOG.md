@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.4.1
+
+### Patch Changes
+
+- 0e7244d: feat: farcaster v2 sign in and libs update
+
 ## 0.4.0
 
 ### Minor Changes

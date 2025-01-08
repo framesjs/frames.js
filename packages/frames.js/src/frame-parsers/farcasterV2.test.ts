@@ -1228,7 +1228,7 @@ describe("farcaster frame v2 parser", () => {
         await expect(
           parseFarcasterFrameV2(document, { frameUrl, reporter, strict: false })
         ).resolves.toMatchObject({
-          status: "failure",
+          status: "success",
           specification: "farcaster_v2",
           frame: {
             ...validFrame,
@@ -1238,7 +1238,7 @@ describe("farcaster frame v2 parser", () => {
             "fc:frame.imageUrl": [
               {
                 source: "farcaster_v2",
-                level: "error",
+                level: "warning",
                 message: "Must be an https url",
               },
             ],
@@ -1269,7 +1269,7 @@ describe("farcaster frame v2 parser", () => {
               strict: false,
             })
           ).resolves.toMatchObject({
-            status: "failure",
+            status: "success",
             specification: "farcaster_v2",
             frame: {
               ...validFrame,
@@ -1285,7 +1285,7 @@ describe("farcaster frame v2 parser", () => {
               "fc:frame.button.action.url": [
                 {
                   source: "farcaster_v2",
-                  level: "error",
+                  level: "warning",
                   message: "Must be an https url",
                 },
               ],
@@ -1315,7 +1315,7 @@ describe("farcaster frame v2 parser", () => {
               strict: false,
             })
           ).resolves.toMatchObject({
-            status: "failure",
+            status: "success",
             specification: "farcaster_v2",
             frame: {
               ...validFrame,
@@ -1331,7 +1331,7 @@ describe("farcaster frame v2 parser", () => {
               "fc:frame.button.action.splashImageUrl": [
                 {
                   source: "farcaster_v2",
-                  level: "error",
+                  level: "warning",
                   message: "Must be an https url",
                 },
               ],
@@ -1382,7 +1382,7 @@ describe("farcaster frame v2 parser", () => {
           ).resolves.toMatchObject({
             status: "success",
             manifest: {
-              status: "failure",
+              status: "success",
               manifest: {
                 accountAssociation: {
                   header:
@@ -1401,7 +1401,7 @@ describe("farcaster frame v2 parser", () => {
               reports: {
                 "fc:manifest.frame.homeUrl": [
                   {
-                    level: "error",
+                    level: "warning",
                     message: "Must be an https url",
                     source: "farcaster_v2",
                   },
@@ -1450,7 +1450,7 @@ describe("farcaster frame v2 parser", () => {
           ).resolves.toMatchObject({
             status: "success",
             manifest: {
-              status: "failure",
+              status: "success",
               manifest: {
                 accountAssociation: {
                   header:
@@ -1469,7 +1469,7 @@ describe("farcaster frame v2 parser", () => {
               reports: {
                 "fc:manifest.frame.iconUrl": [
                   {
-                    level: "error",
+                    level: "warning",
                     message: "Must be an https url",
                     source: "farcaster_v2",
                   },
@@ -1519,7 +1519,7 @@ describe("farcaster frame v2 parser", () => {
           ).resolves.toMatchObject({
             status: "success",
             manifest: {
-              status: "failure",
+              status: "success",
               manifest: {
                 accountAssociation: {
                   header:
@@ -1539,7 +1539,7 @@ describe("farcaster frame v2 parser", () => {
               reports: {
                 "fc:manifest.frame.splashImageUrl": [
                   {
-                    level: "error",
+                    level: "warning",
                     message: "Must be an https url",
                     source: "farcaster_v2",
                   },

@@ -12,8 +12,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useAccount, useSignMessage, useSwitchChain } from "wagmi";
-import { FormEvent, useCallback, useState } from "react";
+import { FormEvent, useCallback, useRef, useState } from "react";
 import { CopyIcon, CopyCheckIcon, CopyXIcon, Loader2Icon } from "lucide-react";
+import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFarcasterIdentity } from "../hooks/useFarcasterIdentity";
@@ -28,6 +29,7 @@ type FarcasterDomainAccountAssociationDialogProps = {
 export function FarcasterDomainAccountAssociationDialog({
   onClose,
 }: FarcasterDomainAccountAssociationDialogProps) {
+  const domainInputRef = useRef<HTMLInputElement>(null);
   const copyCompact = useCopyToClipboard();
   const copyJSON = useCopyToClipboard();
   const account = useAccount();
@@ -44,7 +46,7 @@ export function FarcasterDomainAccountAssociationDialog({
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
 
-      const data = new FormData(event.currentTarget);
+      const data = Object.fromEntries(new FormData(event.currentTarget));
 
       try {
         if (farcasterSigner.signer?.status !== "approved") {
@@ -55,11 +57,35 @@ export function FarcasterDomainAccountAssociationDialog({
           throw new Error("Account address is not available");
         }
 
-        const domain = data.get("domain");
+        const parser = z.object({
+          domain: z
+            .preprocess((val) => {
+              if (typeof val === "string") {
+                // prepend with prefix because normally it is the domain but we want to validate
+                // it is in valid format
+                return `http://${val}`;
+              }
 
-        if (typeof domain !== "string" || !domain) {
-          throw new Error("Domain is required");
+              return val;
+            }, z.string().url("Invalid domain"))
+            // remove the protocol prefix
+            .transform((val) => val.substring(7)),
+        });
+
+        const parseResult = parser.safeParse(data);
+
+        if (!parseResult.success) {
+          parseResult.error.errors.map((error) => {
+            domainInputRef.current?.setCustomValidity(error.message);
+          });
+
+          event.currentTarget.reportValidity();
+
+          return;
         }
+
+        domainInputRef.current?.setCustomValidity("");
+        event.currentTarget.reportValidity();
 
         setIsGenerating(true);
 
@@ -69,8 +95,9 @@ export function FarcasterDomainAccountAssociationDialog({
 
         const result = await sign({
           fid: farcasterSigner.signer.fid,
-          payload:
-            constructJSONFarcasterSignatureAccountAssociationPaylod(domain),
+          payload: constructJSONFarcasterSignatureAccountAssociationPaylod(
+            parseResult.data.domain
+          ),
           signer: {
             type: "custody",
             custodyAddress: account.address,
@@ -117,15 +144,25 @@ export function FarcasterDomainAccountAssociationDialog({
           <DialogTitle>Domain Account Association</DialogTitle>
         </DialogHeader>
         {!associationResult && (
-          <form id="domain-account-association-form" onSubmit={handleSubmit}>
+          <form
+            className="flex flex-col gap-2"
+            id="domain-account-association-form"
+            onSubmit={handleSubmit}
+            noValidate
+          >
             <Label htmlFor="domain">Domain</Label>
             <Input
               id="domain"
               name="domain"
-              pattern="^.+\..+$"
               required
               type="text"
+              ref={domainInputRef}
             />
+            <span className="text-muted-foreground text-sm">
+              A domain of your frame, e.g. for https://framesjs.org the domain
+              is framesjs.org, for http://localhost:3000 the domain is
+              localhost.
+            </span>
           </form>
         )}
         {associationResult && (
