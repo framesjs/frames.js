@@ -14,10 +14,6 @@ import type {
 } from "./types";
 import { createReporter } from "./reporter";
 
-// @todo find out how to report that url is not secure but still keep it valid
-// maybe do this by using our own issue code which we will filter out before parsing partial data
-// this will make sure that manifest/frame status is failure but data is there
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type -- hard to type and we can infer because this is internal function, not exported
 function createDomainManifestParser(strict: boolean, reporter: Reporter) {
   if (!strict) {
@@ -30,7 +26,7 @@ function createDomainManifestParser(strict: boolean, reporter: Reporter) {
             .url()
             .transform((val) => {
               if (!val.startsWith("https://")) {
-                reporter.error(
+                reporter.warn(
                   "fc:manifest.frame.iconUrl",
                   "Must be an https url"
                 );
@@ -43,7 +39,7 @@ function createDomainManifestParser(strict: boolean, reporter: Reporter) {
             .url()
             .transform((val) => {
               if (!val.startsWith("https://")) {
-                reporter.error(
+                reporter.warn(
                   "fc:manifest.frame.homeUrl",
                   "Must be an https url"
                 );
@@ -56,8 +52,8 @@ function createDomainManifestParser(strict: boolean, reporter: Reporter) {
             .url()
             .transform((val) => {
               if (!val.startsWith("https://")) {
-                reporter.error(
-                  "fc:manigest.frame.imageUrl",
+                reporter.warn(
+                  "fc:manifest.frame.imageUrl",
                   "Must be an https url"
                 );
               }
@@ -70,7 +66,7 @@ function createDomainManifestParser(strict: boolean, reporter: Reporter) {
             .url()
             .transform((val) => {
               if (!val.startsWith("https://")) {
-                reporter.error(
+                reporter.warn(
                   "fc:manifest.frame.splashImageUrl",
                   "Must be an https url"
                 );
@@ -84,7 +80,7 @@ function createDomainManifestParser(strict: boolean, reporter: Reporter) {
             .url()
             .transform((val) => {
               if (!val.startsWith("https://")) {
-                reporter.error(
+                reporter.warn(
                   "fc:manifest.frame.webhookUrl",
                   "Must be an https url"
                 );
@@ -112,7 +108,7 @@ function createFrameEmbedParser(strict: boolean, reporter: Reporter) {
         .url()
         .transform((val) => {
           if (!val.startsWith("https://")) {
-            reporter.error("fc:frame.imageUrl", "Must be an https url");
+            reporter.warn("fc:frame.imageUrl", "Must be an https url");
           }
 
           return val;
@@ -125,7 +121,7 @@ function createFrameEmbedParser(strict: boolean, reporter: Reporter) {
               .url()
               .transform((val) => {
                 if (!val.startsWith("https://")) {
-                  reporter.error(
+                  reporter.warn(
                     "fc:frame.button.action.url",
                     "Must be an https url"
                   );
@@ -138,7 +134,7 @@ function createFrameEmbedParser(strict: boolean, reporter: Reporter) {
               .url()
               .transform((val) => {
                 if (!val.startsWith("https://")) {
-                  reporter.error(
+                  reporter.warn(
                     "fc:frame.button.action.splashImageUrl",
                     "Must be an https url"
                   );

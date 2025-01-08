@@ -336,7 +336,7 @@
     "src"
   ],
   "devDependencies": {
-    "@farcaster/frame-host-react-native": "^0.0.14",
+    "@farcaster/frame-host-react-native": "^0.0.19",
     "@lens-protocol/client": "^2.3.2",
     "@rainbow-me/rainbowkit": "^2.1.2",
     "@remix-run/node": "^2.8.1",
@@ -352,7 +352,7 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "@farcaster/frame-host-react-native": "^0.0.14",
+    "@farcaster/frame-host-react-native": "^0.0.19",
     "@lens-protocol/client": "^2.0.0",
     "@rainbow-me/rainbowkit": "^2.1.2",
     "@types/react": "^18.2.0",
@@ -368,10 +368,10 @@
   },
   "dependencies": {
     "@farcaster/core": "^0.15.6",
-    "@farcaster/frame-host": "^0.0.19",
+    "@farcaster/frame-host": "^0.0.24",
     "@noble/ed25519": "^2.0.0",
     "frames.js": "^0.21.0",
-    "ox": "^0.4.0",
-    "zod": "^3.23.8"
+    "ox": "^0.4.4",
+    "zod": "^3.24.1"
   }
 }
