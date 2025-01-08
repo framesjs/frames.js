@@ -4,6 +4,7 @@ import type {
   SetPrimaryButtonOptions,
   AddFrame,
   FrameHost,
+  SignIn,
 } from "@farcaster/frame-host";
 import type { ParseFramesV2ResultWithFrameworkDetails } from "frames.js/frame-parsers";
 import type { Provider } from "ox/Provider";
@@ -87,6 +88,14 @@ export type OnEIP6963RequestProviderRequestedFunctionOptions = {
 export type OnEIP6963RequestProviderRequestedFunction = (
   options: OnEIP6963RequestProviderRequestedFunctionOptions
 ) => unknown;
+
+export type OnSignInFunctionOptions = SignIn.SignInOptions & {
+  frame: ParseFramesV2ResultWithFrameworkDetails;
+};
+
+export type OnSignInFunction = (
+  options: OnSignInFunctionOptions
+) => Promise<SignIn.SignInResult>;
 
 export type OnViewProfileFunction = FrameHost["viewProfile"];
 

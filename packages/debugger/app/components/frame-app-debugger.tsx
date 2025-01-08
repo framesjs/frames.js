@@ -1,3 +1,5 @@
+import "@farcaster/auth-kit/styles.css";
+import { createAppClient, viemConnector, QRCode } from "@farcaster/auth-kit";
 import { Button } from "@/components/ui/button";
 import type { FrameLaunchedInContext } from "./frame-debugger";
 import { WithTooltip } from "./with-tooltip";
@@ -26,6 +28,8 @@ import type {
 import { useConfig } from "wagmi";
 import type { EIP6963ProviderInfo } from "@farcaster/frame-sdk";
 import { z } from "zod";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useCopyToClipboard } from "../hooks/useCopyToClipboad";
 
 type TabValues = "events" | "console" | "notifications";
 
@@ -50,11 +54,20 @@ const addFrameRequestsCache = new (class extends Set {
   }
 })();
 
+const appClient = createAppClient({
+  ethereum: viemConnector(),
+});
+
 export function FrameAppDebugger({
   context,
   farcasterSigner,
   onClose,
 }: FrameAppDebuggerProps) {
+  const copyFarcasterSignInLink = useCopyToClipboard();
+  const [
+    farcasterSignInAbortControllerAndURL,
+    setFarcasterSignInAbortControllerURL,
+  ] = useState<{ controller: AbortController; url: URL } | null>(null);
   const config = useConfig();
   const farcasterSignerRef = useRef(farcasterSigner);
   farcasterSignerRef.current = farcasterSigner;
@@ -262,150 +275,270 @@ export function FrameAppDebugger({
         });
       });
     },
+    async onSignIn({ nonce, notBefore, expirationTime, frame }) {
+      let abortTimeout: NodeJS.Timeout | undefined;
+
+      try {
+        const frameUrl = frame.frame.button?.action?.url;
+
+        if (!frameUrl) {
+          throw new Error("Frame is malformed, action url is missing");
+        }
+
+        const createChannelResult = await appClient.createChannel({
+          nonce,
+          notBefore,
+          expirationTime,
+          siweUri: frameUrl,
+          domain: new URL(frameUrl).hostname,
+        });
+
+        if (createChannelResult.isError) {
+          throw (
+            createChannelResult.error ||
+            new Error("Failed to create sign in channel")
+          );
+        }
+
+        const abortController = new AbortController();
+
+        setFarcasterSignInAbortControllerURL({
+          controller: abortController,
+          url: new URL(createChannelResult.data.url),
+        });
+
+        const signInTimeoutReason = "Sign in timed out";
+
+        // abort controller after 30 seconds
+        abortTimeout = setTimeout(() => {
+          abortController.abort(signInTimeoutReason);
+        }, 30000);
+
+        let status: Awaited<ReturnType<typeof appClient.status>>;
+
+        while (true) {
+          if (abortController.signal.aborted) {
+            if (abortTimeout) {
+              clearTimeout(abortTimeout);
+            }
+
+            if (abortController.signal.reason === signInTimeoutReason) {
+              toast({
+                title: "Sign in timed out",
+                variant: "destructive",
+              });
+            }
+
+            throw new Error(abortController.signal.reason);
+          }
+
+          status = await appClient.status({
+            channelToken: createChannelResult.data.channelToken,
+          });
+
+          if (!status.isError && status.data.state === "completed") {
+            break;
+          }
+
+          await new Promise((r) => setTimeout(r, 1000));
+        }
+
+        clearTimeout(abortTimeout);
+
+        const { message, signature } = status.data;
+
+        if (!(signature && message)) {
+          throw new Error("Signature or message is missing");
+        }
+
+        return {
+          signature,
+          message,
+        };
+      } finally {
+        clearTimeout(abortTimeout);
+        setFarcasterSignInAbortControllerURL(null);
+      }
+    },
   });
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[300px_500px_1fr] p-4 gap-4 bg-slate-50 max-w-full w-full">
-      <div className="flex flex-col gap-4 order-1 lg:order-0">
-        <div className="flex flex-row gap-2">
-          <WithTooltip tooltip={<p>Reload frame app</p>}>
-            <Button
-              className="flex flex-row gap-3 items-center shadow-sm border"
-              variant={"outline"}
-              onClick={() => {
-                // reload iframe
-                if (iframeRef.current) {
-                  iframeRef.current.src = "";
-                  iframeRef.current.src = context.frame.button.action.url;
-                  setIsAppReady(false);
-                }
-              }}
-            >
-              <RefreshCwIcon size={20} />
-            </Button>
-          </WithTooltip>
-        </div>
-      </div>
-      <div className="flex flex-col gap-4 order-0 lg:order-1">
-        <div
-          className="flex flex-col gap-1 w-[424px] h-[695px] relative"
-          id="frame-app-preview"
+    <>
+      {!!farcasterSignInAbortControllerAndURL && (
+        <Dialog
+          open
+          onOpenChange={() => {
+            farcasterSignInAbortControllerAndURL.controller.abort(
+              "User closed sign in dialog"
+            );
+          }}
         >
-          {frameApp.status === "pending" ||
-            (!isAppReady && (
-              <div
-                className={cn(
-                  "bg-white flex items-center justify-center absolute top-0 bottom-0 left-0 right-0"
-                )}
-                style={{
-                  backgroundColor:
-                    context.frame.button.action.splashBackgroundColor,
+          <DialogContent className="max-w-[300px]">
+            <div className="flex flex-col gap-4 justify-center items-center">
+              <h2 className="text-xl font-semibold">Sign in with Farcaster</h2>
+              <QRCode
+                uri={farcasterSignInAbortControllerAndURL.url.toString()}
+              />
+              <span className="text-muted-foreground text-sm">or</span>
+              <Button
+                onClick={() => {
+                  copyFarcasterSignInLink.copyToClipboard(
+                    farcasterSignInAbortControllerAndURL.url.toString()
+                  );
+                }}
+                variant="ghost"
+              >
+                {copyFarcasterSignInLink.copyState === "copied" && "Copied"}
+                {copyFarcasterSignInLink.copyState === "idle" && "Copy link"}
+                {copyFarcasterSignInLink.copyState === "failed" &&
+                  "Copy failed"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[300px_500px_1fr] p-4 gap-4 bg-slate-50 max-w-full w-full">
+        <div className="flex flex-col gap-4 order-1 lg:order-0">
+          <div className="flex flex-row gap-2">
+            <WithTooltip tooltip={<p>Reload frame app</p>}>
+              <Button
+                className="flex flex-row gap-3 items-center shadow-sm border"
+                variant={"outline"}
+                onClick={() => {
+                  // reload iframe
+                  if (iframeRef.current) {
+                    iframeRef.current.src = "";
+                    iframeRef.current.src = context.frame.button.action.url;
+                    setIsAppReady(false);
+                  }
                 }}
               >
-                {context.frame.button.action.splashImageUrl && (
-                  <div className="w-[200px] h-[200px] relative">
-                    <Image
-                      alt={`${name} splash image`}
-                      src={context.frame.button.action.splashImageUrl}
-                      width={200}
-                      height={200}
-                    />
-                    <div className="absolute bottom-0 right-0">
-                      <Loader2Icon
-                        className="animate-spin text-primary"
-                        size={40}
+                <RefreshCwIcon size={20} />
+              </Button>
+            </WithTooltip>
+          </div>
+        </div>
+        <div className="flex flex-col gap-4 order-0 lg:order-1">
+          <div
+            className="flex flex-col gap-1 w-[424px] h-[695px] relative"
+            id="frame-app-preview"
+          >
+            {frameApp.status === "pending" ||
+              (!isAppReady && (
+                <div
+                  className={cn(
+                    "bg-white flex items-center justify-center absolute top-0 bottom-0 left-0 right-0"
+                  )}
+                  style={{
+                    backgroundColor:
+                      context.frame.button.action.splashBackgroundColor,
+                  }}
+                >
+                  {context.frame.button.action.splashImageUrl && (
+                    <div className="w-[200px] h-[200px] relative">
+                      <Image
+                        alt={`${name} splash image`}
+                        src={context.frame.button.action.splashImageUrl}
+                        width={200}
+                        height={200}
                       />
+                      <div className="absolute bottom-0 right-0">
+                        <Loader2Icon
+                          className="animate-spin text-primary"
+                          size={40}
+                        />
+                      </div>
                     </div>
+                  )}
+                </div>
+              ))}
+            {frameApp.status === "success" && (
+              <>
+                <iframe
+                  className="flex h-full w-full border rounded-lg"
+                  sandbox="allow-forms allow-scripts allow-same-origin"
+                  {...frameApp.iframeProps}
+                  ref={(r) => {
+                    frameApp.iframeProps.ref.current = r;
+                    iframeRef.current = r;
+                  }}
+                />
+                {!!primaryButton && !primaryButton.button.hidden && (
+                  <div className="w-full py-1">
+                    <Button
+                      className="w-full gap-2"
+                      disabled={
+                        primaryButton.button.disabled ||
+                        primaryButton.button.loading
+                      }
+                      onClick={() => {
+                        primaryButton.callback();
+                      }}
+                      size="lg"
+                      type="button"
+                    >
+                      {primaryButton.button.loading && (
+                        <Loader2Icon className="animate-spin" />
+                      )}
+                      {primaryButton.button.text}
+                    </Button>
                   </div>
                 )}
-              </div>
-            ))}
-          {frameApp.status === "success" && (
-            <>
-              <iframe
-                className="flex h-full w-full border rounded-lg"
-                sandbox="allow-forms allow-scripts allow-same-origin"
-                {...frameApp.iframeProps}
-                ref={(r) => {
-                  frameApp.iframeProps.ref.current = r;
-                  iframeRef.current = r;
-                }}
-              />
-              {!!primaryButton && !primaryButton.button.hidden && (
-                <div className="w-full py-1">
-                  <Button
-                    className="w-full gap-2"
-                    disabled={
-                      primaryButton.button.disabled ||
-                      primaryButton.button.loading
-                    }
-                    onClick={() => {
-                      primaryButton.callback();
-                    }}
-                    size="lg"
-                    type="button"
+              </>
+            )}
+          </div>
+        </div>
+        <div className="flex flex-row gap-4 order-2 md:col-span-2 lg:col-span-1 lg:order-2">
+          {frameApp.status === "success" &&
+          frameAppNotificationManager.status === "success" ? (
+            <FrameAppNotificationsManagerProvider
+              manager={frameAppNotificationManager.data.manager}
+            >
+              <Card className="w-full max-h-[600px]">
+                <CardContent className="p-5 h-full">
+                  <Tabs
+                    value={activeTab}
+                    onValueChange={(value) => setActiveTab(value as TabValues)}
+                    className="grid grid-rows-[auto_1fr] w-full h-full"
                   >
-                    {primaryButton.button.loading && (
-                      <Loader2Icon className="animate-spin" />
-                    )}
-                    {primaryButton.button.text}
-                  </Button>
-                </div>
-              )}
-            </>
-          )}
+                    <TabsList className={cn("grid w-full grid-cols-2")}>
+                      <TabsTrigger value="notifications">
+                        Notifications
+                      </TabsTrigger>
+                      <TabsTrigger value="console">Console</TabsTrigger>
+                    </TabsList>
+                    <TabsContent
+                      className="overflow-hidden"
+                      value="notifications"
+                    >
+                      <FrameAppDebuggerNotifications
+                        frameApp={frameApp}
+                        farcasterSigner={farcasterSigner.signer}
+                      />
+                    </TabsContent>
+                    <TabsContent
+                      className="overflow-y-auto"
+                      ref={debuggerConsoleTabRef}
+                      value="console"
+                    >
+                      <DebuggerConsole
+                        onMount={(element) => {
+                          if (debuggerConsoleTabRef.current) {
+                            debuggerConsoleTabRef.current.scrollTo(
+                              0,
+                              element.scrollHeight
+                            );
+                          }
+                        }}
+                      />
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+            </FrameAppNotificationsManagerProvider>
+          ) : null}
         </div>
       </div>
-      <div className="flex flex-row gap-4 order-2 md:col-span-2 lg:col-span-1 lg:order-2">
-        {frameApp.status === "success" &&
-        frameAppNotificationManager.status === "success" ? (
-          <FrameAppNotificationsManagerProvider
-            manager={frameAppNotificationManager.data.manager}
-          >
-            <Card className="w-full max-h-[600px]">
-              <CardContent className="p-5 h-full">
-                <Tabs
-                  value={activeTab}
-                  onValueChange={(value) => setActiveTab(value as TabValues)}
-                  className="grid grid-rows-[auto_1fr] w-full h-full"
-                >
-                  <TabsList className={cn("grid w-full grid-cols-2")}>
-                    <TabsTrigger value="notifications">
-                      Notifications
-                    </TabsTrigger>
-                    <TabsTrigger value="console">Console</TabsTrigger>
-                  </TabsList>
-                  <TabsContent
-                    className="overflow-hidden"
-                    value="notifications"
-                  >
-                    <FrameAppDebuggerNotifications
-                      frameApp={frameApp}
-                      farcasterSigner={farcasterSigner.signer}
-                    />
-                  </TabsContent>
-                  <TabsContent
-                    className="overflow-y-auto"
-                    ref={debuggerConsoleTabRef}
-                    value="console"
-                  >
-                    <DebuggerConsole
-                      onMount={(element) => {
-                        if (debuggerConsoleTabRef.current) {
-                          debuggerConsoleTabRef.current.scrollTo(
-                            0,
-                            element.scrollHeight
-                          );
-                        }
-                      }}
-                    />
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-          </FrameAppNotificationsManagerProvider>
-        ) : null}
-      </div>
-    </div>
+    </>
   );
 }

@@ -13,6 +13,7 @@ import type {
   OnEIP6963RequestProviderRequestedFunction,
   OnPrimaryButtonSetFunction,
   OnSendTransactionRequestFunction,
+  OnSignInFunction,
   OnSignMessageRequestFunction,
   OnSignTypedDataRequestFunction,
   OnViewProfileFunction,
@@ -85,6 +86,13 @@ const defaultEIP6963RequestProviderRequested: OnEIP6963RequestProviderRequestedF
       "onEIP6963RequestProviderRequested not implemented"
     );
   };
+
+const defaultSignIn: OnSignInFunction = () => {
+  // eslint-disable-next-line no-console -- provide feedback to the developer
+  console.warn("@frames.js/render/use-frame-app", "onSignIn not implemented");
+
+  return Promise.reject(new Error("onSignIn not implemented"));
+};
 
 export type UseFrameAppOptions = {
   /**
@@ -182,6 +190,10 @@ export type UseFrameAppOptions = {
    */
   onAddFrameRequested?: OnAddFrameRequestedFunction;
   /**
+   * Called when app calls `signIn` method.
+   */
+  onSignIn?: OnSignInFunction;
+  /**
    * Called when app calls `viewProfile` method.
    */
   onViewProfile?: OnViewProfileFunction;
@@ -255,6 +267,7 @@ export function useFrameApp({
   onSignTypedDataRequest = defaultOnSignTypedDataRequest,
   onViewProfile = defaultViewProfile,
   onEIP6963RequestProviderRequested = defaultEIP6963RequestProviderRequested,
+  onSignIn = defaultSignIn,
 }: UseFrameAppOptions): UseFrameAppReturn {
   const providerRef = useFreshRef(provider);
   const debugRef = useFreshRef(debug);
@@ -267,6 +280,7 @@ export function useFrameApp({
   const onEIP6963RequestProviderRequestedRef = useFreshRef(
     onEIP6963RequestProviderRequested
   );
+  const onSignInRef = useFreshRef(onSignIn);
   const farcasterSignerRef = useFreshRef(farcasterSigner);
   const onAddFrameRequestedRef = useFreshRef(onAddFrameRequested);
   const addFrameRequestsCacheRef = useFreshRef(addFrameRequestsCache);
@@ -421,9 +435,11 @@ export function useFrameApp({
                 });
               });
             },
-            signIn() {
-              // @todo implement
-              throw new Error("not implemented");
+            signIn(options) {
+              return onSignInRef.current({
+                ...options,
+                frame,
+              });
             },
             viewProfile(options) {
               return onViewProfileRef.current(options);
@@ -463,5 +479,6 @@ export function useFrameApp({
     onPrimaryButtonSetRef,
     onViewProfileRef,
     onEIP6963RequestProviderRequestedRef,
+    onSignInRef,
   ]);
 }
