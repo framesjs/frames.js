@@ -30,6 +30,7 @@ import type { EIP6963ProviderInfo } from "@farcaster/frame-sdk";
 import { z } from "zod";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useCopyToClipboard } from "../hooks/useCopyToClipboad";
+import { FrameAppDebuggerViewProfileDialog } from "./frame-app-debugger-view-profile-dialog";
 
 type TabValues = "events" | "console" | "notifications";
 
@@ -153,6 +154,7 @@ export function FrameAppDebugger({
       };
     }
   }, [toast]);
+  const [viewFidProfile, setViewFidProfile] = useState<number | null>(null);
   const frameApp = useFrameAppInIframe({
     debug: true,
     source: context.parseResult,
@@ -289,6 +291,11 @@ export function FrameAppDebugger({
       });
     },
     async onSignIn({ nonce, notBefore, expirationTime, frame }) {
+      console.info("sdk.actions.signIn() called", {
+        nonce,
+        notBefore,
+        expirationTime,
+      });
       let abortTimeout: NodeJS.Timeout | undefined;
 
       try {
@@ -372,6 +379,10 @@ export function FrameAppDebugger({
         clearTimeout(abortTimeout);
         setFarcasterSignInAbortControllerURL(null);
       }
+    },
+    async onViewProfile(params) {
+      console.info("sdk.actions.viewProfile() called", params);
+      setViewFidProfile(params.fid);
     },
   });
 
@@ -552,6 +563,14 @@ export function FrameAppDebugger({
           ) : null}
         </div>
       </div>
+      {viewFidProfile !== null && (
+        <FrameAppDebuggerViewProfileDialog
+          fid={viewFidProfile}
+          onDismiss={() => {
+            setViewFidProfile(null);
+          }}
+        />
+      )}
     </>
   );
 }
