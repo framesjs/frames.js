@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import React from "react";
 import {
   Dialog,
@@ -78,13 +79,14 @@ export function FrameAppDebuggerViewProfileDialog({
         {query.isSuccess && (
           <DialogDescription className="flex flex-col gap-2 items-center justify-center">
             <div className="flex items-center">
-              <Image
-                src={query.data.pfp_url}
-                alt={query.data.username}
-                width={80}
-                height={80}
-                className="rounded-full"
-              />
+              <div className="aspect-square h-[80px] w-[80px] rounded-full overflow-hidden">
+                <img
+                  className="w-full h-full object-contain"
+                  src={query.data.pfp_url}
+                  alt={query.data.username}
+                  width={80}
+                />
+              </div>
             </div>
             <strong className="text-lg">{query.data.username}</strong>
             <div className="grid grid-cols-2 gap-4 text-sm text-gray-500 text-center">
