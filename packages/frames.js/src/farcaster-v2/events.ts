@@ -3,11 +3,9 @@ import type {
   EncodedJsonFarcasterSignatureSchema,
 } from "@farcaster/frame-core";
 import { serverEventSchema } from "@farcaster/frame-core";
-import {
-  createJsonFarcasterSignature,
-  hexToBytes,
-} from "@farcaster/frame-node";
-import type { Hex } from "viem";
+import { bytesToHex, type Hex } from "viem";
+import { sign, signMessageWithAppKey } from "./json-signature";
+import { getPublicKey } from "./es25519";
 
 export class InvalidWebhookResponseError extends Error {
   constructor(
@@ -22,7 +20,7 @@ export type { FrameServerEvent };
 
 type SendEventOptions = {
   /**
-   * App private key
+   * Private app key (signer private key)
    */
   privateKey: Hex | Uint8Array;
   fid: number;
@@ -36,13 +34,16 @@ export async function sendEvent(
   event: FrameServerEvent,
   { privateKey, fid, webhookUrl }: SendEventOptions
 ): Promise<void> {
+  const appKey = bytesToHex(getPublicKey(privateKey));
   const payload = serverEventSchema.parse(event);
-  const signature = createJsonFarcasterSignature({
+  const signature = await sign({
     fid,
-    payload: Buffer.from(JSON.stringify(payload)),
-    privateKey:
-      typeof privateKey === "string" ? hexToBytes(privateKey) : privateKey,
-    type: "app_key",
+    payload,
+    signer: {
+      type: "app_key",
+      appKey,
+    },
+    signMessage: signMessageWithAppKey(privateKey),
   });
 
   const response = await fetch(webhookUrl, {
@@ -52,11 +53,11 @@ export async function sendEvent(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(
-      signature satisfies EncodedJsonFarcasterSignatureSchema
+      signature.json satisfies EncodedJsonFarcasterSignatureSchema
     ),
   });
 
-  if (response.status >= 200 && response.status < 300) {
+  if (response.ok) {
     return;
   }
 
