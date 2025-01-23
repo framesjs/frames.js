@@ -187,6 +187,16 @@
         "default": "./dist/farcaster-v2/types.cjs"
       }
     },
+    "./farcaster-v2/verify": {
+      "import": {
+        "types": "./dist/farcaster-v2/verify.d.ts",
+        "default": "./dist/farcaster-v2/verify.js"
+      },
+      "require": {
+        "types": "./dist/farcaster-v2/verify.d.cts",
+        "default": "./dist/farcaster-v2/verify.cjs"
+      }
+    },
     "./core": {
       "import": {
         "types": "./dist/core/index.d.ts",
@@ -420,12 +430,14 @@
   },
   "dependencies": {
     "@farcaster/frame-core": "^0.0.24",
-    "@farcaster/frame-node": "^0.0.13",
+    "@noble/ed25519": "^2.2.3",
+    "@noble/hashes": "^1.7.1",
     "@vercel/og": "^0.6.3",
     "cheerio": "^1.0.0-rc.12",
+    "ox": "^0.4.4",
     "protobufjs": "^7.2.6",
-    "viem": "^2.7.8",
     "type-fest": "^4.28.1",
+    "viem": "^2.7.8",
     "zod": "^3.24.1"
   }
 }
