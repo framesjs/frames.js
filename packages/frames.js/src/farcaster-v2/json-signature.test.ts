@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment -- for expect.any() */
+import { webcrypto } from "node:crypto";
 import * as ed25519 from "@noble/ed25519";
 import { sha512 } from "@noble/hashes/sha512";
 import type { Hex } from "viem";
@@ -17,6 +18,13 @@ import {
   constructJSONFarcasterSignatureAccountAssociationPaylod,
   signMessageWithAppKey,
 } from "./json-signature";
+
+// polyfill for node 18 so we can use randomPrivateKey()
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- not true in node 18
+if (!globalThis.crypto) {
+  // @ts-expect-error -- this is polyfill
+  globalThis.crypto = webcrypto;
+}
 
 process.env.NEYNAR_API_KEY = "NEYNAR_FRAMES_JS";
 
