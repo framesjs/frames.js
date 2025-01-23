@@ -9,7 +9,7 @@ import { optimism } from "viem/chains";
 import type { JsonObject } from "../core/types";
 import { base64urlDecode, base64urlEncode } from "../lib/base64url";
 import { sign as signEd25519, verify as verifyEd25519 } from "./es25519";
-import { verifyAppKeyWithNeynar } from "./verify-app-key-with-neynar";
+import { verifyAppKeyWithNeynar } from "./verify";
 import type { SignMessageFunction, VerifyAppKeyFunction } from "./types";
 
 export class InvalidJFSHeaderError extends Error {}

@@ -187,14 +187,14 @@
         "default": "./dist/farcaster-v2/types.cjs"
       }
     },
-    "./farcaster-v2/verify-app-key-with-neynar": {
+    "./farcaster-v2/verify": {
       "import": {
-        "types": "./dist/farcaster-v2/verify-app-key-with-neynar.d.ts",
-        "default": "./dist/farcaster-v2/verify-app-key-with-neynar.js"
+        "types": "./dist/farcaster-v2/verify.d.ts",
+        "default": "./dist/farcaster-v2/verify.js"
       },
       "require": {
-        "types": "./dist/farcaster-v2/verify-app-key-with-neynar.d.cts",
-        "default": "./dist/farcaster-v2/verify-app-key-with-neynar.cjs"
+        "types": "./dist/farcaster-v2/verify.d.cts",
+        "default": "./dist/farcaster-v2/verify.cjs"
       }
     },
     "./core": {
