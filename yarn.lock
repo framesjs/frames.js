@@ -2452,16 +2452,6 @@
     "@farcaster/frame-core" "0.0.24"
     ox "^0.4.4"
 
-"@farcaster/frame-node@^0.0.13":
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/@farcaster/frame-node/-/frame-node-0.0.13.tgz#ba9d37358589b263aa9566cf1763b1eb528672e6"
-  integrity sha512-99rhLSpyhKKnWFh8eWx8N5tTYEToFkIzg9r5lRm2bvfsZaT0zXr/cA+G9pWDFZyodfoyS/cLHS46Qsm8P52uTg==
-  dependencies:
-    "@farcaster/frame-core" "0.0.24"
-    "@noble/curves" "^1.7.0"
-    ox "^0.4.4"
-    zod "^3.24.1"
-
 "@farcaster/frame-sdk@^0.0.26":
   version "0.0.26"
   resolved "https://registry.yarnpkg.com/@farcaster/frame-sdk/-/frame-sdk-0.0.26.tgz#2cf5c5e9e8ecdbdbc244e55f41129fc1caa9b88c"
@@ -3576,13 +3566,6 @@
   dependencies:
     "@noble/hashes" "1.6.0"
 
-"@noble/curves@^1.7.0":
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/@noble/curves/-/curves-1.8.0.tgz#fe035a23959e6aeadf695851b51a87465b5ba8f7"
-  integrity sha512-j84kjAbzEnQHaSIhRPUmB3/eVXu2k3dKPl2LOrR8fSOIL+89U+7lV117EWHtq/GHM3ReGHM46iRBdZfpc4HRUQ==
-  dependencies:
-    "@noble/hashes" "1.7.0"
-
 "@noble/curves@~1.4.0":
   version "1.4.2"
   resolved "https://registry.yarnpkg.com/@noble/curves/-/curves-1.4.2.tgz#40309198c76ed71bc6dbf7ba24e81ceb4d0d1fe9"
@@ -3594,6 +3577,11 @@
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@noble/ed25519/-/ed25519-2.0.0.tgz#5964c8190a4b4b804985717ca566113b93379e43"
   integrity sha512-/extjhkwFupyopDrt80OMWKdLgP429qLZj+z6sYJz90rF2Iz0gjZh2ArMKPImUl13Kx+0EXI2hN9T/KJV0/Zng==
+
+"@noble/ed25519@^2.2.3":
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/@noble/ed25519/-/ed25519-2.2.3.tgz#e189810490302b076e17895b667a06cbe54339f4"
+  integrity sha512-iHV8eI2mRcUmOx159QNrU8vTpQ/Xm70yJ2cTk3Trc86++02usfqFoNl6x0p3JN81ZDS/1gx6xiK0OwrgqCT43g==
 
 "@noble/hashes@1.3.2":
   version "1.3.2"
@@ -3620,10 +3608,10 @@
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.6.1.tgz#df6e5943edcea504bac61395926d6fd67869a0d5"
   integrity sha512-pq5D8h10hHBjyqX+cfBm0i8JUXJ0UhczFc4r74zbuT9XgewFo2E3J1cOaGtdZynILNmQ685YWGzGE1Zv6io50w==
 
-"@noble/hashes@1.7.0":
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.7.0.tgz#5d9e33af2c7d04fee35de1519b80c958b2e35e39"
-  integrity sha512-HXydb0DgzTpDPwbVeDGCG1gIu7X6+AuU6Zl6av/E/KG8LMsvPntvq+w17CHRpKBmN6Ybdrt1eP3k4cj8DJa78w==
+"@noble/hashes@^1.7.1":
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.7.1.tgz#5738f6d765710921e7a751e00c20ae091ed8db0f"
+  integrity sha512-B8XBPsn4vT/KJAGqDzbwztd+6Yte3P4V7iafm24bxgDe/mlRuK6xmWPuCNrKt2vDafZ8MfJLlchDG/vYafQEjQ==
 
 "@noble/secp256k1@1.7.1":
   version "1.7.1"
