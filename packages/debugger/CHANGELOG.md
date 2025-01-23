@@ -1,5 +1,12 @@
 # @frames.js/debugger
 
+## 0.4.2
+
+### Patch Changes
+
+- 96a5831: feat: view profile dialog
+- 86e03b9: feat: support for app key signatures
+
 ## 0.4.1
 
 ### Patch Changes

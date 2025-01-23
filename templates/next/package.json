@@ -1,10 +1,10 @@
 {
   "name": "template-next",
-  "version": "0.0.37",
+  "version": "0.0.38",
   "private": true,
   "type": "module",
   "dependencies": {
-    "frames.js": "^0.21.1",
+    "frames.js": "^0.21.2",
     "next": "^14.1.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
@@ -13,7 +13,7 @@
     "@types/node": "^18.17.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "@frames.js/debugger": "^0.4.1",
+    "@frames.js/debugger": "^0.4.2",
     "concurrently": "^8.2.2",
     "dotenv": "^16.4.5",
     "is-port-reachable": "^4.0.0",

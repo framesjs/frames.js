@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.21.2
+
+### Patch Changes
+
+- 86e03b9: feat: support for app key signatures
+
 ## 0.21.1
 
 ### Patch Changes
