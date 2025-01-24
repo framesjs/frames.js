@@ -126,6 +126,9 @@ export type UseFetchFrameOptions<
   onTransaction: OnTransactionFunc;
   /** Transaction data suffix */
   transactionDataSuffix?: `0x${string}`;
+  /**
+   * Called after transaction data has been returned from the server and user needs to sign the typed data.
+   */
   onSignature: OnSignatureFunc;
   onComposerFormAction: OnComposerFormActionFunc;
   /**
@@ -281,6 +284,9 @@ export type UseFrameOptions<
     | "onTransactionError"
     | "onTransactionStart"
     | "onTransactionSuccess"
+    | "onSignatureError"
+    | "onSignatureStart"
+    | "onSignatureSuccess"
     | "onTransactionProcessingError"
     | "onTransactionProcessingStart"
     | "onTransactionProcessingSuccess"

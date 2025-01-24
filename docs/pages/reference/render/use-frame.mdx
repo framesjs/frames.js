@@ -88,6 +88,12 @@ A function to handle redirect responses from the frame. This happens when you cl
 
 A function to handle transaction button presses, returns the transaction hash or null. The function is called when a user presses a transaction button and endpoint specified by `target` returns transaction data.
 
+### `onSignature`
+
+- Type: `OnSignatureFunc`
+
+A function to handle transaction button presses, returns the signature or null. The function is called when a user presses a transaction button and endpoint specified by `target` returns typed data for signing (`eth_signTypedData_v4`).
+
 ### `transactionDataSuffix`
 
 - Type: `0x${string}`

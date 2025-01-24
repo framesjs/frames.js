@@ -183,11 +183,14 @@ export function useFrame<
   onTransactionDataStart,
   onTransactionDataSuccess,
   onTransactionError,
+  onTransactionStart,
+  onTransactionSuccess,
+  onSignatureError,
+  onSignatureStart,
+  onSignatureSuccess,
   onTransactionProcessingError,
   onTransactionProcessingStart,
   onTransactionProcessingSuccess,
-  onTransactionStart,
-  onTransactionSuccess,
 }: UseFrameOptions<
   TSignerStorageType,
   TFrameActionBodyType,
@@ -231,11 +234,14 @@ export function useFrame<
     onTransactionDataStart,
     onTransactionDataSuccess,
     onTransactionError,
+    onTransactionStart,
+    onTransactionSuccess,
+    onSignatureError,
+    onSignatureStart,
+    onSignatureSuccess,
     onTransactionProcessingError,
     onTransactionProcessingStart,
     onTransactionProcessingSuccess,
-    onTransactionStart,
-    onTransactionSuccess,
   });
 
   const fetchFrameRef = useFreshRef(fetchFrame);
@@ -325,6 +331,7 @@ export function useFrame<
       homeframeUrl,
       signerState.hasSigner,
       signerState.signer,
+      onErrorRef,
     ]
   );
 
@@ -395,6 +402,7 @@ export function useFrame<
       connectedAddress,
       homeframeUrl,
       signerState,
+      onErrorRef,
     ]
   );
 
@@ -516,6 +524,7 @@ export function useFrame<
       onPostButton,
       onTransactionButton,
       signerState,
+      onErrorRef,
     ]
   );
 
