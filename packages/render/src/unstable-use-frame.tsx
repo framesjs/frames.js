@@ -184,11 +184,11 @@ export function useFrame_unstable<
   onTransactionDataStart,
   onTransactionDataSuccess,
   onTransactionError,
+  onTransactionStart,
+  onTransactionSuccess,
   onTransactionProcessingError,
   onTransactionProcessingStart,
   onTransactionProcessingSuccess,
-  onTransactionStart,
-  onTransactionSuccess,
 }: UseFrameOptions<
   TExtraDataPending,
   TExtraDataDone,
@@ -233,11 +233,11 @@ export function useFrame_unstable<
     onTransactionDataStart,
     onTransactionDataSuccess,
     onTransactionError,
+    onTransactionStart,
+    onTransactionSuccess,
     onTransactionProcessingError,
     onTransactionProcessingStart,
     onTransactionProcessingSuccess,
-    onTransactionStart,
-    onTransactionSuccess,
     parseFarcasterManifest,
   });
 
