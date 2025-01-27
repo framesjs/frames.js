@@ -26,6 +26,7 @@ import type {
   FrameGETRequest,
   FramePOSTRequest,
   FrameRequest,
+  OnMissingSignerFunction,
   OnMintArgs,
   OnSignatureFunc,
   OnTransactionFunc,
@@ -200,6 +201,8 @@ export type UseFrameOptions<
    * Only for frames v2
    */
   onLaunchFrameButtonPressed?: LaunchFrameButtonPressFunction;
+
+  onMissingSigner?: OnMissingSignerFunction;
 } & Partial<
   Pick<
     UseFetchFrameOptions,
