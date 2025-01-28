@@ -19,7 +19,7 @@ import type {
 import { useFrameState } from "./unstable-use-frame-state";
 import { useFetchFrame } from "./unstable-use-fetch-frame";
 import { useFreshRef } from "./hooks/use-fresh-ref";
-import { tryCallAsync } from "./helpers";
+import { tryCall, tryCallAsync } from "./helpers";
 
 function onErrorFallback(e: Error): void {
   console.error("@frames.js/render", e);
@@ -186,9 +186,13 @@ export function useFrame_unstable<
   onTransactionError,
   onTransactionStart,
   onTransactionSuccess,
+  onSignatureError,
+  onSignatureStart,
+  onSignatureSuccess,
   onTransactionProcessingError,
   onTransactionProcessingStart,
   onTransactionProcessingSuccess,
+  onMissingSigner,
 }: UseFrameOptions<
   TExtraDataPending,
   TExtraDataDone,
@@ -235,6 +239,9 @@ export function useFrame_unstable<
     onTransactionError,
     onTransactionStart,
     onTransactionSuccess,
+    onSignatureError,
+    onSignatureStart,
+    onSignatureSuccess,
     onTransactionProcessingError,
     onTransactionProcessingStart,
     onTransactionProcessingSuccess,
@@ -243,6 +250,7 @@ export function useFrame_unstable<
 
   const fetchFrameRef = useFreshRef(fetchFrame);
   const onErrorRef = useFreshRef(onError);
+  const onMissingSignerRef = useFreshRef(onMissingSigner);
 
   useEffect(() => {
     if (!homeframeUrl) {
@@ -312,6 +320,7 @@ export function useFrame_unstable<
       }
 
       if (!currentState.signerState.hasSigner) {
+        tryCall(() => onMissingSignerRef.current?.());
         await currentState.signerState.onSignerlessFramePress();
         return;
       }
@@ -335,7 +344,7 @@ export function useFrame_unstable<
         sourceFrame: currentFrame,
       });
     },
-    [fetchFrameRef, frameStateRef, onErrorRef]
+    [fetchFrameRef, frameStateRef, onErrorRef, onMissingSignerRef]
   );
 
   const resolveAddressRef = useFreshRef(resolveAddress);
@@ -364,6 +373,7 @@ export function useFrame_unstable<
 
       // Send post request to get calldata
       if (!currentState.signerState.hasSigner) {
+        tryCall(() => onMissingSignerRef.current?.());
         await currentState.signerState.onSignerlessFramePress();
         return;
       }
@@ -411,7 +421,7 @@ export function useFrame_unstable<
         sourceFrame: currentFrame,
       });
     },
-    [frameStateRef, fetchFrameRef, onErrorRef, resolveAddressRef]
+    [frameStateRef, fetchFrameRef, onErrorRef, onMissingSignerRef, resolveAddressRef]
   );
 
   const onLaunchFrameButtonPressRef = useFreshRef(onLaunchFrameButtonPressed);

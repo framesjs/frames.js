@@ -26,6 +26,7 @@ import type {
   FrameGETRequest,
   FramePOSTRequest,
   FrameRequest,
+  OnMissingSignerFunction,
   OnMintArgs,
   OnSignatureFunc,
   OnTransactionFunc,
@@ -200,6 +201,8 @@ export type UseFrameOptions<
    * Only for frames v2
    */
   onLaunchFrameButtonPressed?: LaunchFrameButtonPressFunction;
+
+  onMissingSigner?: OnMissingSignerFunction;
 } & Partial<
   Pick<
     UseFetchFrameOptions,
@@ -211,6 +214,9 @@ export type UseFrameOptions<
     | "onTransactionError"
     | "onTransactionStart"
     | "onTransactionSuccess"
+    | "onSignatureError"
+    | "onSignatureStart"
+    | "onSignatureSuccess"
     | "onTransactionProcessingError"
     | "onTransactionProcessingStart"
     | "onTransactionProcessingSuccess"
@@ -515,6 +521,9 @@ export type UseFetchFrameOptions<
   onTransaction: OnTransactionFunction;
   /** Transaction data suffix */
   transactionDataSuffix?: `0x${string}`;
+  /**
+   * Called after transaction data has been returned from the server and user needs to sign the typed data.
+   */
   onSignature: OnSignatureFunction;
   /**
    * This function can be used to customize how error is reported to the user.
