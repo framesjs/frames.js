@@ -120,17 +120,7 @@ export function useFrameAppInWebView(
       case "pending":
         return frameApp;
       case "success": {
-        const frame = frameApp.frame.frame;
-        const frameUrl = frame.button?.action?.url;
-
-        if (!frameUrl) {
-          return {
-            status: "error",
-            error: new Error(
-              "Frame URL is not provided, please check button.action.url"
-            ),
-          };
-        }
+        const frameUrl = frameApp.frameUrl.toString();
 
         return {
           ...frameApp,
