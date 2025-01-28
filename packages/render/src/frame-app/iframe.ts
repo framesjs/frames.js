@@ -105,17 +105,7 @@ export function useFrameAppInIframe(
       case "pending":
         return frameApp;
       case "success": {
-        const frameUrl = frameApp.frame.frame.button?.action?.url;
-
-        if (!frameUrl) {
-          return {
-            status: "error",
-            error: new Error(
-              "Frame URL is not provided, please check button.action.url"
-            ),
-          };
-        }
-
+        const frameUrl = frameApp.frameUrl.toString();
         const frameOrigin = new URL(frameUrl).origin;
 
         return {

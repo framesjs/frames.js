@@ -205,6 +205,12 @@ export type UseFrameAppReturn =
   | {
       frame: ParseFramesV2ResultWithFrameworkDetails;
       client: FrameClientConfig;
+      /**
+       * Url that has been used to fetch the frame app.
+       *
+       * If the source was set to parse result object, this will contain url of the frame's button action definition.
+       */
+      frameUrl: URL;
       status: "success";
       /**
        * Creates sdk that must be exposed to frame app endpoint
@@ -302,6 +308,22 @@ export function useFrameApp({
     switch (frameResolutionState.status) {
       case "success": {
         const frame = frameResolutionState.frame;
+        let frameUrl: URL;
+
+        if (frameResolutionState.source instanceof URL) {
+          frameUrl = frameResolutionState.source;
+        } else if (typeof frameResolutionState.source === "string") {
+          frameUrl = new URL(frameResolutionState.source);
+        } else if (frame.frame.button?.action?.url) {
+          frameUrl = new URL(frame.frame.button.action.url);
+        } else {
+          return {
+            status: "error",
+            error: new Error(
+              "Frame URL is not provided, please check button.action.url"
+            ),
+          };
+        }
 
         return {
           getEmitter: (endpoint) => ({
@@ -416,6 +438,7 @@ export function useFrameApp({
           }),
           status: "success",
           frame: frameResolutionState.frame,
+          frameUrl,
           client: clientResolutionState.client,
         };
       }
