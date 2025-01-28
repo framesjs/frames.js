@@ -43,6 +43,8 @@ export type OnSignatureFunc = (
   args: OnSignatureArgs
 ) => Promise<`0x${string}` | null>;
 
+export type OnMissingSignerFunction = () => void;
+
 type OnComposerFormActionFuncArgs = {
   form: ComposerActionFormResponse;
   cast: ComposerActionState;

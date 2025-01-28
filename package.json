@@ -8,7 +8,7 @@
     "dev:utils-starter": "FJS_MONOREPO=true turbo dev --filter=template-next-utils-starter... --filter=debugger...",
     "lint": "turbo lint --filter=!template-*",
     "test:ci": "jest --ci",
-    "test": "cd ./packages/frames.js && npm run test:watch",
+    "test": "cd ./packages/frames.js && yarn test:watch",
     "check:package-types": "turbo check:package-types",
     "check:package-lint": "turbo check:package-lint",
     "check:types": "turbo check:types",
