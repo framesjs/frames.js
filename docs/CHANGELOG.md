@@ -1,5 +1,11 @@
 # docs
 
+## 0.3.14
+
+### Patch Changes
+
+- 1e55061: feat: expose onSignature callbacks for eth_signTypedData request from server
+
 ## 0.3.13
 
 ### Patch Changes

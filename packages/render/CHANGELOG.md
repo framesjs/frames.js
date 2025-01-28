@@ -1,5 +1,14 @@
 # @frames.js/render
 
+## 0.5.3
+
+### Patch Changes
+
+- 1e55061: feat: add onMissingSigner callback to useFrame_unstable
+- 1e55061: feat: expose onSignature callbacks for eth_signTypedData request from server
+- b86fc0a: fix: pass original frame app source url to view
+- 1e55061: feat: expose onSignature callbacks for eth_signTypedData request from server
+
 ## 0.5.2
 
 ### Patch Changes
