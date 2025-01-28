@@ -208,7 +208,7 @@ export type UseFrameAppReturn =
       /**
        * Url that has been used to fetch the frame app.
        *
-       * If the source was set to parse result object, this will contain url of the frame from manifest.
+       * If the source was set to parse result object, this will contain url of the frame's button action definition.
        */
       frameUrl: URL;
       status: "success";
