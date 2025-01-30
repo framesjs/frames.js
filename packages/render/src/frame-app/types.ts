@@ -10,8 +10,6 @@ import type { ParseFramesV2ResultWithFrameworkDetails } from "frames.js/frame-pa
 import type { Provider } from "ox/Provider";
 import type { Default as DefaultRpcSchema, ExtractRequest } from "ox/RpcSchema";
 
-export type FrameClientConfig = Context.ClientContext;
-
 export type SendTransactionRpcRequest = ExtractRequest<
   DefaultRpcSchema,
   "eth_sendTransaction"
@@ -99,12 +97,21 @@ export type OnSignInFunction = (
 
 export type OnViewProfileFunction = FrameHost["viewProfile"];
 
-/**
- * Function called when the frame app is being loaded and we need to resolve the client that renders the frame app
- */
-export type ResolveClientFunction = (options: {
+export type FrameContext = Context.FrameContext;
+
+export type ResolveContextFunctionOptions = {
+  /**
+   * Called when hook is unmounted
+   */
   signal: AbortSignal;
-}) => Promise<FrameClientConfig>;
+};
+
+/**
+ * Function called when the frame app is loaded and needs a context to be rendered
+ */
+export type ResolveContextFunction = (
+  options: ResolveContextFunctionOptions
+) => Promise<FrameContext>;
 
 export type HostEndpointEmitter = Pick<
   HostEndpoint,

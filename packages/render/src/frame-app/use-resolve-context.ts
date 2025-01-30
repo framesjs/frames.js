@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { FrameClientConfig, ResolveClientFunction } from "./types";
+import type { ResolveContextFunction, FrameContext } from "./types";
 
-type UseResolveClientOptions = {
-  client: FrameClientConfig | ResolveClientFunction;
+type UseResolveContextOptions = {
+  context: FrameContext | ResolveContextFunction;
 };
 
-type UseResolveClientResult =
+type UseResolveContextResult =
   | {
       status: "success";
-      client: FrameClientConfig;
+      context: FrameContext;
     }
   | {
       status: "error";
@@ -18,15 +18,15 @@ type UseResolveClientResult =
       status: "pending";
     };
 
-export function useResolveClient({
-  client,
-}: UseResolveClientOptions): UseResolveClientResult {
+export function useResolveContext({
+  context,
+}: UseResolveContextOptions): UseResolveContextResult {
   const abortControllerRef = useRef<AbortController | null>(null);
-  const [state, setState] = useState<UseResolveClientResult>(() => {
-    if (typeof client !== "function") {
+  const [state, setState] = useState<UseResolveContextResult>(() => {
+    if (typeof context !== "function") {
       return {
         status: "success",
-        client,
+        context,
       };
     }
 
@@ -35,7 +35,7 @@ export function useResolveClient({
     };
   });
 
-  const resolveClient = useCallback((resolve: ResolveClientFunction) => {
+  const resolveContext = useCallback((resolve: ResolveContextFunction) => {
     // cancel previous request
     abortControllerRef.current?.abort();
 
@@ -47,7 +47,7 @@ export function useResolveClient({
         setState({
           status: "pending",
         });
-        const resolvedClient = await resolve({
+        const resolvedContext = await resolve({
           signal: abortController.signal,
         });
 
@@ -57,7 +57,7 @@ export function useResolveClient({
 
         setState({
           status: "success",
-          client: resolvedClient,
+          context: resolvedContext,
         });
       })
       .catch((e) => {
@@ -72,26 +72,28 @@ export function useResolveClient({
       });
 
     return () => {
-      abortController.abort();
+      abortController.abort(
+        "Aborted because the component has been unmounted/remounted"
+      );
     };
   }, []);
 
   useEffect(() => {
-    if (typeof client !== "function") {
+    if (typeof context !== "function") {
       setState((prevState) => {
-        if (prevState.status === "success" && prevState.client !== client) {
+        if (prevState.status === "success" && prevState.context !== context) {
           return {
             status: "success",
-            client,
+            context,
           };
         }
 
         return prevState;
       });
     } else {
-      resolveClient(client);
+      return resolveContext(context);
     }
-  }, [client, resolveClient]);
+  }, [context, resolveContext]);
 
   return state;
 }
