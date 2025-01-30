@@ -68,7 +68,7 @@ type UseFrameAppNotificationsManagerOptions = {
   farcasterSigner: FarcasterSignerInstance;
 };
 
-type UseFrameAppNotificationsManagerResult = {
+export type UseFrameAppNotificationsManagerResult = {
   manager: FrameAppNotificationsManager;
 };
 

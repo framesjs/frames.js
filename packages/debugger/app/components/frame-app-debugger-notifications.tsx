@@ -19,7 +19,7 @@ import { isValidPartialFrameV2 } from "@frames.js/render/ui/utils";
 import type { FarcasterSigner } from "@frames.js/render/identity/farcaster";
 
 type FrameAppDebuggerNotificationsProps = {
-  frameApp: Extract<UseFrameAppInIframeReturn, { status: "success" }>;
+  frameApp: UseFrameAppInIframeReturn | null;
   farcasterSigner: FarcasterSigner | null;
 };
 
@@ -27,7 +27,6 @@ export function FrameAppDebuggerNotifications({
   frameApp,
   farcasterSigner,
 }: FrameAppDebuggerNotificationsProps) {
-  const frame = frameApp.frame;
   const frameAppNotificationManager = useFrameAppNotificationsManagerContext();
   const [events, setEvents] = useState<Message[]>([]);
   const notificationsQuery = useQuery({
@@ -102,7 +101,13 @@ export function FrameAppDebuggerNotifications({
     }
   }, [notificationsQuery.data]);
 
-  if (!isValidPartialFrameV2(frameApp.frame)) {
+  if (!frameApp || frameApp.status !== "success") {
+    return null;
+  }
+
+  const frame = frameApp.frame;
+
+  if (!isValidPartialFrameV2(frame)) {
     return (
       <>
         <Alert variant="destructive">
