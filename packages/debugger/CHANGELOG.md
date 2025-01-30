@@ -1,5 +1,12 @@
 # @frames.js/debugger
 
+## 0.4.3
+
+### Patch Changes
+
+- 234e4d0: feat: simpler frame app context resolution
+- 104b0d8: fix: properly set frame app context on reload
+
 ## 0.4.2
 
 ### Patch Changes

@@ -11,7 +11,7 @@
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.1.0",
     "@cloudflare/workers-types": "^4.20240320.1",
-    "@frames.js/debugger": "^0.4.2",
+    "@frames.js/debugger": "^0.4.3",
     "@types/node": "^18.17.0",
     "@types/react": "^18.2.45",
     "concurrently": "^8.2.2",
