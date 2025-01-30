@@ -11,7 +11,8 @@ import { useConfig } from "wagmi";
 import type { EIP6963ProviderInfo } from "@farcaster/frame-sdk";
 import type {
   FramePrimaryButton,
-  ResolveClientFunction,
+  ResolveContextFunction,
+  FrameContext,
 } from "@frames.js/render/frame-app/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { UseQueryResult } from "@tanstack/react-query";
@@ -84,67 +85,79 @@ export function FrameApp({
   const frameAppNotificationManagerPromiseRef = useRef(
     frameAppNotificationManager.promise
   );
-  const resolveClient: ResolveClientFunction = useCallback(async () => {
-    try {
-      const clientInfoResponse = await fetch("/client-info");
+  const resolveContext: ResolveContextFunction = useCallback(
+    async ({ signal }) => {
+      const location: FrameContext["location"] =
+        context.context === "button_press"
+          ? {
+              type: "launcher",
+            }
+          : {
+              type: "cast_embed",
+              embed: "",
+              cast: fallbackFrameContext.castId,
+            };
 
-      if (!clientInfoResponse.ok) {
-        throw new Error("Failed to fetch client info");
-      }
+      try {
+        const clientInfoResponse = await fetch("/client-info", {
+          signal,
+        });
 
-      const parseClientInfo = z.object({
-        fid: z.number().int(),
-      });
+        if (!clientInfoResponse.ok) {
+          throw new Error("Failed to fetch client info");
+        }
 
-      const clientInfo = parseClientInfo.parse(await clientInfoResponse.json());
+        const parseClientInfo = z.object({
+          fid: z.number().int(),
+        });
 
-      const { manager } = await frameAppNotificationManagerPromiseRef.current;
-      const clientFid = clientInfo.fid;
+        const clientInfo = parseClientInfo.parse(
+          await clientInfoResponse.json()
+        );
 
-      if (!manager.state || manager.state.frame.status === "removed") {
+        const { manager } = await frameAppNotificationManagerPromiseRef.current;
+        const clientFid = clientInfo.fid;
+
         return {
-          clientFid,
-          added: false,
+          client: {
+            clientFid,
+            added: manager.state?.frame.status === "added",
+            notificationDetails:
+              manager.state?.frame.status === "added"
+                ? manager.state.frame.notificationDetails ?? undefined
+                : undefined,
+          },
+          location,
+          user: userContext,
+        };
+      } catch (e) {
+        if (!(typeof e === "string" && e.startsWith("Aborted because"))) {
+          console.error(e);
+
+          toast({
+            title: "Unexpected error",
+            description:
+              "Failed to load notifications settings. Check the console for more details.",
+            variant: "destructive",
+          });
+        }
+
+        return {
+          client: {
+            clientFid: -1,
+            added: false,
+          },
+          location,
+          user: userContext,
         };
       }
-
-      return {
-        clientFid,
-        added: true,
-        notificationDetails:
-          manager.state.frame.notificationDetails ?? undefined,
-      };
-    } catch (e) {
-      console.error(e);
-
-      toast({
-        title: "Unexpected error",
-        description:
-          "Failed to load notifications settings. Check the console for more details.",
-        variant: "destructive",
-      });
-
-      return {
-        clientFid: -1,
-        added: false,
-      };
-    }
-  }, [toast]);
+    },
+    [toast, context, userContext]
+  );
   const frameApp = useFrameAppInIframe({
     debug: true,
     source: context.parseResult,
-    client: resolveClient,
-    location:
-      context.context === "button_press"
-        ? {
-            type: "launcher",
-          }
-        : {
-            type: "cast_embed",
-            embed: "",
-            cast: fallbackFrameContext.castId,
-          },
-    user: userContext,
+    context: resolveContext,
     provider,
     proxyUrl: "/frames",
     addFrameRequestsCache,

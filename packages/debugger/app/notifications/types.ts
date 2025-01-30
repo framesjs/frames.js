@@ -2,7 +2,6 @@ import type {
   FrameNotificationDetails,
   SendNotificationRequest,
 } from "@farcaster/frame-sdk";
-import { FrameClientConfig } from "@frames.js/render/frame-app/types";
 import type { FrameServerEvent } from "frames.js/farcaster-v2/events";
 
 export type Notification = SendNotificationRequest;
@@ -40,7 +39,7 @@ export type RecordedEvent =
 export type NotificationSettings =
   | {
       enabled: true;
-      details: NonNullable<FrameClientConfig["notificationDetails"]>;
+      details: FrameNotificationDetails;
       webhookUrl: string;
       signerPrivateKey: string;
     }

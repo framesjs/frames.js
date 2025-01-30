@@ -1,11 +1,10 @@
 import type { ParseFramesV2ResultWithFrameworkDetails } from "frames.js/frame-parsers";
-import type { FrameHost, HostEndpoint, Context } from "@farcaster/frame-host";
+import type { FrameHost, HostEndpoint } from "@farcaster/frame-host";
 import { AddFrame } from "@farcaster/frame-host";
 import { useMemo } from "react";
 import { useFreshRef } from "./hooks/use-fresh-ref";
 import type {
   EthProvider,
-  FrameClientConfig,
   HostEndpointEmitter,
   OnAddFrameRequestedFunction,
   OnEIP6963RequestProviderRequestedFunction,
@@ -15,11 +14,12 @@ import type {
   OnSignMessageRequestFunction,
   OnSignTypedDataRequestFunction,
   OnViewProfileFunction,
-  ResolveClientFunction,
+  ResolveContextFunction,
+  FrameContext,
 } from "./frame-app/types";
 import { assertNever } from "./assert-never";
 import { useFetchFrameApp } from "./frame-app/use-fetch-frame-app";
-import { useResolveClient } from "./frame-app/use-resolve-client";
+import { useResolveContext } from "./frame-app/use-resolve-context";
 import { useDebugLog } from "./hooks/use-debug-log";
 
 const defaultFrameRequestCache = new Set<string>();
@@ -92,6 +92,8 @@ const defaultSignIn: OnSignInFunction = () => {
   return Promise.reject(new Error("onSignIn not implemented"));
 };
 
+// @todo ok it is safe to use resolveContext or something like this, which will resolve whole context
+// the value should be memoized otherwise it will rerender frame app
 export type UseFrameAppOptions = {
   /**
    * @example
@@ -110,26 +112,13 @@ export type UseFrameAppOptions = {
    */
   provider: EthProvider;
   /**
-   * Frame client that is rendering the app
+   * Frame context which is used to render the frame app.
    *
-   * This is async function if you need to fetch the client configuration
-   * like notification settings, etc.
+   * The function is called after the frame app is loaded and it should return the context.
    *
-   * Value should be memoized otherwise it will cause unnecessary re-renders.
+   * The value (either an object or function) should be memoized otherwise it will cause unnecessary re-renders.
    */
-  client: FrameClientConfig | ResolveClientFunction;
-  /**
-   * Information about the context from which the frame was launched.
-   *
-   * @defaultValue launcher context
-   */
-  location?: Context.LocationContext;
-  /**
-   * Information about the user who manipulates with the frame.
-   *
-   * Value should be memoized otherwise it will cause unnecessary re-renders.
-   */
-  user: Context.UserContext;
+  context: FrameContext | ResolveContextFunction;
   /**
    * Either:
    *
@@ -204,7 +193,7 @@ export type UseFrameAppOptions = {
 export type UseFrameAppReturn =
   | {
       frame: ParseFramesV2ResultWithFrameworkDetails;
-      client: FrameClientConfig;
+      context: FrameContext;
       /**
        * Url that has been used to fetch the frame app.
        *
@@ -229,18 +218,12 @@ export type UseFrameAppReturn =
       status: "error";
     };
 
-const defaultLocation: Context.LauncherLocationContext = {
-  type: "launcher",
-};
-
 /**
  * This hook is used to handle frames v2 apps.
  */
 export function useFrameApp({
+  context,
   provider,
-  client,
-  location = defaultLocation,
-  user,
   source,
   fetchFn,
   proxyUrl,
@@ -260,7 +243,6 @@ export function useFrameApp({
 }: UseFrameAppOptions): UseFrameAppReturn {
   const providerRef = useFreshRef(provider);
   const debugRef = useFreshRef(debug);
-  const locationRef = useFreshRef(location);
   const readyRef = useFreshRef(onReady);
   const closeRef = useFreshRef(onClose);
   const onOpenUrlRef = useFreshRef(onOpenUrl);
@@ -272,7 +254,7 @@ export function useFrameApp({
   const onSignInRef = useFreshRef(onSignIn);
   const onAddFrameRequestedRef = useFreshRef(onAddFrameRequested);
   const addFrameRequestsCacheRef = useFreshRef(addFrameRequestsCache);
-  const clientResolutionState = useResolveClient({ client });
+  const clientResolutionState = useResolveContext({ context });
   const frameResolutionState = useFetchFrameApp({
     source,
     fetchFn,
@@ -303,7 +285,7 @@ export function useFrameApp({
       };
     }
 
-    const resolvedClient = clientResolutionState.client;
+    const resolvedContext = clientResolutionState.context;
 
     switch (frameResolutionState.status) {
       case "success": {
@@ -393,11 +375,7 @@ export function useFrameApp({
               logDebug("sdk.close() called");
               closeRef.current?.();
             },
-            context: {
-              client: resolvedClient,
-              location: locationRef.current,
-              user,
-            },
+            context: resolvedContext,
             async ethProviderRequest(parameters) {
               // @ts-expect-error -- type mismatch
               return providerRef.current.request(parameters);
@@ -439,7 +417,7 @@ export function useFrameApp({
           status: "success",
           frame: frameResolutionState.frame,
           frameUrl,
-          client: clientResolutionState.client,
+          context: resolvedContext,
         };
       }
       case "error": {
@@ -459,7 +437,6 @@ export function useFrameApp({
   }, [
     clientResolutionState,
     frameResolutionState,
-    locationRef,
     logDebug,
     addFrameRequestsCacheRef,
     onAddFrameRequestedRef,
@@ -471,6 +448,5 @@ export function useFrameApp({
     onViewProfileRef,
     onEIP6963RequestProviderRequestedRef,
     onSignInRef,
-    user,
   ]);
 }
