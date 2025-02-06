@@ -33,6 +33,7 @@
     "rimraf": "^5.0.5",
     "turbo": "^1.13.2"
   },
+  "repository": "framesjs/frames.js",
   "engines": {
     "node": ">=18"
   },
