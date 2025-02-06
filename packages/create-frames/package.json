@@ -18,5 +18,5 @@
   "devDependencies": {
     "@types/yargs": "^17.0.32"
   },
-  "repository": "framesjs/frame.js"
+  "repository": "framesjs/frames.js"
 }

@@ -22,10 +22,7 @@
     "check:package-types": "attw --pack .",
     "check:package-lint": "publint --strict"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/framesjs/frames.js/tree/main/packages/frames.js"
-  },
+  "repository": "framesjs/frames.js",
   "exports": {
     ".": {
       "import": {
