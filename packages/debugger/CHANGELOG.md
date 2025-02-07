@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.4.4
+
+### Patch Changes
+
+- bump docs of version for OP retropgf metadata settings
+
 ## 0.4.3
 
 ### Patch Changes

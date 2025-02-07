@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.21.3
+
+### Patch Changes
+
+- bump docs of version for OP retropgf metadata settings
+
 ## 0.21.2
 
 ### Patch Changes

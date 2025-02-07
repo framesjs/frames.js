@@ -1,5 +1,12 @@
 # template-next
 
+## 0.0.39
+
+### Patch Changes
+
+- Updated dependencies
+  - frames.js@0.21.3
+
 ## 0.0.38
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@frames.js/render",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "type": "module",
   "main": "./dist/index.cjs",
   "types": "index.d.cts",
@@ -367,7 +367,7 @@
     "@farcaster/core": "^0.15.6",
     "@farcaster/frame-host": "^0.0.24",
     "@noble/ed25519": "^2.0.0",
-    "frames.js": "^0.21.2",
+    "frames.js": "^0.21.3",
     "ox": "^0.4.4",
     "zod": "^3.24.1"
   }

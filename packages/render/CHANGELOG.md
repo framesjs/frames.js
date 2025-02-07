@@ -1,5 +1,13 @@
 # @frames.js/render
 
+## 0.5.5
+
+### Patch Changes
+
+- bump docs of version for OP retropgf metadata settings
+- Updated dependencies
+  - frames.js@0.21.3
+
 ## 0.5.4
 
 ### Patch Changes
