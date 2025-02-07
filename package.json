@@ -1,5 +1,5 @@
 {
-  "name": "framesjs-monorepo",
+  "name": "frames.js",
   "private": true,
   "scripts": {
     "build": "turbo build --filter=!./templates/* && node ./.scripts/prepare-create-frames.js",
