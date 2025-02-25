@@ -2,6 +2,19 @@
 # yarn lockfile v1
 
 
+"@0no-co/graphql.web@^1.0.5":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@0no-co/graphql.web/-/graphql.web-1.1.1.tgz#6670b0897ee222e10f46c3b45fe5b43b90504fcd"
+  integrity sha512-F2i3xdycesw78QCOBHmpTn7eaD2iNXGwB2gkfwxcOfBbeauYpr8RBSyJOkDrFtKtVRMclg8Sg3n1ip0ACyUuag==
+
+"@0no-co/graphqlsp@^1.12.13":
+  version "1.12.16"
+  resolved "https://registry.yarnpkg.com/@0no-co/graphqlsp/-/graphqlsp-1.12.16.tgz#58fe7bad53b3ad9fdf2d5f41ddeb9b418d289a03"
+  integrity sha512-B5pyYVH93Etv7xjT6IfB7QtMBdaaC07yjbhN6v8H7KgFStMkPvi+oWYBTibMFRMY89qwc9H8YixXg8SXDVgYWw==
+  dependencies:
+    "@gql.tada/internal" "^1.0.0"
+    graphql "^15.5.0 || ^16.0.0 || ^17.0.0"
+
 "@aashutoshrathi/word-wrap@^1.2.3":
   version "1.2.6"
   resolved "https://registry.yarnpkg.com/@aashutoshrathi/word-wrap/-/word-wrap-1.2.6.tgz#bd9154aec9983f77b3a034ecaa015c2e4201f6cf"
@@ -2503,6 +2516,22 @@
   resolved "https://registry.yarnpkg.com/@floating-ui/utils/-/utils-0.2.1.tgz#16308cea045f0fc777b6ff20a9f25474dd8293d2"
   integrity sha512-9TANp6GPoMtYzQdt54kfAyMmz1+osLlXdg2ENroU7zzrtflTLrrC/lgrIfaSe+Wu0b89GKccT7vxXA0MoAIO+Q==
 
+"@gql.tada/cli-utils@1.6.3":
+  version "1.6.3"
+  resolved "https://registry.yarnpkg.com/@gql.tada/cli-utils/-/cli-utils-1.6.3.tgz#b893cec74908da4df0602691e2e0b1497fda8cda"
+  integrity sha512-jFFSY8OxYeBxdKi58UzeMXG1tdm4FVjXa8WHIi66Gzu9JWtCE6mqom3a8xkmSw+mVaybFW5EN2WXf1WztJVNyQ==
+  dependencies:
+    "@0no-co/graphqlsp" "^1.12.13"
+    "@gql.tada/internal" "1.0.8"
+    graphql "^15.5.0 || ^16.0.0 || ^17.0.0"
+
+"@gql.tada/internal@1.0.8", "@gql.tada/internal@^1.0.0":
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/@gql.tada/internal/-/internal-1.0.8.tgz#3ba9fa6534809788bbbe103492f70b8e9d754027"
+  integrity sha512-XYdxJhtHC5WtZfdDqtKjcQ4d7R1s0d1rnlSs3OcBEUbYiPoJJfZU7tWsVXuv047Z6msvmr4ompJ7eLSK5Km57g==
+  dependencies:
+    "@0no-co/graphql.web" "^1.0.5"
+
 "@graphql-typed-document-node/core@^3.2.0":
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.2.0.tgz#5f3d96ec6b2354ad6d8a28bf216a1d97b5426861"
@@ -2868,6 +2897,20 @@
     ethers "^5.7.2"
     tslib "^2.6.2"
 
+"@lens-protocol/client@^0.0.0-canary-20250224081220":
+  version "0.0.0-canary-20250224081220"
+  resolved "https://registry.yarnpkg.com/@lens-protocol/client/-/client-0.0.0-canary-20250224081220.tgz#159fb3d2eddb714c86025ea89aac3d225ee2a6b2"
+  integrity sha512-lbmIfmBwykQ5PYe6/5UZqwZ7qbOwJmhLkvoNhS4l1sGaExMIFiOOHyhf8JXAny6Rrc+cvdoPHA38ZbaMq96lxw==
+  dependencies:
+    "@lens-protocol/env" "0.0.0-canary-20250224081220"
+    "@lens-protocol/graphql" "0.0.0-canary-20250224081220"
+    "@lens-protocol/storage" "0.0.0-canary-20250224081220"
+    "@lens-protocol/types" "0.0.0-canary-20250224081220"
+    "@urql/core" "^5.0.8"
+    "@urql/exchange-auth" "^2.2.0"
+    jwt-decode "^4.0.0"
+    loglevel "^1.9.2"
+
 "@lens-protocol/client@^2.3.2":
   version "2.3.2"
   resolved "https://registry.yarnpkg.com/@lens-protocol/client/-/client-2.3.2.tgz#9421308bb691374c20a44d9784cee33d6d8a7b25"
@@ -2900,6 +2943,13 @@
     "@lens-protocol/shared-kernel" "0.12.0"
     tslib "^2.6.2"
 
+"@lens-protocol/env@0.0.0-canary-20250224081220":
+  version "0.0.0-canary-20250224081220"
+  resolved "https://registry.yarnpkg.com/@lens-protocol/env/-/env-0.0.0-canary-20250224081220.tgz#87154b9ce6ee2360fc5f1e01fac36e14bec691f6"
+  integrity sha512-Cz29G28DNckgL7yroK0koow8GGW1f2g0EHkusx0FnvdhBRM1bKR1b2Nolq+ORP9grtFLOm2GsMTjIQetTQMDDg==
+  dependencies:
+    "@lens-protocol/types" "0.0.0-canary-20250224081220"
+
 "@lens-protocol/gated-content@0.5.1":
   version "0.5.1"
   resolved "https://registry.yarnpkg.com/@lens-protocol/gated-content/-/gated-content-0.5.1.tgz#4a918d8d36ad396da3614ebde7f6e1ea5ce64b35"
@@ -2915,6 +2965,16 @@
     siwe "^2.1.4"
     tslib "^2.6.2"
 
+"@lens-protocol/graphql@0.0.0-canary-20250224081220":
+  version "0.0.0-canary-20250224081220"
+  resolved "https://registry.yarnpkg.com/@lens-protocol/graphql/-/graphql-0.0.0-canary-20250224081220.tgz#180e7e0a8c08dcc16f161c237c59ed626280e4b9"
+  integrity sha512-NX7n+G3vXQwqbHqwFFbpE/Y6yYAkPWzmkEPLyorkLcM1mY7lErEf7vq+8FZXtciTbvLnm3QOWb6M5WkgCo7r0A==
+  dependencies:
+    "@lens-protocol/types" "0.0.0-canary-20250224081220"
+    gql.tada "^1.8.10"
+    graphql "^16.9.0"
+    type-fest "^4.26.1"
+
 "@lens-protocol/shared-kernel@0.12.0":
   version "0.12.0"
   resolved "https://registry.yarnpkg.com/@lens-protocol/shared-kernel/-/shared-kernel-0.12.0.tgz#ea8d14ef53df3e34c7dcc8ed5e6b9002909dd65a"
@@ -2926,6 +2986,14 @@
     traverse "^0.6.7"
     tslib "^2.6.2"
 
+"@lens-protocol/storage@0.0.0-canary-20250224081220":
+  version "0.0.0-canary-20250224081220"
+  resolved "https://registry.yarnpkg.com/@lens-protocol/storage/-/storage-0.0.0-canary-20250224081220.tgz#25f635c18f551d4b20737ad1e41ac260af9b71a2"
+  integrity sha512-xEQ1tfyTtC9rLq6dtums3+bkbV2g/8aKF+UQBIL8YEqE1Qkwye+fmVrKpMZGiBQJDO/nv3bpuzPA0dVlvlu3Ww==
+  dependencies:
+    "@lens-protocol/types" "0.0.0-canary-20250224081220"
+    zod "^3.23.8"
+
 "@lens-protocol/storage@0.8.1":
   version "0.8.1"
   resolved "https://registry.yarnpkg.com/@lens-protocol/storage/-/storage-0.8.1.tgz#c624fb46862cb0e4a1ee8e7dfd453d48463bbd97"
@@ -2934,6 +3002,14 @@
     "@lens-protocol/shared-kernel" "0.12.0"
     tslib "^2.6.2"
     zod "^3.22.4"
+
+"@lens-protocol/types@0.0.0-canary-20250224081220":
+  version "0.0.0-canary-20250224081220"
+  resolved "https://registry.yarnpkg.com/@lens-protocol/types/-/types-0.0.0-canary-20250224081220.tgz#f2a969186fd6182fc88c5179386d5a1f509fd5d7"
+  integrity sha512-nvgoWYMQPfqiOLFo+cqBjRHf8BJIvoGueGsKBpxP/k47Y8APDT2vOa9ES+NXKbcK8Lq6CpyInOiS8ZiK7u0MHQ==
+  dependencies:
+    neverthrow "^8.0.0"
+    type-fest "^4.26.1"
 
 "@lit-labs/ssr-dom-shim@^1.0.0", "@lit-labs/ssr-dom-shim@^1.1.0":
   version "1.2.0"
@@ -5021,6 +5097,11 @@
   resolved "https://registry.yarnpkg.com/@rollup/rollup-linux-x64-gnu/-/rollup-linux-x64-gnu-4.13.0.tgz#f672f6508f090fc73f08ba40ff76c20b57424778"
   integrity sha512-yUD/8wMffnTKuiIsl6xU+4IA8UNhQ/f1sAnQebmE/lyQ8abjsVyDkyRkWop0kdMhKMprpNIhPmYlCxgHrPoXoA==
 
+"@rollup/rollup-linux-x64-gnu@^4.24.0":
+  version "4.34.8"
+  resolved "https://registry.yarnpkg.com/@rollup/rollup-linux-x64-gnu/-/rollup-linux-x64-gnu-4.34.8.tgz#5783fc0adcab7dc069692056e8ca8d83709855ce"
+  integrity sha512-8y7ED8gjxITUltTUEJLQdgpbPh1sUQ0kMTmufRF/Ns5tI9TNMNlhWtmPKKHCU0SilX+3MJkZ0zERYYGIVBYHIA==
+
 "@rollup/rollup-linux-x64-musl@4.13.0":
   version "4.13.0"
   resolved "https://registry.yarnpkg.com/@rollup/rollup-linux-x64-musl/-/rollup-linux-x64-musl-4.13.0.tgz#d2f34b1b157f3e7f13925bca3288192a66755a89"
@@ -6118,6 +6199,22 @@
   integrity sha512-VT25TyODGy/8ljl7GADnJoMmtmJ1F8d84UXfGonRRF8fWYJz7+2J6GzW+a6ETGtk4OyuRTt7FRSvFG5GvrfSdQ==
   dependencies:
     crypto-js "^4.2.0"
+
+"@urql/core@^5.0.0", "@urql/core@^5.0.8":
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@urql/core/-/core-5.1.0.tgz#7f4b81f1aba1ca34ae6354763abeb87ff9af84ff"
+  integrity sha512-yC3sw8yqjbX45GbXxfiBY8GLYCiyW/hLBbQF9l3TJrv4ro00Y0ChkKaD9I2KntRxAVm9IYBqh0awX8fwWAe/Yw==
+  dependencies:
+    "@0no-co/graphql.web" "^1.0.5"
+    wonka "^6.3.2"
+
+"@urql/exchange-auth@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@urql/exchange-auth/-/exchange-auth-2.2.0.tgz#991ebec5b3320bc0458467b466f0a749d1b3ddea"
+  integrity sha512-4bJR22EYa/flbhwMBj4lU8MI4cO3ddo/DX7FygWeaeHZU+RWfnQKifCKwxIYlnoV8/CgYRM4lFSMIByYlhmWcg==
+  dependencies:
+    "@urql/core" "^5.0.0"
+    wonka "^6.3.2"
 
 "@vanilla-extract/babel-plugin-debug-ids@^1.0.4":
   version "1.0.5"
@@ -10703,6 +10800,16 @@ gopd@^1.0.1:
   dependencies:
     get-intrinsic "^1.1.3"
 
+gql.tada@^1.8.10:
+  version "1.8.10"
+  resolved "https://registry.yarnpkg.com/gql.tada/-/gql.tada-1.8.10.tgz#096a1b30d3c6fc74212fe07d507f01a4095f7f67"
+  integrity sha512-FrvSxgz838FYVPgZHGOSgbpOjhR+yq44rCzww3oOPJYi0OvBJjAgCiP6LEokZIYND2fUTXzQAyLgcvgw1yNP5A==
+  dependencies:
+    "@0no-co/graphql.web" "^1.0.5"
+    "@0no-co/graphqlsp" "^1.12.13"
+    "@gql.tada/cli-utils" "1.6.3"
+    "@gql.tada/internal" "1.0.8"
+
 graceful-fs@^4.1.11, graceful-fs@^4.1.2, graceful-fs@^4.1.3, graceful-fs@^4.1.5, graceful-fs@^4.1.6, graceful-fs@^4.2.0, graceful-fs@^4.2.11, graceful-fs@^4.2.4, graceful-fs@^4.2.9:
   version "4.2.11"
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.11.tgz#4183e4e8bf08bb6e05bbb2f7d2e0c8f712ca40e3"
@@ -10732,6 +10839,11 @@ graphql-tag@^2.12.6:
   integrity sha512-FdSNcu2QQcWnM2VNvSCCDCVS5PpPqpzgFT8+GXzqJuoDd0CBncxCY278u4mhRO7tMgo2JjgJA5aZ+nWSQ/Z+xg==
   dependencies:
     tslib "^2.1.0"
+
+"graphql@^15.5.0 || ^16.0.0 || ^17.0.0", graphql@^16.9.0:
+  version "16.10.0"
+  resolved "https://registry.yarnpkg.com/graphql/-/graphql-16.10.0.tgz#24c01ae0af6b11ea87bf55694429198aaa8e220c"
+  integrity sha512-AjqGKbDGUFRKIRCP9tCKiIGHyriz2oHEbPIbEtcSLSs4YjReZOIPQQWek4+6hjw62H9QShXHyaGivGiYVLeYFQ==
 
 graphql@^16.8.1:
   version "16.8.1"
@@ -12353,6 +12465,11 @@ jwt-decode@^3.1.2:
   resolved "https://registry.yarnpkg.com/jwt-decode/-/jwt-decode-3.1.2.tgz#3fb319f3675a2df0c2895c8f5e9fa4b67b04ed59"
   integrity sha512-UfpWE/VZn0iP50d8cz9NrZLM9lSWhcJ+0Gt/nm4by88UL+J1SiKN8/5dkjMmbEzwL2CAe+67GsegCbIKtbp75A==
 
+jwt-decode@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/jwt-decode/-/jwt-decode-4.0.0.tgz#2270352425fd413785b2faf11f6e755c5151bd4b"
+  integrity sha512-+KJGIyHgkGuIq3IEBNftfhW/LfWhXUIY6OmyVWjliu5KH1y0fw7VQ8YndE2O4qZdMSd9SqbnC8GOcZEy0Om7sA==
+
 keccak@^3.0.3:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/keccak/-/keccak-3.0.4.tgz#edc09b89e633c0549da444432ecf062ffadee86d"
@@ -12641,6 +12758,11 @@ logkitty@^0.7.1:
     ansi-fragments "^0.2.1"
     dayjs "^1.8.15"
     yargs "^15.1.0"
+
+loglevel@^1.9.2:
+  version "1.9.2"
+  resolved "https://registry.yarnpkg.com/loglevel/-/loglevel-1.9.2.tgz#c2e028d6c757720107df4e64508530db6621ba08"
+  integrity sha512-HgMmCqIJSAKqo68l0rS2AanEWfkxaZ5wNiEFb5ggm08lDs9Xl2KxBlX3PTcaD2chBM1gXAYf491/M2Rv8Jwayg==
 
 long@^5.0.0, long@^5.2.0, long@^5.2.3:
   version "5.2.3"
@@ -14403,6 +14525,13 @@ neverthrow@^6.1.0:
   version "6.2.2"
   resolved "https://registry.yarnpkg.com/neverthrow/-/neverthrow-6.2.2.tgz#1d905abe20ef8882e4b195c7851787aa4553cf0e"
   integrity sha512-POR1FACqdK9jH0S2kRPzaZEvzT11wsOxLW520PQV/+vKi9dQe+hXq19EiOvYx7lSRaF5VB9lYGsPInynrnN05w==
+
+neverthrow@^8.0.0:
+  version "8.2.0"
+  resolved "https://registry.yarnpkg.com/neverthrow/-/neverthrow-8.2.0.tgz#925d988295758534d01fb7468f998680b62064f2"
+  integrity sha512-kOCT/1MCPAxY5iUV3wytNFUMUolzuwd/VF/1KCx7kf6CutrOsTie+84zTGTpgQycjvfLdBBdvBvFLqFD2c0wkQ==
+  optionalDependencies:
+    "@rollup/rollup-linux-x64-gnu" "^4.24.0"
 
 next@14.1.4:
   version "14.1.4"
@@ -17925,6 +18054,11 @@ type-fest@^0.8.1:
   resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-0.8.1.tgz#09e249ebde851d3b1e48d27c105444667f17b83d"
   integrity sha512-4dbzIzqvjtgiM5rw1k5rEHtBANKmdudhGyBEajN01fEyhaAIhsoKNy6y7+IN93IfpFtwY9iqi7kD+xwKhQsNJA==
 
+type-fest@^4.26.1:
+  version "4.35.0"
+  resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-4.35.0.tgz#007ed74d65c2ca0fb3b564b3dc8170d5c872d665"
+  integrity sha512-2/AwEFQDFEy30iOLjrvHDIH7e4HEWH+f1Yl1bI5XMqzuoCUqwYCdxachgsgv0og/JdVZUhbfjcJAoHj5L1753A==
+
 type-fest@^4.28.1:
   version "4.28.1"
   resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-4.28.1.tgz#5ae370169c829303012d4e2e1f568b427c1f37f7"
@@ -18899,6 +19033,11 @@ why-is-node-running@^2.2.2:
     siginfo "^2.0.0"
     stackback "0.0.2"
 
+wonka@^6.3.2:
+  version "6.3.4"
+  resolved "https://registry.yarnpkg.com/wonka/-/wonka-6.3.4.tgz#76eb9316e3d67d7febf4945202b5bdb2db534594"
+  integrity sha512-CjpbqNtBGNAeyNS/9W6q3kSkKE52+FjIj7AkFlLr11s/VWGUu6a2CdYSdGxocIhIVjaW/zchesBQUKPVU69Cqg==
+
 workerd@1.20240320.1:
   version "1.20240320.1"
   resolved "https://registry.yarnpkg.com/workerd/-/workerd-1.20240320.1.tgz#f959a4805bf3bdbdf86d123482132fa30a3f34c9"
@@ -19172,6 +19311,11 @@ zod@^3.20.6, zod@^3.22.4:
   version "3.22.4"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.22.4.tgz#f31c3a9386f61b1f228af56faa9255e845cf3fff"
   integrity sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==
+
+zod@^3.23.8:
+  version "3.24.2"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-3.24.2.tgz#8efa74126287c675e92f46871cfc8d15c34372b3"
+  integrity sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ==
 
 zod@^3.24.1:
   version "3.24.1"

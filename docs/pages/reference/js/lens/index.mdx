@@ -2,7 +2,7 @@ import { Callout, HomePage } from "vocs/components";
 
 # Lens Support
 
-Cross-protocol frames are supported by frames.js via familiar APIs. This guide will showcase how to write a simple stateless frame, which returns the Lens profileof the user that interacted with the frame in an OpenFrame supported application.
+Cross-protocol frames are supported by frames.js via familiar APIs. This guide will showcase how to write a simple stateless frame, which returns the Lens account the user that interacted with the frame in an OpenFrame supported application.
 
 <Callout type="warning">
   This tutorial is out of date and uses a deprecated version of frames.js. Please check the [Lens Support guide](/guides/lens) for the latest version.
@@ -13,7 +13,7 @@ Cross-protocol frames are supported by frames.js via familiar APIs. This guide w
 First, you need to install `frames.js` and `@lens-protocol/client`. You can do this by running the following command:
 
 <HomePage.InstallPackage
-  name="frames.js @lens-protocol/client"
+  name="frames.js @lens-protocol/client@canary"
   type="install"
 />
 
@@ -75,7 +75,7 @@ const acceptedProtocols: ClientProtocolId[] = [
   {
     // [!code focus]
     id: "lens", // [!code focus]
-    version: "1.0.0", // [!code focus]
+    version: "1.1.0", // [!code focus]
   }, // [!code focus]
   {
     // [!code focus]
@@ -133,7 +133,6 @@ const previousFrame = getPreviousFrame(searchParams);
 
 let fid: number | undefined;
 let walletAddress: string | undefined;
-let lensProfileId: string | undefined;
 
 if (
   // [!code focus]
@@ -169,14 +168,13 @@ Now we can use data from the different message contexts to populate our `fid` an
 
 let fid: number | undefined;
 let walletAddress: string | undefined;
-let lensProfileId: string | undefined;
 
 if (
   previousFrame.postBody &&
   isLensFrameActionPayload(previousFrame.postBody)
 ) {
   const frameMessage = await getLensFrameMessage(previousFrame.postBody);
-  lensProfileId = frameMessage?.profileId; // [!code focus]
+  walletAddress = frameMessage?.account; // [!code focus]
 } else if (
   previousFrame.postBody &&
   isXmtpFrameActionPayload(previousFrame.postBody)
@@ -198,11 +196,11 @@ if (
 // ...
 ```
 
-Here we use the `frameMessage` to extract the `verifiedProfileId`, `verifiedWalletAddress` and `requesterFid` from the Lens, XMTP, and Farcaster frame messages respectively. We then use these to populate our `lensProfileId`, `walletAddress` and `fid` variables. You can use this information to execute some action like a database query or an onchain transaction.
+Here we use the `frameMessage` to extract the `verifiedWalletAddress` and `requesterFid` from the Lens, XMTP, and Farcaster frame messages respectively. We then use these to populate our `walletAddress` and `fid` variables. You can use this information to execute some action like a database query or an onchain transaction.
 
 ### Returning a Frame
 
-Now that we have our `lensProfileId`, `fid` and `walletAddress` variables populated, we can use them to determine the next frame to return.
+Now that we have our  `fid` and `walletAddress` variables populated, we can use them to determine the next frame to return.
 
 ```tsx filename="example7.tsx"
 // ...
@@ -221,7 +219,6 @@ return (
           This frame gets the interactor&apos;s wallet address or FID depending
           on the client protocol.
         </div>
-        {lensProfileId && <div tw="flex">Lens Profile ID: {lensProfileId}</div>}
         {fid && <div tw="flex">FID: {fid}</div>}
         {walletAddress && <div tw="flex">Wallet Address: {walletAddress}</div>}
       </div>
@@ -231,4 +228,4 @@ return (
 );
 ```
 
-Above, we conditionally render the `lensProfileId`, `fid` and `walletAddress` variables in the frame.
+Above, we conditionally render the `fid` and `walletAddress` variables in the frame.
