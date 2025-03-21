@@ -5,7 +5,7 @@ import {
 } from "@farcaster/frame-core";
 import { z } from "zod";
 import type { FarcasterManifest } from "../farcaster-v2/types";
-import { decodePayload, verify } from "../farcaster-v2/json-signature";
+import { decodePayload, verify, InvalidJFSHeaderError } from "../farcaster-v2/json-signature";
 import { getMetaTag, removeInvalidDataFromObject } from "./utils";
 import type {
   ParseResultFramesV2,
@@ -331,7 +331,12 @@ async function parseManifest(
       reports: reporter.toObject(),
     };
   } catch (e) {
-    if (e instanceof Error) {
+    if(e instanceof InvalidJFSHeaderError) {
+      reporter.error(
+        "fc:manifest",
+        `Failed to verify account association signature: InvalidJFSHeaderError`
+      );
+    } else if (e instanceof Error) {
       reporter.error(
         "fc:manifest",
         `Failed to parse frame manifest: ${String(e)}`
