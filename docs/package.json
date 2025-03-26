@@ -11,7 +11,7 @@
   "dependencies": {
     "frames.js": "0.21.3",
     "lucide-react": "^0.372.0",
-    "next": "14.1.4",
+    "next": "14.1.4", #update this to the latest next.js version, i.e, v15.2.3
     "react": "^18.2.0",
     "react-dom": "18.2.0",
     "vocs": "1.0.0-alpha.46"
