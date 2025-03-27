@@ -53,6 +53,8 @@ type FrameAppProps = {
   onFrameAppUpdate: (frameApp: UseFrameAppInIframeReturn) => void;
   onViewProfile: NonNullable<UseFrameAppOptions["onViewProfile"]>;
   frameAppNotificationManager: UseQueryResult<UseFrameAppNotificationsManagerResult>;
+  width?: number;
+  height?: number;
 };
 
 export function FrameApp({
@@ -62,6 +64,8 @@ export function FrameApp({
   onViewProfile,
   userContext,
   frameAppNotificationManager,
+  width,
+  height,
 }: FrameAppProps) {
   const copyFarcasterSignInLink = useCopyToClipboard();
   const config = useConfig();
@@ -452,8 +456,12 @@ export function FrameApp({
         {frameApp.status === "success" && (
           <>
             <iframe
-              className="flex h-full w-full border rounded-lg"
+              className={`flex border rounded-lg ${width === 0 ? "w-full" : `w-[${width}px]`} ${
+                height === 0 ? "h-full" : `h-[${height}px]`
+              }`}
               sandbox="allow-forms allow-scripts allow-same-origin"
+              width={width}
+              height={height}
               {...frameApp.iframeProps}
             />
             {!!primaryButton && !primaryButton.button.hidden && (
