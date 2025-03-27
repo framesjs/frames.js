@@ -5,7 +5,7 @@ Returns a `LensFrameMessageReturnType` object from the message payload. Throws a
 ## Usage
 
 ```ts
-yarn add @lens-protocol/client@2.0.0
+yarn add @lens-protocol/client@canary
 ```
 
 ```ts
@@ -15,15 +15,16 @@ const frameMessage = await getLensFrameMessage(frameActionPayload);
 console.log(frameMessage);
 /**
 {
-  profileId: "0x01";
-  pubId: "0x02-0x01";
+  account: "0x0000000000000000000000000000000000000000";
+  post: "0x02-0x01";
+  app: "0x0000000000000000000000000000000000000000",
   url: "https://example.com;
   buttonIndex: 1;
   unixTimestamp: 123456789;
   deadline: 123456789;
   inputText: "";
   state: "";
-  actionResponse: "";
+  transactionId: "";
   specVersion: "1.0.0";
   isValid: true,
 }
