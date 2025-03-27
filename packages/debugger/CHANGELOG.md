@@ -1,5 +1,11 @@
 # @frames.js/debugger
 
+## 0.5.0
+
+### Minor Changes
+
+- 976b8f9: feat: add device size customization
+
 ## 0.4.4
 
 ### Patch Changes

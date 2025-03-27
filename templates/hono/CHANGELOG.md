@@ -1,5 +1,12 @@
 # template-hono
 
+## 0.0.40
+
+### Patch Changes
+
+- Updated dependencies [95ec945]
+  - frames.js@0.22.0
+
 ## 0.0.39
 
 ### Patch Changes

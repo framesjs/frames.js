@@ -1,5 +1,12 @@
 # @frames.js/render
 
+## 0.5.6
+
+### Patch Changes
+
+- Updated dependencies [95ec945]
+  - frames.js@0.22.0
+
 ## 0.5.5
 
 ### Patch Changes

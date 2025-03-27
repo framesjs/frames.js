@@ -1,5 +1,11 @@
 # frames.js
 
+## 0.22.0
+
+### Minor Changes
+
+- 95ec945: Handle `InvalidJFSHeaderError` in `parseManifest` for better error reporting
+
 ## 0.21.3
 
 ### Patch Changes
