@@ -15,7 +15,7 @@
   "dependencies": {
     "@farcaster/auth-kit": "^0.6.0",
     "@upstash/redis": "^1.34.3",
-    "@lens-protocol/client": "^2.3.2",
+    "@lens-protocol/client": "^0.0.0-canary-20250224081220",
     "@farcaster/frame-sdk": "^0.0.26",
     "@xmtp/xmtp-js": "^12.0.0",
     "is-port-reachable": "^4.0.0",

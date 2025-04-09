@@ -9,15 +9,15 @@ In order to use Lens identity you need to install `@rainbow-me/rainbowkit`, `@le
 :::code-group
 
 ```bash [npm]
-npm install @rainbow-me/rainbowkit @lens-protocol/client viem wagmi
+npm install @rainbow-me/rainbowkit @lens-protocol/client@canary viem wagmi
 ```
 
 ```bash [yarn]
-yarn add @rainbow-me/rainbowkit @lens-protocol/client viem wagmi
+yarn add @rainbow-me/rainbowkit @lens-protocol/client@canary viem wagmi
 ```
 
 ```bash [pnpm]
-pnpm add @rainbow-me/rainbowkit @lens-protocol/client viem wagmi
+pnpm add @rainbow-me/rainbowkit @lens-protocol/client@canary viem wagmi
 ```
 
 :::
@@ -36,7 +36,7 @@ import { WebStorage } from "@frames.js/render/identity/storage";
 export function MyFrame() {
   const lensFrameContext = useLensFrameContext({
     fallbackContext: {
-      pubId: "0x01-0x01",
+      post: "0x01-0x01",
     },
   });
   const signerState = useLensIdentity({

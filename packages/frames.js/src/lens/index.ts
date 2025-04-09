@@ -1,9 +1,11 @@
 import {
-  FrameVerifySignatureResult,
-  LensClient,
-  development,
-  production,
+  PublicClient,
+  testnet,
+  FrameVerifySignatureResult
 } from "@lens-protocol/client";
+import {
+  verifyFrameSignature, createFrameTypedData
+} from "@lens-protocol/client/actions";
 import type { MessageWithWalletAddressImplementation } from "../middleware/walletAddressMiddleware";
 import { InvalidFrameActionPayloadError } from "../core/errors";
 import type { OpenFramesActionData } from "../types";
@@ -12,15 +14,16 @@ export type LensFrameRequest = {
   clientProtocol: string;
   untrustedData: {
     specVersion: string;
-    profileId: string;
-    pubId: string;
+    account: string;
+    post: string;
+    app: string;
     url: string;
     buttonIndex: number;
     unixTimestamp: number;
     deadline: number;
     inputText: string;
     state: string;
-    actionResponse: string;
+    transactionId: string;
     identityToken: string;
   };
   trustedData: {
@@ -31,11 +34,12 @@ export type LensFrameRequest = {
 type LensFrameVerifiedFields = {
   url: string;
   buttonIndex: number;
-  profileId: string;
-  pubId: string;
+  account: string;
+  post: string;
+  app: string;
   inputText: string;
   state: string;
-  actionResponse: string;
+  transactionId: string;
   deadline: number;
   specVersion: string;
 };
@@ -66,11 +70,11 @@ export async function getLensFrameMessage(
   frameActionPayload: LensFrameRequest,
   options?: LensFrameOptions
 ): Promise<LensFrameResponse> {
-  const lensClientEnvironment =
-    options?.environment === "development" ? development : production;
+  //const lensClientEnvironment =
+  //  options?.environment === "development" ? development : production;
 
-  const lensClient = new LensClient({
-    environment: lensClientEnvironment,
+  const lensClient = PublicClient.create({
+    environment: testnet,
   });
 
   const {
@@ -78,26 +82,27 @@ export async function getLensFrameMessage(
     inputText,
     state,
     buttonIndex,
-    actionResponse,
-    profileId,
-    pubId,
+    transactionId,
+    account,
+    post,
+    app,
     specVersion,
     deadline,
     identityToken,
   } = frameActionPayload.untrustedData;
 
-  const typedData = await lensClient.frames
-    .createFrameTypedData({
-      url,
-      inputText,
-      state,
-      buttonIndex,
-      actionResponse,
-      profileId,
-      pubId,
-      specVersion,
-      deadline,
-    })
+  const typedData = await createFrameTypedData(lensClient, {
+    url,
+    inputText,
+    state,
+    buttonIndex,
+    transactionId,
+    account,
+    post,
+    app,
+    specVersion,
+    deadline,
+  })
     .catch((e) => {
       // eslint-disable-next-line no-console -- provide feedback to the developer
       console.error(e);
@@ -106,7 +111,7 @@ export async function getLensFrameMessage(
       );
     });
 
-  const response = await lensClient.frames.verifyFrameSignature({
+  const response = await verifyFrameSignature(lensClient, {
     identityToken,
     signature: frameActionPayload.trustedData.messageBytes,
     signedTypedData: typedData,
@@ -115,12 +120,8 @@ export async function getLensFrameMessage(
   return {
     ...typedData.value,
     isValid: response === FrameVerifySignatureResult.Verified,
-    async walletAddress() {
-      const profile = await lensClient.profile.fetch({
-        forProfileId: typedData.value.profileId,
-      });
-
-      return profile?.ownedBy.address;
+    walletAddress() {
+      return Promise.resolve(typedData.value.account);
     },
   };
 }

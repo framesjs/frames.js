@@ -16,11 +16,12 @@ describe("getLensMessage", () => {
           specVersion: "1.0.0",
           url: "http://localhost:3000/examples/multi-protocol",
           buttonIndex: 1,
-          profileId: "0x01df7e",
-          pubId: "0x01-0x01",
+          account: "0x0000000000000000000000000000000000000000",
+          post: "0x01-0x01",
+          app: "0x0000000000000000000000000000000000000000",
           inputText: "",
           state: '{"pageIndex":0}',
-          actionResponse: "",
+          transactionId: "",
           deadline: Math.round((Date.now() + 5000) / 1000),
           identityToken:
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjB4MDFkZjdlIiwiZXZtQWRkcmVzcyI6IjB4OGQyNTY4NzgyOUQ2Yjg1ZDllMDAyMEI4Yzg5ZTNDYTI0ZEUyMGE4OSIsInJvbGUiOiJwcm9maWxlX2lkZW50aXR5IiwiYXV0aG9yaXphdGlvbklkIjoiZTI1M2JiZjUtZDNiOS00ZmVmLWExZjAtMmRkYjgzNGExNzAzIiwiaWF0IjoxNzIxNzQ1NDQ2LCJleHAiOjE3MjE3NDcyNDZ9.tIt8_O1SMP9MThQ9KnihhackfR1zIgoZr8RddU0aF2w",
@@ -32,11 +33,11 @@ describe("getLensMessage", () => {
         },
       })
     ).resolves.toMatchObject({
-      actionResponse: "",
+      transactionId: "",
       buttonIndex: 1,
       inputText: "",
-      profileId: "0x01df7e",
-      pubId: "0x01-0x01",
+      account: "0x01df7e",
+      post: "0x01-0x01",
       isValid: false,
       url: "http://localhost:3000/examples/multi-protocol",
     });
@@ -44,7 +45,7 @@ describe("getLensMessage", () => {
 
   it("throws an error if the message cannot be decoded", async () => {
     // eslint-disable-next-line @typescript-eslint/no-empty-function -- we don't care
-    consoleErrorSpy.mockImplementation(() => {});
+    consoleErrorSpy.mockImplementation(() => { });
     const farcasterMessage: FrameActionPayload = {
       untrustedData: {
         fid: 1689,
