@@ -35,7 +35,7 @@
   },
   "repository": "framesjs/frames.js",
   "engines": {
-    "node": ">=18"
+    "node": ">=18 <=22"
   },
   "packageManager": "yarn@1.22.19",
   "workspaces": [

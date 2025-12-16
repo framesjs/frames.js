@@ -5,7 +5,7 @@
   "bin": "bin.js",
   "license": "MIT",
   "engines": {
-    "node": ">=18.17.0"
+    "node": ">=18.17.0 <=22"
   },
   "engineStrict": true,
   "dependencies": {

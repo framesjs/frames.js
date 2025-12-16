@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=18.17.0"
+    "node": ">=18.17.0 <=22"
   },
   "dependencies": {
     "@remix-run/node": "^2.8.1",
