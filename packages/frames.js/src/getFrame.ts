@@ -35,8 +35,15 @@ type GetFrameOptions = {
 
 /**
  * Extracts frame metadata from the given htmlString.
+ * Parses the HTML and extracts frame information based on the specified protocol.
  *
- * @returns an object representing the parsing result
+ * @param options - Configuration options for frame extraction
+ * @param options.htmlString - The HTML string to parse
+ * @param options.frameUrl - URL to the frame
+ * @param options.url - Fallback URL used if post_url is missing
+ * @param options.specification - The parsing specification (default: 'farcaster')
+ * @param options.fromRequestMethod - Request method used to fetch the frame (default: 'GET')
+ * @returns An object representing the parsing result with frame data and any reports
  */
 export async function getFrame({
   htmlString,
