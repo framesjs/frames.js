@@ -3,6 +3,10 @@ import {
   parseButtonInformationFromTargetURL,
   resolveBaseUrl,
   generateTargetURL,
+  joinPaths,
+  parseSearchParams,
+  isFrameRedirect,
+  isFrameDefinition,
 } from "./utils";
 
 describe("generateTargetURL", () => {
@@ -240,5 +244,108 @@ describe("parseButtonInformationFromTargetURL", () => {
       action: "post",
       index: 1,
     });
+  });
+});
+
+describe("joinPaths", () => {
+  it("returns pathA when pathB is empty string", () => {
+    expect(joinPaths("/base", "")).toBe("/base");
+  });
+
+  it("returns pathA when pathB is /", () => {
+    expect(joinPaths("/base", "/")).toBe("/base");
+  });
+
+  it("joins two paths correctly", () => {
+    expect(joinPaths("/base", "/path")).toBe("/base/path");
+  });
+
+  it("removes duplicate slashes", () => {
+    expect(joinPaths("/base/", "/path")).toBe("/base/path");
+    expect(joinPaths("/base//", "//path")).toBe("/base/path");
+  });
+
+  it("handles paths without leading slash", () => {
+    expect(joinPaths("base", "path")).toBe("base/path");
+  });
+});
+
+describe("parseSearchParams", () => {
+  it("returns empty object for URL without search params", () => {
+    const url = new URL("http://test.com");
+    expect(parseSearchParams(url)).toEqual({ searchParams: {} });
+  });
+
+  it("parses single search param", () => {
+    const url = new URL("http://test.com?key=value");
+    expect(parseSearchParams(url)).toEqual({ searchParams: { key: "value" } });
+  });
+
+  it("parses multiple search params", () => {
+    const url = new URL("http://test.com?a=1&b=2&c=3");
+    expect(parseSearchParams(url)).toEqual({
+      searchParams: { a: "1", b: "2", c: "3" },
+    });
+  });
+});
+
+describe("isFrameRedirect", () => {
+  it("returns true for valid redirect object", () => {
+    expect(isFrameRedirect({ kind: "redirect", location: "https://example.com" })).toBe(true);
+  });
+
+  it("returns false for null", () => {
+    expect(isFrameRedirect(null)).toBe(false);
+  });
+
+  it("returns false for undefined", () => {
+    expect(isFrameRedirect(undefined)).toBe(false);
+  });
+
+  it("returns false for object without kind property", () => {
+    expect(isFrameRedirect({ location: "https://example.com" })).toBe(false);
+  });
+
+  it("returns false for object with wrong kind value", () => {
+    expect(isFrameRedirect({ kind: "other", location: "https://example.com" })).toBe(false);
+  });
+
+  it("returns false for primitive values", () => {
+    expect(isFrameRedirect("redirect")).toBe(false);
+    expect(isFrameRedirect(123)).toBe(false);
+    expect(isFrameRedirect(true)).toBe(false);
+  });
+});
+
+describe("isFrameDefinition", () => {
+  it("returns true for object with image property", () => {
+    expect(isFrameDefinition({ image: "https://example.com/image.png" })).toBe(true);
+  });
+
+  it("returns true for complete frame definition", () => {
+    expect(
+      isFrameDefinition({
+        image: "https://example.com/image.png",
+        buttons: [],
+        state: { count: 0 },
+      })
+    ).toBe(true);
+  });
+
+  it("returns false for null", () => {
+    expect(isFrameDefinition(null)).toBe(false);
+  });
+
+  it("returns false for undefined", () => {
+    expect(isFrameDefinition(undefined)).toBe(false);
+  });
+
+  it("returns false for object without image property", () => {
+    expect(isFrameDefinition({ buttons: [] })).toBe(false);
+  });
+
+  it("returns false for primitive values", () => {
+    expect(isFrameDefinition("image")).toBe(false);
+    expect(isFrameDefinition(123)).toBe(false);
   });
 });
