@@ -67,6 +67,21 @@ type FramesMessageContext = {
   clientProtocol?: ClientProtocolId;
 };
 
+/**
+ * Middleware that extracts and validates Farcaster frame messages.
+ * Adds the decoded message and client protocol information to the context.
+ * Only processes POST requests with valid frame action payloads.
+ * 
+ * @param options - Optional configuration for the Farcaster Hub HTTP URL
+ * @returns A frames middleware that adds message context
+ * 
+ * @example
+ * ```typescript
+ * const frames = createFrames({
+ *   middleware: [farcasterHubContext()],
+ * });
+ * ```
+ */
 export function farcasterHubContext(
   options?: HubHttpUrlOptions
 ): FramesMiddleware<any, FramesMessageContext> {
