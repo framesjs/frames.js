@@ -24,7 +24,22 @@ function isValidateMessageJson(value: unknown): value is ValidateMessageJson {
 }
 
 /**
- * @returns a Promise that resolves with whether the message signature is valid, by querying a Farcaster hub, as well as the message itself
+ * Validates a frame action message by querying a Farcaster hub.
+ * Verifies the message signature is valid and returns the decoded message.
+ *
+ * @param body - The frame action payload containing trusted and untrusted data
+ * @param options - Optional hub configuration
+ * @param options.hubHttpUrl - The Farcaster hub HTTP URL (default: neynar hub)
+ * @param options.hubRequestOptions - Additional request options for the hub API
+ * @returns A Promise resolving to an object with isValid boolean and the message if valid
+ *
+ * @example
+ * ```typescript
+ * const { isValid, message } = await validateFrameMessage(body);
+ * if (isValid && message) {
+ *   console.log('Valid message from FID:', message.data.fid);
+ * }
+ * ```
  */
 export async function validateFrameMessage(
   body: FrameActionPayload,

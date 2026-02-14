@@ -12,8 +12,13 @@ export function getFrameFlattened(
 ): Partial<FrameFlattened>;
 
 /**
- * Takes a `Frame` and formats it as an intermediate step before rendering as html
- * @returns a plain object with frame metadata keys and values according to the frame spec, using their lengthened syntax, e.g. "fc:frame:image"
+ * Takes a `Frame` and converts it to a flattened object with frame metadata keys.
+ * This is an intermediate step before rendering as HTML meta tags.
+ *
+ * @param frame - The frame object to flatten
+ * @param overrides - Optional overrides to apply to the flattened result
+ * @returns A plain object with frame metadata keys and values according to the frame spec,
+ *          using their lengthened syntax, e.g. "fc:frame:image"
  */
 export function getFrameFlattened(
   /**
@@ -28,40 +33,40 @@ export function getFrameFlattened(
   const openFrames =
     frame.accepts && Boolean(frame.accepts.length)
       ? {
-          // custom of tags
-          "of:version": frame.version,
-          ...frame.accepts.reduce(
-            (acc: Record<string, string>, { id, version }) => {
-              acc[`of:accepts:${id}`] = version;
-              return acc;
-            },
-            {}
-          ),
-          // same as fc:frame tags
-          "of:image": frame.image,
-          "og:image": frame.ogImage || frame.image,
-          "og:title": frame.title,
-          "of:post_url": frame.postUrl,
-          "of:input:text": frame.inputText,
-          ...(frame.state ? { "of:state": frame.state } : {}),
-          ...(frame.imageAspectRatio
-            ? { "of:image:aspect_ratio": frame.imageAspectRatio }
-            : {}),
-          ...frame.buttons?.reduce(
-            (acc, button, index) => ({
-              ...acc,
-              [`of:button:${index + 1}`]: button.label,
-              [`of:button:${index + 1}:action`]: button.action,
-              [`of:button:${index + 1}:target`]: button.target,
-              ...(button.action === "tx" ||
+        // custom of tags
+        "of:version": frame.version,
+        ...frame.accepts.reduce(
+          (acc: Record<string, string>, { id, version }) => {
+            acc[`of:accepts:${id}`] = version;
+            return acc;
+          },
+          {}
+        ),
+        // same as fc:frame tags
+        "of:image": frame.image,
+        "og:image": frame.ogImage || frame.image,
+        "og:title": frame.title,
+        "of:post_url": frame.postUrl,
+        "of:input:text": frame.inputText,
+        ...(frame.state ? { "of:state": frame.state } : {}),
+        ...(frame.imageAspectRatio
+          ? { "of:image:aspect_ratio": frame.imageAspectRatio }
+          : {}),
+        ...frame.buttons?.reduce(
+          (acc, button, index) => ({
+            ...acc,
+            [`of:button:${index + 1}`]: button.label,
+            [`of:button:${index + 1}:action`]: button.action,
+            [`of:button:${index + 1}:target`]: button.target,
+            ...(button.action === "tx" ||
               button.action === "post" ||
               button.action === "post_redirect"
-                ? { [`of:button:${index + 1}:post_url`]: button.post_url }
-                : {}),
-            }),
-            {}
-          ),
-        }
+              ? { [`of:button:${index + 1}:post_url`]: button.post_url }
+              : {}),
+          }),
+          {}
+        ),
+      }
       : {};
 
   const metadata: Partial<FrameFlattened> = {
@@ -83,8 +88,8 @@ export function getFrameFlattened(
         [`fc:frame:button:${index + 1}:action`]: button.action,
         [`fc:frame:button:${index + 1}:target`]: button.target,
         ...(button.action === "tx" ||
-        button.action === "post" ||
-        button.action === "post_redirect"
+          button.action === "post" ||
+          button.action === "post_redirect"
           ? { [`fc:frame:button:${index + 1}:post_url`]: button.post_url }
           : {}),
       }),

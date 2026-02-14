@@ -16,10 +16,16 @@ export interface GetFrameHtmlOptions {
 }
 
 /**
- * Turns a `Frame` into html
- * @param frame - The Frame to turn into html
- * @param options - additional options passs into the html string
- * @returns an html string
+ * Turns a `Frame` into a complete HTML document string.
+ * Generates a valid HTML page with proper meta tags for frame rendering.
+ *
+ * @param frame - The Frame to turn into HTML
+ * @param options - Additional options to customize the HTML output
+ * @param options.og - OpenGraph title configuration
+ * @param options.title - Custom page title
+ * @param options.htmlBody - Additional content for the body tag
+ * @param options.htmlHead - Additional content for the head tag
+ * @returns A complete HTML document string
  */
 export function getFrameHtml(
   frame: Frame,
@@ -29,11 +35,10 @@ export function getFrameHtml(
   <html>
     <head>
       <title>${options.title ?? frame.title ?? DEFAULT_FRAME_TITLE}</title>
-      ${
-        frame.title ?? options.og?.title
-          ? `<meta property="og:title" content="${frame.title ?? options.og?.title}"/>`
-          : ""
-      }
+      ${frame.title ?? options.og?.title
+      ? `<meta property="og:title" content="${frame.title ?? options.og?.title}"/>`
+      : ""
+    }
       ${getFrameHtmlHead(frame)}
       ${options.htmlHead || ""}
     </head>

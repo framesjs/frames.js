@@ -12,12 +12,25 @@ type ButtonActions = keyof typeof buttonActionToCode;
 
 const BUTTON_INFORMATION_SEARCH_PARAM_NAME = "__bi";
 
+/**
+ * Joins two path segments, handling empty paths and removing duplicate slashes.
+ * @param pathA - The first path segment
+ * @param pathB - The second path segment to append
+ * @returns The joined path with duplicate slashes removed
+ */
 export function joinPaths(pathA: string, pathB: string): string {
   return pathB === "/" || pathB === ""
     ? pathA
     : [pathA, pathB].join("/").replace(/\/{2,}/g, "/");
 }
 
+/**
+ * Resolves the base URL for frame requests.
+ * @param request - The incoming request
+ * @param baseUrl - Optional explicit base URL
+ * @param basePath - The base path to append
+ * @returns The resolved URL
+ */
 export function resolveBaseUrl(
   request: Request,
   baseUrl: URL | undefined,
@@ -34,6 +47,11 @@ export function resolveBaseUrl(
   return new URL(basePath, request.url);
 }
 
+/**
+ * Validates if a value is a valid button index (1-4).
+ * @param index - The value to check
+ * @returns True if the value is a valid button index
+ */
 function isValidButtonIndex(index: unknown): index is 1 | 2 | 3 | 4 {
   return (
     typeof index === "number" &&
@@ -43,10 +61,20 @@ function isValidButtonIndex(index: unknown): index is 1 | 2 | 3 | 4 {
   );
 }
 
+/**
+ * Validates if a value is a valid button action type.
+ * @param action - The value to check
+ * @returns True if the value is a valid button action
+ */
 function isValidButtonAction(action: unknown): action is ButtonActions {
   return typeof action === "string" && action in buttonActionToCode;
 }
 
+/**
+ * Checks if a URL object has all required properties to construct a complete URL.
+ * @param urlObject - The URL object to check
+ * @returns True if the object has host, protocol, and pathname
+ */
 function isUrlObjectComplete(urlObject: UrlObject): boolean {
   return (
     !!urlObject.host &&

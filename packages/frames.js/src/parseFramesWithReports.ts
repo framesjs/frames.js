@@ -36,7 +36,16 @@ type ParseFramesWithReportsOptions = {
 };
 
 /**
- * Gets all supported frames and validation their respective validation reports.
+ * Parses HTML content and extracts frame data for all supported frame specifications.
+ * Returns parsed frames along with validation reports for each specification.
+ *
+ * @param options - Configuration options for parsing
+ * @param options.html - The HTML content to parse
+ * @param options.frameUrl - URL of the frame
+ * @param options.fallbackPostUrl - URL to use if frame doesn't specify a post_url
+ * @param options.fromRequestMethod - Request method used ('GET' or 'POST'), affects validation
+ * @param options.parseSettings - Optional settings to customize parsing behavior
+ * @returns Parsed frames for Farcaster, Farcaster v2, and OpenFrames specifications
  */
 export async function parseFramesWithReports({
   html,
@@ -81,10 +90,10 @@ export async function parseFramesWithReports({
     framesVersion,
     ...(debugImageUrl
       ? {
-          framesDebugInfo: {
-            image: debugImageUrl,
-          },
-        }
+        framesDebugInfo: {
+          image: debugImageUrl,
+        },
+      }
       : {}),
   };
 
