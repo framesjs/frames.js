@@ -45,12 +45,14 @@ export async function getFrameMessage<T extends GetFrameMessageOptions>(
   }: T = {} as T
 ): Promise<FrameMessageReturnType<T>> {
   let requestOptions: HubHttpUrlOptions["hubRequestOptions"] =
-    hubRequestOptions || {};
+    hubRequestOptions ? { ...hubRequestOptions } : {};
 
   if (hubHttpUrl === DEFAULT_HUB_API_URL) {
     // use public api key only if default hub url is used
     requestOptions = {
+      ...requestOptions,
       headers: {
+        ...(requestOptions.headers ?? {}),
         api_key: DEFAULT_HUB_API_KEY,
       },
     };

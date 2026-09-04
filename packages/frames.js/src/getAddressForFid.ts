@@ -21,16 +21,20 @@ export async function getAddressForFid<
   const {
     fallbackToCustodyAddress = true,
     hubHttpUrl = DEFAULT_HUB_API_URL,
-    hubRequestOptions = {
-      headers: {
-        api_key: DEFAULT_HUB_API_KEY,
-      },
-    },
+    hubRequestOptions = {},
   } = options;
+
+  const requestOptions = {
+    ...hubRequestOptions,
+    headers: {
+      ...(hubRequestOptions.headers ?? {}),
+      api_key: DEFAULT_HUB_API_KEY,
+    },
+  };
 
   const response = await fetch(
     `${hubHttpUrl}/v1/verificationsByFid?fid=${fid}`,
-    hubRequestOptions
+    requestOptions
   );
   const { messages } = (await response
     .clone()

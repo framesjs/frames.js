@@ -14,9 +14,15 @@ export function getTokenFromUrl(url: string): ParsedToken {
     throw new Error("Invalid token URL");
   }
 
+  const parsedChainId = parseInt(chainId);
+
+  if (Number.isNaN(parsedChainId)) {
+    throw new Error("Invalid token URL: chainId is not a valid number");
+  }
+
   return {
     namespace,
-    chainId: parseInt(chainId),
+    chainId: parsedChainId,
     address,
     tokenId: tokenId || undefined,
   };

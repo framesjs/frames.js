@@ -31,15 +31,19 @@ export async function getAddressesForFid({
 }): Promise<AddressWithType[]> {
   const {
     hubHttpUrl = DEFAULT_HUB_API_URL,
-    hubRequestOptions = {
-      headers: {
-        api_key: DEFAULT_HUB_API_KEY,
-      },
-    },
+    hubRequestOptions = {},
   } = options;
 
+  const requestOptions = {
+    ...hubRequestOptions,
+    headers: {
+      ...(hubRequestOptions.headers ?? {}),
+      api_key: DEFAULT_HUB_API_KEY,
+    },
+  };
+
   const [verificationsResponse, custodyAddress] = await Promise.all([
-    fetch(`${hubHttpUrl}/v1/verificationsByFid?fid=${fid}`, hubRequestOptions),
+    fetch(`${hubHttpUrl}/v1/verificationsByFid?fid=${fid}`, requestOptions),
     getCustodyAddressForFid(fid),
   ]);
 

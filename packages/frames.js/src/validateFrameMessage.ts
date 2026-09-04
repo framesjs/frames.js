@@ -30,11 +30,7 @@ export async function validateFrameMessage(
   body: FrameActionPayload,
   {
     hubHttpUrl = DEFAULT_HUB_API_URL,
-    hubRequestOptions = {
-      headers: {
-        api_key: DEFAULT_HUB_API_KEY,
-      },
-    },
+    hubRequestOptions = {},
   }: HubHttpUrlOptions = {}
 ): Promise<{
   isValid: boolean;
@@ -55,6 +51,7 @@ export async function validateFrameMessage(
       headers: {
         "Content-Type": "application/octet-stream",
         ...headers,
+        api_key: DEFAULT_HUB_API_KEY,
       },
       body: hexStringToUint8Array(body.trustedData.messageBytes),
       ...rest,
