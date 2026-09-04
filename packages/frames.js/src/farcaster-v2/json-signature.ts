@@ -26,7 +26,7 @@ export class InvalidJFSSignatureError extends Error {
 
 export type JSONFarcasterSignatureHeader = {
   fid: number;
-  type: "custody" | "app_key";
+  type: "custody" | "app_key" | "auth";
   key: `0x${string}`;
 };
 
@@ -240,6 +240,12 @@ export async function verify(
     return false;
   }
 
+  // Auth addresses are delegated signers, so they are not the custody
+  // address returned by the IdRegistry custodyOf lookup.
+  if (decodedHeader.type === "auth") {
+    return true;
+  }
+
   const custodyAddressOfFid = await publicClient.readContract({
     abi: parseAbi([
       "function custodyOf(uint256) public view returns (address)",
@@ -311,7 +317,7 @@ export function decodeHeader(
     if (
       "type" in value &&
       typeof value.type === "string" &&
-      ["custody", "app_key"].includes(value.type)
+      ["custody", "app_key", "auth"].includes(value.type)
     ) {
       header.type = value.type as JSONFarcasterSignatureHeader["type"];
     } else {
@@ -380,13 +386,16 @@ export function decodeAppKeyTypeSignature(signature: string): `0x${string}` {
 
 export function decodeCustodyTypeSignature(signature: string): `0x${string}` {
   try {
-    const decoded = base64urlDecode(signature).toString("utf-8");
+    const decoded = base64urlDecode(signature);
+    const asText = decoded.toString("utf-8").trim();
 
-    if (!decoded.startsWith("0x")) {
-      throw new Error("Invalid signature, must contain hex text");
+    // Check if it's a valid hex string (ASCII encoding)
+    if (/^0x[0-9a-fA-F]+$/.test(asText)) {
+      return asText as `0x${string}`;
     }
 
-    return decoded as `0x${string}`;
+    // Otherwise, treat as raw 65-byte signature encoded as base64url
+    return `0x${decoded.toString("hex")}` as `0x${string}`;
   } catch (e) {
     throw new InvalidJFSSignatureError(e);
   }
